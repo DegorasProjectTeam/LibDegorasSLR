@@ -1,0 +1,119 @@
+/***********************************************************************************************************************
+ *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *                                                                                                                     *
+ *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
+ *                      < Jesús Relinque Madroñal >                                                                    *
+ *                                                                                                                     *
+ *   This file is part of LibDPSLR.                                                                                    *
+ *                                                                                                                     *
+ *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
+ *   as soon they will be approved by the European Commission (IDABC).                                                 *
+ *                                                                                                                     *
+ *   This project is free software: you can redistribute it and/or modify it under the terms of the EUPL license as    *
+ *   published by the IDABC, either Version 1.2 or, at your option, any later version.                                 *
+ *                                                                                                                     *
+ *   This project is distributed in the hope that it will be useful. Unless required by applicable law or agreed to in *
+ *   writing, it is distributed on an "AS IS" basis, WITHOUT ANY WARRANTY OR CONDITIONS OF ANY KIND; without even the  *
+ *   implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the EUPL license to check specific   *
+ *   language governing permissions and limitations and more details.                                                  *
+ *                                                                                                                     *
+ *   You should use this project in compliance with the EUPL license. You should have received a copy of the license   *
+ *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
+ **********************************************************************************************************************/
+
+/** ********************************************************************************************************************
+ * @file consolidated_types.cpp
+ * @author Degoras Project Team.
+ * @brief This file contains the implementation of elements that are common in the ILRS standard consolidated formats.
+ * @copyright EUPL License
+ * @version 2305.1
+***********************************************************************************************************************/
+
+// C++ INCLUDES
+//======================================================================================================================
+#include <sstream>
+// =====================================================================================================================
+
+// LIBDPSLR INCLUDES
+// =====================================================================================================================
+#include <LibDPSLR/ILRSFormats/consolidated_types.h>
+#include <LibDPSLR/Helpers/container_helpers.h>
+// =====================================================================================================================
+
+// LIBDPSLR NAMESPACES
+// =====================================================================================================================
+namespace dpslr{
+namespace ilrs{
+// =====================================================================================================================
+
+// --- RECORD BASE CLASS -----------------------------------------------------------------------------------------------
+
+std::string ConsolidatedRecord::getIdToken() const {return (tokens.empty() ? "" : tokens[0]);}
+
+std::string ConsolidatedRecord::generateCommentBlock() const
+{
+    // Base line.
+    std::stringstream stream;
+
+    // Generate all the comments.
+    for(const auto& comment : this->comment_block)
+        stream << "00 " << comment.substr(0, 80) << std::endl;
+
+    // Return the comment block
+    return stream.str().substr(0, stream.str().find_last_of('\n'));
+}
+
+void ConsolidatedRecord::clearAll()
+{
+    consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
+    generic_record_type = -1;
+    comment_block.clear();
+    tokens.clear();
+    line_number = {};
+}
+
+// --- DATA BASE CLASS -----------------------------------------------------------------------------------------------
+
+RecordReadErrorMultimap ConsolidatedData::readData(const RecordLinesVector& rec_v, float version)
+{
+    // Data containers.
+    RecordLinePair rec_pair;
+    RecordReadErrorMultimap error_map;
+    RecordReadError error;
+    int pos;
+
+    // First, clear the data.
+    this->clearAll();
+
+    // Read the line and store the error, if any.
+    for (const auto& rec : rec_v)
+    {
+        // Check that the record is a header record.
+        if(helpers::containers::find(DataLineString, rec.getIdToken(), pos))
+        {
+            // Store the record type in a pair.
+            rec_pair = {pos, rec};
+
+            // Read the record to store the data in memory.
+            error = this->readDataLine(rec_pair, version);
+
+            // Check for errors.
+            if(error != RecordReadError::NOT_ERROR)
+                error_map.emplace(static_cast<int>(error), rec);
+        }
+        else
+        {
+            error_map.emplace(static_cast<int>(RecordReadError::BAD_TYPE), rec);
+        }
+    }
+
+    // Return the map with the errors. If no errors, the map will be empty.
+    return error_map;
+}
+
+
+
+
+}} // END NAMESPACES
+// =====================================================================================================================
