@@ -65,7 +65,8 @@ using dpslr::geo::meteo::WtrVapPressModel;
 // =====================================================================================================================
 constexpr long double kVelTDelta = 0.5L;  /// Time delta (+-) for calculating the velocity vectors (seconds).
 constexpr long double kTMargin = 2L;      /// Margin to apply to the instant sod to check the CPF data interval.
-constexpr unsigned kPolLagDeg = 9U;       /// Fixed degree for the polynomial lagrange interpolator.
+constexpr unsigned kPolLagDeg9 = 9U;      /// Fixed degree for the polynomial lagrange interpolator.
+constexpr unsigned kPolLagDeg16 = 16U;    /// Fixed degree for the polynomial lagrange interpolator.
 // =====================================================================================================================
 
 /**
@@ -127,6 +128,7 @@ public:
     /// @todo Hermite interpolation function.
     enum class InterpolFunction
     {
+        LAGRANGE_16,
         LAGRANGE_9,
         HERMITE
     };

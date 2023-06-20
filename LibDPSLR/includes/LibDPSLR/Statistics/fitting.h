@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of several functions related with data fitting.
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2306.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -36,7 +36,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDPSLR/Statistics/fitting.tpp"
+#include "LibDPSLR/Statistics/common/statistics_types.h"
 #include "LibDPSLR/Mathematics/containers/matrix.h"
 #include "LibDPSLR/Mathematics/containers/vector3d.h"
 // =====================================================================================================================
@@ -48,34 +48,48 @@ namespace stats{
 // =====================================================================================================================
 
 /**
- * @brief Calculates the Lagrange interpolation
- * @param x
- * @param Y
- * @param degree
- * @param x_interp
- * @param y_interp
- * @return
- */template <typename T, typename U>
+ * @brief Performs Lagrange polynomial interpolation on the given data points and degree.
+ *
+ * The function returns the interpolated y-values for each variable in the y_interp vector. The x_interp value must
+ * be within the range of x-values; otherwise, the function returns LagrangeError::X_OUT_OF_BOUNDS. The function uses
+ * the Lagrange polynomial formula to compute the interpolated values.
+ *
+ * @tparam T The type of the x-values and interpolated value.
+ * @tparam U The type of the y-values.
+ * @param x The vector of x-values (must be sorted).
+ * @param Y The matrix of y-values, where each row represents a different variable and each column represents a data point.
+ * @param degree The degree of the Lagrange polynomial (number of points - 1, order 9 will use 10 points).
+ * @param x_interp The x-value at which interpolation is performed.
+ * @param y_interp The resulting interpolated y-values for each variable.
+ * @return The LagrangeError indicating the result of the interpolation.
+ */
+template <typename T, typename U>
 common::LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned degree,
-                              T x_interp, std::vector<U>& y_interp)
-{
-    return dpslr::stats_private::lagrangeInterp(x, Y, degree, x_interp, y_interp);
-}
+                                       T x_interp, std::vector<U>& y_interp);
 
 template <typename T, typename U>
 common::LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned degree,
-                                             T x_interp, math::Vector3D<U>& y_interp)
-{
-    // Auxiliar containers.
-    stats::common::LagrangeError lag_res;
-    std::vector<long double> res_y;
-    // Call to lagrange.
-    lag_res = dpslr::stats_private::lagrangeInterp(x, Y, degree, x_interp, res_y);
-    // Store the result.
-    y_interp = {res_y[0], res_y[1], res_y[2]};
-    // Return the error code.
-    return lag_res;
-}
+                                            T x_interp, math::Vector3D<U>& y_interp);
+
+/**
+ * @brief Computes the robust bisquare weights (Tukey bisquare) for robust regression or outlier detection.
+ *
+ * Given the input vectors x, y, and yc, this function computes the robust bisquare weights based on the bisquare
+ * weight function. The weights are designed to downweight outliers and provide robust estimates in the presence of
+ * outliers in the data.
+ *
+ * @param x The input vector x for the regression or outlier detection.
+ * @param y The observed values vector y for the regression or outlier detection.
+ * @param yc The predicted values vector yc for the regression or outlier detection.
+ * @param K The tuning constant for the bisquare weight function. Default value is 4.685.
+ * @return A vector of computed bisquare weights.
+ *
+ * @tparam T The data type of the input vectors `x`, `y`, and `yc`.
+ * @tparam Ret The data type of the returned weights. Defaults to the same data type as the input vectors.
+ */
+template <typename T, typename Ret = T>
+std::vector<Ret> robustBisquareWeights(const std::vector<T>& x, const std::vector<T>& y, const std::vector<T>& yc,
+                                       const double K = 4.685);
 
 /**
  * @brief Gets the polynomial fit coefficients for x,y.
@@ -90,10 +104,7 @@ common::LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const dpslr
 template <typename T, typename Ret = T>
 std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y, unsigned int degree,
                                const std::vector<T>& w = std::vector<T>(),
-                               common::PolyFitRobustMethod robust = common::PolyFitRobustMethod::NO_ROBUST)
-{
-    return dpslr::stats_private::polynomialFit(x, y, degree, w, robust);
-}
+                               common::PolyFitRobustMethod robust = common::PolyFitRobustMethod::NO_ROBUST);
 
 /**
  * @brief Resolve for @param x the polynomial given by its coefficients in @param coefs.
@@ -103,10 +114,7 @@ std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y,
  *         If @param coefs is empty, returns 0.
  */
 template <typename T>
-T applyPolynomial(const std::vector<T>& coefs, T x)
-{
-    return dpslr::stats_private::applyPolynomial(coefs, x);
-}
+T applyPolynomial(const std::vector<T>& coefs, T x);
 
 
 /**
@@ -118,10 +126,7 @@ T applyPolynomial(const std::vector<T>& coefs, T x)
  * @note When degree = 1, detrend removes the linear trend.
  */
 template <typename T, typename Ret = T>
-std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y, unsigned int degree)
-{
-    return dpslr::stats_private::detrend(x, y, degree);
-}
+std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y, unsigned int degree);
 
 /**
  * @brief Removes polynomial trend from the data in y, using xinterp, yinterp to form the polynomial fit
@@ -135,10 +140,12 @@ std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y, unsig
  */
 template <typename T, typename Ret = T>
 std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y,
-                         const std::vector<T>& xinterp, const std::vector<T>& yinterp, unsigned int degree)
-{
-    return dpslr::stats_private::detrend(x, y, xinterp, yinterp, degree);
-}
+                         const std::vector<T>& xinterp, const std::vector<T>& yinterp, unsigned int degree);
 
 }} // END NAMESPACES.
+// =====================================================================================================================
+
+// TEMPLATES INCLUDES
+// =====================================================================================================================
+#include "LibDPSLR/Statistics/fitting.tpp"
 // =====================================================================================================================

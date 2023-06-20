@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the template implementation of several functions related with data fitting.
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2306.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -43,14 +43,16 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDPSLR/Statistics/common/statistics_types.h"
-#include "LibDPSLR/Mathematics/containers/matrix.h"
+#include <LibDPSLR/Statistics/common/statistics_types.h>
+#include <LibDPSLR/Statistics/measures.h>
+#include <LibDPSLR/Mathematics/containers/matrix.h>
+#include <LibDPSLR/Mathematics/containers/vector3d.h>
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace stats_private{
+namespace stats{
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -59,12 +61,9 @@ using dpslr::stats::common::PolyFitRobustMethod;
 // =====================================================================================================================
 
 template <typename T, typename U>
-LagrangeError lagrangeInterp(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y,
+LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y,
                                            unsigned int degree, T x_interp, std::vector<U>& y_interp)
 {
-    // 'y' must be sorted
-    // Degree = number of points - 1 (order 9 -> 10 points)
-
     // Variables.
     unsigned int first_point;
     int aux;
@@ -74,9 +73,7 @@ LagrangeError lagrangeInterp(const std::vector<T>& x, const dpslr::math::Matrix<
     {
         // x_interp is not within x range, so it cannot be interpolated.
         if (x_interp < x[0] || x_interp > x.back())
-        {
             return LagrangeError::X_OUT_OF_BOUNDS;
-        }
 
         // Look for given value immediately after interpolation argument
         aux = 0;
@@ -123,18 +120,39 @@ LagrangeError lagrangeInterp(const std::vector<T>& x, const dpslr::math::Matrix<
     {
         error = LagrangeError::DATA_SIZE_MISMATCH;
     }
+
+    // Return the error.
     return error;
 }
 
-template <typename T, typename Ret = T>
-std::vector<Ret> computeBisquareWeights(const std::vector<T>& x, const std::vector<T>& y, const std::vector<T>& yc,
-                                        const double K = 4.685)
+template <typename T, typename U>
+common::LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned degree,
+                                            T x_interp, math::Vector3D<U>& y_interp)
 {
-    auto leverages = leverage(x);
+    // Auxiliar containers.
+    stats::common::LagrangeError lag_res;
+    std::vector<long double> res_y;
+    // Call to lagrange.
+    lag_res = lagrangeInterpol(x, Y, degree, x_interp, res_y);
+    // Store the result.
+    y_interp = {res_y[0], res_y[1], res_y[2]};
+    // Return the error code.
+    return lag_res;
+}
+
+template <typename T, typename Ret>
+std::vector<Ret> robustBisquareWeights(const std::vector<T>& x, const std::vector<T>& y, const std::vector<T>& yc,
+                                       const double K)
+{
+    auto leverages = measures::leverage(x);
     auto resids = y - yc;
-    auto mad = median(resids);
-    double s = mad/0.6745;
-    double Ks = K*s;
+    decltype(resids) resids_abs;
+    std::transform(resids.begin(), resids.end(), std::back_inserter(resids_abs), [](const auto& v){return std::abs(v);});
+    // Median absoulte deviation.
+    long double mad = median(resids_abs);
+    // For the standard normal E(MAD)=0.6745
+    long double s = mad/0.6745;
+    long double Ks = K*s;
     std::vector<T> u;
     std::vector<Ret> w;
 
@@ -166,10 +184,9 @@ T applyPolynomial(const std::vector<T>& coefs, T x)
     return std::inner_product(coefs.begin(), coefs.end(), x_pow.begin(), T(0));
 }
 
-template <typename T, typename Ret = T>
+template <typename T, typename Ret>
 std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y, unsigned int degree,
-                               const std::vector<T>& w = std::vector<T>(),
-                               PolyFitRobustMethod robust = PolyFitRobustMethod::NO_ROBUST)
+                               const std::vector<T>& w, PolyFitRobustMethod robust)
 {
 
     // Variable declaration
@@ -286,7 +303,7 @@ std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y,
     return coefs;
 }
 
-template <typename T, typename Ret = T>
+template <typename T, typename Ret>
 std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y, unsigned int degree)
 {
     // Return vector.
@@ -306,7 +323,7 @@ std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y, unsig
     return ret;
 }
 
-template <typename T, typename Ret = T>
+template <typename T, typename Ret>
 std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y,
                          const std::vector<T>& xinterp, const std::vector<T>& yinterp, unsigned int degree)
 {

@@ -667,30 +667,40 @@ long double PredictorSLR::applyCorrections(long double &range, PredictionResult 
 }
 
 
-PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector3D<long double> &y, PredictionResult &result) const
+PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector3D<long double> &y,
+                                                           PredictionResult &result) const
 {
-    if(this->interpol_function_ == PredictorSLR::InterpolFunction::LAGRANGE_9)
+    // Auxiliar error container.
+    PredictorSLR::PredictionError error = PredictorSLR::PredictionError::UNKNOWN_INTERPOLATOR;
+    result.error = error;
+
+    // Lagrange related interpolators.
+    if(this->interpol_function_ == PredictorSLR::InterpolFunction::LAGRANGE_9 ||
+       this->interpol_function_ == PredictorSLR::InterpolFunction::LAGRANGE_16 )
     {
+        unsigned deg = kPolLagDeg9;
+
+        if(this->interpol_function_ == PredictorSLR::InterpolFunction::LAGRANGE_16)
+            deg = kPolLagDeg16;
+
         // Result of the interpolation.
         stats::common::LagrangeError lag_res;
 
         // Do the 9th degree interpolation.
-        lag_res = stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, kPolLagDeg, x, y);
+        lag_res = stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, deg, x, y);
 
         // Return if error.
         if (stats::common::LagrangeError::NOT_ERROR != lag_res)
         {
-            PredictionError err = this->convertLagInterpError(lag_res);
-            result.error = err;
-            return err;
+            error = this->convertLagInterpError(lag_res);
+            result.error = error;
         }
     }
-    else
-    {
-        // Interpolator not implemented.
-        result.error = PredictorSLR::PredictionError::UNKNOWN_INTERPOLATOR;
-        return PredictorSLR::PredictionError::UNKNOWN_INTERPOLATOR;
-    }
+
+    // TODO Other interpolators.
+
+    // Return the error.
+    return error;
 }
 
 PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(stats::common::LagrangeError error) const
