@@ -1,0 +1,180 @@
+#include "LibDPSLR/AlgorithmsSLR/Filtering/dpslr_filters.h"
+
+std::vector<std::size_t> histPrefilterSLR(const std::vector<double> &times, const std::vector<double> &resids,
+                                          double bs, double depth, unsigned min_ph, unsigned divisions)
+{
+    // Check the input data.
+    if (times.empty() || resids.empty() || times.size() != resids.size() || depth <= 0 || bs <= 0 || divisions <= 0)
+        return {};
+
+    // Containers and auxiliar variables.
+    std::vector<std::size_t> selected_ranges;
+    std::size_t first = 0;
+    double _depth = depth/divisions;
+    unsigned _min_ph = min_ph/divisions;
+    auto bins_indexes = extractBins(times, resids, bs, BinDivisionEnum::DAY_FIXED);
+
+    for (const auto& bin_indexes : bins_indexes)
+    {
+        // Compute selected ranges from the bin
+        auto bin_resids = helpers::extract(resids, bin_indexes);
+        auto bin_selected = histPrefilterBinSLR(bin_resids, _depth, _min_ph);
+        std::transform(bin_selected.begin(), bin_selected.end(), std::back_inserter(selected_ranges),
+                       [first](const auto& idx){return  idx + first;});
+
+        // Update the first bin index variable.
+        first += bin_indexes.size();
+    }
+
+    // Return the result container.
+    return selected_ranges;
+}
+
+std::vector<std::size_t> histPrefilterBinSLR(const std::vector<double> &resids_bin, double depth, unsigned min_ph)
+{
+    std::vector<std::size_t> selected_ranges;
+
+    // Check if the residuals bin is not empty.
+    if(!resids_bin.empty())
+    {
+        // Compute the range gate width.
+        auto edges = std::minmax_element(resids_bin.begin(), resids_bin.end());
+        long double rg_width = std::abs(*edges.first) + std::abs(*edges.second);
+
+        // Get the histogram division size.
+        std::size_t hist_size = static_cast<std::size_t>(std::floor(rg_width/depth));
+
+        // Calculate histogram of residuals in bin.
+        auto histcount_res = dpslr::math::histcounts1D(resids_bin, hist_size, *edges.first, *edges.second);
+
+        // Check which histogram bins have more than min_photons count. They will be selected.
+        //        std::vector<std::size_t> sel_bins;
+        //        for (std::size_t bin_idx = 0; bin_idx < histcount_res.size(); bin_idx++)
+        //            if (std::get<0>(histcount_res[bin_idx]) >= min_photons)
+        //                sel_bins.push_back(bin_idx);
+
+        //        // Get points which are inside of selected histogram bins
+        //        for (std::size_t res_idx = 0; res_idx < resids_bin.size(); res_idx++)
+        //        {
+        //            bool select = false;
+        //            std::size_t sel_bin_idx = 0;
+        //            while(!select && sel_bin_idx < sel_bins.size())
+        //            {
+        //                const auto& bin_res = histcount_res[sel_bins[sel_bin_idx]];
+        //                if (resids_bin[res_idx] >= std::get<1>(bin_res) && resids_bin[res_idx] < std::get<2>(bin_res))
+        //                    select = true;
+        //                sel_bin_idx++;
+        //            }
+
+        //            // Store the selected range.
+        //            if (select)
+        //                selected_ranges.push_back(res_idx);
+        //        }
+
+        //        auto it = std::max_element(histcount_res.begin(), histcount_res.end(),
+        //                         [](const auto& a, const auto& b){return std::get<0>(a) < std::get<0>(b);});
+
+        //        if (it != histcount_res.end() && std::get<0>(*it) >= min_photons)
+        //        {
+        //            // Get points which are inside of selected histogram bins
+        //            for (std::size_t res_idx = 0; res_idx < resids_bin.size(); res_idx++)
+        //            {
+        //                if (resids_bin[res_idx] >= std::get<1>(*it) && resids_bin[res_idx] < std::get<2>(*it))
+        //                    selected_ranges.push_back(res_idx);
+        //            }
+        //        }
+
+        auto it = std::max_element(histcount_res.begin(), histcount_res.end(),
+                                   [](const auto& a, const auto& b){return std::get<0>(a) < std::get<0>(b);});
+
+        if (it != histcount_res.end() && std::get<0>(*it) >= min_ph)
+        {
+            // Iterator pointing to first bin NOT valid
+            auto it_lower = it - 1;
+            auto it_upper = it + 1;
+
+            while (it_lower >= histcount_res.begin() && std::get<0>(*it_lower) >= min_ph)
+                it_lower--;
+
+            while (it_upper != histcount_res.end() && std::get<0>(*it_upper) >= min_ph)
+                it_upper++;
+
+            // Get points which are inside of selected histogram bins
+            for (std::size_t res_idx = 0; res_idx < resids_bin.size(); res_idx++)
+            {
+                bool select = false;
+                auto it_bin = it_lower + 1;
+                while(!select && it_bin < it_upper)
+                {
+                    if (resids_bin[res_idx] >= std::get<1>(*it_bin) && resids_bin[res_idx] < std::get<2>(*it_bin))
+                        select = true;
+                    it_bin++;
+                }
+
+                // Store the selected range.
+                if (select)
+                    selected_ranges.push_back(res_idx);
+            }
+        }
+
+    }
+
+    return selected_ranges;
+}
+
+std::vector<std::size_t> histPostfilterSLR(const std::vector<double> &times, const std::vector<double> &data,
+                                           double bs, double depth)
+{
+    // Call to the prefilter disabling the ph contributions.
+    //return histPrefilterSLR(times, data, bs, depth, 0);
+
+    // Auxiliar containers.
+    std::vector<double> detrend_resids;
+    std::vector<std::size_t> sel_indexes;
+    double rf = depth *1.5; // depth / 2 * 2.5
+    std::vector<double> y_vec;
+
+    // Detrend the residuals.
+    //detrend_resids = dpslr::math::detrend(times, data, 9);
+
+    auto coefs = dpslr::math::polynomialFit(times, data, 9);
+
+    for (std::size_t i = 0; i < data.size(); i++)
+    {
+        double y_interp = dpslr::math::applyPolynomial(coefs, times[i]);
+
+        if (data[i] >= y_interp - rf && data[i] <= y_interp + rf)
+            sel_indexes.push_back(i);
+
+    }
+    return sel_indexes;
+}
+
+template <typename T>
+std::vector<std::size_t> windowPrefilterPrivate(const std::vector<T> &resids, T upper, T lower)
+{
+    // Check the input.
+    if(resids.empty() || upper <= lower)
+        return {};
+
+    // Auxiliar containers.
+    std::vector<std::size_t> indexes;
+
+    // Get the acepted residuals.
+    for(std::size_t i = 0; i < resids.size(); i++)
+        if(resids[i] <= upper && resids[i] >= lower)
+            indexes.push_back(i);
+
+    // Return the indexes.
+    return indexes;
+}
+
+std::vector<std::size_t> windowPrefilter(const std::vector<long double> &resids, long double upper, long double lower)
+{
+    return windowPrefilterPrivate(resids, upper, lower);
+}
+
+std::vector<std::size_t> windowPrefilter(const std::vector<double> &resids, double upper, double lower)
+{
+    return windowPrefilterPrivate(resids, upper, lower);
+}

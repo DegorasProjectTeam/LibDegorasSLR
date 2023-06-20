@@ -44,6 +44,7 @@ namespace timing{
 // =====================================================================================================================
 
 // =====================================================================================================================
+using dpslr::timing::common::HRTimePointStd;
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
@@ -80,8 +81,8 @@ HRTimePointStd tleDateToTimePoint(unsigned int cent_year, long double day_with_f
     auto start_cent_point = high_resolution_clock::from_time_t(start_cent);
     double iday;
     long double fday = std::modf(day_with_fract, &iday);
-    duration<int, std::ratio<86400>> days_duration(static_cast<int>(iday));
-    NsStd fract_secs_duration(static_cast<long long int>(fday * 86400000000000.0));
+    duration<int, std::ratio<common::kSecsInDay>> days_duration(static_cast<int>(iday));
+    common::NsStd fract_secs_duration(static_cast<long long int>(fday * 86400000000000.0));
     return time_point_cast<HRTimePointStd::duration>(start_cent_point + days_duration + fract_secs_duration);
 }
 
@@ -96,8 +97,9 @@ void timePointToTLEDate(const HRTimePointStd& tp, int& cent_year, long double &d
     date->tm_hour = 0;
     std::time_t start_day = MKGMTIME(date);
     auto start_day_point = std::chrono::system_clock::from_time_t(start_day);
-    std::chrono::duration<double, std::ratio<86400>> day_fract(
-              std::chrono::duration_cast<std::chrono::duration<double, std::ratio<86400>>>(tp - start_day_point));
+    std::chrono::duration<double, std::ratio<common::kSecsInDay>> day_fract(
+              std::chrono::duration_cast<std::chrono::duration<double,
+              std::ratio<common::kSecsInDay>>>(tp - start_day_point));
     day_with_fract += day_fract.count();
 }
 
@@ -187,7 +189,7 @@ void jdtogr(long long jd_day, double jd_fract,int &year, unsigned int &month, un
     // Avoid .9999... imprecission
     hour   = jdfc*24.0 + 1.e-10;
     minute = jdfc*1440.0 - hour*60.0 + 1.e-8;
-    second = ((jdfc - hour/24.0 - minute/1440.0)*86400.0) + 1.e-8;
+    second = ((jdfc - hour/24.0 - minute/1440.0)*common::kSecsInDay) + 1.e-8;
     year   = ((4.0*jda1900)-1.0)/1461.0;
 
     int tday = ((4.0*jda1900) + 3.0 - (year*1461.0))/4.0;
@@ -213,41 +215,43 @@ void timePointToModifiedJulianDate(const HRTimePointStd &tp, unsigned& mjd, unsi
 {
     double unix_seconds = duration_cast<duration<double>>(tp.time_since_epoch()).count();
     second_fract = unix_seconds - static_cast<long long>(unix_seconds);
-    mjd = static_cast<unsigned>((unix_seconds/86400.0) + kPosixEpochToJulian + kJulianToModifiedJulian);
-    second_day = static_cast<long long>(unix_seconds) % 86400;
+    mjd = static_cast<unsigned>((unix_seconds/common::kSecsInDay) +
+                                common::kPosixEpochToJulian + common::kJulianToModifiedJulian);
+    second_day = static_cast<long long>(unix_seconds) % common::kSecsInDay;
 }
 
 long double timePointToJulianDatetime(const HRTimePointStd &tp)
 {
     long double unix_seconds = duration_cast<duration<long double>>(tp.time_since_epoch()).count();
-    long double jd = (unix_seconds/86400.0) + kPosixEpochToJulian;
+    long double jd = (unix_seconds/common::kSecsInDay) + common::kPosixEpochToJulian;
     return jd;
 }
 
 long double timePointToJ2000Datetime(const HRTimePointStd &tp)
 {
-    return timePointToJulianDatetime(tp) + kJulianToJ2000;
+    return timePointToJulianDatetime(tp) + common::kJulianToJ2000;
 }
 
 long double timePointToModifiedJulianDatetime(const HRTimePointStd &tp)
 {
-    return timePointToJulianDatetime(tp) + kJulianToModifiedJulian;
+    return timePointToJulianDatetime(tp) + common::kJulianToModifiedJulian;
 }
 
 long double timePointToReducedJulianDatetime(const HRTimePointStd &tp)
 {
-    return timePointToJulianDatetime(tp) + kJulianToReducedJulian;
+    return timePointToJulianDatetime(tp) + common::kJulianToReducedJulian;
 }
 
 HRTimePointStd modifiedJulianDatetimeToTimePoint(long double mjt)
 {
-    duration<long double, std::ratio<86400>> unix_days(mjt + kModifiedJulianToJulian + kJulianToPosixEpoch);
+    duration<long double, std::ratio<common::kSecsInDay>> unix_days(
+        mjt + common::kModifiedJulianToJulian + common::kJulianToPosixEpoch);
     return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
 }
 
 HRTimePointStd julianToTimePoint(long double jt)
 {
-    duration<long double, std::ratio<86400>> unix_days(jt + kJulianToPosixEpoch);
+    duration<long double, std::ratio<common::kSecsInDay>> unix_days(jt + common::kJulianToPosixEpoch);
     return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
 }
 
@@ -266,11 +270,12 @@ HRTimePointStd dateTimeToTimePoint(int y, int m, int d, int h, int min, int s)
 
 HRTimePointStd win32TicksToTimePoint(unsigned long long ticks)
 {
-    const unsigned long long ns = ticks * kNsPerWin32Tick;
+    const unsigned long long ns = ticks * common::kNsPerWin32Tick;
     const unsigned long long sec = ns / 1000000000ULL;
     const unsigned long long frc = ns % 1000000000ULL;
-    auto tp_sec = time_point_cast<SecStd>(HRTimePointStd()) + SecStd(sec + kWin32EpochToPosixEpoch);
-    return tp_sec + NsStd(frc);
+    auto tp_sec = time_point_cast<common::SecStd>(
+                      HRTimePointStd()) + common::SecStd(sec + common::kWin32EpochToPosixEpoch);
+    return tp_sec + common::NsStd(frc);
 }
 
 std::string timePointToString(const HRTimePointStd &tp, const std::string& format,
@@ -280,9 +285,9 @@ std::string timePointToString(const HRTimePointStd &tp, const std::string& forma
     std::ostringstream ss;
     // Convert the time point to a duration and get the different time fractions.
     HRTimePointStd::duration dur = tp.time_since_epoch();
-    const time_t secs = duration_cast<SecStd>(dur).count();
-    const long long mill = duration_cast<MsStd>(dur).count();
-    const unsigned long long ns = duration_cast<NsStd>(dur).count();
+    const time_t secs = duration_cast<common::SecStd>(dur).count();
+    const long long mill = duration_cast<common::MsStd>(dur).count();
+    const unsigned long long ns = duration_cast<common::NsStd>(dur).count();
     const unsigned long long s_ns = secs * 1e9;
     const unsigned long long t_ns = (ns - s_ns);
     // Format the duration.
@@ -316,6 +321,11 @@ std::string currentISO8601Date(bool add_ms)
     return timePointToIso8601(now, add_ms);
 }
 
+long double mjdAndSecsToMjdt(long long mjd, long double seconds)
+{
+    long double mjdt = mjd + (seconds / common::kSecsInDay);
+    return mjdt;
+}
 
 
 }}// END NAMESPACES.

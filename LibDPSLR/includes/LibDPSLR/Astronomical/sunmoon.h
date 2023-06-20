@@ -42,6 +42,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
+#include "LibDPSLR/Mathematics/math.h"
 #include "LibDPSLR/libdpslr_global.h"
 #include "LibDPSLR/Mathematics/units.h"
 // =====================================================================================================================
@@ -62,8 +63,8 @@ namespace astro{
 LIBDPSLR_EXPORT void simpleSunPosition(double j2000, double lat, double lon, bool refr, double& az, double& el)
 {
     // Convert latitude and longitude to radians.
-    double rlat = math::units::rad(lat);
-    double rlon = math::units::rad(lon);
+    double rlat = math::units::degToRad(lat);
+    double rlon = math::units::degToRad(lon);
 
     // Local sidereal time.
     long double sidereal = 4.894961213 + 6.300388099 * j2000 + rlon;
@@ -92,15 +93,15 @@ LIBDPSLR_EXPORT void simpleSunPosition(double j2000, double lat, double lon, boo
                                 std::sin(decl) - std::sin(rlat) * std::sin(elevation));
 
     // Convert azimuth and elevation to degrees and normalize.
-    elevation = math::normalizeVal(math::units::deg(elevation), -180.0, 180.0);
-    azimuth = math::normalizeVal(math::units::deg(azimuth), 0.0, 360.0);
+    elevation = math::normalizeVal(math::units::radToDegree(elevation), -180.0, 180.0);
+    azimuth = math::normalizeVal(math::units::radToDegree(azimuth), 0.0, 360.0);
 
     // Very simple refraction correction (not necessary).
     // Pressure and temperature could be added but for our
     // applications greater precision is not necessary.
     if(refr && (elevation >= -1 * (0.26667 + 0.5667)))
     {
-        double targ = math::units::rad((elevation + (10.3/(elevation + 5.11))));
+        double targ = math::units::degToRad((elevation + (10.3/(elevation + 5.11))));
         elevation += (1.02/tan(targ)) / 60.0;
     }
 

@@ -44,7 +44,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDPSLR/Mathematics/matrix.h"
+#include "LibDPSLR/Mathematics/containers/matrix.h"
 #include "LibDPSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
@@ -83,7 +83,6 @@ T normalizeVal(T x, T x_min, T x_max)
 template <typename T>
 void euclid3DRotMat(int axis, T angle, dpslr::math::Matrix<T> &matrix)
 {
-    // TODO Parallel for?
     double s, c;
     unsigned int caxis = static_cast<unsigned int>(axis - 1);
     matrix.fill(3,3,0);

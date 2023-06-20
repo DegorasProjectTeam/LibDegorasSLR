@@ -23,7 +23,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file StringUtils.tpp
+ * @file string_helpers.tpp
  * @brief This file contains the function implementations related with the string helper tools.
  * @author Degoras Project Team
  * @copyright EUPL License

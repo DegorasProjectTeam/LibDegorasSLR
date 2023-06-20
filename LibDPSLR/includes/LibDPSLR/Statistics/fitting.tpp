@@ -43,8 +43,8 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDPSLR/Statistics/fitting_types.h"
-#include "LibDPSLR/Mathematics/matrix.h"
+#include "LibDPSLR/Statistics/common/statistics_types.h"
+#include "LibDPSLR/Mathematics/containers/matrix.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -53,8 +53,13 @@ namespace dpslr{
 namespace stats_private{
 // =====================================================================================================================
 
+// =====================================================================================================================
+using dpslr::stats::common::LagrangeError;
+using dpslr::stats::common::PolyFitRobustMethod;
+// =====================================================================================================================
+
 template <typename T, typename U>
-dpslr::stats::LagrangeResult lagrangeInterp(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y,
+LagrangeError lagrangeInterp(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y,
                                            unsigned int degree, T x_interp, std::vector<U>& y_interp)
 {
     // 'y' must be sorted
@@ -63,14 +68,14 @@ dpslr::stats::LagrangeResult lagrangeInterp(const std::vector<T>& x, const dpslr
     // Variables.
     unsigned int first_point;
     int aux;
-    dpslr::stats::LagrangeResult error = dpslr::stats::LagrangeResult::NOT_ERROR;
+    LagrangeError error = LagrangeError::NOT_ERROR;
 
     if (x.size() > 0 && x.size() == Y.rowSize())
     {
         // x_interp is not within x range, so it cannot be interpolated.
         if (x_interp < x[0] || x_interp > x.back())
         {
-            return dpslr::stats::LagrangeResult::X_OUT_OF_BOUNDS;
+            return LagrangeError::X_OUT_OF_BOUNDS;
         }
 
         // Look for given value immediately after interpolation argument
@@ -85,12 +90,12 @@ dpslr::stats::LagrangeResult lagrangeInterp(const std::vector<T>& x, const dpslr
         if (aux < 0)
         {
             first_point = 0;
-            error = dpslr::stats::LagrangeResult::NOT_IN_THE_MIDDLE;
+            error = LagrangeError::NOT_IN_THE_MIDDLE;
         }
         else if (static_cast<unsigned int>(aux) + degree >= x.size())
         {
             first_point = static_cast<unsigned int>(x.size() - degree - 1);
-            error = dpslr::stats::LagrangeResult::NOT_IN_THE_MIDDLE;
+            error = LagrangeError::NOT_IN_THE_MIDDLE;
         }
         else
         {
@@ -103,7 +108,7 @@ dpslr::stats::LagrangeResult lagrangeInterp(const std::vector<T>& x, const dpslr
         // Apply Lagrange polynomial interpolation to all variables in Y.
         for (unsigned int i = first_point; i <= first_point + degree; i++)
         {
-            double pj=1.0;
+            T pj=1.0;
             for(unsigned int j = first_point; j <= first_point + degree; j++)
             {
                 if (j != i) pj*=(x_interp-x[j])/(x[i]-x[j]);
@@ -116,7 +121,7 @@ dpslr::stats::LagrangeResult lagrangeInterp(const std::vector<T>& x, const dpslr
     }
     else
     {
-        error = dpslr::stats::LagrangeResult::DATA_SIZE_MISMATCH;
+        error = LagrangeError::DATA_SIZE_MISMATCH;
     }
     return error;
 }
@@ -164,7 +169,7 @@ T applyPolynomial(const std::vector<T>& coefs, T x)
 template <typename T, typename Ret = T>
 std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y, unsigned int degree,
                                const std::vector<T>& w = std::vector<T>(),
-                               dpslr::stats::PolyFitRobustMethod robust = dpslr::stats::PolyFitRobustMethod::NO_ROBUST)
+                               PolyFitRobustMethod robust = PolyFitRobustMethod::NO_ROBUST)
 {
 
     // Variable declaration
@@ -241,7 +246,7 @@ std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y,
     }
 
     // If robust method is selected, calculate weights and recalculate coefficients
-    if (dpslr::stats::PolyFitRobustMethod::BISQUARE_WEIGHTS == robust)
+    if (PolyFitRobustMethod::BISQUARE_WEIGHTS == robust)
     {
         // In bisquare weights, weights are recalculated iteratively until coefficients converge
         int i = 0;

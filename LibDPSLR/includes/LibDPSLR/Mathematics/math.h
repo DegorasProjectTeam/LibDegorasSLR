@@ -33,8 +33,7 @@
 #pragma once
 
 // ========== INTERNAL INCLUDES ========================================================================================
-#include "LibDPSLR/libdpslr_global.h"
-#include "LibDPSLR/Mathematics/math_types.h"
+#include "LibDPSLR/Mathematics/common/math_types.h"
 #include "LibDPSLR/Mathematics/math.tpp"
 // =====================================================================================================================
 
@@ -43,6 +42,13 @@
 namespace dpslr {
 namespace math {
 // =====================================================================================================================
+
+
+template<typename T>
+T pow2(T x)
+{
+    return x*x;
+}
 
 /**
  * @brief Truncates a number with a given number of decimal places.
@@ -82,14 +88,29 @@ T normalizeVal(T x, T x_min, T x_max)
     return dpslr::math_private::normalizeVal(x, x_min, x_max);
 }
 
-// Euclidean division for long long data.
 /**
- * @brief Performs euclidean division of a / b, giving quotient q and remainder r.
- * @param a, the dividend.
- * @param b, the divisor.
- * @return struct containing the quotient and remainder.
+ * @brief Euclidean division for integral types.
+ *
+ *        This function calculates the quotient and remainder of the Euclidean division for two integral
+ *        values. It is neccesary because the std function not calculates the result in the mathematical
+ *        sense, the remainder can be negative.
+ *
+ * @tparam T The integral type for the division.
+ * @param a, The dividend.
+ * @param b, The divisor.
+ * @return An instance of LldivResult<T> containing the quotient and remainder.
  */
-LIBDPSLR_EXPORT LldivResult euclidDivLL(long long a, long long b);
+template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+common::EuclideanDivResult<T> euclidDivLL(T a, T b)
+{
+    common::EuclideanDivResult<T> res;
+    T r = a % b;
+    r =  r >= 0 ? r : r + std::abs(b);
+    T q = (a - r) / b;
+    res.r = static_cast<typename common::EuclideanDivResult<T>::UnsignedT>(r);
+    res.q = q;
+    return res;
+};
 
 /**
  * @brief Compare floating points arguments a and b.

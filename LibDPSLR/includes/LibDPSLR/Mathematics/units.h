@@ -43,8 +43,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDPSLR/Mathematics/math_types.h"
-#include "LibDPSLR/Astronomical/astro_types.h"
+#include "LibDPSLR/Mathematics/common/math_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -54,27 +53,41 @@ namespace math{
 namespace units{
 // =====================================================================================================================
 
-// CONSTANTS
+// BASIC CONSTANTS
 // =====================================================================================================================
-constexpr double kSecToPs = 1e12;
-constexpr double kSecToNs = 1e9;
-constexpr double kSecToUs = 1e6;
-constexpr double kSecToMs = 1e3;
-constexpr double kNmToUm = 0.001;
+constexpr long double kSecToPs = 1e12L;
+constexpr long double kPsToSec = 1e-12L;
+constexpr long double kSecToNs = 1e9L;
+constexpr long double kNsToSec = 1e-9L;
+constexpr long double kSecToUs = 1e6L;
+constexpr long double kSecToMs = 1e3L;
+constexpr long double kNmToUm = 0.001L;
 // =====================================================================================================================
 
-// ========== FUNCTIONS ===============================================================================================
+// LIGHT TIME TO DISTANCE CONSTANTS
+// =====================================================================================================================
+constexpr long double kLightPsToM  = 0.000299792458L;
+constexpr long double kLightPsToDm = 0.00299792458L;
+constexpr long double kLightPsToCm = 0.0299792458L;
+constexpr long double kLightPsToMm = 0.299792458L;
+constexpr long double kLightNsToM  = 0.299792458L;
+constexpr long double kLightNsToDm = 2.99792458L;
+constexpr long double kLightNsToCm = 29.9792458L;
+constexpr long double kLightNsToMm = 299.792458L;
+// =====================================================================================================================
+
+// ========== FUNCTIONS ================================================================================================
 
 template <typename T>
-double rad(T degree)
+double degToRad(T degree)
 {
-    return (degree*(math::pi/180.0));
+    return (degree*(math::common::pi/180.0));
 }
 
 template <typename T>
-double deg(T radian)
+double radToDegree(T radian)
 {
-    return (radian*(180.0/math::pi));
+    return (radian*(180.0/math::common::pi));
 }
 
 // =====================================================================================================================
@@ -99,12 +112,12 @@ public:
         {
             if (unit == Unit::RADIANS)
             {
-                this->angle_ *= math::pi / 180.0;
+                this->angle_ *= math::common::pi / 180.0;
                 this->unit_ = unit;
             }
             else if (unit == Unit::DEGREES)
             {
-                this->angle_ *= 180.0 / math::pi;
+                this->angle_ *= 180.0 / math::common::pi;
                 this->unit_ = unit;
             }
         }
@@ -141,13 +154,13 @@ public:
         {
             if (unit == Unit::LIGHT_PS)
             {
-                this->dist_ *= 1.0/astro::kLightPsToM;
+                this->dist_ *= 1.0/kLightPsToM;
                 this->unit_ = unit;
             }
 
             else if (unit == Unit::METRES)
             {
-                this->dist_ *= astro::kLightPsToM;
+                this->dist_ *= kLightPsToM;
                 this->unit_ = unit;
             }
 

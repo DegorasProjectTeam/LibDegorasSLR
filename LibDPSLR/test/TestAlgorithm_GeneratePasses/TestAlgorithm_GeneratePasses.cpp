@@ -1,13 +1,11 @@
-#include <LibDPSLR/class_cpf.h>
-#include <LibDPSLR/cpfutils.h>
-#include <LibDPSLR/geo.h>
-#include <LibDPSLR/utils.h>
+
 
 #include <iostream>
 #include <chrono>
 
 int main(int argc, char**argv)
 {
+    /*
     std::string cpf_path;;
 
     if (argc < 2)
@@ -83,6 +81,6 @@ int main(int argc, char**argv)
         i++;
 
     }
-	
+    */
 	return 0;
 }

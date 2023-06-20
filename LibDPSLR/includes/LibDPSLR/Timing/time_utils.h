@@ -23,7 +23,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file TimeUtils.h
+ * @file time_utils.h
  * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
@@ -43,6 +43,7 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDPSLR/libdpslr_global.h"
+#include "LibDPSLR/Timing/common/time_types.h"
 // =====================================================================================================================
 
 // DEFINITIONS
@@ -60,50 +61,9 @@ namespace dpslr{
 namespace timing{
 // =====================================================================================================================
 
-// CONVENIENT ALIAS AND ENUMERATIONS
-//======================================================================================================================
-
-/// High resolution time point to store datetimes (uses Unix Time).
-using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
-
-/// Normal time point to store datetimes (uses Unix Time).
-using TimePointStd = std::chrono::time_point<std::chrono::system_clock>;
-
-/// Short way of referring to seconds.
-using SecStd = std::chrono::seconds;
-
-/// Short way of referring to milliseconds.
-using MsStd = std::chrono::milliseconds;
-
-/// Short way of referring to microseconds.
-using UsStd = std::chrono::microseconds;
-
-/// Short way of referring to nanoseconds.
-using NsStd = std::chrono::nanoseconds;
-
-enum class TimeResolution
-{
-    SECONDS,
-    MILLISECONDS,
-    MICROSECOND,
-    NANOSECOND,
-    PICOSECOND
-};
-
-//======================================================================================================================
-
-// CONSTANTS
-//======================================================================================================================
-constexpr double kModifiedJulianToJulian = 2400000.5;
-constexpr double kJulianToModifiedJulian = -2400000.5;
-constexpr double kJulianToReducedJulian = -2400000.0;
-constexpr double kJulianToJ2000 = -2451545.0;
-constexpr double kJ2000ToJulian = 2451545.0;
-constexpr double kPosixEpochToJulian = 2440587.5;
-constexpr double kJulianToPosixEpoch = -2440587.5;
-constexpr long long kNsPerWin32Tick = 100ULL;
-constexpr long long kWin32EpochToPosixEpoch = -11644473600ULL;
-//======================================================================================================================
+// =====================================================================================================================
+using dpslr::timing::common::HRTimePointStd;
+// =====================================================================================================================
 
 // STRING FUNCTIONS
 //======================================================================================================================
@@ -124,7 +84,7 @@ LIBDPSLR_EXPORT std::string currentUTCISODate();
 
 std::chrono::seconds iso8601DurationParser(const std::string& duration);
 
-HRTimePointStd iso8601DatetimeParser(const std::string& datetime);
+common::HRTimePointStd iso8601DatetimeParser(const std::string& datetime);
 
 //======================================================================================================================
 
@@ -132,7 +92,7 @@ HRTimePointStd iso8601DatetimeParser(const std::string& datetime);
 //======================================================================================================================
 
 /**
- * @brief Converts Win32 ticks to a std::chrono::time_point with nanosecond precision.
+ * @brief Converts Win32 ticks to a HRTimePointStd with nanosecond precision.
  *
  * This function converts the given Win32 ticks to a std::chrono::time_point using the high-resolution clock.
  * Win32 ticks represent the number of 100-nanosecond intervals that have elapsed since January 1, 1601 (UTC).
@@ -155,16 +115,44 @@ HRTimePointStd iso8601DatetimeParser(const std::string& datetime);
  */
 LIBDPSLR_EXPORT HRTimePointStd win32TicksToTimePoint(unsigned long long ticks);
 
-
+/**
+ * @brief Convert a given date and time to a HRTimePointStd.
+ *
+ * This function converts the provided date and time components to a HRTimePointStd
+ * based on the high_resolution_clock clock.
+ *
+ * @param y   The year.
+ * @param m   The month (1-12).
+ * @param d   The day of the month.
+ * @param h   The hour of the day.
+ * @param min The minute of the hour.
+ * @param s   The second of the minute.
+ * @return The HRTimePointStd representing the specified date and time.
+ */
 LIBDPSLR_EXPORT HRTimePointStd dateTimeToTimePoint(int y, int m, int d, int h=0, int min=0, int s=0);
 
-LIBDPSLR_EXPORT long double timePointToSecsDay(const HRTimePointStd& tp);
+/**
+ * @brief Converts a Modified Julian Datetime to a TimePoint.
+ * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
+ * @return A TimePoint.
+ */
+LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDatetimeToTimePoint(long double mjdt);
+
+/**
+ * @brief Converts a Julian Datetime to a TimePoint.
+ * @param jdt Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
+ * @return A TimePoint.
+ */
+LIBDPSLR_EXPORT HRTimePointStd julianToTimePoint(long double jdt);
+
 
 // TLE time (year and fractional point) to C++ time point.
 LIBDPSLR_EXPORT HRTimePointStd tleDateToTimePoint(unsigned int cent_year, long double day_with_fract);
 
-// C++ time point to TLE date (year and fractional day).
-LIBDPSLR_EXPORT void timePointToTLEDate(const HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
+
+LIBDPSLR_EXPORT long double timePointToSecsDay(const HRTimePointStd& tp);
+
+
 
 // Transforms hours, mins, seconds and nanoseconds to day nanoseconds.
 LIBDPSLR_EXPORT long long hhmmssnsToNsDay(unsigned int hour, unsigned int min, unsigned int sec, unsigned int ns);
@@ -190,7 +178,7 @@ LIBDPSLR_EXPORT void ydtomd(int year, unsigned int yday, unsigned int& month, un
  * @param jd_day, Julian day. Output.
  * @param jd_fract, Julian fraction of day. Output.
  *
- * @note Not works with the 2100, etc year (but we will be dead xD).
+ * @warning Not works with the 2100, etc year (but we will be dead xD).
  */
 LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute,
                           unsigned int sec, long long &jd_day, double &jd_fract);
@@ -207,7 +195,7 @@ LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsi
  * @param minute, in range [0,59]. Output.
  * @param second, in range [0,59]. Output.
  *
- * @note Not works with the 2100, etc year (but we will be dead xD).
+ * @warning Not works with the 2100, etc year (but we will be dead xD).
  */
 LIBDPSLR_EXPORT void jdtogr(long long jd_day, double jd_fract,int &year, unsigned int &month,
                           unsigned int &day, unsigned int &hour, unsigned int &minute, unsigned int &second);
@@ -250,21 +238,25 @@ LIBDPSLR_EXPORT long double timePointToModifiedJulianDatetime(const HRTimePointS
  */
 LIBDPSLR_EXPORT long double timePointToReducedJulianDatetime(const HRTimePointStd &tp);
 
-/**
- * @brief Converts a Modified Julian Datetime to a TimePoint.
- * @param mjt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
- * @return A TimePoint.
- */
-LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDatetimeToTimePoint(long double mjt);
+LIBDPSLR_EXPORT long double timePointToReducedJulianDatetime(const HRTimePointStd &tp);
 
 /**
- * @brief Converts a Julian Datetime to a TimePoint.
- * @param mjt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
- * @return A TimePoint.
+ * @brief Convert a Modified Julian Date and seconds (with decimals) to a Modified Julian Datetime.
+ * @param mjd     The Modified Julian Date in days.
+ * @param seconds The number of seconds with decimals.
+ * @return The Modified Julian Datetime.
+ * @warning Using this function can make your timestamp inaccurate. Use only to
+ *          work with times where nanoseconds are not important.
  */
-LIBDPSLR_EXPORT HRTimePointStd julianToTimePoint(long double jt);
+LIBDPSLR_EXPORT long double mjdAndSecsToMjdt(long long mjd, long double seconds);
 
-//
+// SPECIFIC FORMATS FUNCTIONS
+//======================================================================================================================
+
+// C++ time point to TLE date (year and fractional day).
+LIBDPSLR_EXPORT void timePointToTLEDate(const HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
+
+//======================================================================================================================
 
 }} // END NAMESPACES.
 // =====================================================================================================================

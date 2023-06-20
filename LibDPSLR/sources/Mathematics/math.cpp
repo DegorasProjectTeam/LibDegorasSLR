@@ -50,13 +50,6 @@ namespace math
 {
 // =====================================================================================================================
 
-LldivResult euclidDivLL(long long a, long long b)
-{
-    long long r = a % b;
-    r =  r >= 0 ? r : r + std::abs(b);
-    long long q = (a - r) / b;
-    return {q, static_cast<unsigned long long>(r)};
-}
 
 }
 } // END NAMESPACES

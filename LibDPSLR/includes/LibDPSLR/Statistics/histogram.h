@@ -45,7 +45,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDPSLR/Statistics/statistics_types.h"
+#include "LibDPSLR/Statistics/common/statistics_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES

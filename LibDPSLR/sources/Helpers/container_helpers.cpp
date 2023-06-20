@@ -23,7 +23,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file ContainerHelpers.cpp
+ * @file container_helpers.cpp
  * @brief This file contains several helper tools related with containers.
  * @author Degoras Project Team
  * @copyright EUPL License

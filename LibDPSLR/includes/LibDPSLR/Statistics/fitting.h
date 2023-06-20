@@ -37,7 +37,8 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDPSLR/Statistics/fitting.tpp"
-#include "LibDPSLR/Mathematics/matrix.h"
+#include "LibDPSLR/Mathematics/containers/matrix.h"
+#include "LibDPSLR/Mathematics/containers/vector3d.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -55,12 +56,26 @@ namespace stats{
  * @param y_interp
  * @return
  */template <typename T, typename U>
-LagrangeResult lagrangeInterp(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned int degree,
+common::LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned degree,
                               T x_interp, std::vector<U>& y_interp)
 {
     return dpslr::stats_private::lagrangeInterp(x, Y, degree, x_interp, y_interp);
 }
 
+template <typename T, typename U>
+common::LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned degree,
+                                             T x_interp, math::Vector3D<U>& y_interp)
+{
+    // Auxiliar containers.
+    stats::common::LagrangeError lag_res;
+    std::vector<long double> res_y;
+    // Call to lagrange.
+    lag_res = dpslr::stats_private::lagrangeInterp(x, Y, degree, x_interp, res_y);
+    // Store the result.
+    y_interp = {res_y[0], res_y[1], res_y[2]};
+    // Return the error code.
+    return lag_res;
+}
 
 /**
  * @brief Gets the polynomial fit coefficients for x,y.
@@ -75,7 +90,7 @@ LagrangeResult lagrangeInterp(const std::vector<T>& x, const dpslr::math::Matrix
 template <typename T, typename Ret = T>
 std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y, unsigned int degree,
                                const std::vector<T>& w = std::vector<T>(),
-                               dpslr::stats::PolyFitRobustMethod robust = dpslr::stats::PolyFitRobustMethod::NO_ROBUST)
+                               common::PolyFitRobustMethod robust = common::PolyFitRobustMethod::NO_ROBUST)
 {
     return dpslr::stats_private::polynomialFit(x, y, degree, w, robust);
 }

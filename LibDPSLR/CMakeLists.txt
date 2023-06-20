@@ -53,7 +53,7 @@ macro_get_files_without_extension(ALIAS ${CMAKE_SOURCE_DIR}/includes/LibDPSLR/*)
 
 # Create a custom group for the templates and aliases.
 source_group("Header Files" FILES ${TEMPLTS})
-source_group("Header Files" FILES ${ALIAS})
+source_group("Alias Files" FILES ${ALIAS})
 
 # Include the header directories.
 include_directories(${CMAKE_SOURCE_DIR}/includes)
