@@ -37,7 +37,7 @@
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
+TODO
 
 * [European Union Public License](https://choosealicense.com)
 * [Shields](https://shields.io)
