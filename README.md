@@ -39,14 +39,15 @@
 
 Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
 
-* [Choose an Open Source License](https://choosealicense.com)
-* [Img Shields](https://shields.io)
+* [European Union Public License](https://choosealicense.com)
+* [Shields](https://shields.io)
+* [Best-README-Template](https://github.com/othneildrew/Best-README-Template)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[license-shield]: https://img.shields.io/badge/LICENSE-EUPL-green.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/LICENSE-EUPL%201.2-green.svg?style=for-the-badge
 [license-url]: https://eupl.eu/
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/angelveraherrera/
