@@ -49,5 +49,5 @@ TODO
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [license-shield]: https://img.shields.io/badge/License-EUPL%201.2-green.svg?style=for-the-badge
 [license-url]: https://eupl.eu/
-[linkedin-shield]: https://img.shields.io/badge/Social-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-shield]: https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin
 [linkedin-url]: https://www.linkedin.com/in/angelveraherrera/
