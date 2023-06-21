@@ -457,7 +457,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         x_bounce = x_instant + tof_1w;
 
         // Interpolate geocentric position of the object at bounce time.
-        error = this->callToInterpolator(x_bounce, y_outbound, result);
+        error = this->callToInterpol(x_bounce, y_outbound, result);
 
         // Check the interpolator error.
         if(error != PredictionError::NO_ERROR)
