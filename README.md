@@ -2,7 +2,7 @@
 <a name="readme-top"></a>
 
 <!-- PROJECT SHIELDS -->
-[![C++][cplusplus-shield]]
+![C++][cplusplus-shield]
 [![EUPL License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
@@ -49,7 +49,7 @@ TODO
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [cplusplus-shield]: https://img.shields.io/badge/-C++17-black?style=for-the-badge&logo=cplusplus&colorB=555
-[license-shield]: https://img.shields.io/badge/License-EUPL%201.2-green.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/EUPL%201.2-green.svg?style=for-the-badge
 [license-url]: https://eupl.eu/
 [linkedin-shield]: https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin
 [linkedin-url]: https://www.linkedin.com/in/angelveraherrera/
