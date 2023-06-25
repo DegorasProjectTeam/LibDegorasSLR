@@ -261,7 +261,7 @@ CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::Op
 
     // Store the file path and name.
     this->cpf_fullpath_ = cpf_filepath;
-    this->cpf_filename_ = helpers::containers::split<StringV>(cpf_filepath, "/").back();
+    this->cpf_filename_ = helpers::strings::split<StringV>(cpf_filepath, "/").back();
 
     // Open the header.
     while (!read_finished)
@@ -397,7 +397,7 @@ CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::Op
         rec.consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
         if(!line.empty())
         {
-            helpers::containers::split(tokens, line, " ", false);
+            helpers::strings::split(tokens, line, " ", false);
             rec.tokens = tokens;
         }
 
@@ -509,7 +509,7 @@ CPF::ReadRecordResultEnum CPF::readRecord(helpers::files::InputFileStream& strea
         if(!line.empty())
         {
             // Get the line and split it to get the tokens.
-            helpers::containers::split(tokens, line, " ", false);
+            helpers::strings::split(tokens, line, " ", false);
             tokens[0] = helpers::strings::toUpper(tokens[0]);
 
             // Check the EOH case (H9).

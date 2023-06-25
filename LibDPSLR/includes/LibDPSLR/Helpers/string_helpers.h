@@ -91,6 +91,10 @@ void split (Container& result, const std::string& s, const std::string& delimite
 template <class Container>
 Container split (const std::string& s, const std::string& delimiters, bool empties = true );
 
+// Custom string join.
+template <typename Container>
+std::string join(const Container& strings, const std::string& delimiters = " ");
+
 // Custom number to fixed string conversion.
 template<typename T>
 std::string numberToFixstr(T x, unsigned int prec);

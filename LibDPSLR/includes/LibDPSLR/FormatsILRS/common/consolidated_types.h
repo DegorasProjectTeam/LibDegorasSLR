@@ -129,11 +129,10 @@ using RecordLinePair = std::pair<int, ConsolidatedRecord>;
 /// Pair(record type enum, RecordLine).
 using RecordLinesVector = std::vector<ConsolidatedRecord>;
 
-/// Map(record type enum, RecordLine).
+/// Map(record type enum, RecordLine). The record type can not be repeated.
 using RecordLinesMap = std::map<int, ConsolidatedRecord>;
 
-/// Same than before, but the record type enum can be repeated. Used for example for multiple records like the full
-/// rate data or the normal point data.
+/// Map(record type enum, RecordLine). The record type enum can be repeated, used for for multiple records.
 using RecordLinesMultimap = std::multimap<int, ConsolidatedRecord>;
 
 /// Pair(RecordReadErrorEnum, RecordLine).

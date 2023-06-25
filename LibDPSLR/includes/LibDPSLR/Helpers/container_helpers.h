@@ -62,22 +62,20 @@ public:
 };
 // ---------------------------------------------------------------------------------------------------------------------
 
-// Custom split.
-template <class Container>
-void split (Container& result, const std::string& s, const std::string& delimiters, bool empties = true);
-
-// Custom split 2.
-template <class Container>
-Container split (const std::string& s, const std::string& delimiters, bool empties = true );
+/**
+ * @brief Searches for the closest element in a sorted array to a given value.
+ *
+ * @tparam T The type of elements in the array.
+ * @param sorted_array The sorted array to search in.
+ * @param x The value to find the closest element to.
+ * @return The index of the closest element in the array.
+ */
+template <typename T>
+std::size_t searchClosest(const std::vector<T>& sorted_array, T x);
 
 // Custom push back.
-// Insert b in a.
 template <class Container>
 void insert(Container& a, const Container& b);
-
-// Custom string join.
-template <typename Container>
-std::string join(const Container& strings, const std::string& delimiters = " ");
 
 // Custom contains helper.
 template <typename Container, typename T>

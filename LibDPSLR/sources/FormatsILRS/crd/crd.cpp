@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CRD class.
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -246,7 +246,7 @@ CRD::ReadFileError CRD::openCRDFile(const std::string &crd_filepath, CRD::OpenOp
 
     // Store the file path and name.
     this->crd_fullpath = crd_filepath;
-    this->crd_filename = helpers::containers::split<std::vector<std::string>>(crd_filepath, "/").back();
+    this->crd_filename = helpers::strings::split<std::vector<std::string>>(crd_filepath, "/").back();
 
     // Open the header.
     while (!read_finished)
@@ -433,7 +433,7 @@ CRD::ReadFileError CRD::openCRDFile(const std::string &crd_filepath, CRD::OpenOp
         rec.consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
         if(!line.empty())
         {
-            helpers::containers::split(tokens, line, " ", false);
+            helpers::strings::split(tokens, line, " ", false);
             rec.tokens = tokens;
         }
 
@@ -555,7 +555,7 @@ CRD::ReadRecordResult CRD::readRecord(helpers::files::InputFileStream& stream, C
         if(!line.empty())
         {
             // Get the line and split it to get the tokens.
-            helpers::containers::split(tokens, line, " ", false);
+            helpers::strings::split(tokens, line, " ", false);
             tokens[0] = helpers::strings::toUpper(tokens[0]);
 
             // Check the EOS case.

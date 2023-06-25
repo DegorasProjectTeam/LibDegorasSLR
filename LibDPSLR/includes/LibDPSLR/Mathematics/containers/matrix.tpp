@@ -23,8 +23,8 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file string_helpers.tpp
- * @brief This file contains the template functions related with the string helper tools.
+ * @file matrix.tpp
+ * @brief This file contains the implementation of the mathematical class Matrix.
  * @author Degoras Project Team
  * @copyright EUPL License
  * @version 2305.1
@@ -36,101 +36,24 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <string>
-#include <limits>
-#include <algorithm>
-#include <sstream>
-#include <iomanip>
 #include <vector>
-#include <map>
-#include <cmath>
+#include <cstddef>
+#include <algorithm>
+#include <omp.h>
+#include <math.h>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDPSLR/Helpers/container_helpers.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace helpers{
-namespace strings{
+namespace math{
 // =====================================================================================================================
 
-template <class Container>
-void split (Container& result, const std::string& s, const std::string& delimiters, bool empties)
-{
-    result.clear();
-    size_t current;
-    size_t next = std::numeric_limits<size_t>::max();
-    do
-    {
-        if (!empties)
-        {
-            // Before getting substring, discard empty groups
-            next = s.find_first_not_of( delimiters, next + 1 );
-            // If end has not been reached, get next substring
-            if (next != std::string::npos)
-            {
-                current = next;
-                next = s.find_first_of( delimiters, current );
-                result.push_back( s.substr( current, next - current ) );
-            }
-        }
-        else
-        {
-            // Get next substring group
-            current = next + 1;
-            next = s.find_first_of( delimiters, current );
-            result.push_back( s.substr( current, next - current ) );
-        }
-    }
-    while (next != std::string::npos);
-}
-
-template <class Container>
-Container split (const std::string& s, const std::string& delimiters, bool empties)
-{
-    Container result;
-    split(result, s, delimiters, empties);
-    return result;
-}
-
-template<typename T>
-std::string numberToFixstr(T x, unsigned int prec)
-{
-    std::ostringstream strout ;
-    strout << std::showpoint << std::setprecision(prec) << x ;
-    std::string str = strout.str() ;
-    size_t end = str.find_last_not_of( '0' ) + 1 ;
-    str.erase(end);
-    if(str.back() == '.')
-        str.pop_back();
-    return str;
-}
-
-template<typename T>
-std::string numberToStr(T x, unsigned int prec, unsigned int dec_places)
-{
-    std::ostringstream strout;
-    std::vector<std::string> aux;
-    std::string dplac;
-    strout << std::showpoint << std::setprecision(prec) << x ;
-    std::string str = strout.str() ;
-    split(aux, str, ".", true);
-    if(aux.size()==2 && aux[1].size() > dec_places)
-    {
-        dplac = aux[1].substr(0, dec_places);
-        return aux[0]+"."+dplac;
-    }
-    else
-    {
-        return str;
-    }
-}
 
 
-
-}}}// END NAMESPACES.
+}} // END NAMESPACES
 // =====================================================================================================================

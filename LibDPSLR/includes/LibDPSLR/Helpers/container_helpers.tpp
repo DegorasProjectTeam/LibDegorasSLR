@@ -54,43 +54,24 @@ namespace helpers{
 namespace containers{
 // =====================================================================================================================
 
-template <class Container>
-void split (Container& result, const std::string& s, const std::string& delimiters, bool empties)
+template <typename T>
+std::size_t searchClosest(const std::vector<T>& sorted_array, T x)
 {
-    result.clear();
-    size_t current;
-    size_t next = std::numeric_limits<size_t>::max();
-    do
-    {
-        if (!empties)
-        {
-            // Before getting substring, discard empty groups
-            next = s.find_first_not_of( delimiters, next + 1 );
-            // If end has not been reached, get next substring
-            if (next != std::string::npos)
-            {
-                current = next;
-                next = s.find_first_of( delimiters, current );
-                result.push_back( s.substr( current, next - current ) );
-            }
-        }
-        else
-        {
-            // Get next substring group
-            current = next + 1;
-            next = s.find_first_of( delimiters, current );
-            result.push_back( s.substr( current, next - current ) );
-        }
-    }
-    while (next != std::string::npos);
-}
+    auto iter_geq = std::lower_bound(sorted_array.begin(), sorted_array.end(), x);
 
-template <class Container>
-Container split (const std::string& s, const std::string& delimiters, bool empties)
-{
-    Container result;
-    split(result, s, delimiters, empties);
-    return result;
+    if (iter_geq == sorted_array.begin())
+        return 0;
+
+    if (iter_geq == sorted_array.end())
+        return sorted_array.size() - 1;
+
+    T a = *(iter_geq - 1);
+    T b = *iter_geq;
+
+    if (std::abs(x - a) < std::abs(x - b))
+        return std::distance(sorted_array.begin(), iter_geq - 1);
+
+    return std::distance(sorted_array.begin(), iter_geq);
 }
 
 template <class Container>

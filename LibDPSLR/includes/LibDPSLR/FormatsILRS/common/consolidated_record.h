@@ -58,19 +58,20 @@ namespace common{
 // --- RECORD BASE STRUCT ----------------------------------------------------------------------------------------------
 
 /**
- * @struct ConsolidatedRecord
- * @brief This structure represents a generic consolidated record in the ILRS standard consolidated formats.
- *        It contains information about the record type, the comment block, tokens, line number, etc.
+ * @brief Generic consolidated record in the ILRS standard consolidated formats.
+ *
+ * This structure represents a generic consolidated record in the ILRS standard consolidated formats like CPF and CRD
+ * formats. This structure contains information about the record type, the comment block, tokens, line number, etc.
  */
 struct LIBDPSLR_EXPORT ConsolidatedRecord
 {
 
     // Common members for all the records.
-    ConsolidatedFileType consolidated_type;     /// Stores the consolidated type which belongs the record.
-    unsigned generic_record_type;               /// For CRD: CRDRecordsTypeEnum    For CPF: CPFRecordsTypeEnum
-    std::vector<std::string> comment_block;     /// Associated comment bloc (lines "00") for each record.
-    std::vector<std::string> tokens;            /// For reading files or other usages. ["H1", "CRD", 2, etc]
-    Optional<unsigned> line_number;             /// Line number in the file, for error handling when reading files.
+    ConsolidatedFileType consolidated_type;     ///< Stores the consolidated type which belongs the record.
+    unsigned generic_record_type;               ///< For CRD: CRDRecordsTypeEnum    For CPF: CPFRecordsTypeEnum
+    std::vector<std::string> comment_block;     ///< Associated comment bloc (lines "00") for each record.
+    std::vector<std::string> tokens;            ///< For reading files or other usages. ["H1", "CRD", 2, etc]
+    Optional<unsigned> line_number;             ///< Line number in the file, for error handling when reading files.
 
     /**
      * @brief Get the ID token of the record.
