@@ -24,7 +24,7 @@
 
 # **********************************************************************************************************************
 # Created 05/05/2023
-# Updated 15/05/2023
+# Updated 26/06/2023
 # **********************************************************************************************************************
 
 # Cmake minimum.
@@ -62,7 +62,11 @@ include_directories(${CMAKE_SOURCE_DIR}/includes)
 add_definitions(-DLIBDPSLR_LIBRARY)
 add_library(LibDPSLR SHARED ${SOURCES} ${HEADERS} ${TEMPLTS} ${ALIAS})
 
+# Enable testing.
+enable_testing()
+
 # Add the diferents subprojects directories.
-add_subdirectory(test)
+add_subdirectory(testing)
+# add_subdirectory(examples)
 
 # **********************************************************************************************************************

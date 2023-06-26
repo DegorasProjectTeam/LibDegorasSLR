@@ -64,9 +64,9 @@ using dpslr::geo::meteo::WtrVapPressModel;
 // CONSTANTS
 // =====================================================================================================================
 constexpr long double kVelTDelta = 0.5L;  /// Time delta (+-) for calculating the velocity vectors (seconds).
-constexpr long double kTMargin = 2L;      /// Margin to apply to the instant sod to check the CPF data interval.
-constexpr unsigned kPolLagDeg9 = 9U;      /// Fixed degree for the polynomial lagrange interpolator.
-constexpr unsigned kPolLagDeg16 = 16U;    /// Fixed degree for the polynomial lagrange interpolator.
+constexpr long double kTMargin = 1L;      /// Margin to apply to the instant sod to check the CPF data interval.
+constexpr unsigned kPolLagDeg9 = 9U;      /// Fixed degree for the 9th polynomial lagrange interpolator.
+constexpr unsigned kPolLagDeg16 = 16U;    /// Fixed degree for the 16th polynomial lagrange interpolator.
 // =====================================================================================================================
 
 /**
@@ -415,10 +415,10 @@ private:
 
     // Correction related parameters.
     double objc_ecc_corr_;       ///< Eccentricity correction at the satellite in meters (usually center of mass).
-    double grnd_ecc_corr_;      ///< Eccentricity correction at the ground in meters (usually not used).
-    double cali_del_corr_;     ///< Station calibration delay correction (in picoseconds).
-    double syst_rnd_corr_;          ///< Other systematic and random error corrections.
-    bool apply_corr_;
+    double grnd_ecc_corr_;       ///< Eccentricity correction at the ground in meters (usually not used).
+    double cali_del_corr_;       ///< Station calibration delay correction (in picoseconds).
+    double syst_rnd_corr_;       ///< Other systematic and random error corrections (in meters).
+    bool apply_corr_;            ///< Flag for apply the corrections.
 
     // Tropospheric parameters.
     double press_;
