@@ -125,7 +125,7 @@ PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geo
     for (const auto& pos_record : cpf.getData().positionRecords())
     {
         auto time_tag = pos_record.sod - sod_start + (pos_record.mjd - mjd_start) * 86400.L;
-        pos_data_.push_back_row(pos_record.position.store());
+        pos_data_.pushBackRow(pos_record.position.store());
         pos_times_.push_back(time_tag);
     }
 
@@ -400,7 +400,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.instant_data.emplace(result.instant_range);
 
     // Topocentric instant station to object vector in local system (using the rotation matrix).
-    rotatedm_topo_s_o_instant.push_back_row(topo_s_o_instant.toVector());
+    rotatedm_topo_s_o_instant.pushBackRow(topo_s_o_instant.toVector());
     rotatedm_topo_s_o_instant *= this->rotm_topo_local_;
     topo_s_o_local_instant = Vector3D<long double>::fromVector(rotatedm_topo_s_o_instant.getRow(0));
 
@@ -451,7 +451,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     tof_1w = range_1w_instant/c;
 
     // Prepare the matrix to rotate the ECEF coordinate system (with the rotation of the Earth).
-    rotatedm_earth.push_back_row(this->stat_geocentric_.toVector());
+    rotatedm_earth.pushBackRow(this->stat_geocentric_.toVector());
 
     // Rotate the coordinate system for laser pulse two-way trip (2 iteration). Remember that this is
     // due to the fact that the light becomes detached from the reference system during its trip.
@@ -486,7 +486,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // moment to perform (using the outbound vector) a very good aprproximation to the correct computation.
 
     // Topocentric outbound station to object vector in local system (using the rotation matrix).
-    rotatedm_topo_s_o_outbound.push_back_row(topo_s_o_outbound.toVector());
+    rotatedm_topo_s_o_outbound.pushBackRow(topo_s_o_outbound.toVector());
     rotatedm_topo_s_o_outbound *= this->rotm_topo_local_;
     topo_s_o_local_outbound = Vector3D<long double>::fromVector(rotatedm_topo_s_o_instant.getRow(0));
 

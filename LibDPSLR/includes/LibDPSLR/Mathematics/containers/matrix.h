@@ -36,9 +36,12 @@
 
 // C++ INCLUDES
 //======================================================================================================================
+#include <ostream>
+#include <string>
 #include <vector>
 #include <cstddef>
 #include <algorithm>
+#include <string.h>
 #include <omp.h>
 #include <math.h>
 // =====================================================================================================================
@@ -53,6 +56,7 @@
 namespace dpslr{
 namespace math{
 // =====================================================================================================================
+
 
 /**
  * @class Matrix
@@ -128,6 +132,15 @@ public:
         this->data_.insert(data_.begin(), row_size, std::vector<T>(col_size, value));
     }
 
+    inline void fill(T value = T())
+    {
+        std::size_t r_size = this->rowSize();
+        std::size_t c_size = this->columnsSize();
+
+        this->data_.clear();
+        this->data_.insert(data_.begin(), r_size, std::vector<T>(c_size, value));
+    }
+
     template<typename Container>
     bool setDataFromContainer(const Container& container)
     {
@@ -151,8 +164,27 @@ public:
         return false;
     }
 
+
+    /**
+     * @brief Sets the values of a specific column in the matrix.
+     *
+     * @param col_index The index of the column to set.
+     * @param column The vector containing the values for the column.
+     *
+     * @pre `col_index` must be a valid column index (i.e., less than `columnsSize()`).
+     * @pre The size of `column` must be equal to `rowSize()`.
+     */
+    void setColumn(std::size_t col_index, const std::vector<T>& column)
+    {
+        assert(col_index < this->columnsSize());
+        assert(column.size() == this->rowSize());
+
+        for (std::size_t i = 0; i < this->rowSize(); ++i)
+            this->data_[i][col_index] = column[i];
+    }
+
     template <typename Container>
-    bool push_back_row(const Container& row)
+    bool pushBackRow(const Container& row)
     {
         bool size_correct = row.size() == this->columnsSize() || this->columnsSize() == 0;
         if (size_correct)
@@ -201,6 +233,30 @@ public:
         for (const auto& row : this->data_)
             column.push_back(row[col_index]);
         return column;
+    }
+
+    void setElement(std::size_t row_index, std::size_t col_index, int value)
+    {
+        data_[row_index][col_index] = value;
+    }
+
+    int getElement(std::size_t row_index, std::size_t col_index) const
+    {
+        return data_[row_index][col_index];
+    }
+
+    std::string toString() const
+    {
+        std::string str;
+        for (const auto& row : data_)
+        {
+            for (const auto& element : row)
+            {
+                str += element + " ";
+            }
+            str += '\n';
+        }
+        return str;
     }
 
     // TODO: ensure T is swappable.
@@ -264,27 +320,78 @@ public:
         return result;
     }
 
+    template<typename U>
+    Matrix<std::common_type_t<T,U>> operator*(const U& scalar)
+    {
+        Matrix<std::common_type_t<T,U>> result;
+        // TODO Parallelize
+        for (const auto& row : data_)
+            for (const auto& element : row)
+                result = element * scalar;
+        return result;
+    }
+
+    template<typename U>
+    Matrix<T>& operator *=(const Matrix<U>& B)
+    {
+        *this = *this * B;
+        return *this;
+    }
+
+    template<typename U>
+    Matrix<T>& operator *=(const U& scalar)
+    {
+        *this = *this * scalar;
+        return *this;
+    }
+
+    Matrix<T> operator*(const Matrix<T>& rhs) const
+    {
+        // Check dimensions.
+        if (this->columnsSize() != rhs.rowSize())
+            return Matrix<T>();
+
+        Matrix<T> result(this->rowSize(), rhs.columnsSize());
+
+        #pragma omp parallel for
+        for (std::size_t i = 0; i < this->rowSize(); ++i)
+        {
+            for (std::size_t j = 0; j < rhs.columnsSize(); ++j)
+            {
+                T sum = 0;
+                #pragma omp parallel for reduction(+:sum)
+                for (std::size_t k = 0; k < this->columnsSize(); ++k)
+                {
+                    sum += this->data_[i][k] * rhs.data_[k][j];
+                }
+                result.data_[i][j] = sum;
+            }
+        }
+
+        return result;
+    }
+
     /**
      * @brief Calculates the inverse of a square matrix using Cholesky decomposition.
      * @note The matrix must be square and positive definite for the inverse to exist.
      * @return The inverse matrix if it exists, otherwise an empty matrix.
      */
-    Matrix<T> inverse() const
+    Matrix<long double> inverse() const
     {
         // Check if the matrix is square.
         if (!this->isSquare())
             return Matrix<T>();
 
         size_t m = this->rowSize();
-        Matrix<T> s(m, m, 0);
-        Matrix<T> b(m, m, 0);
-        Matrix<T> x(m, 1, 0);
-        Matrix<T> reta(m, m, 0);
+        Matrix<long double> s(m, m, 0);
+        Matrix<long double> b(m, m, 0);
+        Matrix<long double> x(m, 1, 0);
+        Matrix<long double> reta(m, m, 0);
 
         // Perform Cholesky matrix inversion
         for (size_t i = 0; i < m; i++)
         {
-            T sum_val = data_[i][i];
+            long double sum_val = data_[i][i];
             if (i > 0)
             {
                 for (size_t k = 0; k < i; k++)
@@ -292,7 +399,7 @@ public:
             }
 
             if (sum_val <= 0.0)
-                return Matrix<T>();
+                return Matrix<long double>();
 
             b[i][i] = std::sqrt(sum_val);
 
@@ -341,7 +448,7 @@ public:
             reta.setColumn(i, x.getColumn(0));
         }
 
-        Matrix<T> s_transposed = s.transpose();
+        Matrix<long double> s_transposed = s.transpose();
         reta = reta * (s * s_transposed);
 
         return reta;
@@ -375,30 +482,6 @@ public:
         return *this;
     }
 
-    template<typename U>
-    Matrix<std::common_type_t<T,U>> operator*(const U& scalar)
-    {
-        Matrix<std::common_type_t<T,U>> result;
-        // TODO Parallelize
-        for (const auto& row : data_)
-            for (const auto& element : row)
-                result = element * scalar;
-        return result;
-    }
-
-    template<typename U>
-    Matrix<T>& operator *=(const Matrix<U>& B)
-    {
-        *this = *this * B;
-        return *this;
-    }
-
-    template<typename U>
-    Matrix<T>& operator *=(const U& scalar)
-    {
-        *this = *this * scalar;
-        return *this;
-    }
 
     static Matrix<T> I(std::size_t n)
     {

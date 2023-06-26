@@ -29,9 +29,22 @@
 
 # Cmake minimum.
 cmake_minimum_required(VERSION 2.9)
+if (NOT ${CMAKE_VERSION} VERSION_LESS "3.1.0")
+    CMAKE_POLICY(SET CMP0054 NEW)
+endif()
+
+# Configure the version.
+set(MAJOR_VERSION 2)
+set(MINOR_VERSION 0)
+set(PATCH_VERSION 0)
+set(VERSION ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION})
 
 # Project name.
 project(LibDPSLR)
+
+# Other configs.
+set(SHORT_NAME DPSLR)
+set(CMAKE_COLOR_MAKEFILE ON)
 
 # Set diferent paths for build and deployment.
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++17 -fopenmp")
