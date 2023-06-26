@@ -6,12 +6,6 @@ set(SOURCES "UnitTest_PredictorSLR.cpp")
 set(LIBRARIES LibDPSLR)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/test/AlgorithmsSLR/${APP_NAME})
 
-add_custom_command(
-  TARGET ${PROJECT_NAME} POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_SOURCE_DIR}/test_data_input/*
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_data_input
-)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes ${CMAKE_SOURCE_DIR})
 
