@@ -89,9 +89,13 @@ public:
      * @brief Construct a matrix from an initializer list.
      * @param list The initializer list containing the matrix elements.
      */
-    Matrix(std::initializer_list<T>& list)
+    Matrix(const std::initializer_list<std::initializer_list<T>>& list)
     {
-        this->setDataFromContainer(list);
+        std::vector<std::vector<T>> data;
+        data.reserve(list.size());
+        for (const auto& row : list)
+            data.emplace_back(row.begin(), row.end());
+        this->setDataFromContainer(data);
     }
 
     /**

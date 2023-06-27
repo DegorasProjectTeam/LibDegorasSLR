@@ -162,8 +162,17 @@ LIBDPSLR_EXPORT long long hhmmssnsToNsDay(unsigned int hour, unsigned int min, u
 LIBDPSLR_EXPORT long long nsDayTohhmmssns(long long ns_in, unsigned int& hour_out, unsigned int& min_out,
                                         unsigned int& sec_out, unsigned int& ns_out);
 
-// Transforms the day of the year to the month and day of the month.
-// Not works with the 2100, etc year (but we will be dead xD)
+/**
+ * @brief Transforms the day of the year to the month and day of the month.
+ * @param year The year.
+ * @param yday The day of the year.
+ * @param month [out] The resulting month.
+ * @param mday [out] The resulting day of the month.
+ *
+ * @warning This function does not work correctly for years like 2100, etc.
+ *          It is not designed to handle leap years after the year 2000.
+ *          Use with caution for such cases.
+ */
 LIBDPSLR_EXPORT void ydtomd(int year, unsigned int yday, unsigned int& month, unsigned int& mday);
 
 /**
@@ -181,7 +190,7 @@ LIBDPSLR_EXPORT void ydtomd(int year, unsigned int yday, unsigned int& month, un
  * @warning Not works with the 2100, etc year (but we will be dead xD).
  */
 LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute,
-                          unsigned int sec, long long &jd_day, double &jd_fract);
+                          unsigned int sec, long long &jd_day, long double &jd_fract);
 
 /**
  * @brief Converts a Julian Date to Gregorian
@@ -197,7 +206,7 @@ LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsi
  *
  * @warning Not works with the 2100, etc year (but we will be dead xD).
  */
-LIBDPSLR_EXPORT void jdtogr(long long jd_day, double jd_fract,int &year, unsigned int &month,
+LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, unsigned int &month,
                           unsigned int &day, unsigned int &hour, unsigned int &minute, unsigned int &second);
 
 /**
@@ -208,7 +217,7 @@ LIBDPSLR_EXPORT void jdtogr(long long jd_day, double jd_fract,int &year, unsigne
  * @param second_fract, Fraction of second. Precission up to ns. Output param.
  */
 LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, unsigned int &mjd,
-                                                 unsigned int& second_day, double& second_fract);
+                                                 unsigned int& second_day, long double& second_fract);
 
 /**
  * @brief Converts a TimePoint to Julian Datetime
@@ -238,6 +247,11 @@ LIBDPSLR_EXPORT long double timePointToModifiedJulianDatetime(const HRTimePointS
  */
 LIBDPSLR_EXPORT long double timePointToReducedJulianDatetime(const HRTimePointStd &tp);
 
+/**
+ * @brief Converts a high-resolution time point to a reduced Julian datetime.
+ * @param tp The high-resolution time point.
+ * @return The reduced Julian datetime corresponding to the given time point.
+ */
 LIBDPSLR_EXPORT long double timePointToReducedJulianDatetime(const HRTimePointStd &tp);
 
 /**

@@ -145,7 +145,7 @@ void ydtomd(int year, unsigned int yday, unsigned int& month, unsigned int& mday
 }
 
 void grtojd(int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute,
-            unsigned int second, long long &jd_day, double &jd_fract)
+            unsigned int second, long long &jd_day, long double &jd_fract)
 {
     // Set year to offset since 1900
     year -= 1900;
@@ -171,12 +171,12 @@ void grtojd(int year, unsigned int month, unsigned int day, unsigned int hour, u
     }
 }
 
-void jdtogr(long long jd_day, double jd_fract,int &year, unsigned int &month, unsigned int &day,
+void jdtogr(long long jd_day, long double jd_fract, int &year, unsigned int &month, unsigned int &day,
             unsigned int &hour, unsigned int &minute, unsigned int &second)
 {
     // Calculate days and fractional part since 1900
-    double jdfc = jd_fract + 0.5;
-    double jda1900 = jd_day - 2415079.0;
+    long double jdfc = jd_fract + 0.5;
+    long double jda1900 = jd_day - 2415079.0;
 
     // Adjust fractional part
     long long jd_fract_excess = static_cast<long long>(jdfc);
@@ -211,9 +211,9 @@ void jdtogr(long long jd_day, double jd_fract,int &year, unsigned int &month, un
 }
 
 void timePointToModifiedJulianDate(const HRTimePointStd &tp, unsigned& mjd, unsigned& second_day,
-                                   double& second_fract)
+                                   long double& second_fract)
 {
-    double unix_seconds = duration_cast<duration<double>>(tp.time_since_epoch()).count();
+    long double unix_seconds = duration_cast<duration<long double>>(tp.time_since_epoch()).count();
     second_fract = unix_seconds - static_cast<long long>(unix_seconds);
     mjd = static_cast<unsigned>((unix_seconds/common::kSecsInDay) +
                                 common::kPosixEpochToJulian + common::kJulianToModifiedJulian);
