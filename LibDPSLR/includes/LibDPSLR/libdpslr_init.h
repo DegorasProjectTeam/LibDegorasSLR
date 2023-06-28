@@ -41,13 +41,20 @@
 namespace dpslr{
 // =====================================================================================================================
 
-void LIBDPSLR_EXPORT setOMPNumThreads(unsigned n = 0)
+static long double kFloatingCompEpsilon = 0.0000001l;
+
+inline void LIBDPSLR_EXPORT setOMPNumThreads(unsigned n = 0)
 {
     unsigned n_th = n == 0 ? omp_get_max_threads() : n;
     omp_set_num_threads(n_th);
 }
 
-void LIBDPSLR_EXPORT initDPSLR()
+inline void LIBDPSLR_EXPORT setFloatingComparationEpsilon(long double epsilon = 0.0000001l)
+{
+    kFloatingCompEpsilon = epsilon;
+}
+
+inline void LIBDPSLR_EXPORT initDPSLR()
 {
     setOMPNumThreads();
 }

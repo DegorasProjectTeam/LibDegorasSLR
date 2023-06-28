@@ -49,6 +49,7 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDPSLR/libdpslr_global.h"
+#include "LibDPSLR/libdpslr_init.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -148,6 +149,8 @@ public:
     template<typename Container>
     bool setDataFromContainer(const Container& container)
     {
+        bool result = false;
+
         if (container.size() > 0)
         {
             // Check if every column has the same size, otherwise, the matrix is ill-formed
@@ -157,15 +160,18 @@ public:
             while(i < container.size() && valid_column_size)
             {
                 valid_column_size = container[i].size() == col_size;
+                i++;
             }
             if (valid_column_size)
             {
                 this->data_.clear();
-                std::copy(container.begin(), container.end(), this->data_.begin());
-                return true;
+                this->data_.reserve(container.size());
+                for (const auto& row : container)
+                    this->data_.emplace_back(row.begin(), row.end());
+                result = true;
             }
         }
-        return false;
+        return result;
     }
 
 
@@ -212,9 +218,47 @@ public:
         return this->rowSize() == this->columnsSize();
     }
 
+    bool isEmpty() const
+    {
+        return this->data_.empty();
+    }
+
+    /**
+     * @brief Check if the matrix is an identity matrix.
+     *
+     * Check if the current matrix is an identity matrix, a square matrix with diagonal elements equal to 1 and all
+     * other elements equal to 0.
+     *
+     * @return True if the matrix is an identity matrix, False otherwise.
+     */
+    bool isIdentity() const
+    {
+        // Check if the matrix is square
+        if(!this->isSquare())
+            return false;
+
+        // Auxiliar result.
+        bool identity = true;
+
+        // Check if the diagonal elements are 1 and all other elements are 0
+        for (size_t i = 0; i < this->rowSize() && identity; i++)
+            for (size_t j = 0; j < this->columnsSize(); j++)
+            {
+                if (i == j && this->data_[i][j] != 1.0)
+                        identity = false;
+                else if (i != j && this->data_[i][j] != 0.0)
+                        identity = false;
+            }
+
+        // Return the result.
+        return identity;
+    }
+
     inline std::vector<T>& operator[] (std::size_t row_index)  {return this->data_[row_index];}
 
     inline const std::vector<T>& operator[] (std::size_t row_index) const {return this->data_[row_index];}
+
+
 
     /**
      * @brief Retrieves a specific row of the matrix.
@@ -244,9 +288,19 @@ public:
         data_[row_index][col_index] = value;
     }
 
-    int getElement(std::size_t row_index, std::size_t col_index) const
+    const T& getElement(std::size_t row_index, std::size_t col_index) const
     {
-        return data_[row_index][col_index];
+        return this->data_[row_index][col_index];
+    }
+
+    const T& operator()(std::size_t row_index, std::size_t col_index) const
+    {
+        return this->data_[row_index][col_index];
+    }
+
+    T& operator()(std::size_t row_index, std::size_t col_index)
+    {
+        return this->data_[row_index][col_index];
     }
 
     std::string toString() const
@@ -256,7 +310,7 @@ public:
         {
             for (const auto& element : row)
             {
-                str += element + " ";
+                str += std::to_string(element) + " ";
             }
             str += '\n';
         }
@@ -283,15 +337,11 @@ public:
     }
 
     /**
-     * @brief Transposes the matrix. If the matrix is not square, an empty matrix is returned.
-     * @return Transposed matrix if the matrix is square, otherwise an empty matrix.
+     * @brief Transposes the matrix.
+     * @return Transposed matrix.
      */
     Matrix<T> transpose() const
     {
-        // Check the matrix.
-        if(!this->isSquare())
-            return Matrix<T>();
-
         // Create a new matrix with swapped dimensions.
         Matrix<T> result(this->columnsSize(), this->rowSize(), 0);
 
@@ -325,13 +375,18 @@ public:
     }
 
     template<typename U>
-    Matrix<std::common_type_t<T,U>> operator*(const U& scalar)
+    Matrix<std::common_type_t<T,U>> operator*(const U& scalar) const
     {
-        Matrix<std::common_type_t<T,U>> result;
-        // TODO Parallelize
-        for (const auto& row : data_)
-            for (const auto& element : row)
-                result = element * scalar;
+        using ResultType = std::common_type_t<T, U>;
+        Matrix<ResultType> result(rowSize(), columnsSize());
+
+        #pragma omp parallel for
+        for (size_t i = 0; i < rowSize(); i++)
+        {
+            for (size_t j = 0; j < columnsSize(); j++)
+                result(i, j) = static_cast<ResultType>(this->data_[i][j]) * scalar;
+        }
+
         return result;
     }
 
@@ -349,32 +404,142 @@ public:
         return *this;
     }
 
-    Matrix<T> operator*(const Matrix<T>& rhs) const
+    Matrix<T> operator*(const Matrix<T>& B) const
     {
         // Check dimensions.
-        if (this->columnsSize() != rhs.rowSize())
+        if (this->columnsSize() != B.rowSize())
             return Matrix<T>();
 
-        Matrix<T> result(this->rowSize(), rhs.columnsSize());
+        // Transpose the rhs matrix for more efficient multiplication.
+        Matrix<T> B_transposed = B.transpose();
+
+        Matrix<T> result(this->rowSize(), B.columnsSize());
 
         #pragma omp parallel for
         for (std::size_t i = 0; i < this->rowSize(); ++i)
         {
-            for (std::size_t j = 0; j < rhs.columnsSize(); ++j)
+            for (std::size_t j = 0; j < B_transposed.rowSize(); ++j)
             {
                 T sum = 0;
                 #pragma omp parallel for reduction(+:sum)
                 for (std::size_t k = 0; k < this->columnsSize(); ++k)
                 {
-                    sum += this->data_[i][k] * rhs.data_[k][j];
+                    sum += this->data_[i][k] * B_transposed.data_[j][k];
                 }
-                result.data_[i][j] = sum;
+                result(i, j) = sum;
             }
         }
 
         return result;
     }
 
+    std::pair<Matrix<long double>, std::vector<size_t>> decomposeLU() const
+    {
+        size_t row_s = this->rowSize();
+        size_t col_s = this->columnsSize();
+
+        // Create a copy of the input matrix to preserve its values
+        Matrix<long double> LU = *this;
+        std::vector<size_t> pivot(col_s);
+
+        // Initialize the pivot vector
+        for (size_t i = 0; i < col_s; i++)
+        {
+            pivot[i] = i;
+        }
+
+        for (size_t k = 0; k < std::min(row_s, col_s); k++)
+        {
+            // Find the pivot element and swap rows
+            size_t maxIndex = k;
+            long double maxValue = std::abs(LU(k, k));
+
+            for (size_t i = k + 1; i < row_s; i++)
+            {
+                if (std::abs(LU(i, k)) > maxValue)
+                {
+                    maxIndex = i;
+                    maxValue = std::abs(LU(i, k));
+                }
+            }
+
+            if (maxValue == 0)
+            {
+                // Matrix is singular
+                return std::make_pair(LU, pivot);
+            }
+
+            if (maxIndex != k)
+            {
+                // Swap rows in LU matrix
+                for (size_t j = 0; j < col_s; j++)
+                {
+                    std::swap(LU(maxIndex, j), LU(k, j));
+                }
+
+                // Update the pivot vector
+                std::swap(pivot[maxIndex], pivot[k]);
+            }
+
+            for (size_t i = k + 1; i < row_s; i++)
+            {
+                LU(i, k) /= LU(k, k);
+                for (size_t j = k + 1; j < col_s; j++)
+                {
+                    LU(i, j) -= LU(i, k) * LU(k, j);
+                }
+            }
+        }
+
+        return std::make_pair(LU, pivot);
+    }
+
+    static Matrix<long double> solveLU(const Matrix<long double>& LU, const std::vector<size_t>& pivot, const std::vector<long double>& b)
+    {
+        size_t M = LU.rowSize();
+        size_t N = LU.columnsSize();
+
+        // Create a matrix from the vector b
+
+        Matrix<long double> x(M, N);
+
+        for (size_t col = 0; col < N; col++)
+        {
+            // Create a copy of the right-hand side vector for the current column
+            Matrix<long double> y(M, 1);
+            y.setColumn(0, b);
+
+            // Apply row permutations to the right-hand side vector
+            for (size_t i = 0; i < M; i++)
+            {
+                std::swap(y(i, 0), y(pivot[i], 0));
+            }
+
+            // Solve Ly = b using forward substitution
+            for (size_t i = 1; i < M; i++)
+            {
+                for (size_t j = 0; j < i; j++)
+                {
+                    y(i, 0) -= LU(i, j) * y(j, 0);
+                }
+            }
+
+            // Solve Ux = y using backward substitution
+            for (int i = M - 1; i >= 0; i--)
+            {
+                for (size_t j = i + 1; j < N; j++)
+                {
+                    y(i, 0) -= LU(i, j) * y(j, 0);
+                }
+                y(i, 0) /= LU(i, i);
+            }
+
+            // Assign the solution to the corresponding column of the result matrix
+            x.setColumn(col, y.getColumn(0));
+        }
+
+        return x;
+    }
     /**
      * @brief Calculates the inverse of a square matrix using Cholesky decomposition.
      * @note The matrix must be square and positive definite for the inverse to exist.
@@ -382,80 +547,30 @@ public:
      */
     Matrix<long double> inverse() const
     {
+        // TODO
+        // Algo esta mal, retorna los datos bien pero las columnas no estan en el orden correcto.
+
         // Check if the matrix is square.
         if (!this->isSquare())
-            return Matrix<T>();
+            return Matrix<long double>();
 
         size_t m = this->rowSize();
-        Matrix<long double> s(m, m, 0);
-        Matrix<long double> b(m, m, 0);
-        Matrix<long double> x(m, 1, 0);
-        Matrix<long double> reta(m, m, 0);
+        Matrix<long double> identity = Matrix<long double>::I(m);
 
-        // Perform Cholesky matrix inversion
-        for (size_t i = 0; i < m; i++)
+        // Perform LU decomposition
+        Matrix<long double> lu_m = *this;
+        std::vector<size_t> pivot;
+        std::pair<Matrix<long double>, std::vector<size_t>> lu = lu_m.decomposeLU();
+
+        // Solve for each column of the inverse
+        Matrix<long double> inv(m, m);
+        for (size_t col = 0; col < m; col++)
         {
-            long double sum_val = data_[i][i];
-            if (i > 0)
-            {
-                for (size_t k = 0; k < i; k++)
-                    sum_val -= b[k][i] * b[k][i];
-            }
-
-            if (sum_val <= 0.0)
-                return Matrix<long double>();
-
-            b[i][i] = std::sqrt(sum_val);
-
-            if (i != m - 1)
-            {
-                for (size_t j = i + 1; j < m; j++)
-                {
-                    sum_val = data_[j][i];
-                    if (i > 0)
-                    {
-                        for (size_t k = 0; k < i; k++)
-                            sum_val -= b[k][i] * b[k][j];
-                    }
-                    b[i][j] = sum_val / b[i][i];
-                }
-            }
+            Matrix<long double> x = Matrix<long double>::solveLU(lu.first, lu.second, identity.getColumn(col));
+            inv.setColumn(col, x.getColumn(0));
         }
 
-        for (size_t i = 0; i < m; i++)
-        {
-            x.fill(0.0);
-            x[i][0] = 1.0;
-            for (size_t j = 0; j < m; j++)
-            {
-                T sum_val = x[j][0];
-                if (j > 0)
-                {
-                    for (size_t k = 0; k < j; k++)
-                        sum_val -= b[k][j] * x[k][0];
-                }
-                x[j][0] = sum_val / b[j][j];
-            }
-
-            for (size_t j = 0; j < m; j++)
-            {
-                size_t m1 = m - 1 - j;
-                T sum_val = x[m1][0];
-                if (j > 0)
-                {
-                    for (size_t k = m1 + 1; k < m; k++)
-                        sum_val -= b[m1][k] * x[k][0];
-                }
-                x[m1][0] = sum_val / b[m1][m1];
-            }
-
-            reta.setColumn(i, x.getColumn(0));
-        }
-
-        Matrix<long double> s_transposed = s.transpose();
-        reta = reta * (s * s_transposed);
-
-        return reta;
+        return inv;
     }
 
     template<typename U>
@@ -532,28 +647,31 @@ private:
 template<typename T, typename U>
 Matrix<std::common_type_t<T,U>> operator *(const Matrix<T>& A, const Matrix<U>& B)
 {
-    // Check if matrices can be multiplied.
-    if (A.columnsSize() != B.rowSize())
-        return Matrix<std::common_type_t<T, U>>();
-
-    // Result container.
-    Matrix<std::common_type_t<T, U>> result(A.rowSize(), B.columnsSize(), 0);
-
-    // Transpose matrix B.
-    Matrix<U> B_transposed = B.transpose();
-
-    // Parallel multiplication.
-    omp_set_num_threads(omp_get_max_threads());
-    #pragma omp parallel for
-    for (size_t i = 0; i < A.rowSize(); i++)
-        for (size_t j = 0; j < B_transposed.rowSize(); j++)
-            for (size_t k = 0; k < A.columnsSize(); k++)
-                result[i][j] += A[i][k] * B_transposed[j][k];
-
-    // Return the matrix.
-    return result;
+    // Return the multiplication.
+    return A.operator*(B);
 }
 
+template <typename T, typename U>
+bool operator==(const Matrix<T>& A, const Matrix<U>& B)
+{
+    // Check if the matrices have the same dimensions
+    if (A.rowSize() != B.rowSize() || A.columnsSize() != B.columnsSize())
+        return false;
+
+    // Check if both are empty.
+    if(A.isEmpty() && B.isEmpty())
+        return true;
+
+    bool res = true;
+
+    // Check element-wise equality
+    for (size_t i = 0; i < A.rowSize() && res == true; ++i)
+        for (size_t j = 0; j < A.columnsSize() && res == true; ++j)
+            if (std::fabs(A(i, j)-B(i, j) >= kFloatingCompEpsilon))
+                res = false;
+
+    return res;
+}
 
 }} // END NAMESPACES
 // =====================================================================================================================
