@@ -19,8 +19,7 @@ endif (UNIX)
 
 macro_setup_launcher(${APP_NAME})
 
-
-source_group("Resource Files" FILES ${RESOURCES})
+#source_group("Resource Files" FILES ${RESOURCES})
 
 add_dependencies(${APP_NAME} LibDPSLR)
 

@@ -95,9 +95,9 @@ public:
      */
     static const std::array<std::string, 10> PredictorErrorStr;
 
-
-    /// @enum PredictionError
-    /// This enum represents the different errors that can happen at interpolation.
+    /** @enum PredictionError
+     *  @brief This enum represents the different errors that can happen at interpolation.
+     */
     enum class PredictionError
     {
         NO_ERROR,
@@ -133,9 +133,10 @@ public:
         INBOUND_VECTOR
     };
 
-    /// @enum InterpolFunction
-    /// This enum represents the different interpolators that can be used.
-    /// @todo Hermite interpolation function.
+    /** @enum InterpolFunction
+     *  @brief This enum represents the different interpolators that can be used.
+     *  @todo Hermite interpolation function.
+     */
     enum class InterpolFunction
     {
         LAGRANGE_16,
@@ -143,9 +144,10 @@ public:
         HERMITE
     };
 
-    /// @enum TroposphericModel
-    /// This enum represents the different tropospheric models that can be used.
-    /// @todo Mendes-Pavlis tropospheric model (IERS Conventions 2010, IERS Technical Note No. 36).
+    /** @enum TroposphericModel
+     *  @brief This enum represents the different tropospheric models that can be used.
+     *  @todo Mendes-Pavlis tropospheric model (IERS Conventions 2010, IERS Technical Note No. 36).
+     */
     enum class TroposphericModel
     {
         MARINI_MURRAY,
@@ -164,7 +166,7 @@ public:
      * @see PredictionMode::ONLY_INSTANT_RANGE
      * @see PredictorSLR::PredictionResult
      */
-    struct InstantRange
+    struct LIBDPSLR_EXPORT InstantRange
     {
         /**
          * @brief Default constructor.
@@ -192,6 +194,12 @@ public:
 
         // Associated object geocentric vectors.
         Vector3D<long double> geo_pos; ///< Object geocentric interpolated positions in meters.
+
+        /**
+         * @brief Represents the InstantRange struct as a JSON-formatted string.
+         * @return The JSON-formatted string representation of InstantRange.
+         */
+        std::string toJsonStr() const;
     };
 
     /**
@@ -204,7 +212,7 @@ public:
      * @see PredictionMode::INSTANT_VECTOR
      * @see PredictorSLR::PredictionResult
      */
-    struct InstantData : public InstantRange
+    struct LIBDPSLR_EXPORT InstantData : public InstantRange
     {
         /**
          * @brief Default constructor.
@@ -222,6 +230,12 @@ public:
         // Azimuth and elevation for the instant vector.
         double az;                       ///< Local computed azimuth in degrees (4 decimals).
         double el;                       ///< Local computed elevation in degrees (4 decimals).
+
+        /**
+         * @brief Represents the InstantData struct as a JSON-formatted string.
+         * @return The JSON-formatted string representation of InstantData.
+         */
+        std::string toJsonStr() const;
     };
 
     /**
@@ -234,7 +248,7 @@ public:
      * @see PredictionMode::OUTBOUND_VECTOR
      * @see PredictorSLR::PredictionResult
      */
-    struct OutboundData : public InstantData
+    struct LIBDPSLR_EXPORT OutboundData : public InstantData
     {
         /**
          * @brief Default constructor.
@@ -252,7 +266,7 @@ public:
      * @see PredictionMode::INBOUND_VECTOR
      * @see PredictorSLR::PredictionResult
      */
-    struct InboundData
+    struct LIBDPSLR_EXPORT InboundData
     {
         /**
          * @brief Default constructor.
@@ -278,7 +292,7 @@ public:
      *
      * @see PredictorSLR::PredictionMode
      */
-    struct PredictionResult
+    struct LIBDPSLR_EXPORT PredictionResult
     {
         // Result containers for the different modes.
         InstantRange instant_range;           ///< Result range for the instant time in the ONLY_INSTANT_RANGE mode.
@@ -314,7 +328,9 @@ public:
      */
     PredictorSLR(const CPF& cpf, const GeodeticPoint<long double>& geod, const GeocentricPoint<long double>& geoc);
 
+    PredictorSLR(const GeodeticPoint<long double>& geod, const GeocentricPoint<long double>& geoc);
 
+    bool setCPF(const CPF& cpf);
 
     /**
      * @brief Get the station location of this cpf interpolator as a GeodeticPoint.
@@ -406,7 +422,7 @@ private:
 
     PredictionError callToInterpol(long double x, Vector3D<long double>& y, PredictionResult& result) const;
 
-    PredictionError convertLagInterpError(stats::common::LagrangeError error) const;
+    static PredictionError convertLagInterpError(stats::common::LagrangeError error);
 
     // Configuration variables.
     InterpolFunction interpol_function_;

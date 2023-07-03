@@ -79,6 +79,68 @@ const std::array<std::string, 10> PredictorSLR::PredictorErrorStr =
     "Other error"
 };
 
+std::string PredictorSLR::InstantRange::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
+
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjd\":" << this->mjd << ",";
+    oss << "\"sod\":" << this->sod << ",";
+    oss << "\"mjdt\":" << this->mjdt << ",";
+    oss << "\"range_1w\":" << this->range_1w << ",";
+    oss << "\"tof_2w\":" << this->tof_2w << ",";
+    oss << "\"geo_pos\":" << this->geo_pos.toJson();
+    oss << "}";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
+std::string PredictorSLR::InstantData::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
+
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjd\":" << this->mjd << ",";
+    oss << "\"sod\":" << this->sod << ",";
+    oss << "\"mjdt\":" << this->mjdt << ",";
+    oss << "\"range_1w\":" << this->range_1w << ",";
+    oss << "\"tof_2w\":" << this->tof_2w << ",";
+    oss << "\"geo_pos\":" << this->geo_pos.toJson();
+    oss << "\"geo_vel\":" << this->geo_vel.toJson();
+    oss << "\"az\":" << this->az;
+    oss << "\"el\":" << this->el;
+    oss << "}";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
+std::string PredictorSLR::PredictionResult::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
+    oss << "{";
+
+    // InstantRange
+    oss << "\"instant_range\":" << instant_range.toJsonStr() << ",";
+
+    // InstantData.
+    oss << "\"instant_range\":{";
+    if(this->instant_data.has_value())
+        oss<<this->instant_data->toJsonStr();
+    else
+        oss << "null";
+    oss << "},";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
 PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geod,
                            const GeocentricPoint<long double> &geoc) :
     interpol_function_(InterpolFunction::LAGRANGE_9),
@@ -88,7 +150,7 @@ PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geo
     grnd_ecc_corr_(0.0),
     cali_del_corr_(0.0),
     syst_rnd_corr_(0.0),
-    apply_corr_(true),
+    apply_corr_(false),
     press_(0.0),
     temp_(0.0),
     rel_hum_(0.0),
@@ -96,17 +158,50 @@ PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geo
     wtrvap_model_(WtrVapPressModel::GIACOMO_DAVIS),
     tropo_ready_(false),
     stat_geodetic_(geod),
-    stat_geocentric_(geoc.toVector3D()),
-    cpf_(cpf)
-    {
-
+    stat_geocentric_(geoc.toVector3D())
+{
     // Check if the cpf is empty.
-    if (!this->cpf_.hasData())
+    if (!cpf.hasData())
         return;
 
     // Store latitude and longitude in radians.
     this->stat_geodetic_.convert(math::units::Angle<long double>::Unit::RADIANS,
                                 math::units::Distance<long double>::Unit::METRES);
+
+    // Set the cpf.
+    this->setCPF(cpf);
+}
+
+PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const GeocentricPoint<long double> &geoc) :
+    interpol_function_(InterpolFunction::LAGRANGE_9),
+    tropo_model_(TroposphericModel::MARINI_MURRAY),
+    prediction_mode_(PredictionMode::OUTBOUND_VECTOR),
+    objc_ecc_corr_(0.0),
+    grnd_ecc_corr_(0.0),
+    cali_del_corr_(0.0),
+    syst_rnd_corr_(0.0),
+    apply_corr_(false),
+    press_(0.0),
+    temp_(0.0),
+    rel_hum_(0.0),
+    wl_(0.0),
+    wtrvap_model_(WtrVapPressModel::GIACOMO_DAVIS),
+    tropo_ready_(false),
+    stat_geodetic_(geod),
+    stat_geocentric_(geoc.toVector3D())
+{
+    // Store latitude and longitude in radians.
+    this->stat_geodetic_.convert(math::units::Angle<long double>::Unit::RADIANS,
+                                 math::units::Distance<long double>::Unit::METRES);
+}
+
+bool PredictorSLR::setCPF(const CPF& cpf)
+{
+    if(!cpf.hasData())
+        return false;
+
+    // Store the cpf.
+    this->cpf_ = cpf;
 
     // Store the eccentricity correction from the cpf.
     if(this->cpf_.getHeader().comCorrectionHeader())
@@ -138,6 +233,9 @@ PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geo
     math::euclid3DRotMat(2, static_cast<long double>(pi/2) - s_lat, rot_lat);
     math::euclid3DRotMat(3, static_cast<long double>(pi), rot_long_pi);
     this->rotm_topo_local_ *= rot_long * rot_lat * rot_long_pi;
+
+    // All ok.
+    return true;
 }
 
 const CPF& PredictorSLR::getCPF() const {return this->cpf_;}
@@ -672,12 +770,9 @@ PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector
         // Do the 9th degree interpolation.
         lag_res = stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, deg, x, y);
 
-        // Return if error.
-        if (stats::common::LagrangeError::NOT_ERROR != lag_res)
-        {
-            error = this->convertLagInterpError(lag_res);
-            result.error = error;
-        }
+        // Convert the error code.
+        error = PredictorSLR::convertLagInterpError(lag_res);
+        result.error = error;
     }
 
     // TODO Other interpolators.
@@ -686,7 +781,7 @@ PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector
     return error;
 }
 
-PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(stats::common::LagrangeError error) const
+PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(stats::common::LagrangeError error)
 {
     PredictorSLR::PredictionError cpf_error;
     switch (error)
@@ -705,6 +800,9 @@ PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(stats::common:
 
 PredictorSLR::InstantData::InstantData(const InstantRange& instant_range) : InstantRange(instant_range)
 {}
+
+
+
 
 
 }}} // END NAMESPACES

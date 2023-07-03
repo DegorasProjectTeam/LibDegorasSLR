@@ -321,12 +321,28 @@ std::string currentISO8601Date(bool add_ms)
     return timePointToIso8601(now, add_ms);
 }
 
-long double mjdAndSecsToMjdt(long long mjd, long double seconds)
+void adjMJDAndSecs(long long& mjd, long double& seconds)
 {
-    long double mjdt = mjd + (seconds / common::kSecsInDay);
-    return mjdt;
+    if (seconds >= common::kSecsInDay)
+    {
+        const int days_add =  static_cast<int>(std::floor(seconds / common::kSecsInDay));
+        mjd += days_add;
+        seconds -= days_add*common::kSecsInDay;
+    }
 }
 
+long double mjdAndSecsToMjdt(long long mjd, long double seconds)
+{
+    if (seconds >= common::kSecsInDay)
+    {
+        const int days_add =  static_cast<int>(std::floor(seconds / common::kSecsInDay));
+        mjd += days_add;
+        seconds -= days_add*common::kSecsInDay;
+    }
+
+    long double mjdt = mjd + (seconds / static_cast<long double>(common::kSecsInDay));
+    return mjdt;
+}
 
 }}// END NAMESPACES.
 // =====================================================================================================================

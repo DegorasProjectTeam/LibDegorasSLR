@@ -70,26 +70,30 @@ public:
     // CPF DATA ENUMS
     // -----------------------------------------------------------------------------------------------------------------
 
-    /// @enum DataRecordType
-    /// @brief Data record types.
+    /**
+     * @enum DataRecordType
+     * @brief Data record types.
+     */
     enum class DataRecordType
     {
-        POSITION_RECORD               = 0,     /// Line 10. Position record.
-        VELOCITY_RECORD               = 3,     /// Line 20. Velocity record.
-        CORRECTIONS_RECORD            = 5,     /// Line 30. Corrections record.
-        TRANSPONDER_RECORD            = 6,     /// Line 40. Transponder specific record.
-        OFFSET_FROM_CENTER_RECORD     = 9,     /// Line 50. Offset from center of main body record.
-        ROT_ANGLE_RECORD              = 10,    /// Line 60. Rotation angle of offset record.
-        EARTH_ORIENTATION_RECORD      = 11     /// Line 70. Earth orientation record.
+        POSITION_RECORD               = 0,     ///< Line 10. Position record.
+        VELOCITY_RECORD               = 3,     ///< Line 20. Velocity record.
+        CORRECTIONS_RECORD            = 5,     ///< Line 30. Corrections record.
+        TRANSPONDER_RECORD            = 6,     ///< Line 40. Transponder specific record.
+        OFFSET_FROM_CENTER_RECORD     = 9,     ///< Line 50. Offset from center of main body record.
+        ROT_ANGLE_RECORD              = 10,    ///< Line 60. Rotation angle of offset record.
+        EARTH_ORIENTATION_RECORD      = 11     ///< Line 70. Earth orientation record.
     };
 
-    /// @enum DirectionFlag
-    /// @brief Direction flag.
+    /**
+     * @enum DirectionFlag
+     * @brief Direction flag.
+     */
     enum class DirectionFlag
     {
-        COMMON_EPOCH  = 0,           /// Common epoch. Instantaneous vector between geocenter and target.
-        TRANSMIT      = 1,           /// Transmit. Iterated travel time from geocenter to target at transmit epoch.
-        RECEIVE       = 2            /// Receive. Iterated travel time from target to geocenter at receive epoch.
+        COMMON_EPOCH  = 0,           ///< Common epoch. Instantaneous vector between geocenter and target.
+        TRANSMIT      = 1,           ///< Transmit. Iterated travel time from geocenter to target at transmit epoch.
+        RECEIVE       = 2            ///< Receive. Iterated travel time from target to geocenter at receive epoch.
     };
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -102,11 +106,11 @@ public:
     struct PositionRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;             /// Direction flag.
-        long long mjd;                      /// Modified Julian Date.
-        long double sod;                    /// Second of day (UTC).
-        int leap_second;                    /// Leap second flag (0 or the value of new leap second).
-        Vector3D<long double> position;     /// Geocentric position in meters (x, y, z).
+        DirectionFlag dir_flag;             ///< Direction flag.
+        long long mjd;                      ///< Modified Julian Date.
+        long double sod;                    ///< Second of day (UTC).
+        int leap_second;                    ///< Leap second flag (0 or the value of new leap second).
+        Vector3D<long double> position;     ///< Geocentric position in meters (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -123,8 +127,8 @@ public:
     struct VelocityRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;              /// Direction flag.
-        Vector3D<long double> velocity;      /// Geocentric velocity in m/s (x, y, z).
+        DirectionFlag dir_flag;              ///< Direction flag.
+        Vector3D<long double> velocity;      ///< Geocentric velocity in m/s (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -141,9 +145,9 @@ public:
     struct CorrectionsRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;                         ///< Direction flag
-        std::array<long double, 3> aberration_correction;   ///< Stellar aberration correction in meters (x, y, z)
-        double range_correction;                            ///< Relativistic range correction in ns (positive)
+        DirectionFlag dir_flag;                         ///<< Direction flag
+        std::array<long double, 3> aberration_correction;   ///<< Stellar aberration correction in meters (x, y, z)
+        double range_correction;                            ///<< Relativistic range correction in ns (positive)
         // Functions.
         /**
          * @brief Generate the line for this record.

@@ -40,6 +40,7 @@
 #include <array>
 #include <ostream>
 #include <vector>
+#include <sstream>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
@@ -214,6 +215,27 @@ public:
         return res;
     }
 
+    std::string toJson() const
+    {
+        // Result
+        std::ostringstream oss;
+
+        // Store the data.
+        if(this->data_.empty())
+            oss<<"{}";
+        else
+        {
+            oss <<"{";
+            oss << "\"x\":" << this->getX() << ",";
+            oss << "\"y\":" << this->getY() << ",";
+            oss << "\"z\":" << this->getZ();
+            oss << "}";
+        }
+
+        // Return the JSON str.
+        return oss.str();
+    }
+
     /**
      * @brief Adds two vectors.
      * @param other The Vector3D to add.
@@ -337,6 +359,7 @@ public:
         os << "(" << vector.getX() << ", " << vector.getY() << ", " << vector.getZ() << ")";
         return os;
     }
+
 
 private:
     std::array<T, 3> data_;
