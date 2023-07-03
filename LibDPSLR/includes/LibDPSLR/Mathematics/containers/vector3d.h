@@ -45,6 +45,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
+#include <LibDPSLR/Helpers/string_helpers.h>
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -226,9 +227,9 @@ public:
         else
         {
             oss <<"{";
-            oss << "\"x\":" << this->getX() << ",";
-            oss << "\"y\":" << this->getY() << ",";
-            oss << "\"z\":" << this->getZ();
+            oss << "\"x\":" << helpers::strings::numberToStr(this->getX(), 13, 3) << ",";
+            oss << "\"y\":" << helpers::strings::numberToStr(this->getY(), 13, 3 )<< ",";
+            oss << "\"z\":" << helpers::strings::numberToStr(this->getZ(), 13, 3);
             oss << "}";
         }
 

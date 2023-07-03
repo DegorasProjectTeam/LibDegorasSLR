@@ -23,21 +23,19 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file string_helpers.h
- * @brief This file contains several helper tools related with strings.
+ * @file singleton.h
+ * @brief This file contains the declaration of the Singleton class.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2307.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
-// C++ INCLUDES
-//======================================================================================================================
-#include <string>
-// =====================================================================================================================
+#include <utility>
+#include <type_traits>
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
@@ -48,65 +46,41 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace helpers{
-namespace strings{
 // =====================================================================================================================
-
-// Transform a string to upper case.
-LIBDPSLR_EXPORT std::string toUpper(const std::string& str);
-
-// Transform a string to lower case.
-LIBDPSLR_EXPORT std::string toLower(const std::string& str);
-
-// String left trim.
-LIBDPSLR_EXPORT std::string ltrim(const std::string& str);
-
-// String right trim.
-LIBDPSLR_EXPORT std::string rtrim(const std::string& str);
-
-// String trim.
-LIBDPSLR_EXPORT std::string trim(const std::string& str);
 
 /**
- * @brief Takes a string and returns a new string with the last line break removed.
- * @param str The input string.
- * @return The modified string without the last line break.
- * @note If the input string does not contain any line breaks, the original string is returned.
+ * @class Singleton
+ * @brief Singleton class that provides a single instance accessible globally.
  */
-LIBDPSLR_EXPORT std::string rmLastLineBreak(const std::string& str);
+template <typename T, typename D = T>
+class Singleton
+{
+    friend D;
+    static_assert(std::is_base_of<T, D>::value, "T must be a base type for D");
 
-/**
- * @brief Generate Lorem Ipsum text.
- * @param paragraphs The number of paragraphs to generate.
- * @param sentences The number of sentences per paragraph.
- * @param words The number of words per sentence.
- * @return The generated Lorem Ipsum text.
- */
-LIBDPSLR_EXPORT std::string generateLoremIpsum(unsigned paragraphs, unsigned sentences, unsigned words);
+public:
 
-// Custom split.
-template <class Container>
-void split (Container& result, const std::string& s, const std::string& delimiters, bool empties = true);
+    /**
+     * @brief Static member function to access the Singleton instance.
+     * @return Reference to the Singleton instance.
+     */
 
-// Custom split 2.
-template <class Container>
-Container split (const std::string& s, const std::string& delimiters, bool empties = true );
+    static T& instance()
+    {
+        static D inst;
+        return inst;
+    }
 
-// Custom string join.
-template <typename Container>
-std::string join(const Container& strings, const std::string& delimiters = " ");
 
-// Custom number to fixed string conversion.
-template<typename T>
-std::string numberToFixstr(T x, unsigned int prec);
+private:
 
-// Custom number to fixed string conversion.
-template<typename T>
-std::string numberToStr(T x, unsigned int prec, unsigned int dec_places, bool fixed = true);
+    Singleton() = default;
+    Singleton( const Singleton& ) = delete;
+    Singleton& operator=( const Singleton& ) = delete;
 
-}}} // END NAMESPACES
-// =====================================================================================================================
+    // Force pure virtual.
+    virtual ~Singleton() = 0;
+};
 
-// TEMPLATES INCLUDES
-// =====================================================================================================================
-#include "LibDPSLR/Helpers/string_helpers.tpp"
+}} // END NAMESPACES
 // =====================================================================================================================

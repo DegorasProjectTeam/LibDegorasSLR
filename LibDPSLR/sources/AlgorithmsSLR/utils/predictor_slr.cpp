@@ -47,6 +47,7 @@
 #include <LibDPSLR/Statistics/common/statistics_types.h>
 #include <LibDPSLR/Astronomical/common/astro_types.h>
 #include <LibDPSLR/Geo/tropo.h>
+#include <LibDPSLR/Helpers/string_helpers.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -58,6 +59,7 @@ namespace utils{
 
 // =====================================================================================================================
 using ilrs::cpf::CPF;
+using helpers::strings::numberToStr;
 using namespace astro::common;
 using namespace math::common;
 using namespace math::units;
@@ -88,9 +90,9 @@ std::string PredictorSLR::InstantRange::toJsonStr() const
     oss << "{";
     oss << "\"mjd\":" << this->mjd << ",";
     oss << "\"sod\":" << this->sod << ",";
-    oss << "\"mjdt\":" << this->mjdt << ",";
-    oss << "\"range_1w\":" << this->range_1w << ",";
-    oss << "\"tof_2w\":" << this->tof_2w << ",";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
     oss << "\"geo_pos\":" << this->geo_pos.toJson();
     oss << "}";
 
@@ -107,13 +109,31 @@ std::string PredictorSLR::InstantData::toJsonStr() const
     oss << "{";
     oss << "\"mjd\":" << this->mjd << ",";
     oss << "\"sod\":" << this->sod << ",";
-    oss << "\"mjdt\":" << this->mjdt << ",";
-    oss << "\"range_1w\":" << this->range_1w << ",";
-    oss << "\"tof_2w\":" << this->tof_2w << ",";
-    oss << "\"geo_pos\":" << this->geo_pos.toJson();
-    oss << "\"geo_vel\":" << this->geo_vel.toJson();
-    oss << "\"az\":" << this->az;
-    oss << "\"el\":" << this->el;
+    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
+    oss << "\"geo_pos\":" << this->geo_pos.toJson() << ",";
+    oss << "\"geo_vel\":" << this->geo_vel.toJson() << ",";
+    oss << "\"az\":" << numberToStr(this->az, 7, 4) << ",";
+    oss << "\"el\":" << numberToStr(this->el, 7, 4);
+    oss << "}";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
+std::string PredictorSLR::InboundData::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
+
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjd\":" << this->mjd << ",";
+    oss << "\"sod\":" << this->sod << ",";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12);
     oss << "}";
 
     // Return the JSON str.
@@ -130,12 +150,34 @@ std::string PredictorSLR::PredictionResult::toJsonStr() const
     oss << "\"instant_range\":" << instant_range.toJsonStr() << ",";
 
     // InstantData.
-    oss << "\"instant_range\":{";
-    if(this->instant_data.has_value())
-        oss<<this->instant_data->toJsonStr();
-    else
-        oss << "null";
-    oss << "},";
+    oss << "\"instant_data\":" << (this->instant_data.has_value() ? this->instant_data->toJsonStr() : "null") << ",";
+
+    // OutboundData.
+    oss << "\"outbound_data\":"<<(this->outbound_data.has_value() ? this->outbound_data->toJsonStr() : "null")<<",";
+
+    // InboundData.
+    oss << "\"inbound_data\":"<<(this->inbound_data.has_value() ? this->inbound_data->toJsonStr() : "null")<<",";
+
+    // Difference between receive and transmit direction at instant time.
+    oss << "\"diff_az\":";
+    oss << (this->diff_az.has_value() ? numberToStr(this->diff_az.value(), 4, 4) : "null") << ",";
+    oss << "\"diff_el\":";
+    oss << (this->diff_el.has_value() ? numberToStr(this->diff_el.value(), 4, 4) : "null") << ",";
+
+    // Corrections applied.
+    oss << "\"objc_ecc_corr\":";
+    oss <<(this->objc_ecc_corr.has_value() ? std::to_string(this->objc_ecc_corr.value()) : "null") << ",";
+    oss << "\"grnd_ecc_corr\":";
+    oss <<(this->grnd_ecc_corr.has_value() ? std::to_string(this->grnd_ecc_corr.value()) : "null") << ",";
+    oss << "\"cali_del_corr\":";
+    oss <<(this->cali_del_corr.has_value() ? std::to_string(this->cali_del_corr.value()) : "null") << ",";
+    oss << "\"corr_tropo\":";
+    oss <<(this->corr_tropo.has_value() ? std::to_string(this->corr_tropo.value()) : "null") << ",";
+    oss << "\"syst_rnd_corr\":";
+    oss <<(this->syst_rnd_corr.has_value() ? std::to_string(this->syst_rnd_corr.value()) : "null");
+
+    // End.
+    oss << "}";
 
     // Return the JSON str.
     return oss.str();

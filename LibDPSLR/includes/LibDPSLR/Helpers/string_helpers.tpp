@@ -111,11 +111,13 @@ std::string numberToFixstr(T x, unsigned int prec)
 }
 
 template<typename T>
-std::string numberToStr(T x, unsigned int prec, unsigned int dec_places)
+std::string numberToStr(T x, unsigned int prec, unsigned int dec_places, bool fixed)
 {
     std::ostringstream strout;
     std::vector<std::string> aux;
     std::string dplac;
+    if(fixed)
+        strout<<std::fixed;
     strout << std::showpoint << std::setprecision(prec) << x ;
     std::string str = strout.str() ;
     split(aux, str, ".", true);

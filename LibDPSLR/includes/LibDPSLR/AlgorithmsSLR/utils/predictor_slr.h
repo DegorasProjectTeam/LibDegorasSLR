@@ -281,6 +281,12 @@ public:
         // Range (1 way) and time of flight (2 way).
         long double range_1w;          ///< One way range in meters (mm precission -> 3 decimals).
         long double tof_2w;            ///< Two way flight time in seconds (ps precission -> 12 decimals).
+
+        /**
+         * @brief Represents the InboundData struct as a JSON-formatted string.
+         * @return The JSON-formatted string representation of InboundData.
+         */
+        std::string toJsonStr() const;
     };
 
     /**
@@ -389,6 +395,9 @@ public:
     void setTropoCorrParams(double press, double temp, double rh, double wl,
                             WtrVapPressModel wvpm = WtrVapPressModel::GIACOMO_DAVIS);
 
+    /**
+     * @brief Unsets the parameters for the tropospheric path delay correction.
+     **/
     void unsetTropoCorrParams();
 
     /**
