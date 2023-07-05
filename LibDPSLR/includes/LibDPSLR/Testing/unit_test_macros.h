@@ -22,50 +22,57 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
-/** ********************************************************************************************************************
- * @file astro_utils.h
- * @brief This file contains the declaration of several astronomical usefull functions.
- * @author Degoras Project Team
- * @copyright EUPL License
- * @version 2306.1
-***********************************************************************************************************************/
-
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
-
 // C++ INCLUDES
-//======================================================================================================================
-
+// =====================================================================================================================
+#include <stdlib.h>
+#include <thread>
+#include <chrono>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDPSLR/libdpslr_global.h"
+#include "LibDPSLR/Testing/unit_test.h"
 // =====================================================================================================================
 
-// DPSLR NAMESPACES
-// =====================================================================================================================
-namespace dpslr{
-namespace astro{
+// MACROS
 // =====================================================================================================================
 
-//
-//======================================================================================================================
+#define M_START_UNIT_TEST_SESSION(SessionName)                    \
+UnitTest::instance().clear();                                     \
+UnitTest::instance().setSessionName(std::string(SessionName));    \
 
-/**
- * @brief Convert azimuth and elevation coordinates to right ascension and declination.
- *
- * @param[in] az The azimuth angle in radians.
- * @param[in] el The elevation angle in radians.
- * @param[in] lmst The local mean sidereal time in hours (range: [0, 24)).
- * @param[in] lat The latitude in radians.
- * @param[out] ra The calculated right ascension in the same units as `lmst`.
- * @param[out] dec The calculated declination in radians.
- */
-LIBDPSLR_EXPORT void azElToRaDec(long double az, long double el, long double lmst, long double lat, long double &ra, long double &dec);
+#define M_DECLARE_UNIT_TEST(Module, TestName)               \
+using dpslr::testing::TestBase;                             \
+using dpslr::testing::UnitTest;                             \
+class Test_##Module##_##TestName : public TestBase          \
+{                                                           \
+        Test_##Module##_##TestName(): TestBase(#TestName){} \
+        public:                                             \
+        static Test_##Module##_##TestName* instance()       \
+    {                                                       \
+            static Test_##Module##_##TestName test;         \
+            return &test;                                   \
+    }                                                       \
+        void runTest() override;                            \
+};                                                          \
 
-//======================================================================================================================
+#define M_DEFINE_UNIT_TEST(Module, TestName)       \
+void Test_##Module##_##TestName::runTest()      \
 
-}} // END NAMESPACES.
+#define M_REGISTER_UNIT_TEST(Module, TestName)                                                        \
+    UnitTest::instance().addTest(                                                        \
+            std::pair<std::string, TestBase*>(#Module, Test_##Module##_##TestName::instance()));   \
+
+#define M_RUN_UNIT_TESTS() \
+dpslr::testing::UnitTest::instance().runTests();  \
+
+#define M_EXPECTED_EQ(arg1, arg2)          \
+this->result_ &= expectEQ(arg1, arg2);   \
+
+#define MEXPECTED_NE(arg1, arg2)          \
+this->result_ &= expectNE(arg1, arg2);   \
+
+#define M_SLEEP_US(arg1)          \
+std::this_thread::sleep_for(std::chrono::microseconds(arg1));   \
+ \
 // =====================================================================================================================

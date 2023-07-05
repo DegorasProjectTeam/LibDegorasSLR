@@ -132,6 +132,20 @@ std::string numberToStr(T x, unsigned int prec, unsigned int dec_places, bool fi
     }
 }
 
+template <typename Container>
+std::string join(const Container& strings, const std::string& delimiter)
+{
+    std::ostringstream oss;
+    auto it = strings.begin();
+    if (it != strings.end()) {
+        oss << *it;
+        ++it;
+    }
+    for (; it != strings.end(); ++it) {
+        oss << delimiter << *it;
+    }
+    return oss.str();
+}
 
 
 }}}// END NAMESPACES.

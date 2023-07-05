@@ -45,6 +45,7 @@ namespace timing{
 
 // =====================================================================================================================
 using dpslr::timing::common::HRTimePointStd;
+using dpslr::math::common::pi;
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
@@ -242,21 +243,21 @@ long double timePointToReducedJulianDatetime(const HRTimePointStd &tp)
     return timePointToJulianDatetime(tp) + common::kJulianToReducedJulian;
 }
 
-HRTimePointStd modifiedJulianDatetimeToTimePoint(long double mjt)
+HRTimePointStd mjdtToTp(long double mjt)
 {
     duration<long double, std::ratio<common::kSecsInDay>> unix_days(
         mjt + common::kModifiedJulianToJulian + common::kJulianToPosixEpoch);
     return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
 }
 
-HRTimePointStd julianToTimePoint(long double jt)
+HRTimePointStd jdtToTp(long double jt)
 {
     duration<long double, std::ratio<common::kSecsInDay>> unix_days(jt + common::kJulianToPosixEpoch);
     return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
 }
 
 
-HRTimePointStd dateTimeToTimePoint(int y, int m, int d, int h, int min, int s)
+HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h, int min, int s)
 {
     tm datetime;
     datetime.tm_year = y - 1900;
@@ -342,6 +343,28 @@ long double mjdAndSecsToMjdt(long long mjd, long double seconds)
 
     long double mjdt = mjd + (seconds / static_cast<long double>(common::kSecsInDay));
     return mjdt;
+}
+
+
+long double jdtToGmst(long double jdt)
+{
+    long double t = (jdt - 2451545.0L) / 36525.L;
+
+    long double gmst = -6.2e-6L*t*t*t + 0.093104L*t*t + (876600.0L * 3600.L + 8640184.812866L)*t + 67310.54841L;  // sec
+
+    //360 deg / 86400 s = 1/240, to convert seconds of time to deg, and then convert to rad
+    gmst = dpslr::math::normalizeVal(gmst / 240.L * pi / 180.L, 0.L , 2*pi);
+
+    return gmst;
+}
+
+
+long double jdtToLmst(long double jdt, long double lon)
+{
+    long double gmst = jdtToGmst(jdt);
+    long double lmst = dpslr::math::normalizeVal(gmst + lon, 0.L, 2*pi);
+
+    return lmst;
 }
 
 }}// END NAMESPACES.

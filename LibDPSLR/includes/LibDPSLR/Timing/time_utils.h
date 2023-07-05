@@ -82,11 +82,23 @@ LIBDPSLR_EXPORT std::string currentUTCISODate();
 // ISO 8601 RELATED FUNCTIONS
 //======================================================================================================================
 
-std::chrono::seconds iso8601DurationParser(const std::string& duration);
+LIBDPSLR_EXPORT std::chrono::seconds iso8601DurationParser(const std::string& duration);
 
-common::HRTimePointStd iso8601DatetimeParser(const std::string& datetime);
+LIBDPSLR_EXPORT common::HRTimePointStd iso8601DatetimeParser(const std::string& datetime);
 
 //======================================================================================================================
+
+// SIDEREAL RELATED FUNCTIONS
+//======================================================================================================================
+
+LIBDPSLR_EXPORT long double jdtToGmst(long double jd);
+
+
+LIBDPSLR_EXPORT long double jdtToLmst(long double jdt, long double lon);
+
+
+//======================================================================================================================
+
 
 // TIMING CONVERSION FUNCTIONS
 //======================================================================================================================
@@ -129,21 +141,21 @@ LIBDPSLR_EXPORT HRTimePointStd win32TicksToTimePoint(unsigned long long ticks);
  * @param s   The second of the minute.
  * @return The HRTimePointStd representing the specified date and time.
  */
-LIBDPSLR_EXPORT HRTimePointStd dateTimeToTimePoint(int y, int m, int d, int h=0, int min=0, int s=0);
+LIBDPSLR_EXPORT HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h=0, int min=0, int s=0);
 
 /**
  * @brief Converts a Modified Julian Datetime to a TimePoint.
  * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
  * @return A TimePoint.
  */
-LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDatetimeToTimePoint(long double mjdt);
+LIBDPSLR_EXPORT HRTimePointStd mjdtToTp(long double mjdt);
 
 /**
  * @brief Converts a Julian Datetime to a TimePoint.
  * @param jdt Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
  * @return A TimePoint.
  */
-LIBDPSLR_EXPORT HRTimePointStd julianToTimePoint(long double jdt);
+LIBDPSLR_EXPORT HRTimePointStd jdtToTp(long double jdt);
 
 
 // TLE time (year and fractional point) to C++ time point.

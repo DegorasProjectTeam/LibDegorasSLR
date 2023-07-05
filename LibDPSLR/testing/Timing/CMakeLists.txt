@@ -1,7 +1,7 @@
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++17 -fopenmp")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Testing/Testing)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Testing/Timing)
 set(LIBRARIES LibDPSLR)
 
 if (WIN32)
@@ -21,6 +21,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     set(APP_NAME ${TEST_NAME})
     set(SOURCES ${TEST_SOURCE})
     macro_setup_launcher(${TEST_NAME})
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 endforeach()
 
 

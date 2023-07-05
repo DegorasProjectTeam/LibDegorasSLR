@@ -2,57 +2,34 @@
 #include <cassert>
 #include <iostream>
 
-#include <LibDPSLR/Testing/unit_test.h>
+#include <LibDPSLR/Testing/UnitTest>
+#include <LibDPSLR/Astronomical/astro_utils.h>
+#include <LibDPSLR/Mathematics/units.h>
 
-MDeclareUnitTest(Module1, Testing_Equal_Pass)
-MDeclareUnitTest(Module1, Testing_Equal_Fail)
-MDeclareUnitTest(Module1, Test3)
-MDeclareUnitTest(Module2, Test1)
-MDeclareUnitTest(Module2, Test2)
+using namespace dpslr;
 
-MDefineUnitTest(Module1, Testing_Equal_Pass)
+M_DECLARE_UNIT_TEST(AstroUtils, azElToRaDec)
+
+M_DEFINE_UNIT_TEST(AstroUtils, azElToRaDec)
 {
-    EXPECTED_EQ(1,1)
-}
+    long double ra, dec;
 
-MDefineUnitTest(Module1, Testing_Equal_Fail)
-{
-    EXPECTED_EQ(1,5)
-}
+    long double lat = 50;
 
-MDefineUnitTest(Module1, Test3)
-{
-    EXPECTED_EQ(1,1)
-}
+    astro::azElToRaDec(43.6, 53.4, 12, math::units::degToRad(50), ra, dec);
+    std::cout<<ra<<" "<<dec;
 
-MDefineUnitTest(Module2, Test1)
-{
-    EXPECTED_EQ(1,1)
+    M_EXPECTED_EQ(1,1)
 }
-
-MDefineUnitTest(Module2, Test2)
-{
-    EXPECTED_EQ(1,1)
-}
-
 
 int main()
 {
-    MRegisterUnitTest(Module1, Testing_Equal_Pass)
-    MRegisterUnitTest(Module1, Testing_Equal_Fail)
-    MRegisterUnitTest(Module1, Testing_Equal_Fail)
+    M_START_UNIT_TEST_SESSION("LibDPSLR Astronomical Session")
 
-    MRegisterUnitTest(Module2, Test2)
+    // Register the tests.
+    M_REGISTER_UNIT_TEST(AstroUtils, azElToRaDec)
 
-
-    std::cout << "Unit Test: Class dpslr::math::Matrix" << std::endl;
-
-    UnitTest::instance().runTests();
-
-    //MRunUnitTests()
-
-    // All assertions passed
-    std::cout << "All tests passed!\n";
+    M_RUN_UNIT_TESTS()
 
     return 0;
 }

@@ -83,6 +83,23 @@ LIBDPSLR_EXPORT std::string rmLastLineBreak(const std::string& str);
  */
 LIBDPSLR_EXPORT std::string generateLoremIpsum(unsigned paragraphs, unsigned sentences, unsigned words);
 
+/**
+ * @brief Replaces occurrences of a substring in a string with a specified replacement string.
+ * @param str The string to modify.
+ * @param target The substring to search for and replace.
+ * @param replacement The string to replace occurrences of the target substring with.
+ * @return A new string with the replacements.
+ */
+LIBDPSLR_EXPORT std::string replaceStr(const std::string& str, const std::string& target, const std::string& repl);
+
+/**
+ * @brief Creates a string with a specified width filled with a given character.
+ * @param fillChar The character used to fill the string.
+ * @param width The desired width of the string.
+ * @return The resulting string with the specified width and filled characters.
+ */
+LIBDPSLR_EXPORT std::string fillStr(const std::string& fillChar, size_t width);
+
 // Custom split.
 template <class Container>
 void split (Container& result, const std::string& s, const std::string& delimiters, bool empties = true);
@@ -91,9 +108,15 @@ void split (Container& result, const std::string& s, const std::string& delimite
 template <class Container>
 Container split (const std::string& s, const std::string& delimiters, bool empties = true );
 
-// Custom string join.
+/**
+ * @brief Concatenates elements from a container into a single string, separated by the specified delimiter.
+ * @tparam Container The type of the container.
+ * @param strings The container of strings to join.
+ * @param delimiters The delimiter string to insert between elements (default: " ").
+ * @return The concatenated string.
+ */
 template <typename Container>
-std::string join(const Container& strings, const std::string& delimiters = " ");
+std::string join(const Container& strings, const std::string& del = " ");
 
 // Custom number to fixed string conversion.
 template<typename T>

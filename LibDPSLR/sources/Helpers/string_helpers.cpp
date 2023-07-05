@@ -106,5 +106,34 @@ std::string generateLoremIpsum(unsigned int paragraphs, unsigned int sentences, 
     return result;
 }
 
+std::string replaceStr(const std::string& str, const std::string& target, const std::string& replacement)
+{
+    std::string result = str;
+    size_t pos = 0;
+    while ((pos = result.find(target, pos)) != std::string::npos)
+    {
+        result.replace(pos, target.length(), replacement);
+        pos += replacement.length();
+    }
+    return result;
+}
+
+std::string fillStr(const std::string& fillChar, size_t width)
+{
+    std::string result;
+    int fillSize = width / fillChar.size();
+    int remainder = width % fillChar.size();
+
+    for (int i = 0; i < fillSize; ++i) {
+        result += fillChar;
+    }
+
+    if (remainder > 0) {
+        result += fillChar.substr(0, remainder);
+    }
+
+    return result;
+}
+
 }}}// END NAMESPACES.
 // =====================================================================================================================

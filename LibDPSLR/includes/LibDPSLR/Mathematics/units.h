@@ -79,13 +79,13 @@ constexpr long double kLightNsToMm = 299.792458L;
 // ========== FUNCTIONS ================================================================================================
 
 template <typename T>
-double degToRad(T degree)
+T degToRad(T degree)
 {
     return (degree*(math::common::pi/180.0));
 }
 
 template <typename T>
-double radToDegree(T radian)
+T radToDegree(T radian)
 {
     return (radian*(180.0/math::common::pi));
 }

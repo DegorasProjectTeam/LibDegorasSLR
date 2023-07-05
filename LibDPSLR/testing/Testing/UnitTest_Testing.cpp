@@ -2,58 +2,66 @@
 #include <cassert>
 #include <iostream>
 
-#include <LibDPSLR/Testing/unit_test.h>
+#include <LibDPSLR/Testing/UnitTest>
 
-MDeclareUnitTest(Module1, Testing_Equal_Pass)
-MDeclareUnitTest(Module1, Testing_Equal_Fail)
-MDeclareUnitTest(Module1, Test3)
-MDeclareUnitTest(Module2, Test1)
-MDeclareUnitTest(Module2, Test2)
+M_DECLARE_UNIT_TEST(Module1, Testing_Equal_Pass)
+M_DECLARE_UNIT_TEST(Module1, Testing_Equal_Fail)
+M_DECLARE_UNIT_TEST(Module1, Test3)
+M_DECLARE_UNIT_TEST(Module2, Test1)
+M_DECLARE_UNIT_TEST(Module2, Test2)
+M_DECLARE_UNIT_TEST(Module3_Unit, Test_Modul_3)
 
-MDefineUnitTest(Module1, Testing_Equal_Pass)
+M_DEFINE_UNIT_TEST(Module1, Testing_Equal_Pass)
 {
-    EXPECTED_EQ(1,1)
+    M_EXPECTED_EQ(1,1)
+    M_SLEEP_US(23458)
 }
 
-MDefineUnitTest(Module1, Testing_Equal_Fail)
+M_DEFINE_UNIT_TEST(Module1, Testing_Equal_Fail)
 {
-    EXPECTED_EQ(1,5)
+    M_EXPECTED_EQ(1,5)
 }
 
-MDefineUnitTest(Module1, Test3)
+M_DEFINE_UNIT_TEST(Module1, Test3)
 {
-    EXPECTED_EQ(1,1)
+    M_EXPECTED_EQ(1,1)
 }
 
-MDefineUnitTest(Module2, Test1)
+M_DEFINE_UNIT_TEST(Module2, Test1)
 {
-    EXPECTED_EQ(1,1)
+    M_EXPECTED_EQ(1,1)
 }
 
-MDefineUnitTest(Module2, Test2)
+M_DEFINE_UNIT_TEST(Module2, Test2)
 {
-    EXPECTED_EQ(1,1)
+    M_EXPECTED_EQ(1,1)
 }
+
+M_DEFINE_UNIT_TEST(Module3_Unit, Test_Modul_3)
+{
+    M_EXPECTED_EQ(5.5, 5.5)
+    M_SLEEP_US(125468)
+}
+
+
 
 
 int main()
 {
-    // For this test, some test must fail, becaouse it is for testing the UnitTest framework.
-    MRegisterUnitTest(Module1, Testing_Equal_Pass)
-    MRegisterUnitTest(Module1, Testing_Equal_Fail)
-    MRegisterUnitTest(Module1, Testing_Equal_Fail)
+    // For this test, some test must fail, becaouse it is for testing the UnitTest
+    // framework. Due to this, we don't add this test to the cmake testing.
+    M_START_UNIT_TEST_SESSION("LibDPSLR - TEST SESSION ")
 
-    MRegisterUnitTest(Module2, Test2)
+    // Register the tests.
+    M_REGISTER_UNIT_TEST(Module1, Testing_Equal_Pass)
+    M_REGISTER_UNIT_TEST(Module1, Testing_Equal_Fail)
+    M_REGISTER_UNIT_TEST(Module1, Test3)
+    M_REGISTER_UNIT_TEST(Module2, Test2)
+    M_REGISTER_UNIT_TEST(Module3_Unit, Test_Modul_3)
+
+    M_RUN_UNIT_TESTS()
 
 
-    std::cout << "Unit Test: Class dpslr::math::Matrix" << std::endl;
-
-    UnitTest::instance().runTests();
-
-    //MRunUnitTests()
-
-    // All assertions passed
-    std::cout << "All tests passed!\n";
 
     return 0;
 }

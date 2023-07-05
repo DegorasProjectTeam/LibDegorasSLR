@@ -94,6 +94,21 @@ std::vector<T> dataBetween(const std::vector<T>& v, T lower, T upper);
 template <class T>
 std::ostream& operator<<(std::ostream& out, const std::vector<T>& v);
 
+
+template <typename Container>
+std::vector<typename Container::key_type> getMapKeys(const Container& container)
+{
+    std::vector<typename Container::key_type> keys;
+    for(auto it = container.begin(), end = container.end();
+        it != end; it = container.equal_range(it->first).second)
+    {
+        keys.push_back(it->first);
+    }
+    return keys;
+}
+
+
+
 }}} // END NAMESPACES.
 // =====================================================================================================================
 
