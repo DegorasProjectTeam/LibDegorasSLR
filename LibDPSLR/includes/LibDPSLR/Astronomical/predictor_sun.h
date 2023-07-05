@@ -114,7 +114,6 @@ public:
         azimuth = math::normalizeVal(math::units::radToDegree(azimuth), 0.0, 360.0);
 
         // Very simple refraction correction.
-        // WARNING: Pressure and temperature could be added but greater precision is not necessary.
         if (refr && (elevation >= -1 * (0.26667 + 0.5667)))
         {
             double targ = math::units::degToRad((elevation + (10.3 / (elevation + 5.11))));

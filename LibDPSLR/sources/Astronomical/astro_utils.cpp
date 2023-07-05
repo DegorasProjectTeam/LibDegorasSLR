@@ -61,6 +61,16 @@ void azElToRaDec(long double az, long double el, long double lmst, long double l
     ra = lmst - lha;
 }
 
+void raDecToAzEl(long double ra, long double dec, long double lmst, long double lat, long double &az, long double &el)
+{
+    // Local hour angle
+    long double lha = lmst - ra;
+
+    el = std::asin(std::sin(dec) * std::sin(lat) + std::cos(dec) * std::cos(lat) * std::cos(lha));
+    long double sinv = -std::sin(lha) * std::cos(dec) * std::cos(lat) / (std::cos(el) * std::cos(lat));
+    long double cosv = (std::sin(dec) - std::sin(el) * std::sin(lat)) / (std::cos(el) * std::cos(lat));
+    az = std::atan2(sinv, cosv);
+}
 
 
 }} // END NAMESPACES.

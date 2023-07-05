@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of functions related with the troposphere.
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2307.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -38,6 +38,7 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include <LibDPSLR/Geo/tropo.h>
+#include <LibDPSLR/Mathematics/units.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -65,6 +66,42 @@ double pathDelayMariniMurray(double pres, double temp, double rh, double el, dou
     double ar = (flam / fphih) * (ab / (sine + (b / ab) / (sine + 0.01)));
     // Return one way the tropospheric path delay (meters).
     return ar;
+}
+
+double refractionCorrection(double el, double ht)
+{
+    const double s = 9.1e3;
+    double refr, p, t, r;
+    double zd_obs = 90 - el;
+
+    if ((zd_obs < 0.1) || (zd_obs > 91.0))
+        refr = 0.0;
+    else
+    {
+        p = 1010.0 * std::exp(-0.0065 * 2.26e-5 * ht);
+        t = 15.0;
+        r = 0.016667 / tan(math::units::degToRad((el + 7.31 / (el + 4.4))));
+        refr = r * (0.28 * p / (t + 273.0));
+    }
+
+    return refr;
+}
+
+double refractionCorrection(double el, double pres, double temp)
+{
+    const double s = 9.1e3;
+    double refr, r;
+    double zd_obs = 90 - el;
+
+    if ((zd_obs < 0.1) || (zd_obs > 91.0))
+        refr = 0.0;
+    else
+    {
+        r = 0.016667 / tan( math::units::degToRad((el + 7.31 / (el + 4.4))));
+        refr = r * (0.28 * pres / temp);
+    }
+
+    return refr;
 }
 
 }}} // END NAMESPACES.

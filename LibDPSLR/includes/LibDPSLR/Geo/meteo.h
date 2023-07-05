@@ -77,14 +77,15 @@ enum class WtrVapPressModel
  * original formula used in Marini and Murray model (1973) (IERS TN 21, chap. 9) or the Giacomo and Davis model
  * (IERS TN 32, chap. 9).
  *
- * @see IERS TN 21, chap. 9. https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn21.html?nn=94912
- * @see IERS TN 32, chap. 9. https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn32.html?nn=94912
- * @see Giacomo, P., Equation for the dertermination of the density of moist air, Metrologia, V. 18, 1982
  * @param rh   Relative humidity at the laser site (percent eg, 50%).
  * @param temp Athmospheric temperature at the laser site (Kelvin).
  * @param pres Atmospheric pressure at the laser site (millibars).
  * @param wvpm Water vapor pressure model. See WtrVapPressModel for more details.
  * @return The water vapor pressure at the laser site (millibars).
+ *
+ * @see IERS TN 21, chap. 9. https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn21.html?nn=94912
+ * @see IERS TN 32, chap. 9. https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn32.html?nn=94912
+ * @see Giacomo, P., Equation for the dertermination of the density of moist air, Metrologia, V. 18, 1982
  */
  LIBDPSLR_EXPORT double waterVaporPressure(double rh, double temp, double pres, WtrVapPressModel mode);
 

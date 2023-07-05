@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of functions related with the troposphere.
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2307.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -52,6 +52,43 @@ namespace tropo{
 // =====================================================================================================================
 
 /**
+ * @brief Compute standars atmospheric refraction correction.
+ *
+ * This function computes approximate refraction for optical wavelengths based on the observed elevation angle. It
+ * uses standard athmospheric conditions.
+ *
+ * @param el The observed elevation angle (degrees).
+ * @param ht The height of the observer above sea level in meters.
+ * @return The atmospheric refraction correction (degrees).
+ *
+ * @warning This function can be used for planning observations or  telescope pointing, but should not be used for the
+ *          reduction of precise observations.
+ *
+ * @see Explanatory Supplement to the Astronomical Almanac, p. 144.
+ * @see Bennett, G. (1982), Journal of Navigation (Royal Institute) 35, pp. 255-259.
+ */
+LIBDPSLR_EXPORT double refractionCorrection(double el, double ht);
+
+/**
+ * @brief Compute atmospheric refraction correction based on observed elevation, pressure, and temperature.
+ *
+ * This function computes the atmospheric refraction correction for optical wavelengths based on the observed
+ * elevation angle, pressure, and temperature.
+ *
+ * @param el The observed elevation angle (degrees).
+ * @param pres The atmospheric pressure in (mbar).
+ * @param temp The atmospheric temperature (Kelvin).
+ * @return The atmospheric refraction correction (degrees).
+ *
+ * @warning This function can be used for planning observations or  telescope pointing, but should not be used for the
+ *          reduction of precise observations.
+ *
+ * @see Explanatory Supplement to the Astronomical Almanac, p. 144.
+ * @see Bennett, G. (1982), Journal of Navigation (Royal Institute) 35, pp. 255-259.
+ */
+LIBDPSLR_EXPORT double refractionCorrection(double el, double pres, double temp);
+
+/**
  * @brief Calculates the tropospheric path delay (one way) using Marini and Murray model (1973).
  *
  * Calculate and return the tropospheric path delay (one way) produced by the troposhere for the laser beam path from a
@@ -59,7 +96,7 @@ namespace tropo{
  * humidity, satellite elevation, station latitude, station height and laser wavelength. Commonly used in SLR.
  *
  * @param pres Atmospheric pressure (mbar).
- * @param temp Surface tempreature in (Kelvin).
+ * @param temp Surface tempreature (Kelvin).
  * @param rh   Relative humidity (%, eg. 50%).
  * @param el   Elevation of the target (radians).
  * @param wl   Beam wavelength (micrometres).

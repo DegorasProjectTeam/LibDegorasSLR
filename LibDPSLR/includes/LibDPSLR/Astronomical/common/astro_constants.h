@@ -23,11 +23,11 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file astro_utils.h
- * @brief This file contains the declaration of several astronomical usefull functions.
- * @author Degoras Project Team
+ * @file astro_constants.h
+ * @author Degoras Project Team.
+ * @brief This file contains several astronomical constants.
  * @copyright EUPL License
- * @version 2306.1
+ * @version 2307.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -36,48 +36,30 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-
+#include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
-// =====================================================================================================================
-#include "LibDPSLR/libdpslr_global.h"
-#include "LibDPSLR/Mathematics/units.h"
-#include <cmath>
-// =====================================================================================================================
-
-// DPSLR NAMESPACES
+// LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace cnst{
 // =====================================================================================================================
 
-//
-//======================================================================================================================
+// CONSTANTS
+// =====================================================================================================================
+constexpr long long kSecsSolDay = 86400LL;                  ///< Seconds in a solar day.
+constexpr long double kSecsInSiderealDay = 86164.090517L;   ///< Seconds in a sidereal day.
+constexpr long double kEarthRotSolDay = 6.30038809866574L;  ///< Earth rotational angular velocity (rad/solar day).
+constexpr long double kC = 299792458.0L;                    ///< Speed of light (m/s). IERS Convention 2003.
+// =====================================================================================================================
 
+// CONSTANTS FOR FUNCTIONS FRON NOVAS (NAVAL OBSERVATORY VECTOR ASTROMETRY SOFTWARE)
+// =====================================================================================================================
+constexpr long double T0 = 2451545.00000000;         ///< TDB Julian date of epoch J2000.0.
+constexpr long double AU_SEC = 499.0047838061;       ///< Light-time for one astronomical unit (AU) in seconds (DE-405).
+constexpr long double AU = 1.4959787069098932e+11;   ///< Astronomical unit in meters.  Value is AU_SEC * C.
+// =====================================================================================================================
 
-
-
-
-/**
- * @brief Convert azimuth and elevation coordinates to right ascension and declination.
- *
- * @param[in] az The azimuth angle in radians.
- * @param[in] el The elevation angle in radians.
- * @param[in] lmst The local mean sidereal time in hours (range: [0, 24)).
- * @param[in] lat The latitude in radians.
- * @param[out] ra The calculated right ascension in the same units as `lmst`.
- * @param[out] dec The calculated declination in radians.
- */
-LIBDPSLR_EXPORT void azElToRaDec(long double az, long double el, long double lmst, long double lat, long double &ra, long double &dec);
-
-
-
-void raDecToAzEl(long double ra, long double dec, long double lmst, long double lat, long double &az, long double &el);
-
-
-
-//======================================================================================================================
-
-}} // END NAMESPACES.
+}}} // END NAMESPACES
 // =====================================================================================================================

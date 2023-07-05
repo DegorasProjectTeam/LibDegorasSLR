@@ -46,14 +46,6 @@ namespace astro{
 namespace common{
 // =====================================================================================================================
 
-// CONSTANTS
-// =====================================================================================================================
-constexpr long long kSecsSolDay = 86400LL;              /// Seconds in a solar day.
-constexpr long double kSecsInSiderealDay = 86164.090517L;   /// Seconds in a sidereal day.
-constexpr long double kEarthRotSolDay = 6.30038809866574L;  /// Earth rotational angular velocity (rad/solar day).
-constexpr long double c = 299792458.0L;                     /// Speed of light (m/s). IERS Convention 2003.
-// =====================================================================================================================
-
 
 }}} // END NAMESPACES
 // =====================================================================================================================

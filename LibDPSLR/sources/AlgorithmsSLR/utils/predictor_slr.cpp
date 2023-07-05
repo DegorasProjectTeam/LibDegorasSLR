@@ -45,7 +45,7 @@
 #include <LibDPSLR/Mathematics/common/operators.h>
 #include <LibDPSLR/Statistics/fitting.h>
 #include <LibDPSLR/Statistics/common/statistics_types.h>
-#include <LibDPSLR/Astronomical/common/astro_types.h>
+#include <LibDPSLR/Astronomical/common/astro_constants.h>
 #include <LibDPSLR/Geo/tropo.h>
 #include <LibDPSLR/Helpers/string_helpers.h>
 // =====================================================================================================================
@@ -60,7 +60,7 @@ namespace utils{
 // =====================================================================================================================
 using ilrs::cpf::CPF;
 using helpers::strings::numberToStr;
-using namespace astro::common;
+using namespace astro::cnst;
 using namespace math::common;
 using namespace math::units;
 using namespace math;
@@ -523,7 +523,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.instant_range.sod = sod_instant;
     result.instant_range.geo_pos = y_instant;
     result.instant_range.range_1w = aux_range;
-    result.instant_range.tof_2w = 2*result.instant_range.range_1w/c;
+    result.instant_range.tof_2w = 2*result.instant_range.range_1w/kC;
 
     // WARNING: At this point, <range_1w_instant> only include the system delay correction, but the <PredictionResult>
     // result container include the eccentricity corrections and the systematic errors.
@@ -567,7 +567,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.instant_data.value().az = az_instant;
     result.instant_data.value().el = el_instant;
     result.instant_data.value().range_1w = aux_range;
-    result.instant_data.value().tof_2w = 2*result.instant_data.value().range_1w/c;
+    result.instant_data.value().tof_2w = 2*result.instant_data.value().range_1w/kC;
 
     // If the mode is only instant vector, return here.
     if (this->prediction_mode_ == PredictionMode::INSTANT_VECTOR)
@@ -588,7 +588,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.outbound_data.emplace();
 
     // Calculate the time to reach the satellite.
-    tof_1w = range_1w_instant/c;
+    tof_1w = range_1w_instant/kC;
 
     // Prepare the matrix to rotate the ECEF coordinate system (with the rotation of the Earth).
     rotatedm_earth.pushBackRow(this->stat_geocentric_.toVector());
@@ -614,7 +614,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         range_1w_outbound = topo_s_o_outbound.magnitude();
 
         // Outbound flight time (sec)
-        tof_1w = range_1w_outbound/c;
+        tof_1w = range_1w_outbound/kC;
 
         // Rotate station during flight time (radians)
         dsidt= kEarthRotSolDay * (tof_1w/kSecsSolDay);
@@ -674,7 +674,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.outbound_data.value().el = el_outbound;
     result.outbound_data.value().geo_pos = y_outbound;
     result.outbound_data.value().range_1w = aux_range;
-    result.outbound_data.value().tof_2w = 2 * result.outbound_data->range_1w/c;
+    result.outbound_data.value().tof_2w = 2 * result.outbound_data->range_1w/kC;
 
     // coger del xbound relativo y pasarlo a mjd mjdt y seconds.
     result.outbound_data.value().mjd = mjd;
@@ -745,7 +745,7 @@ long double PredictorSLR::applyCorrections(long double &range, PredictionResult 
     // Include the half of the system delay to the range. This will be permanent for the rest of computations.
     if(this->cali_del_corr_ != 0 && cali)
     {
-        range += 0.5*this->cali_del_corr_*c*kPsToSec;
+        range += 0.5*this->cali_del_corr_*kC*kPsToSec;
         result.cali_del_corr = this->cali_del_corr_;
         aux_range = range;
     }
