@@ -6,7 +6,6 @@ set(SOURCES "UnitTest_PredictorSLR.cpp")
 set(LIBRARIES LibDPSLR)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/test/AlgorithmsSLR/${APP_NAME})
 
-
 include_directories(${CMAKE_SOURCE_DIR}/includes ${CMAKE_SOURCE_DIR})
 
 if (WIN32)

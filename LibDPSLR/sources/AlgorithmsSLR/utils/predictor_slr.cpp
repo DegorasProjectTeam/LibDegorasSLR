@@ -680,9 +680,6 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.outbound_data.value().mjd = mjd;
 
 
-
-
-
     // If the mode is only outbound vector, return here.
     if (this->prediction_mode_ == PredictionMode::OUTBOUND_VECTOR)
         return PredictionError::NO_ERROR;

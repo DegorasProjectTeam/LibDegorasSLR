@@ -56,9 +56,9 @@ constexpr long double kC = 299792458.0L;                    ///< Speed of light 
 
 // CONSTANTS FOR FUNCTIONS FRON NOVAS (NAVAL OBSERVATORY VECTOR ASTROMETRY SOFTWARE)
 // =====================================================================================================================
-constexpr long double T0 = 2451545.00000000;         ///< TDB Julian date of epoch J2000.0.
-constexpr long double AU_SEC = 499.0047838061;       ///< Light-time for one astronomical unit (AU) in seconds (DE-405).
-constexpr long double AU = 1.4959787069098932e+11;   ///< Astronomical unit in meters.  Value is AU_SEC * C.
+constexpr long double T0 = 2451545.00000000L;         ///< TDB Julian date of epoch J2000.0.
+constexpr long double AU_SEC = 499.0047838061L;       ///< Light-time for one astronomical unit (AU) in seconds (DE-405).
+constexpr long double AU = 1.4959787069098932e+11L;   ///< Astronomical unit in meters.  Value is AU_SEC * C.
 // =====================================================================================================================
 
 }}} // END NAMESPACES
