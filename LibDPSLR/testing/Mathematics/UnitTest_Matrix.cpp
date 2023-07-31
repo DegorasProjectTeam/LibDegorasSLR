@@ -133,17 +133,26 @@ void testMatrixInverse()
     matrix(2, 1) = 4;
     matrix(2, 2) = 0;
 
+    Matrix<long double> inverse(3, 3, 0);
 
-    Matrix<long double> inv = matrix.inverse();
+    inverse(0, 0) = 1;
+    inverse(0, 1) = -3;
+    inverse(0, 2) = -0.5L;
+    inverse(1, 0) = 0;
+    inverse(1, 1) = 0;
+    inverse(1, 2) = 0.25L;
+    inverse(2, 0) = 0;
+    inverse(2, 1) = 1;
+    inverse(2, 2) = 0;
+
+
+    Matrix<long double> calculated_inv = matrix.inverse();
 
     std::cout<<matrix.toString()<<std::endl;
-    std::cout<<inv.toString()<<std::endl;
+    std::cout<<calculated_inv.toString()<<std::endl;
 
 
-    assert(inv(0, 0) == -5.0);
-    assert(inv(0, 1) == 3.0);
-    assert(inv(1, 0) == 4.0);
-    assert(inv(1, 1) == -2.0);
+    assert(inverse == calculated_inv);
 }
 
 int main()

@@ -306,11 +306,11 @@ public:
     std::string toString() const
     {
         std::string str;
-        for (const auto& row : data_)
+        for (std::size_t j = 0; j < this->columnsSize(); j++)
         {
-            for (const auto& element : row)
+            for (std::size_t i = 0; i < this->rowSize(); i++)
             {
-                str += std::to_string(element) + " ";
+                str += std::to_string(this->data_[i][j]) + " ";
             }
             str += '\n';
         }
@@ -472,10 +472,7 @@ public:
             if (maxIndex != k)
             {
                 // Swap rows in LU matrix
-                for (size_t j = 0; j < col_s; j++)
-                {
-                    std::swap(LU(maxIndex, j), LU(k, j));
-                }
+                LU.swapRows(maxIndex, k);
 
                 // Update the pivot vector
                 std::swap(pivot[maxIndex], pivot[k]);
@@ -535,7 +532,7 @@ public:
             }
 
             // Assign the solution to the corresponding column of the result matrix
-            x.setColumn(col, y.getColumn(0));
+            x.setColumn(pivot[col], y.getColumn(0));
         }
 
         return x;
@@ -567,7 +564,7 @@ public:
         for (size_t col = 0; col < m; col++)
         {
             Matrix<long double> x = Matrix<long double>::solveLU(lu.first, lu.second, identity.getColumn(col));
-            inv.setColumn(col, x.getColumn(0));
+            inv.setColumn(lu.second[col], x.getColumn(0));
         }
 
         return inv;
@@ -665,8 +662,8 @@ bool operator==(const Matrix<T>& A, const Matrix<U>& B)
     bool res = true;
 
     // Check element-wise equality
-    for (size_t i = 0; i < A.rowSize() && res == true; ++i)
-        for (size_t j = 0; j < A.columnsSize() && res == true; ++j)
+    for (size_t i = 0; i < A.rowSize() && res; ++i)
+        for (size_t j = 0; j < A.columnsSize() && res; ++j)
             if (std::fabs(A(i, j)-B(i, j) >= kFloatingCompEpsilon))
                 res = false;
 
