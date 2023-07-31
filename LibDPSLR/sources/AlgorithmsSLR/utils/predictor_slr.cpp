@@ -628,7 +628,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // Topocentric outbound station to object vector in local system (using the rotation matrix).
     rotatedm_topo_s_o_outbound.pushBackRow(topo_s_o_outbound.toVector());
     rotatedm_topo_s_o_outbound *= this->rotm_topo_local_;
-    topo_s_o_local_outbound = Vector3D<long double>::fromVector(rotatedm_topo_s_o_instant.getRow(0));
+    topo_s_o_local_outbound = Vector3D<long double>::fromVector(rotatedm_topo_s_o_outbound.getRow(0));
 
     // WARNING: The next azimuth and elevation are the laser beam pointing direction. We recommend using these
     // positions to command the tracking mount.
@@ -665,7 +665,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
     // We need to apply the rest of the corrections (all minus tropo and system delay).
     if(this->apply_corr_)
-        aux_range = this->applyCorrections(range_1w_average, result, false);
+        range_1w_average = this->applyCorrections(range_1w_average, result, false);
 
     // Store computed data up to this moment.
     result.diff_az = diff_az;
@@ -673,7 +673,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.outbound_data.value().az = az_outbound;
     result.outbound_data.value().el = el_outbound;
     result.outbound_data.value().geo_pos = y_outbound;
-    result.outbound_data.value().range_1w = aux_range;
+    result.outbound_data.value().range_1w = range_1w_average;
     result.outbound_data.value().tof_2w = 2 * result.outbound_data->range_1w/kC;
 
     // coger del xbound relativo y pasarlo a mjd mjdt y seconds.
@@ -731,7 +731,7 @@ PredictorSLR::PredictionError PredictorSLR::predict(long double mjdt, Prediction
     long double second = std::modf(mjdt , &mjd) * 86400.0L;
 
     // Call with the datetime value splitted in the day and second in that day.
-    return this->predict(static_cast<int>(mjd), second, result);
+    return this->predict(static_cast<unsigned>(mjd), second, result);
 }
 
 long double PredictorSLR::applyCorrections(long double &range, PredictionResult &result, bool cali, double el) const
@@ -740,7 +740,7 @@ long double PredictorSLR::applyCorrections(long double &range, PredictionResult 
     long double aux_range = range;
 
     // Include the half of the system delay to the range. This will be permanent for the rest of computations.
-    if(this->cali_del_corr_ != 0 && cali)
+    if(dpslr::math::compareFloating(this->cali_del_corr_, 0.) && cali)
     {
         range += 0.5*this->cali_del_corr_*kC*kPsToSec;
         result.cali_del_corr = this->cali_del_corr_;
@@ -748,28 +748,28 @@ long double PredictorSLR::applyCorrections(long double &range, PredictionResult 
     }
 
     // Include the object eccentricity correction.
-    if(this->objc_ecc_corr_ != 0)
+    if(dpslr::math::compareFloating(this->objc_ecc_corr_, 0.))
     {
         aux_range = aux_range - this->objc_ecc_corr_;
         result.objc_ecc_corr = this->objc_ecc_corr_;
     }
 
     // Include the ground eccentricity correction.
-    if(this->grnd_ecc_corr_ != 0)
+    if(dpslr::math::compareFloating(this->grnd_ecc_corr_, 0.))
     {
         aux_range = aux_range + this->grnd_ecc_corr_;
         result.grnd_ecc_corr = this->grnd_ecc_corr_;
     }
 
     // Include the systematic and random errors.
-    if(this->syst_rnd_corr_ != 0)
+    if(dpslr::math::compareFloating(this->syst_rnd_corr_, 0.))
     {
         aux_range = aux_range + this->syst_rnd_corr_;
         result.syst_rnd_corr = this->syst_rnd_corr_;
     }
 
     // Compute and include the tropospheric path delay.
-    if(el != 0)
+    if(dpslr::math::compareFloating(el, 0.))
     {
         // Get the elevation in radians.
         double el_instant_rad = math::units::degToRad(el);

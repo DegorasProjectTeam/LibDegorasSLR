@@ -1,5 +1,6 @@
 include(ExternalData)
 
+add_definitions( -D_TEST_INPUT_PATH="${CMAKE_CURRENT_LIST_DIR}")
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++17 -fopenmp")
 set(APP_NAME "UnitTest_PredictorSLR")
 set(SOURCES "UnitTest_PredictorSLR.cpp")

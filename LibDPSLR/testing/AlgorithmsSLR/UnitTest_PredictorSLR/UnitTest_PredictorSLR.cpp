@@ -7,21 +7,23 @@
 #include <chrono>
 #include <thread>
 
+#define TEST_INPUT_PATH _TEST_INPUT_PATH
+
 // Namespace of the LibDPSLR library.
 using namespace dpslr::algoslr::utils;
 using namespace dpslr::geo::common;
 using namespace dpslr::math::units;
 
 // SFEL station geodetic and geocentric coordinates (degrees).
-long double lat = 36.46525556L, lon = 353.79469440L, alt = 98.177L;
-long double x = 5105473.885L, y = -555110.526L, z = 3769892.958L;
+static long double lat = 36.46525556L, lon = 353.79469440L, alt = 98.177L;
+static long double x = 5105473.885L, y = -555110.526L, z = 3769892.958L;
 
 // Fixed CPF input data.
-std::string kInputPath = "test_data_input/";
-std::string kFixedTestCPF_1 = "lares_cpf_230529_14901.sgf";
+static std::string kInputPath = TEST_INPUT_PATH + std::string("/test_data_input/");
+static std::string kFixedTestCPF_1 = "lares_cpf_230529_14901.sgf";
 
 
-int main(int argc, char**argv)
+int main(int, char**)
 {
     // Get the path to the CPF file.
     std::string cpf_path = kInputPath + kFixedTestCPF_1;
@@ -36,7 +38,7 @@ int main(int argc, char**argv)
     // Check if CPF was opened correctly and it has positions data.
     if(cpf.getData().positionRecords().empty())
     {
-        std::cout << "CPF is empty or invalid!" << std::endl;
+        std::cout << "CPF is empty or invalid! Path is: " << cpf_path << std::endl;
         return -1;
     }
 
@@ -75,7 +77,7 @@ int main(int argc, char**argv)
     {
         std::cout<<"ERROR"<<std::endl;
         std::cout<<static_cast<int>(error)<<std::endl;
-        std::cout<<PredictorSLR::PredictorErrorStr[static_cast<int>(error)]<<std::endl;
+        std::cout<<PredictorSLR::PredictorErrorStr[static_cast<std::size_t>(error)]<<std::endl;
     }
 
     /*
