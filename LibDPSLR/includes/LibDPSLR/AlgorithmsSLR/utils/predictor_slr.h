@@ -23,9 +23,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file cpf_interpolator.h
+ * @file predictor_slr.h
  * @author Degoras Project Team.
- * @brief This file contains the definition of the CPFInterpolator class.
+ * @brief This file contains the definition of the PredictorSLR class.
  * @copyright EUPL License
  * @version 2306.1
 ***********************************************************************************************************************/
