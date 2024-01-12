@@ -24,75 +24,87 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tracking_slr.h
+ * @file tracking_slr.cpp
  * @author Degoras Project Team.
- * @brief This file contains the definition of the TrackingSLR class.
+ * @brief This file contains the implementation of the class TrackingSLR.
  * @copyright EUPL License
  * @version 2306.1
 ***********************************************************************************************************************/
 
-// =====================================================================================================================
-#pragma once
+// C++ INCLUDES
+//======================================================================================================================
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDPSLR/libdpslr_global.h"
-#include "LibDPSLR/AlgorithmsSLR/utils/predictor_slr.h"
+#include <LibDPSLR/AlgorithmsSLR/utils/tracking_slr.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
-// =====================================================================================================================
+//======================================================================================================================
 namespace dpslr{
 namespace algoslr{
 namespace utils{
-// =====================================================================================================================
 
-// =====================================================================================================================
-using dpslr::algoslr::utils::PredictorSLR;
-// =====================================================================================================================
-
-/**
- * @brief The TrackingSLR class
- */
-class LIBDPSLR_EXPORT TrackingSLR
+TrackingSLR::TrackingSLR(double min_elev, int mjd_start, long double sod_start, PredictorSLR &&predictor) :
+    min_elev_(min_elev),
+    predictor_(std::move(predictor))
 {
-public:
 
-    TrackingSLR(double min_elev, int mjd_start, long double sod_start, PredictorSLR&& predictor);
+}
 
-    bool isValid() const;
-    double minElev() const;
-    void getTrackingStart(int& mjd, long double& sod) const;
-    void getTrackingEnd(int& mjd, long double& sod) const;
-    bool getSunAvoidApplied() const;
-    bool getSunOverlapping() const;
-    double getSunAvoidAngle() const;
+bool TrackingSLR::isValid() const
+{
+    return this->valid_pass_;
+}
 
-    void setSunAvoidApplied(bool apply);
-    void setSunAvoidAngle(double angle);
+double TrackingSLR::minElev() const
+{
+    return this->min_elev_;
+}
 
-private:
+void TrackingSLR::getTrackingStart(int &mjd, long double &sod) const
+{
+    mjd = this->mjd_start_;
+    sod = this->sod_start_;
+}
 
-    double min_elev_;
+void TrackingSLR::getTrackingEnd(int &mjd, long double &sod) const
+{
+    mjd = this->mjd_end_;
+    sod = this->sod_end_;
+}
 
-    int mjd_start_;
-    long double sod_start_;
-    int mjd_end_;
-    long double sod_end_;
+bool TrackingSLR::getSunAvoidApplied() const
+{
+    return this->avoid_sun_;
+}
 
-    bool valid_pass_;
-    bool avoid_sun_;
-    bool sun_overlap_;
-    bool sun_avoid_cw_;
-    double sun_avoid_angle_;
-    double sun_entry_angle_;
-    double sun_exit_angle_;
+bool TrackingSLR::getSunOverlapping() const
+{
+    return this->sun_overlap_;
+}
 
-    PredictorSLR predictor_;
+double TrackingSLR::getSunAvoidAngle() const
+{
+    return this->sun_avoid_angle_;
+}
+
+void TrackingSLR::setSunAvoidApplied(bool apply)
+{
+    this->avoid_sun_ = apply;
+}
+
+void TrackingSLR::setSunAvoidAngle(double angle)
+{
+    this->sun_avoid_angle_ = angle;
+}
 
 
-};
+
+
+
+
 
 }}} // END NAMESPACES
 // =====================================================================================================================
