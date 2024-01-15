@@ -100,6 +100,127 @@ void TrackingSLR::setSunAvoidAngle(double angle)
     this->sun_avoid_angle_ = angle;
 }
 
+void TrackingSLR::analyzeTrack(int mjd_start, long double sod_start)
+{
+    // If predictor was not properly initializated, then we cannot find a valid tracking.
+    if (!this->predictor_.isReady())
+    {
+        this->valid_pass_ = false;
+        return;
+    }
+
+    int mjd = mjd_start;
+    long double sod = sod_start;
+    PredictorSLR::PredictionResult result;
+    PredictorSLR::PredictionResult previous_result;
+    PredictorSLR::PredictionError error_code;
+    bool start_found = false;
+
+    // Now we must find the start of the pass. If there is a pass ongoing, that is, elevation is above minimum,
+    // then we will find the start by moving backward, otherwise, we will find the start by moving forward.
+    error_code = this->predictor_.predict(mjd, sod, result);
+
+    if (error_code != PredictorSLR::PredictionError::NO_ERROR)
+    {
+        this->valid_pass_ = false;
+        return;
+    }
+
+    bool look_backward = result.instant_data->el > this->min_elev_;
+
+    do
+    {
+        previous_result = std::move(result);
+        result = {};
+
+        // Advance to next time position.
+        // TODO: maybe time skip should be configurable. Now is at 500 ms.
+        if (look_backward)
+        {
+            sod -= 0.5L;
+            if (sod < 0.L)
+            {
+                mjd--;
+                sod += 86400.L;
+            }
+        }
+        else
+        {
+            sod += 0.5L;
+            if (sod > 86400.L)
+            {
+                mjd++;
+                sod -= 86400.L;
+            }
+        }
+
+        error_code = this->predictor_.predict(mjd, sod, result);
+
+        if (error_code != PredictorSLR::PredictionError::NO_ERROR)
+        {
+            this->valid_pass_ = false;
+            return;
+        }
+
+        // Look if we reached the tracking start point, i.e, the elevation passes through minimum elevation point
+        // If we are going backward, then the first point is before minimum
+        // If we are going forward, then the first point is after the minimum
+        if (look_backward && result.instant_data->el < this->min_elev_)
+        {
+            start_found = true;
+            this->mjd_start_ = previous_result.instant_data->mjd;
+            this->sod_start_ = previous_result.instant_data->sod;
+
+        }
+        else if (!look_backward && result.instant_data->el > this->min_elev_)
+        {
+            start_found = true;
+            this->mjd_start_ = result.instant_data->mjd;
+            this->sod_start_ = result.instant_data->sod;
+        }
+
+    } while (!start_found);
+
+
+    bool end_found = false;
+    mjd = this->mjd_start_;
+    sod = this->sod_start_;
+
+    do
+    {
+        // Advance to next time position.
+        // TODO: maybe time skip should be configurable. Now is at 500 ms.
+        sod += 0.5L;
+        if (sod > 86400.L)
+        {
+            mjd++;
+            sod -= 86400.L;
+        }
+
+        error_code = this->predictor_.predict(mjd, sod, result);
+
+        // If X is out of predictor bounds (the predictor range ends in the middle of a pass) or we reach the end of
+        // the pass (the elevation is below the minimum), store the end time
+        if (error_code == PredictorSLR::PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS ||
+            result.instant_data->el < this->min_elev_)
+        {
+            end_found = true;
+            this->mjd_end_ = previous_result.instant_data->mjd;
+            this->sod_end_ = previous_result.instant_data->sod;
+        }
+        else
+        {
+            previous_result = std::move(result);
+            result = {};
+        }
+
+    } while (!end_found);
+
+
+
+
+}
+
 
 
 

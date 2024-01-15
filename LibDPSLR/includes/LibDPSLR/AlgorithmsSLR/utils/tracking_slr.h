@@ -74,6 +74,8 @@ public:
 
 private:
 
+    void analyzeTrack(int mjd_start, long double sod_start);
+
     double min_elev_;
 
     int mjd_start_;

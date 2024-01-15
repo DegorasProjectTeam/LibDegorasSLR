@@ -183,6 +183,18 @@ public:
          */
         InstantRange(InstantRange&&) = default;
 
+        /**
+         * @brief Default copy assingment operator.
+         * @return Reference to itself.
+         */
+        InstantRange& operator=(const InstantRange&) = default;
+
+        /**
+         * @brief Default move assignment operator.
+         * @return Reference to itself.
+         */
+        InstantRange& operator=(InstantRange&&) = default;
+
         // Datetime members.
         unsigned mjd;                  ///< Modified julian date in days.
         long double sod;               ///< Second of day in that MJD (ps precission -> 12 decimals).
@@ -222,7 +234,29 @@ public:
         /**
          * @brief Constructor.
          */
-        InstantData(const InstantRange&);
+        InstantData(InstantRange);
+
+        /**
+         * @brief Default copy constructor.
+         */
+        InstantData(const InstantData&) = default;
+
+        /**
+         * @brief Default movement constructor.
+         */
+        InstantData(InstantData&&) = default;
+
+        /**
+         * @brief Default copy assingment operator.
+         * @return Reference to itself.
+         */
+        InstantData& operator=(const InstantData&) = default;
+
+        /**
+         * @brief Default move assignment operator.
+         * @return Reference to itself.
+         */
+        InstantData& operator=(InstantData&&) = default;
 
         // Associated object geocentric vectors.
         Vector3D<long double> geo_vel;   ///< Geocentric interpolated velocity in meters/second.
@@ -272,6 +306,28 @@ public:
          * @brief Default constructor.
          */
         InboundData() = default;
+
+        /**
+         * @brief Default copy constructor.
+         */
+        InboundData(const InboundData&) = default;
+
+        /**
+         * @brief Default movement constructor.
+         */
+        InboundData(InboundData&&) = default;
+
+        /**
+         * @brief Default copy assingment operator.
+         * @return Reference to itself.
+         */
+        InboundData& operator=(const InboundData&) = default;
+
+        /**
+         * @brief Default move assignment operator.
+         * @return Reference to itself.
+         */
+        InboundData& operator=(InboundData&&) = default;
 
         // Datetime members.
         unsigned mjd;                  ///< Modified julian date in days.

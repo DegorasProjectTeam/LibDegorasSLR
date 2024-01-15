@@ -837,7 +837,7 @@ PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(stats::common:
     return cpf_error;
 }
 
-PredictorSLR::InstantData::InstantData(const InstantRange& instant_range) : InstantRange(instant_range)
+PredictorSLR::InstantData::InstantData(InstantRange instant_range) : InstantRange(std::move(instant_range))
 {}
 
 
