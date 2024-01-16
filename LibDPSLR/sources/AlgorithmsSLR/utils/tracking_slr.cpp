@@ -46,11 +46,23 @@ namespace dpslr{
 namespace algoslr{
 namespace utils{
 
-TrackingSLR::TrackingSLR(double min_elev, int mjd_start, long double sod_start, PredictorSLR &&predictor) :
+TrackingSLR::TrackingSLR(double min_elev, int mjd_start, long double sod_start, PredictorSLR &&predictor,
+                         bool avoid_sun, double sun_avoid_angle) :
     min_elev_(min_elev),
+    avoid_sun_(avoid_sun),
+    sun_avoid_angle_(sun_avoid_angle),
     predictor_(std::move(predictor))
 {
+    this->analyzeTrack(mjd_start, sod_start);
 
+    if (this->avoid_sun_)
+    {
+        this->analyzeSunOverlapping();
+    }
+    else
+    {
+        this->sun_overlap_ = false;
+    }
 }
 
 bool TrackingSLR::isValid() const
@@ -92,7 +104,14 @@ double TrackingSLR::getSunAvoidAngle() const
 
 void TrackingSLR::setSunAvoidApplied(bool apply)
 {
-    this->avoid_sun_ = apply;
+    // If sun avoid is switched on, then we must analyze sun collision
+    if (apply != this->avoid_sun_)
+    {
+        this->avoid_sun_ = apply;
+
+        if (this->avoid_sun_)
+            this->analyzeSunOverlapping();
+    }
 }
 
 void TrackingSLR::setSunAvoidAngle(double angle)
@@ -217,8 +236,42 @@ void TrackingSLR::analyzeTrack(int mjd_start, long double sod_start)
     } while (!end_found);
 
 
+    this->valid_pass_ = true;
+
+}
+
+void TrackingSLR::analyzeSunOverlapping()
+{
+    // What happens if:
+    // - In the way from home to tracking start, there is a sun collision: treat as an absolute movement.
+    // - The tracking start is inside sun sector: move start to first valid position or create an alternative way?
+    int mjd = this->mjd_start_;
+    long double sod = this->sod_start_;
+    PredictorSLR::PredictionResult result;
+    PredictorSLR::PredictionError error_code;
+
+    while (sod < this->sod_end_ || mjd < this->mjd_end_)
+    {
+
+        error_code = this->predictor_.predict(mjd, sod, result);
+
+        if (error_code != PredictorSLR::PredictionError::NO_ERROR)
+        {
+            // TODO: error in predict? exception? disable sun avoid algorithm?
+        }
 
 
+
+        // Advance to next time position.
+        // TODO: maybe time skip should be configurable. Now is at 500 ms.
+        sod += 0.5L;
+        if (sod > 86400.L)
+        {
+            mjd++;
+            sod -= 86400.L;
+        }
+
+    }
 }
 
 

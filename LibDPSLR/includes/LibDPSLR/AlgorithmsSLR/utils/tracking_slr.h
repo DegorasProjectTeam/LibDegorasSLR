@@ -59,7 +59,8 @@ class LIBDPSLR_EXPORT TrackingSLR
 {
 public:
 
-    TrackingSLR(double min_elev, int mjd_start, long double sod_start, PredictorSLR&& predictor);
+    TrackingSLR(double min_elev, int mjd_start, long double sod_start, PredictorSLR&& predictor,
+                bool avoid_sun = true, double sun_avoid_angle = 15.);
 
     bool isValid() const;
     double minElev() const;
@@ -75,6 +76,7 @@ public:
 private:
 
     void analyzeTrack(int mjd_start, long double sod_start);
+    void analyzeSunOverlapping();
 
     double min_elev_;
 
