@@ -46,7 +46,7 @@ namespace dpslr{
 namespace algoslr{
 namespace utils{
 
-TrackingSLR::TrackingSLR(double min_elev, int mjd_start, long double sod_start, PredictorSLR &&predictor,
+TrackingSLR::TrackingSLR(double min_elev, unsigned int mjd_start, long double sod_start, PredictorSLR &&predictor,
                          bool avoid_sun, double sun_avoid_angle) :
     min_elev_(min_elev),
     avoid_sun_(avoid_sun),
@@ -55,14 +55,6 @@ TrackingSLR::TrackingSLR(double min_elev, int mjd_start, long double sod_start, 
 {
     this->analyzeTrack(mjd_start, sod_start);
 
-    if (this->avoid_sun_)
-    {
-        this->analyzeSunOverlapping();
-    }
-    else
-    {
-        this->sun_overlap_ = false;
-    }
 }
 
 bool TrackingSLR::isValid() const
@@ -75,13 +67,13 @@ double TrackingSLR::minElev() const
     return this->min_elev_;
 }
 
-void TrackingSLR::getTrackingStart(int &mjd, long double &sod) const
+void TrackingSLR::getTrackingStart(unsigned int &mjd, long double &sod) const
 {
     mjd = this->mjd_start_;
     sod = this->sod_start_;
 }
 
-void TrackingSLR::getTrackingEnd(int &mjd, long double &sod) const
+void TrackingSLR::getTrackingEnd(unsigned int &mjd, long double &sod) const
 {
     mjd = this->mjd_end_;
     sod = this->sod_end_;
@@ -92,11 +84,6 @@ bool TrackingSLR::getSunAvoidApplied() const
     return this->avoid_sun_;
 }
 
-bool TrackingSLR::getSunOverlapping() const
-{
-    return this->sun_overlap_;
-}
-
 double TrackingSLR::getSunAvoidAngle() const
 {
     return this->sun_avoid_angle_;
@@ -104,14 +91,7 @@ double TrackingSLR::getSunAvoidAngle() const
 
 void TrackingSLR::setSunAvoidApplied(bool apply)
 {
-    // If sun avoid is switched on, then we must analyze sun collision
-    if (apply != this->avoid_sun_)
-    {
-        this->avoid_sun_ = apply;
-
-        if (this->avoid_sun_)
-            this->analyzeSunOverlapping();
-    }
+    this->avoid_sun_ = apply;
 }
 
 void TrackingSLR::setSunAvoidAngle(double angle)
@@ -119,7 +99,7 @@ void TrackingSLR::setSunAvoidAngle(double angle)
     this->sun_avoid_angle_ = angle;
 }
 
-void TrackingSLR::analyzeTrack(int mjd_start, long double sod_start)
+void TrackingSLR::analyzeTrack(unsigned int mjd_start, long double sod_start)
 {
     // If predictor was not properly initializated, then we cannot find a valid tracking.
     if (!this->predictor_.isReady())
@@ -128,7 +108,7 @@ void TrackingSLR::analyzeTrack(int mjd_start, long double sod_start)
         return;
     }
 
-    int mjd = mjd_start;
+    unsigned int mjd = mjd_start;
     long double sod = sod_start;
     PredictorSLR::PredictionResult result;
     PredictorSLR::PredictionResult previous_result;
@@ -240,13 +220,15 @@ void TrackingSLR::analyzeTrack(int mjd_start, long double sod_start)
 
 }
 
-void TrackingSLR::analyzeSunOverlapping()
+void TrackingSLR::analyzeSunOverlapping(unsigned int mjd, long double sod)
 {
     // What happens if:
     // - In the way from home to tracking start, there is a sun collision: treat as an absolute movement.
     // - The tracking start is inside sun sector: move start to first valid position or create an alternative way?
-    int mjd = this->mjd_start_;
-    long double sod = this->sod_start_;
+
+    // This function will be called always if sun avoid algorithm is to be applied. It will calculate the enter and exit
+    // of sun sector, and then the corresponding point outside of the sun sector, if needed. This must be dynamic, since
+    // the sun moves around.
     PredictorSLR::PredictionResult result;
     PredictorSLR::PredictionError error_code;
 

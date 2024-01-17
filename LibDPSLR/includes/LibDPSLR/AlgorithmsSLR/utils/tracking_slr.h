@@ -59,15 +59,14 @@ class LIBDPSLR_EXPORT TrackingSLR
 {
 public:
 
-    TrackingSLR(double min_elev, int mjd_start, long double sod_start, PredictorSLR&& predictor,
+    TrackingSLR(double min_elev, unsigned int mjd_start, long double sod_start, PredictorSLR&& predictor,
                 bool avoid_sun = true, double sun_avoid_angle = 15.);
 
     bool isValid() const;
     double minElev() const;
-    void getTrackingStart(int& mjd, long double& sod) const;
-    void getTrackingEnd(int& mjd, long double& sod) const;
+    void getTrackingStart(unsigned int &mjd, long double& sod) const;
+    void getTrackingEnd(unsigned int &mjd, long double& sod) const;
     bool getSunAvoidApplied() const;
-    bool getSunOverlapping() const;
     double getSunAvoidAngle() const;
 
     void setSunAvoidApplied(bool apply);
@@ -75,23 +74,19 @@ public:
 
 private:
 
-    void analyzeTrack(int mjd_start, long double sod_start);
-    void analyzeSunOverlapping();
+    void analyzeTrack(unsigned int mjd_start, long double sod_start);
+    void analyzeSunOverlapping(unsigned int mjd, long double sod);
 
     double min_elev_;
 
-    int mjd_start_;
+    unsigned int mjd_start_;
     long double sod_start_;
-    int mjd_end_;
+    unsigned int mjd_end_;
     long double sod_end_;
 
     bool valid_pass_;
     bool avoid_sun_;
-    bool sun_overlap_;
-    bool sun_avoid_cw_;
     double sun_avoid_angle_;
-    double sun_entry_angle_;
-    double sun_exit_angle_;
 
     PredictorSLR predictor_;
 

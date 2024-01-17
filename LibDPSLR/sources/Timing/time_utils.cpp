@@ -211,14 +211,14 @@ void jdtogr(long long jd_day, long double jd_fract, int &year, unsigned int &mon
     year += 1900;
 }
 
-void timePointToModifiedJulianDate(const HRTimePointStd &tp, unsigned& mjd, unsigned& second_day,
+void timePointToModifiedJulianDate(const HRTimePointStd &tp, long long &mjd, unsigned& second_day,
                                    long double& second_fract)
 {
     long double unix_seconds = duration_cast<duration<long double>>(tp.time_since_epoch()).count();
     second_fract = unix_seconds - static_cast<long long>(unix_seconds);
     mjd = static_cast<unsigned>((unix_seconds/common::kSecsInDay) +
                                 common::kPosixEpochToJulian + common::kJulianToModifiedJulian);
-    second_day = static_cast<long long>(unix_seconds) % common::kSecsInDay;
+    second_day = static_cast<unsigned>(static_cast<long long>(unix_seconds) % common::kSecsInDay);
 }
 
 long double timePointToJulianDatetime(const HRTimePointStd &tp)
@@ -366,6 +366,12 @@ long double jdtToLmst(long double jdt, long double lon)
 
     return lmst;
 }
+
+long double mjdToJ2000Datetime(long long mjd, long double seconds)
+{
+    return mjdAndSecsToMjdt(mjd, seconds) + common::kModifiedJulianToJulian + common::kJulianToJ2000;
+}
+
 
 }}// END NAMESPACES.
 // =====================================================================================================================
