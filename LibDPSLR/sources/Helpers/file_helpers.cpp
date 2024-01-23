@@ -84,5 +84,22 @@ bool InputFileStream::isEmpty() {return this->peek() == std::ifstream::traits_ty
 
 unsigned int InputFileStream::getLineNumber() const {return this->line_number;}
 
+InputFileStream::~InputFileStream()
+{}
+
+std::string getFileName(const std::string &filepath)
+{
+    // Find the last occurrence of directory separator character.
+    size_t l_sep = filepath.find_last_of("/\\");
+
+    if (l_sep != std::string::npos) {
+        // Extract and return the substring after the separator.
+        return filepath.substr(l_sep + 1);
+    }
+
+    // If no separator is found, return the entire input path as the filename.
+    return filepath;
+}
+
 }}} // END NAMESPACES
 // =====================================================================================================================

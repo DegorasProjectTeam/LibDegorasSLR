@@ -45,12 +45,11 @@ std::string TestLog::makeLog(const std::string& storage_path) const
     size_t dot_w = 50 - this->test_.size() - this->module_.size() - aux_str.size();
     stream << std::left << std::setw(dot_w) << std::setfill('.') << "" << aux_str;
 
-    // Add the elapsed time if any.
-    if(this->det_ex_.empty())
-        stream << " [ET: " << this->elapsed_ << "us]";
+    // Add the elapsed time.
+    stream << " [ET: " << this->elapsed_ << "us]";
 
     // Check if we have detailed error.
-    if(!this->passed_ && !this->det_ex_.empty())
+    if(!this->det_ex_.empty())
         stream << " [Except: " << this->det_ex_ << "]";
 
     // Restore the default color
@@ -103,7 +102,6 @@ void UnitTest::runTests()
         std::string c_module = it->first;
         auto range = this->test_dict_.equal_range(c_module);
 
-        // Process all elements with the same key
         for (auto range_it = range.first; range_it != range.second; ++range_it)
         {
             // Auxiliar containers.
@@ -111,20 +109,25 @@ void UnitTest::runTests()
             std::string det_ex;
             long long elapsed = 0;
             auto now_t = std::chrono::high_resolution_clock::now();
+            bool result;
 
             // Async execution.
-            std::future<long long> future = std::async(std::launch::async, [test]()
-            {
-                // Start time.
-                auto start = std::chrono::high_resolution_clock::now();
-                // Run the test.
-                test->runTest();
-                // End time.
-                auto stop = std::chrono::high_resolution_clock::now();
-                // Get the elapsed time.
-                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-                return duration.count();
-            });
+            std::future<long long> future =
+                std::async(std::launch::async,
+                           [test, &result]()
+                           {
+                               // Start time.
+                               auto start = std::chrono::steady_clock::now();
+                               // Run the test.
+                               test->runTest();
+                               // End time.
+                               auto stop = std::chrono::steady_clock::now();
+                               // Get the elapsed time.
+                               auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+                               // Store the result.
+                               result = test->result_;
+                               return duration.count();
+                           });
 
             // Wait for the asynchronous task to complete.
             future.wait();
@@ -132,10 +135,13 @@ void UnitTest::runTests()
             // Get the elapsed time.
             try{elapsed = future.get();}
             catch (const std::exception& e)
-            {det_ex = e.what();}
+            {
+                result = false;
+                det_ex = e.what();
+            }
 
             // Instantiate the test and store.
-            TestLog t_log(c_module, test->test_name_, det_ex, test->result_, now_t, elapsed);
+            TestLog t_log(c_module, test->test_name_, det_ex, result, now_t, elapsed);
             t_log.makeLog();
             this->summary_.addLog(t_log);
         }
@@ -189,7 +195,7 @@ void TestSummary::makeSummary(bool show, const std::string& storage_path) const
     std::stringstream fail;
     std::stringstream all_pass;
     std::string all_pass_color = this->n_fail_ == 0 ? "\033[038;2;0;210;000m" : "\033[170;2;0;038;000m";
-    std::string all_pass_str = this->n_fail_ == 0 ? "YES" : "NO";
+    std::string all_pass_str = this->n_fail_ == 0 ? "YES" : "NO ";
 
     test << "= Tests:    " << "\033[038;2;0;140;255m" << std::to_string(this->test_logs_.size()) << "\033[38;2;255;128;0m";
     pass << "= Passed:   " << "\033[038;2;0;210;000m" << std::to_string(this->n_pass_) << "\033[38;2;255;128;0m";
@@ -213,7 +219,7 @@ void TestSummary::makeSummary(bool show, const std::string& storage_path) const
     title << test.str() << std::string(134 - test.str().length(), ' ') << "=\n";
     title << pass.str() << std::string(134 - pass.str().length(), ' ') << "=\n";
     title << fail.str() << std::string(134 - fail.str().length(), ' ') << "=\n";
-    title << all_pass.str() << std::string(133 - fail.str().length(), ' ') << "=\n";
+    title << all_pass.str() << std::string(132 - fail.str().length(), ' ') << "=\n";
     title << sep1;
     title << "\n";
 
@@ -261,6 +267,38 @@ void TestSummary::makeSummary(bool show, const std::string& storage_path) const
     std::cerr << sep1;
     std::cerr << "\x1b[0m";
 }
+
+UnitTest &UnitTest::instance()
+{
+    static UnitTest uTest;
+    return uTest;
+}
+
+void UnitTest::setSessionName(std::string &&session)
+{
+    this->session_ = std::move(session);
+    this->summary_.setSessionName(this->session_);
+}
+
+void UnitTest::addTest(std::pair<std::string, TestBase *> p)
+{
+    this->test_dict_.insert(p);
+}
+
+void UnitTest::clear()
+{
+    this->test_dict_.clear();
+    this->summary_.clear();
+}
+
+UnitTest::~UnitTest() {}
+
+TestBase::TestBase(const std::string &name):
+    test_name_(name),
+    result_(true)
+{}
+
+void TestBase::runTest(){}
 
 }} // END NAMESPACES.
 // =====================================================================================================================

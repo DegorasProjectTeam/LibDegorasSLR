@@ -48,14 +48,13 @@ namespace dpslr{
 namespace testing{
 // =====================================================================================================================
 
-
-struct TestLog
+struct LIBDPSLR_EXPORT TestLog
 {
 
 public:
 
     TestLog(const std::string& module, const std::string& test, const std::string &det_ex,
-            bool passed, const dpslr::timing::common::HRTimePointStd &tp, long long elapsed);
+            bool passed, const timing::HRTimePointStd &tp, long long elapsed);
 
     TestLog(const TestLog&) = default;
 
@@ -83,6 +82,7 @@ private:
 
 class LIBDPSLR_EXPORT TestSummary
 {
+
 public:
 
     TestSummary();
@@ -105,33 +105,45 @@ private:
     unsigned n_fail_;
 };
 
-class TestBase
+class LIBDPSLR_EXPORT TestBase
 {
+public:
+
+    virtual ~TestBase() = default;
 
 protected:
 
-    TestBase(const std::string& name):
-        test_name_(name),
-        result_(true)
-    {}
+    TestBase(const std::string& name);
 
 public:
 
-    template<typename T>
-    inline bool expectEQ(const T& arg1, const T& arg2)
+    template<typename T, typename = std::enable_if_t<!std::is_floating_point<T>::value>>
+    bool expectEQ(const T& arg1, const T& arg2)
     {
         bool result = (arg1 == arg2);
         return result;
     }
 
-    template<typename T>
-    inline bool expectNE(const T& arg1, const T& arg2)
+    template<typename T, typename = std::enable_if_t<!std::is_floating_point<T>::value>>
+    bool expectNE(const T& arg1, const T& arg2)
     {
         bool result = (arg1 != arg2);
         return result;
     }
 
-    virtual void runTest(){};
+    template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+    bool expectEQ(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
+    {
+        return std::abs(arg1 - arg2) <= tolerance;
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+    bool expectNE(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
+    {
+        return std::abs(arg1 - arg2) > tolerance;
+    }
+
+    virtual void runTest();
 
     std::string test_name_;
     bool result_;
@@ -147,50 +159,23 @@ public:
     // Deleting the copy constructor.
     UnitTest(const UnitTest& obj) = delete;
 
-    inline static UnitTest& instance()
-    {
-        static UnitTest uTest;
-        return uTest;
-    }
+    static UnitTest& instance();
 
-    void setSessionName(std::string&& session)
-    {
-        this->session_ = std::move(session);
-        this->summary_.setSessionName(this->session_);
-    }
+    void setSessionName(std::string&& session);
 
-    void addTest(std::pair<std::string, TestBase*> p)
-    {
-        this->test_dict_.insert(p);
-    }
+    void addTest(std::pair<std::string, TestBase*> p);
 
     void runTests();
 
-    void clear()
-    {
-        this->test_dict_.clear();
-        this->summary_.clear();
-    }
+    void clear();
 
-    template<typename T>
-    inline bool expectEQ(const T& arg1, const T& arg2)
-    {
-        bool result = (arg1 == arg2);
-        return result;
-    }
 
-    template<typename T>
-    inline bool expectNE(const T& arg1, const T& arg2)
-    {
-        bool result = (arg1 != arg2);
-        return result;
-    }
 
-    virtual ~UnitTest() {}
+    virtual ~UnitTest();
 
 private:
 
-    UnitTest() {}
+    UnitTest() = default;
 
     // Members.
     std::multimap<std::string, TestBase*> test_dict_;

@@ -57,6 +57,8 @@ namespace files{
 
 LIBDPSLR_EXPORT std::string getCurrentDir();
 
+LIBDPSLR_EXPORT std::string getFileName(const std::string& filepath);
+
 // Helper class for counting file line numbres of a file.
 class LIBDPSLR_EXPORT InputFileStream : public std::ifstream
 {
@@ -67,9 +69,13 @@ public:
     bool isEmpty();
     unsigned getLineNumber() const;
 
+    virtual ~InputFileStream() override;
+
 private:
     unsigned line_number;
 };
+
+
 
 }}} // END NAMESPACES
 // =====================================================================================================================
