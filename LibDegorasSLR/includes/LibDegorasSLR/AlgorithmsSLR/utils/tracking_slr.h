@@ -51,41 +51,101 @@ namespace utils{
 // =====================================================================================================================
 
 /**
- * @brief The TrackingSLR class
+ * @brief The TrackingSLR class implements an abstraction for a SLR tracking.
+ *
+ * This class uses a @a PredictorSLR to look for a SLR tracking next to a given datetime. This class also offers a sun
+ * avoidance algorithm. This algorithm changes the tracking trajectory whenever it passes through a circular sector
+ * around the sun (the sun security sector).
+ *
  */
 class LIBDPSLR_EXPORT TrackingSLR
 {
 public:
 
+    /**
+     * @brief The SunSector struct contains data of a sector where this tracking passes through the sun security sector.
+     */
     struct SunSector
     {
-        long double az_entry;
-        long double el_entry;
-        long double mjdt_entry;
-        long double az_exit;
-        long double el_exit;
-        long double mjdt_exit;
-        bool cw;
+        long double az_entry;       ///< Azimuth of sun sector entry point
+        long double el_entry;       ///< Elevation of sun sector entry point
+        long double mjdt_entry;     ///< MJ datetime of sun sector entry point
+        long double az_exit;        ///< Azimuth of sun sector exit point
+        long double el_exit;        ///< Elevation of sun sector exit point
+        long double mjdt_exit;      ///< MJ datetime of sun sector exit point
+        bool cw;                    ///< Rotation direction of the sun avoidance manoeuvre
     };
 
+    /**
+     * @brief This struct contanis the azimuth and elevation for a given time of the tracking.
+     */
+    struct Position
+    {
+        long double az;
+        long double el;
+        long double mjdt;
+    };
+
+    /**
+     * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.
+     * @param min_elev, the minimum elevation in degrees at which the tracking starts.
+     * @param mjd_start, the MJ date in days to start looking for a tracking.
+     * @param sod_start, the second of day to start looking for a tracking.
+     * @param predictor, the predictor used for calculating the tracked object positions at a given time.
+     * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
+     * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
+     */
     TrackingSLR(long double min_elev, unsigned int mjd_start, long double sod_start, PredictorSLR&& predictor,
                 bool avoid_sun = true, long double sun_avoid_angle = 15.L);
 
+    /**
+     * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
+     * @return true if there is a valid tracking, false otherwise.
+     */
     bool isValid() const;
+    /**
+     * @brief This function returns the minimum elevation of this tracking in degrees.
+     * @return the minimum elevation of the tracking in degrees.
+     */
     long double minElev() const;
+    /**
+     * @brief If this traking is valid, you can get the tracking start with this function.
+     * @param mjd, the MJ date in days for the tracking start.
+     * @param sod, the second of day for the tracking start.
+     */
     void getTrackingStart(unsigned int &mjd, long double& sod) const;
+    /**
+     * @brief If this tracking is valid, you can get the tracking end with this function.
+     * @param mjd, the MJ date in days for the tracking end.
+     * @param sod, the second of day for the tracking end.
+     */
     void getTrackingEnd(unsigned int &mjd, long double& sod) const;
+    /**
+     * @brief This function returns if sun avoidance is applied.
+     * @return true if sun avoidance is applied, false otherwise.
+     */
     bool getSunAvoidApplied() const;
+    /**
+     * @brief This function returns the radius of the sun security sector applied to sun avoidance manouvre.
+     *        This function should not be called if sun avoidance is not applied.
+     * @return the radius of the sun security sector
+     */
     long double getSunAvoidAngle() const;
+
+    Position getPosition(unsigned int mjd, long double sod);
+
+
 
 private:
 
-    void analyzeTrack(unsigned int mjd_start, long double sod_start);
+    void analyzeTracking(unsigned int mjd_start, long double sod_start);
     bool findTrackingStart(unsigned int mjd_start, long double sod_start);
     bool findTrackingEnd();
 
-    bool insideSunSector(const PredictorSLR::InstantData& pos, const dpslr::astro::SunPosition<long double>& sun_pos) const;
-    bool checkValidSunSector(const SunSector& sector) const;
+    bool insideSunSector(const PredictorSLR::InstantData& pos,
+                         const dpslr::astro::SunPosition<long double>& sun_pos) const;
+    void getSunSectorRotationDirection(
+        SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double> > &sun_positions) const;
 
     long double min_elev_;
 
