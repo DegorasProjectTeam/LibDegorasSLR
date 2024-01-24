@@ -280,11 +280,20 @@ LIBDPSLR_EXPORT long double mjdAndSecsToMjdt(long long mjd, long double seconds)
  * @brief Convert a MJD with second of day to a J2000 datetime
  * @param mjd     The Modified Julian Date in days.
  * @param seconds The number of seconds with decimals.
- * @return The J2000 Datetime.
+ * @return The J2000 Datetime in days.
  * @warning Using this function can make your timestamp inaccurate. Use only to
  *          work with times where nanoseconds are not important.
  */
 LIBDPSLR_EXPORT long double mjdToJ2000Datetime(long long mjd, long double seconds);
+
+/**
+ * @brief Convert a modified julian datetime to a J2000 datetime
+ * @param mjdt    The Modified Julian datetime in days.
+ * @return The J2000 Datetime in days.
+ * @warning Using this function can make your timestamp inaccurate. Use only to
+ *          work with times where nanoseconds are not important.
+ */
+LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(long double mjdt);
 
 // SPECIFIC FORMATS FUNCTIONS
 //======================================================================================================================

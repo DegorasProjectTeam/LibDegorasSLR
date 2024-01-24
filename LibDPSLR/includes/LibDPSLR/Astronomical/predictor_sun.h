@@ -55,24 +55,24 @@ namespace dpslr{
 namespace astro{
 // =====================================================================================================================
 
-
+template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
 struct SunPosition
 {
-    double azimuth;
-    double elevation;
+    T azimuth;
+    T elevation;
 };
 
 // Simple algorithm (VSOP87 algorithm is much more complicated). 0.01 degree accuracy, up to 2099. Only for non scientific purposes.
 //    Inspiration from: http ://stjarnhimlen.se/comp/tutorial.html#5
 // Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages
 
-
+template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
 class LIBDPSLR_EXPORT PredictorSun
 {
 
 public:
 
-    PredictorSun(const geo::common::GeodeticPoint<>& obs_geod)
+    PredictorSun(const geo::common::GeodeticPoint<T>& obs_geod)
     {
         // Convert latitude and longitude to radians.
         this->obs_lat_ = math::units::degToRad(obs_geod.lat);
@@ -80,47 +80,48 @@ public:
         this->obs_alt_ = obs_geod.alt;
     }
 
-    SunPosition fastPredict(double j2000, bool refr) const
+
+    SunPosition<T> fastPredict(T j2000, bool refr) const
     {
         // Local sidereal time.
-        long double sidereal = 4.894961213 + 6.300388099 * j2000 + this->obs_lon_;
+        T sidereal = 4.894961213L + 6.300388099L * j2000 + this->obs_lon_;
 
         // Mean longitude and anomaly of the sun.
-        long double mean_long = j2000 * 1.720279239e-2 + 4.894967873;
-        long double mean_anom = j2000 * 1.720197034e-2 + 6.240040768;
+        T mean_long = j2000 * 1.720279239e-2L + 4.894967873L;
+        T mean_anom = j2000 * 1.720197034e-2L + 6.240040768L;
 
         // Ecliptic longitude of the sun.
-        long double eclip_long = mean_long + 3.342305518e-2 * std::sin(mean_anom)
-                                 + 3.490658504e-4 * std::sin(2 * mean_anom);
+        T eclip_long = mean_long + 3.342305518e-2L * std::sin(mean_anom)
+                                 + 3.490658504e-4L * std::sin(2 * mean_anom);
 
         // Obliquity of the ecliptic
-        long double obliquity = 0.4090877234 - 6.981317008e-9 * j2000;
+        T obliquity = 0.4090877234L - 6.981317008e-9L * j2000;
 
         // Right ascension of the sun and declination.
-        long double rasc = std::atan2(std::cos(obliquity) * std::sin(eclip_long), std::cos(eclip_long));
-        long double decl = std::asin(std::sin(obliquity) * std::sin(eclip_long));
+        T rasc = std::atan2(std::cos(obliquity) * std::sin(eclip_long), std::cos(eclip_long));
+        T decl = std::asin(std::sin(obliquity) * std::sin(eclip_long));
 
         // Hour angle of the sun
-        long double hour_ang = sidereal - rasc;
+        T hour_ang = sidereal - rasc;
 
         // Local elevation and azimuth of the sun.
-        double elevation = std::asin(std::sin(decl) * std::sin(this->obs_lat_) + std::cos(decl) *
+        T elevation = std::asin(std::sin(decl) * std::sin(this->obs_lat_) + std::cos(decl) *
                                                                            std::cos(this->obs_lat_) * std::cos(hour_ang));
-        double azimuth = std::atan2(-std::cos(decl) * std::cos(this->obs_lat_) * std::sin(hour_ang),
+        T azimuth = std::atan2(-std::cos(decl) * std::cos(this->obs_lat_) * std::sin(hour_ang),
                                     std::sin(decl) - std::sin(this->obs_lat_) * std::sin(elevation));
 
         // Convert azimuth and elevation to degrees and normalize.
-        elevation = math::normalizeVal(math::units::radToDegree(elevation), -180.0, 180.0);
-        azimuth = math::normalizeVal(math::units::radToDegree(azimuth), 0.0, 360.0);
+        elevation = math::normalizeVal(math::units::radToDegree(elevation), -180.0L, 180.0L);
+        azimuth = math::normalizeVal(math::units::radToDegree(azimuth), 0.0L, 360.0L);
 
         // Very simple refraction correction.
-        if (refr && (elevation >= -1 * (0.26667 + 0.5667)))
+        if (refr && (elevation >= -1 * (0.26667L + 0.5667L)))
         {
-            double targ = math::units::degToRad((elevation + (10.3 / (elevation + 5.11))));
-            elevation += (1.02 / tan(targ)) / 60.0;
+            T targ = math::units::degToRad((elevation + (10.3L / (elevation + 5.11L))));
+            elevation += (1.02L / tan(targ)) / 60.0L;
         }
 
-        SunPosition position;
+        SunPosition<T> position;
         position.azimuth = azimuth;
         position.elevation = elevation;
 
@@ -129,9 +130,9 @@ public:
 
 private:
 
-    double obs_lat_; ///< Geodetic observer latitude in radians.
-    double obs_lon_; ///< Geodetic observer longitude in radians.
-    double obs_alt_; ///< Observer altitude in meters.
+    T obs_lat_; ///< Geodetic observer latitude in radians.
+    T obs_lon_; ///< Geodetic observer longitude in radians.
+    T obs_alt_; ///< Observer altitude in meters.
 
 };
 

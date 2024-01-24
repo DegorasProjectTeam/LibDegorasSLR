@@ -369,7 +369,12 @@ long double jdtToLmst(long double jdt, long double lon)
 
 long double mjdToJ2000Datetime(long long mjd, long double seconds)
 {
-    return mjdAndSecsToMjdt(mjd, seconds) + common::kModifiedJulianToJulian + common::kJulianToJ2000;
+    return mjdtToJ2000Datetime(mjdAndSecsToMjdt(mjd, seconds));
+}
+
+long double mjdtToJ2000Datetime(long double mjdt)
+{
+    return mjdt + common::kModifiedJulianToJulian + common::kJulianToJ2000;
 }
 
 

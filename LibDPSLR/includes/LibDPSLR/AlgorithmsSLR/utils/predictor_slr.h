@@ -262,8 +262,8 @@ public:
         Vector3D<long double> geo_vel;   ///< Geocentric interpolated velocity in meters/second.
 
         // Azimuth and elevation for the instant vector.
-        double az;                       ///< Local computed azimuth in degrees (4 decimals).
-        double el;                       ///< Local computed elevation in degrees (4 decimals).
+        long double az;                       ///< Local computed azimuth in degrees (4 decimals).
+        long double el;                       ///< Local computed elevation in degrees (4 decimals).
 
         /**
          * @brief Represents the InstantData struct as a JSON-formatted string.

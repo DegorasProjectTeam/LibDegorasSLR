@@ -39,17 +39,15 @@
 // =====================================================================================================================
 #include "LibDPSLR/libdpslr_global.h"
 #include "LibDPSLR/AlgorithmsSLR/utils/predictor_slr.h"
+#include "LibDPSLR/Astronomical/predictor_sun.h"
 // =====================================================================================================================
+
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace algoslr{
 namespace utils{
-// =====================================================================================================================
-
-// =====================================================================================================================
-using dpslr::algoslr::utils::PredictorSLR;
 // =====================================================================================================================
 
 /**
@@ -59,25 +57,36 @@ class LIBDPSLR_EXPORT TrackingSLR
 {
 public:
 
-    TrackingSLR(double min_elev, unsigned int mjd_start, long double sod_start, PredictorSLR&& predictor,
-                bool avoid_sun = true, double sun_avoid_angle = 15.);
+    struct SunSector
+    {
+        long double az_entry;
+        long double el_entry;
+        long double mjdt_entry;
+        long double az_exit;
+        long double el_exit;
+        long double mjdt_exit;
+        bool cw;
+    };
+
+    TrackingSLR(long double min_elev, unsigned int mjd_start, long double sod_start, PredictorSLR&& predictor,
+                bool avoid_sun = true, long double sun_avoid_angle = 15.L);
 
     bool isValid() const;
-    double minElev() const;
+    long double minElev() const;
     void getTrackingStart(unsigned int &mjd, long double& sod) const;
     void getTrackingEnd(unsigned int &mjd, long double& sod) const;
     bool getSunAvoidApplied() const;
-    double getSunAvoidAngle() const;
-
-    void setSunAvoidApplied(bool apply);
-    void setSunAvoidAngle(double angle);
+    long double getSunAvoidAngle() const;
 
 private:
 
     void analyzeTrack(unsigned int mjd_start, long double sod_start);
-    void analyzeSunOverlapping(unsigned int mjd, long double sod);
+    bool findTrackingStart(unsigned int mjd_start, long double sod_start);
+    bool findTrackingEnd();
+    bool insideSunSector(const PredictorSLR::InstantData& pos, const dpslr::astro::SunPosition<long double>& sun_pos) const;
+    bool checkValidSunSector(const SunSector& sector) const;
 
-    double min_elev_;
+    long double min_elev_;
 
     unsigned int mjd_start_;
     long double sod_start_;
@@ -86,9 +95,10 @@ private:
 
     bool valid_pass_;
     bool avoid_sun_;
-    double sun_avoid_angle_;
+    long double sun_avoid_angle_;
+    std::vector<SunSector> sun_sectors_;
 
-    PredictorSLR predictor_;
+    dpslr::algoslr::utils::PredictorSLR predictor_;
 
 
 };
