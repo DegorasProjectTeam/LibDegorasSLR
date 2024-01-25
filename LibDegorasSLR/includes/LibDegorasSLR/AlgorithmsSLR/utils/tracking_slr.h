@@ -86,6 +86,14 @@ public:
         long double mjdt;
     };
 
+    enum PositionResult
+    {
+        NOT_ERROR,
+        AVOIDING_SUN,
+        CANT_AVOID_SUN,
+        PREDICTION_ERROR
+    };
+
     /**
      * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.
      * @param min_elev, the minimum elevation in degrees at which the tracking starts.
@@ -132,7 +140,7 @@ public:
      */
     long double getSunAvoidAngle() const;
 
-    Position getPosition(unsigned int mjd, long double sod);
+    PositionResult getPosition(unsigned int mjd, long double sod, Position &pos);
 
 
 
@@ -144,8 +152,8 @@ private:
 
     bool insideSunSector(const PredictorSLR::InstantData& pos,
                          const dpslr::astro::SunPosition<long double>& sun_pos) const;
-    void getSunSectorRotationDirection(
-        SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double> > &sun_positions) const;
+    void setSunSectorRotationDirection(
+        SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double>> &sun_positions);
 
     long double min_elev_;
 
@@ -160,6 +168,7 @@ private:
     std::vector<SunSector> sun_sectors_;
 
     dpslr::algoslr::utils::PredictorSLR predictor_;
+    dpslr::astro::PredictorSun<long double> sun_predictor_;
 
 
 };

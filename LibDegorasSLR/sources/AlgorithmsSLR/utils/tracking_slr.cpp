@@ -54,7 +54,8 @@ TrackingSLR::TrackingSLR(long double min_elev, unsigned int mjd_start, long doub
     min_elev_(min_elev),
     avoid_sun_(avoid_sun),
     sun_avoid_angle_(sun_avoid_angle),
-    predictor_(std::move(predictor))
+    predictor_(std::move(predictor)),
+    sun_predictor_(this->predictor_.getGeodeticLocation())
 {
     this->analyzeTracking(mjd_start, sod_start);
 }
@@ -91,14 +92,81 @@ long double TrackingSLR::getSunAvoidAngle() const
     return this->sun_avoid_angle_;
 }
 
-TrackingSLR::Position TrackingSLR::getPosition(unsigned int mjd, long double sod)
+TrackingSLR::PositionResult TrackingSLR::getPosition(unsigned int mjd, long double sod, Position &pos)
 {
     PredictorSLR::PredictionResult result;
-    this->predictor_.predict(mjd, sod, result);
+    long double j2000 = dpslr::timing::mjdToJ2000Datetime(mjd, sod);
+    dpslr::astro::SunPosition<long double> sun_pos = this->sun_predictor_.fastPredict(j2000, false);
 
-    // TODO: return error code, and position by reference.
+    auto pred_error = this->predictor_.predict(mjd, sod, result);
 
-    return {};
+    if (pred_error != PredictorSLR::PredictionError::NO_ERROR &&
+        pred_error != PredictorSLR::PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE)
+        return PositionResult::PREDICTION_ERROR;
+
+    // If sun avoidance is applied and position for requested time is inside a sun security sector, map the point
+    // to its corresponding point in the sun security sector circumference.
+    // Otherwise, return calculated position.
+    if (this->avoid_sun_ && this->insideSunSector(*result.instant_data, sun_pos))
+    {
+        long double mjdt = dpslr::timing::mjdAndSecsToMjdt(mjd, sod);
+        auto sector_it = std::find_if(this->sun_sectors_.begin(), this->sun_sectors_.end(), [mjdt](const auto& sector)
+        {
+            return mjdt >= sector.mjdt_entry && mjdt <= sector.mjdt_exit;
+        });
+
+        if (sector_it == this->sun_sectors_.end())
+            return PositionResult::CANT_AVOID_SUN;
+
+        long double time_perc = (mjdt - sector_it->mjdt_entry) / (sector_it->mjdt_exit - sector_it->mjdt_entry);
+
+        long double entry_angle = std::atan2(sector_it->el_entry - sun_pos.elevation,
+                                             sector_it->az_entry - sun_pos.azimuth);
+
+        long double exit_angle = std::atan2(sector_it->el_exit - sun_pos.elevation,
+                                            sector_it->az_exit - sun_pos.azimuth);
+
+        long double angle;
+
+        if (exit_angle > entry_angle)
+        {
+            if (sector_it->cw)
+            {
+                angle = entry_angle - time_perc * (2 * dpslr::math::common::pi - exit_angle + entry_angle);
+                if (angle < 0.L)
+                    angle += 2 * dpslr::math::common::pi;
+            }
+            else
+                angle = entry_angle + time_perc * (exit_angle - entry_angle);
+
+        }
+        else
+        {
+            if (sector_it->cw)
+            {
+                angle = entry_angle - time_perc * (entry_angle - exit_angle);
+            }
+            else
+            {
+                angle = entry_angle + time_perc * (2 * dpslr::math::common::pi - entry_angle + exit_angle);
+                if (angle >= 2 * dpslr::math::common::pi)
+                    angle -= 2 * dpslr::math::common::pi;
+            }
+        }
+
+        pos.az = sun_pos.azimuth + this->sun_avoid_angle_ * std::cos(angle);
+        pos.el = sun_pos.elevation + this->sun_avoid_angle_ * std::sin(angle);
+        pos.mjdt = mjdt;
+
+        return PositionResult::AVOIDING_SUN;
+    }
+    else
+    {
+        pos.az = result.instant_data->az;
+        pos.el = result.instant_data->el;
+        pos.mjdt = result.instant_data->mjdt;
+        return PositionResult::NOT_ERROR;
+    }
 }
 
 void TrackingSLR::analyzeTracking(unsigned int mjd_start, long double sod_start)
@@ -118,7 +186,6 @@ bool TrackingSLR::findTrackingStart(unsigned int mjd_start, long double sod_star
     PredictorSLR::PredictionResult result;
     PredictorSLR::PredictionResult previous_result;
     PredictorSLR::PredictionError error_code = this->predictor_.predict(mjd, sod, result);
-    dpslr::astro::PredictorSun<long double> sun_pred(this->predictor_.getGeodeticLocation());
 
     if (error_code != PredictorSLR::PredictionError::NO_ERROR)
         return false;
@@ -187,7 +254,7 @@ bool TrackingSLR::findTrackingStart(unsigned int mjd_start, long double sod_star
     // tracking start to the end of the sun sector
     if (this->avoid_sun_)
     {
-        while (this->insideSunSector(*result.instant_data, sun_pred.fastPredict(j2000, false)))
+        while (this->insideSunSector(*result.instant_data, this->sun_predictor_.fastPredict(j2000, false)))
         {
             // Advance to next time position.
             this->sod_start_ += kTimeDelta;
@@ -223,7 +290,6 @@ bool TrackingSLR::findTrackingEnd()
     if (error_code != PredictorSLR::PredictionError::NO_ERROR)
         return false;
 
-    dpslr::astro::PredictorSun<long double> sun_pred(this->predictor_.getGeodeticLocation());
     std::vector<dpslr::astro::SunPosition<long double>> sun_positions;
     SunSector sun_sector;
 
@@ -250,7 +316,7 @@ bool TrackingSLR::findTrackingEnd()
         // We will store the data for each sector where the tracking goes through the sun security sector.
         if (this->avoid_sun_)
         {
-            auto sun_pos = sun_pred.fastPredict(j2000, false);
+            auto sun_pos = this->sun_predictor_.fastPredict(j2000, false);
             bool sun_collision = this->insideSunSector(*result.instant_data, sun_pos);
             if (sun_collision)
             {
@@ -273,7 +339,7 @@ bool TrackingSLR::findTrackingEnd()
                 sun_sector.az_exit = result.instant_data->az;
                 sun_sector.el_exit = result.instant_data->el;
                 sun_sector.mjdt_exit = result.instant_data->mjdt;
-                this->getSunSectorRotationDirection(sun_sector, sun_positions);
+                this->setSunSectorRotationDirection(sun_sector, sun_positions);
                 this->sun_sectors_.push_back(std::move(sun_sector));
                 sun_sector = {};
                 sun_positions = {};
@@ -309,34 +375,34 @@ bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
     return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->sun_avoid_angle_;
 }
 
-void TrackingSLR::getSunSectorRotationDirection(
-    SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double>> &sun_positions) const
+void TrackingSLR::setSunSectorRotationDirection(
+    SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double>> &sun_positions)
 {
-    dpslr::astro::PredictorSun<long double> sun_pred(this->predictor_.getGeodeticLocation());
     dpslr::astro::SunPosition<long double> sun_start(
-        sun_pred.fastPredict(dpslr::timing::mjdtToJ2000Datetime(sector.mjdt_entry), false));
+        this->sun_predictor_.fastPredict(dpslr::timing::mjdtToJ2000Datetime(sector.mjdt_entry), false));
     dpslr::astro::SunPosition<long double> sun_end(
-        sun_pred.fastPredict(dpslr::timing::mjdtToJ2000Datetime(sector.mjdt_exit), false));
-
-    PredictorSLR::PredictionResult obj_start;
-    PredictorSLR::PredictionResult obj_end;
-
-    this->predictor_.predict(sector.mjdt_entry, obj_start);
-    this->predictor_.predict(sector.mjdt_exit, obj_end);
+        this->sun_predictor_.fastPredict(dpslr::timing::mjdtToJ2000Datetime(sector.mjdt_exit), false));
 
     long double mjdt = sector.mjdt_entry + kTimeDelta / dpslr::timing::common::kSecsInDay;
     bool valid_cw = true;
     bool valid_ccw = true;
 
+    // To avoid the sun, we will calculate a circumference with radius sun_avoid_angle_ and we will map each point of
+    // the original trajectory to a point of the circumference between the entry and the exit point. We can travel
+    // around the circumference clockwise or counterclockwise.
+    // We have to check if every point in the sun avoid trajectory is in a valid trajectory, i.e., the elevation is
+    // between the minimum and 90 degrees. If the clockwise trajectory around the sun security sector is not valid,
+    // then we have to choose the counterclockwise trajectory and viceversa.
+    // If both trajectories are valid, we will choose the shorter one.
     for (const auto& pos : sun_positions)
     {
         long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 
-        long double entry_angle = std::atan2(obj_start.instant_data->el - pos.elevation,
-                                             obj_start.instant_data->az - pos.azimuth);
+        long double entry_angle = std::atan2(sector.el_entry - pos.elevation,
+                                             sector.az_entry - pos.azimuth);
 
-        long double exit_angle = std::atan2(obj_end.instant_data->el - pos.elevation,
-                                            obj_end.instant_data->az - pos.azimuth);
+        long double exit_angle = std::atan2(sector.el_exit - pos.elevation,
+                                            sector.az_exit - pos.azimuth);
 
         long double cw_angle;
         long double ccw_angle;
@@ -375,11 +441,11 @@ void TrackingSLR::getSunSectorRotationDirection(
         sector.cw = true;
     else
     {
-        long double entry_angle = std::atan2(obj_start.instant_data->el - sun_start.elevation,
-                                             obj_start.instant_data->az - sun_start.azimuth);
+        long double entry_angle = std::atan2(sector.el_entry - sun_start.elevation,
+                                             sector.az_entry - sun_start.azimuth);
 
-        long double exit_angle = std::atan2(obj_end.instant_data->el - sun_end.elevation,
-                                            obj_end.instant_data->az - sun_end.azimuth);
+        long double exit_angle = std::atan2(sector.el_exit - sun_end.elevation,
+                                            sector.az_exit - sun_end.azimuth);
 
         long double cw_angle;
         long double ccw_angle;
@@ -395,15 +461,12 @@ void TrackingSLR::getSunSectorRotationDirection(
             ccw_angle = 2 * dpslr::math::common::pi - entry_angle + exit_angle;
         }
 
-        if (cw_angle < ccw_angle)
-            sector.cw = true;
+        sector.cw = cw_angle < ccw_angle;
     }
 
     // TODO: what happens if the two ways are not valid?
 
 }
-
-
 
 
 }}} // END NAMESPACES
