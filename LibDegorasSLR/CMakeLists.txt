@@ -129,6 +129,6 @@ macro_default_library_installation(${LIB_NAME} ${LIB_CMAKE_CONFIG_NAME} ${LIB_IN
 add_subdirectory(testing)
 
 # Example subproject.
-#add_subdirectory(examples)
+add_subdirectory(examples)
 
 # ----------------------------------------------------------------------------------------------------------------------
