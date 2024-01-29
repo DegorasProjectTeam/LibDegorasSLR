@@ -1,5 +1,5 @@
 # **********************************************************************************************************************
-# Updated 19/01/2024
+# Updated 29/01/2024
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
@@ -57,6 +57,126 @@ MACRO(macro_setup_base_project project_name project_version project_build_mode)
     message(STATUS "  Force installation path: ${MODULES_GLOBAL_FORCE_INSTALL_DIR}")
     message(STATUS "  Install external dependencies: ${MODULES_GLOBAL_INSTALL_EXT_DEPS}")
     message(STATUS "  Install runtime artifacts: ${MODULES_GLOBAL_INSTALL_RUNTIME_ARTIFACTS}")
+
+ENDMACRO()
+
+# **********************************************************************************************************************
+
+# Function to search for packages.
+MACRO(macro_find_package_default package version extra_search_paths extra_search_patterns)
+
+    # Compose the configuration folder.
+    macro_compose_current_architecture_folder_name(CONFIG_FOLDER)
+
+    # Convert ${package} to lowercase
+    string(TOLOWER ${package} PACKAGE_LOWERCASE)
+
+    # List of CMake configuration file patterns.
+    set(CONFIG_FILE_PATTERNS
+        "${package}Config.cmake"
+        "${package}-config.cmake"
+        "${PACKAGE_LOWERCASE}Config.cmake"
+        "${PACKAGE_LOWERCASE}-config.cmake"
+    )
+
+    # Log.
+    message(STATUS "Searching for package configuration file: ${package}")
+    message(STATUS "  Determined architecture folder: ${CONFIG_FOLDER}")
+
+    # Installation folder pattern.
+    set(SEARCH_PATTERNS
+        ${extra_search_patterns}
+        "${CONFIG_FOLDER}/cmake/"
+        "${CONFIG_FOLDER}/share/"
+        "${CONFIG_FOLDER}/share/cmake/"
+        "*product*/${CONFIG_FOLDER}"
+        "*product*/${CONFIG_FOLDER}/share/"
+        "*product*/${CONFIG_FOLDER}/share/cmake"
+        )
+
+    # List of possible relative paths where package might be installed.
+    if(WIN32)
+        set(SEARCH_PATHS
+            ${extra_search_paths}
+            "external/${package}"                 # In the same project.
+            "../${package}"                       # As subproject installation
+            "../../${package}"                    # As subproject installation
+            "C:/${package}"                       # In standard root folder.
+            "C:/Program Files/${package}"         # Standard installation.
+            "C:/Program Files (x86)/${package}"   # Standard installation.
+        )
+    else()
+        set(SEARCH_PATHS
+            ${extra_search_paths}
+            "../${package}"              # As subproject installation
+            "../../${package}"           # As subproject installation
+            "/usr/local/${package}"      # Standard local installation
+            "/usr/lib/${package}"        # Standard library path
+            "/usr/lib/cmake/${package}"  # Standard library path
+            "lib/cmake/${package}"       # Standard library path
+            "lib/${package}"             # Standard library path
+            "/opt/${package}"            # Optional software installations
+            "~/${package}"               # Home directory installation
+            )
+    endif()
+
+    # List to store all found paths
+    set(FOUND_PATHS "")
+
+    # Search for library.
+    foreach(PATH IN LISTS SEARCH_PATHS)
+        foreach(PATTERN IN LISTS SEARCH_PATTERNS)
+
+            # Get the matchs.
+            set(CURRENT_SEARCH "${PATH}/${PATTERN}")
+            file(GLOB PATTERN_DIRS "${CURRENT_SEARCH}")
+
+            # Iterate through the list of paths
+            foreach(MATCH IN LISTS PATTERN_DIRS)
+                get_filename_component(MATCH "${MATCH}" ABSOLUTE)
+
+                # Check if any of the lowercase CMake configuration files exist in the directory.
+                 foreach(CONFIG_PATTERN IN LISTS CONFIG_FILE_PATTERNS)
+                     message(STATUS "  Checking: ${MATCH}/${CONFIG_PATTERN}")
+                     if(EXISTS "${MATCH}/${CONFIG_PATTERN}")
+                         list(APPEND FOUND_PATHS "${MATCH}")
+                         break()
+                     endif()
+                 endforeach()
+
+            endforeach()
+        endforeach()
+    endforeach()
+
+    # Log all matches
+    foreach(MATCH IN LISTS FOUND_PATHS)
+        message(STATUS "  Matches: ${MATCH}")
+    endforeach()
+
+    # Check if any matches were found
+    if(NOT FOUND_PATHS)
+        message(FATAL_ERROR "  The package was not found: ${package}")
+    else()
+
+        # Check if version is specified and update the find_package command accordingly
+        if(version STREQUAL "")
+            message(STATUS "  Ignoring version.")
+            find_package(${package} REQUIRED PATHS ${FOUND_PATHS} NO_DEFAULT_PATH)
+        else()
+            message(STATUS "  Using version: ${version}")
+            find_package(${package} ${version} EXACT REQUIRED PATHS ${FOUND_PATHS} NO_DEFAULT_PATH)
+        endif()
+
+        if(NOT ${package}_FOUND)
+             message(FATAL_ERROR "  Configuration file for ${package} not found.")
+        else()
+            # Log all found package details
+            message(STATUS "  Package '${package}' found.")
+            message(STATUS "  Package version: ${${package}_VERSION}")
+            message(STATUS "  Config dir: ${${package}_DIR}")
+        endif()
+
+    endif()
 
 ENDMACRO()
 

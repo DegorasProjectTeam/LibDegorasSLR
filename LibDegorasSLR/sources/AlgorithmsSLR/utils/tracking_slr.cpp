@@ -37,7 +37,8 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/AlgorithmsSLR/utils/tracking_slr.h>
+#include "LibDegorasSLR/AlgorithmsSLR/utils/tracking_slr.h"
+#include "LibDegorasSLR/Astronomical/predictor_sun.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES

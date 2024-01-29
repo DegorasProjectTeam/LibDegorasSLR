@@ -27,7 +27,7 @@
 // =====================================================================================================================
 
 // =====================================================================================================================
-#if ((defined __WIN32__) || (defined _WIN32)) && (!defined GLOBAL_LIBDPSLR_STATIC)
+#if ((defined __WIN32__) || (defined _WIN32)) && (!defined LIBDEGORASSLR_STATIC)
     #ifdef LIBDEGORASSLR_LIBRARY
         #define LIBDPSLR_EXPORT	__declspec(dllexport)
     #else

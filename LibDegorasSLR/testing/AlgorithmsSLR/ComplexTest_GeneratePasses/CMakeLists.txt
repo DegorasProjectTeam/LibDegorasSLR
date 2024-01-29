@@ -25,16 +25,11 @@ set(SOURCES "ComplexTest_GeneratePassesCPF.cpp")
 set(RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/test_data/39380_cpf_230309_5681.tjr)
 source_group("Resource Files" FILES ${RESOURCES})
 
-# Include the external resources.
-if(MODULES_GLOBAL_SHOW_EXTERNALS)
-    file(GLOB_RECURSE EXTERN ${CMAKE_SOURCE_DIR}/includes/*.h)
-endif()
-
 # Setup the launcher.
 macro_setup_launcher("${TEST_NAME}"
                      "${MODULES_GLOBAL_LIBS_OPTIMIZED}"
                      "${MODULES_GLOBAL_LIBS_DEBUG}"
-                     "${SOURCES}" "${EXTERN}")
+                     "${SOURCES}")
 
 # Include directories for the target.
 target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/includes)

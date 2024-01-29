@@ -23,7 +23,7 @@
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
-# Updated 23/01/2024
+# Updated 29/01/2024
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
@@ -31,7 +31,6 @@
 # **********************************************************************************************************************
 
 # ----------------------------------------------------------------------------------------------------------------------
-#
 # INITIALIZATION
 
 # Cmake minimum and empty project for avoid warnings.
@@ -54,6 +53,7 @@ set(LIB_VER 2.1.0)
 set(LIB_BUILD_MODE Debug)
 set(LIB_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../${LIB_NAME}_product_v${LIB_VER})
 set(LIB_CMAKE_CONFIG_NAME ${LIB_NAME}_config)
+set(LIB_LANGUAGES CXX C)
 
 # Macros global configuration.
 macro_global_set_show_externals(FALSE)
@@ -63,24 +63,29 @@ macro_global_set_install_runtime_artifacts(TRUE)
 macro_global_set_exclude_so_libraries(TRUE)
 
 # Setup the base project.
-macro_setup_base_project(${LIB_NAME} ${LIB_VER} ${LIB_BUILD_MODE})
+macro_setup_base_project(${LIB_NAME} ${LIB_VER} ${LIB_BUILD_MODE} ${LIB_LANGUAGES})
 
 # Other configurations.
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 # Setup the install directory for each compiler and operating system.
-macro_setup_install_dir(${LIB_INSTALL_DIR})
+macro_setup_default_install_dir(${LIB_INSTALL_DIR})
 
 # ----------------------------------------------------------------------------------------------------------------------
 # SPECIFIC PROJECT CONFIGURATION
 
 # Specific configuration.
-set(LIB_INCLUDES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/includes/${LIB_NAME})
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+set(LIB_INCLUDES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/includes/)
 set(LIB_SOURCES_DIR ${CMAKE_SOURCE_DIR}/sources)
 
+# Configure the LibNovasCPP package.
+include(ConfigLibNovasCpp)
+macro_configure_libnovascpp_default("3.1" "" "")
+
 # ----------------------------------------------------------------------------------------------------------------------
-# ADD THE SHARED LIBRARY
+# SETUP THE SHARED LIBRARY
 
 # Get the headers, sources and template files.
 file(GLOB_RECURSE HEADERS ${CMAKE_SOURCE_DIR}/includes/${LIB_NAME}/*.h)
@@ -96,6 +101,9 @@ source_group("Alias Files" FILES ${ALIAS})
 
 # Setup the shared library.
 macro_setup_shared_lib(${LIB_NAME} ${LIB_INCLUDES_DIR} ${SOURCES} ${HEADERS} ${TEMPLTS} ${ALIAS})
+
+# Link with LibNovasCPP.
+macro_link_libnovascpp_default(${LIB_NAME})
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE COMPILERS
