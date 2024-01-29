@@ -65,7 +65,7 @@ bool TrackingSLR::isValid() const
     return this->valid_pass_;
 }
 
-long double TrackingSLR::minElev() const
+long double TrackingSLR::getMinElev() const
 {
     return this->min_elev_;
 }
@@ -85,6 +85,11 @@ void TrackingSLR::getTrackingEnd(unsigned int &mjd, long double &sod) const
 bool TrackingSLR::getSunAvoidApplied() const
 {
     return this->avoid_sun_;
+}
+
+bool TrackingSLR::getSunOverlapping() const
+{
+    return this->avoid_sun_ && !this->sun_sectors_.empty();
 }
 
 long double TrackingSLR::getSunAvoidAngle() const

@@ -81,17 +81,20 @@ public:
      */
     struct Position
     {
-        long double az;
-        long double el;
-        long double mjdt;
+        long double az;             ///< Azimuth of the position in degrees.
+        long double el;             ///< Elevation of the position in degrees.
+        long double mjdt;           ///< MJ datetime of the position in days.
     };
 
+    /**
+     * @brief The PositionResult enum represents the possible result of calling @a getPosition function.
+     */
     enum PositionResult
     {
-        NOT_ERROR,
-        AVOIDING_SUN,
-        CANT_AVOID_SUN,
-        PREDICTION_ERROR
+        NOT_ERROR,                  ///< Position is correct, there was no error.
+        AVOIDING_SUN,               ///< Position is correct, but is avoiding sun security sector.
+        CANT_AVOID_SUN,             ///< Position is NOT correct, since it cannot avoid sun security sector.
+        PREDICTION_ERROR            ///< Position is NOT correct, there was a prediction error.
     };
 
     /**
@@ -115,7 +118,7 @@ public:
      * @brief This function returns the minimum elevation of this tracking in degrees.
      * @return the minimum elevation of the tracking in degrees.
      */
-    long double minElev() const;
+    long double getMinElev() const;
     /**
      * @brief If this traking is valid, you can get the tracking start with this function.
      * @param mjd, the MJ date in days for the tracking start.
@@ -133,6 +136,13 @@ public:
      * @return true if sun avoidance is applied, false otherwise.
      */
     bool getSunAvoidApplied() const;
+
+    /**
+     * @brief This function returns if there is sun overlapping in this tracking.
+     * @return true if sun avoid is applied and there is an overlapping with the sun, false otherwise.
+     */
+    bool getSunOverlapping() const;
+
     /**
      * @brief This function returns the radius of the sun security sector applied to sun avoidance manouvre.
      *        This function should not be called if sun avoidance is not applied.
@@ -140,9 +150,14 @@ public:
      */
     long double getSunAvoidAngle() const;
 
+    /**
+     * @brief This function returns the object's position at a given time.
+     * @param mjd, the MJD in days.
+     * @param sod, the second of day in seconds.
+     * @param pos, the returned position data.
+     * @return the result of the operation. Must be checked to ensure the position is valid.
+     */
     PositionResult getPosition(unsigned int mjd, long double sod, Position &pos);
-
-
 
 private:
 
