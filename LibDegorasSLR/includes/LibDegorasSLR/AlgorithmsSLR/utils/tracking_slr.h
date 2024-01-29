@@ -106,49 +106,49 @@ public:
      * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    TrackingSLR(long double min_elev, unsigned int mjd_start, long double sod_start, PredictorSLR&& predictor,
-                bool avoid_sun = true, long double sun_avoid_angle = 15.L);
+    LIBDPSLR_EXPORT TrackingSLR(long double min_elev, unsigned int mjd_start, long double sod_start, PredictorSLR&& predictor,
+                                 bool avoid_sun = true, long double sun_avoid_angle = 15.L);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
      * @return true if there is a valid tracking, false otherwise.
      */
-    bool isValid() const;
+    LIBDPSLR_EXPORT bool isValid() const;
     /**
      * @brief This function returns the minimum elevation of this tracking in degrees.
      * @return the minimum elevation of the tracking in degrees.
      */
-    long double getMinElev() const;
+    LIBDPSLR_EXPORT long double getMinElev() const;
     /**
      * @brief If this traking is valid, you can get the tracking start with this function.
      * @param mjd, the MJ date in days for the tracking start.
      * @param sod, the second of day for the tracking start.
      */
-    void getTrackingStart(unsigned int &mjd, long double& sod) const;
+    LIBDPSLR_EXPORT void getTrackingStart(unsigned int &mjd, long double& sod) const;
     /**
      * @brief If this tracking is valid, you can get the tracking end with this function.
      * @param mjd, the MJ date in days for the tracking end.
      * @param sod, the second of day for the tracking end.
      */
-    void getTrackingEnd(unsigned int &mjd, long double& sod) const;
+    LIBDPSLR_EXPORT void getTrackingEnd(unsigned int &mjd, long double& sod) const;
     /**
      * @brief This function returns if sun avoidance is applied.
      * @return true if sun avoidance is applied, false otherwise.
      */
-    bool getSunAvoidApplied() const;
+    LIBDPSLR_EXPORT bool getSunAvoidApplied() const;
 
     /**
      * @brief This function returns if there is sun overlapping in this tracking.
      * @return true if sun avoid is applied and there is an overlapping with the sun, false otherwise.
      */
-    bool getSunOverlapping() const;
+    LIBDPSLR_EXPORT bool getSunOverlapping() const;
 
     /**
      * @brief This function returns the radius of the sun security sector applied to sun avoidance manouvre.
      *        This function should not be called if sun avoidance is not applied.
      * @return the radius of the sun security sector
      */
-    long double getSunAvoidAngle() const;
+    LIBDPSLR_EXPORT long double getSunAvoidAngle() const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -157,7 +157,7 @@ public:
      * @param pos, the returned position data.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionResult getPosition(unsigned int mjd, long double sod, Position &pos);
+    LIBDPSLR_EXPORT PositionResult getPosition(unsigned int mjd, long double sod, Position &pos);
 
 private:
 

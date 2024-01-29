@@ -90,7 +90,8 @@ macro_configure_libnovascpp_default("3.1" "" "")
 # Get the headers, sources and template files.
 file(GLOB_RECURSE HEADERS ${CMAKE_SOURCE_DIR}/includes/${LIB_NAME}/*.h)
 file(GLOB_RECURSE TEMPLTS ${CMAKE_SOURCE_DIR}/includes/${LIB_NAME}/*.tpp)
-file(GLOB_RECURSE SOURCES ${CMAKE_SOURCE_DIR}/sources/*.cpp)
+file(GLOB_RECURSE SOURCES1 ${CMAKE_SOURCE_DIR}/sources/*.cpp)
+file(GLOB_RECURSE SOURCES2 ${CMAKE_SOURCE_DIR}/sources/AlgorithmsSLR/*.cpp)
 
 # Get the include aliases files.
 macro_get_files_without_extension(ALIAS ${CMAKE_SOURCE_DIR}/includes/${LIB_NAME}/*)
@@ -100,7 +101,8 @@ source_group("Header Files" FILES ${TEMPLTS})
 source_group("Alias Files" FILES ${ALIAS})
 
 # Setup the shared library.
-macro_setup_shared_lib(${LIB_NAME} ${LIB_INCLUDES_DIR} ${SOURCES} ${HEADERS} ${TEMPLTS} ${ALIAS})
+macro_setup_shared_lib(${LIB_NAME} ${LIB_INCLUDES_DIR}
+                       ${SOURCES1} ${SOURCES2} ${HEADERS} ${TEMPLTS} ${ALIAS})
 
 # Link with LibNovasCPP.
 macro_link_libnovascpp_default(${LIB_NAME})
@@ -137,6 +139,6 @@ macro_default_library_installation(${LIB_NAME} ${LIB_CMAKE_CONFIG_NAME} ${LIB_IN
 add_subdirectory(testing)
 
 # Example subproject.
-add_subdirectory(examples)
+#add_subdirectory(examples)
 
 # ----------------------------------------------------------------------------------------------------------------------
