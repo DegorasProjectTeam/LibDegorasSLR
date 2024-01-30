@@ -270,6 +270,13 @@ bool TrackingSLR::findTrackingStart(unsigned int mjd_start, long double sod_star
             }
 
             j2000 += kTimeDelta / dpslr::timing::common::kSecsInDay;
+
+            error_code = this->predictor_.predict(mjd, sod, result);
+
+            // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
+            // as invalid.
+            if (error_code != PredictorSLR::PredictionError::NO_ERROR || result.instant_data->el < this->min_elev_)
+                return false;
         }
 
     }
