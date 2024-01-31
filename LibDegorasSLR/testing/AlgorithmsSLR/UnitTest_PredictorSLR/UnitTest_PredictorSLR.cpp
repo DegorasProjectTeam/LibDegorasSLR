@@ -59,7 +59,7 @@ int main(int, char**)
     // fractional part.
 
     // We will use date at 2023/05/29 - 12:00 p.m. for the example cpf
-    long long mjd = 60093;
+    timing::commong::MJDType mjd = 60093;
     unsigned int sod = 43200;
     double sod_fract = 0;
     long double sod_with_fract;

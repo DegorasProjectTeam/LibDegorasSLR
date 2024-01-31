@@ -211,7 +211,7 @@ void jdtogr(long long jd_day, long double jd_fract, int &year, unsigned int &mon
     year += 1900;
 }
 
-void timePointToModifiedJulianDate(const HRTimePointStd &tp, long long &mjd, unsigned& second_day,
+void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd, unsigned& second_day,
                                    long double& second_fract)
 {
     long double unix_seconds = duration_cast<duration<long double>>(tp.time_since_epoch()).count();
@@ -233,7 +233,7 @@ long double timePointToJ2000Datetime(const HRTimePointStd &tp)
     return timePointToJulianDatetime(tp) + common::kJulianToJ2000;
 }
 
-long double timePointToModifiedJulianDatetime(const HRTimePointStd &tp)
+MJDtType timePointToModifiedJulianDatetime(const HRTimePointStd &tp)
 {
     return timePointToJulianDatetime(tp) + common::kJulianToModifiedJulian;
 }
@@ -243,7 +243,7 @@ long double timePointToReducedJulianDatetime(const HRTimePointStd &tp)
     return timePointToJulianDatetime(tp) + common::kJulianToReducedJulian;
 }
 
-HRTimePointStd mjdtToTp(long double mjt)
+HRTimePointStd mjdtToTp(MJDtType mjt)
 {
     duration<long double, std::ratio<common::kSecsInDay>> unix_days(
         mjt + common::kModifiedJulianToJulian + common::kJulianToPosixEpoch);
@@ -322,7 +322,7 @@ std::string currentISO8601Date(bool add_ms)
     return timePointToIso8601(now, add_ms);
 }
 
-void adjMJDAndSecs(long long& mjd, long double& seconds)
+void adjMJDAndSecs(MJDType& mjd, SoDType& seconds)
 {
     if (seconds >= common::kSecsInDay)
     {
@@ -332,7 +332,7 @@ void adjMJDAndSecs(long long& mjd, long double& seconds)
     }
 }
 
-long double mjdAndSecsToMjdt(long long mjd, long double seconds)
+long double mjdAndSecsToMjdt(MJDType mjd, SoDType seconds)
 {
     if (seconds >= common::kSecsInDay)
     {
@@ -341,8 +341,7 @@ long double mjdAndSecsToMjdt(long long mjd, long double seconds)
         seconds -= days_add*common::kSecsInDay;
     }
 
-    long double mjdt = mjd + (seconds / static_cast<long double>(common::kSecsInDay));
-    return mjdt;
+    return mjd + (seconds / static_cast<long double>(common::kSecsInDay));
 }
 
 
@@ -367,14 +366,22 @@ long double jdtToLmst(long double jdt, long double lon)
     return lmst;
 }
 
-long double mjdToJ2000Datetime(long long mjd, long double seconds)
+long double mjdToJ2000Datetime(MJDType mjd, SoDType seconds)
 {
-    return mjdtToJ2000Datetime(mjdAndSecsToMjdt(mjd, seconds));
+    auto mjdt = mjdAndSecsToMjdt(mjd, seconds);
+    return mjdtToJ2000Datetime(mjdt);
 }
 
-long double mjdtToJ2000Datetime(long double mjdt)
+long double mjdtToJ2000Datetime(MJDtType mjdt)
 {
     return mjdt + common::kModifiedJulianToJulian + common::kJulianToJ2000;
+}
+
+void MjdtToMjdAndSecs(MJDtType mjdt, MJDType &mjd, SoDType &seconds)
+{
+    long double int_part;
+    seconds = std::modf(mjdt, &int_part) * common::kSecsInDay;
+    mjd = static_cast<MJDType>(int_part);
 }
 
 

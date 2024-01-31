@@ -121,7 +121,26 @@ public:
                 this->unit_ = unit;
             }
         }
+        this->angle_ = get(unit);
+        this->unit_ = unit;
         return this->angle_;
+    }
+
+    T get(Unit unit) const
+    {
+        T result = this->angle_;
+        if (this->unit_ != unit)
+        {
+            if (unit == Unit::RADIANS)
+            {
+                result = this->angle_ * math::common::pi / 180.0L;
+            }
+            else if (unit == Unit::DEGREES)
+            {
+                result = this->angle_ * 180.0L / math::common::pi;
+            }
+        }
+        return result;
     }
 
 private:
@@ -142,11 +161,11 @@ public:
     };
 
     Distance(T dist = T(), Unit unit = Unit::METRES, double ratio = 1.0) :
-        dist_(dist), unit_(unit), ratio_(ratio) {};
+        dist_(dist), unit_(unit), ratio_(ratio) {}
 
-    inline constexpr operator T() const {return dist_ * ratio_;};
+    inline constexpr operator T() const {return dist_ * ratio_;}
 
-    inline double getRatio() const {return this->ratio_;};
+    inline double getRatio() const {return this->ratio_;}
 
     void convert(Unit unit)
     {
@@ -165,7 +184,7 @@ public:
             }
 
         }
-    };
+    }
 
     void convertRatio(double ratio)
     {

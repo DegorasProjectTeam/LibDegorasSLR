@@ -250,8 +250,8 @@ bool PredictorSLR::setCPF(const CPF& cpf)
         this->objc_ecc_corr_ = this->cpf_.getHeader().comCorrectionHeader().value().com_correction;
 
     // Auxiliar variables.
-    long long mjd_start = this->cpf_.getData().positionRecords().front().mjd;
-    long double sod_start = this->cpf_.getData().positionRecords().front().sod;
+    MJDType mjd_start = this->cpf_.getData().positionRecords().front().mjd;
+    SoDType sod_start = this->cpf_.getData().positionRecords().front().sod;
     long double s_lon = this->stat_geodetic_.lon;
     long double s_lat = this->stat_geodetic_.lat;
 
@@ -326,8 +326,7 @@ bool PredictorSLR::isReady() const {return !this->pos_times_.empty(); }
 
 
 
-PredictorSLR::PredictionError PredictorSLR::predict(unsigned mjd, long double sod_instant,
-                                                    PredictionResult& result) const
+PredictorSLR::PredictionError PredictorSLR::predict(MJDType mjd, SoDType sod_instant, PredictionResult& result) const
 {
 
 /*
@@ -724,14 +723,15 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
 
 
-PredictorSLR::PredictionError PredictorSLR::predict(long double mjdt, PredictionResult& result) const
+PredictorSLR::PredictionError PredictorSLR::predict(MJDtType mjdt, PredictionResult& result) const
 {
     // Time conversions.
-    long double mjd;
-    long double second = std::modf(mjdt , &mjd) * 86400.0L;
+    MJDType mjd;
+    SoDType sod;
+    timing::MjdtToMjdAndSecs(mjdt, mjd, sod);
 
     // Call with the datetime value splitted in the day and second in that day.
-    return this->predict(static_cast<unsigned>(mjd), second, result);
+    return this->predict(mjd, sod, result);
 }
 
 long double PredictorSLR::applyCorrections(long double &range, PredictionResult &result, bool cali, double el) const

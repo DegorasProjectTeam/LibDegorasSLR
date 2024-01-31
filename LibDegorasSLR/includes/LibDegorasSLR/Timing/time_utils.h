@@ -63,6 +63,10 @@ namespace timing{
 
 // =====================================================================================================================
 using dpslr::timing::common::HRTimePointStd;
+using dpslr::timing::common::SoDType;
+using dpslr::timing::common::MJDType;
+using dpslr::timing::common::MJDtType;
+
 // =====================================================================================================================
 
 // STRING FUNCTIONS
@@ -148,7 +152,7 @@ LIBDPSLR_EXPORT HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h=0, int
  * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
  * @return A TimePoint.
  */
-LIBDPSLR_EXPORT HRTimePointStd mjdtToTp(long double mjdt);
+LIBDPSLR_EXPORT HRTimePointStd mjdtToTp(MJDtType mjdt);
 
 /**
  * @brief Converts a Julian Datetime to a TimePoint.
@@ -228,8 +232,8 @@ LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, un
  * @param second_day, Modified Julian second of day. Output param.
  * @param second_fract, Fraction of second. Precission up to ns. Output param.
  */
-LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, long long &mjd,
-                                                 unsigned int& second_day, long double& second_fract);
+LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd,
+                                                   unsigned int& second_day, long double& second_fract);
 
 /**
  * @brief Converts a TimePoint to Julian Datetime
@@ -250,7 +254,7 @@ LIBDPSLR_EXPORT long double timePointToJ2000Datetime(const HRTimePointStd &tp);
  * @param tp, TimePoint to convert.
  * @return A floating point value representing Modified Julian Datetime in days. Precission up to ns.
  */
-LIBDPSLR_EXPORT long double timePointToModifiedJulianDatetime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT MJDtType timePointToModifiedJulianDatetime(const HRTimePointStd &tp);
 
 /**
  * @brief Converts a TimePoint to Reduced Julian Datetime
@@ -274,7 +278,15 @@ LIBDPSLR_EXPORT long double timePointToReducedJulianDatetime(const HRTimePointSt
  * @warning Using this function can make your timestamp inaccurate. Use only to
  *          work with times where nanoseconds are not important.
  */
-LIBDPSLR_EXPORT long double mjdAndSecsToMjdt(long long mjd, long double seconds);
+LIBDPSLR_EXPORT long double mjdAndSecsToMjdt(MJDType mjd, SoDType seconds);
+
+/**
+ * @brief Convert a Modified Julian datetime to a Modified Julian Date and seconds (with decimals).
+ * @param mjdt    The Modified Julian datetime in days with decimals.
+ * @param mjd     The Modified Julian Date in days.
+ * @param seconds The number of seconds with decimals.
+ */
+LIBDPSLR_EXPORT void MjdtToMjdAndSecs(MJDtType mjdt, MJDType &mjd, SoDType &seconds);
 
 /**
  * @brief Convert a MJD with second of day to a J2000 datetime
@@ -284,7 +296,7 @@ LIBDPSLR_EXPORT long double mjdAndSecsToMjdt(long long mjd, long double seconds)
  * @warning Using this function can make your timestamp inaccurate. Use only to
  *          work with times where nanoseconds are not important.
  */
-LIBDPSLR_EXPORT long double mjdToJ2000Datetime(long long mjd, long double seconds);
+LIBDPSLR_EXPORT long double mjdToJ2000Datetime(MJDType mjd, SoDType seconds);
 
 /**
  * @brief Convert a modified julian datetime to a J2000 datetime
@@ -293,7 +305,7 @@ LIBDPSLR_EXPORT long double mjdToJ2000Datetime(long long mjd, long double second
  * @warning Using this function can make your timestamp inaccurate. Use only to
  *          work with times where nanoseconds are not important.
  */
-LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(long double mjdt);
+LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(MJDtType mjdt);
 
 // SPECIFIC FORMATS FUNCTIONS
 //======================================================================================================================

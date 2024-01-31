@@ -36,7 +36,6 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <string>
 #include <chrono>
 // =====================================================================================================================
 
@@ -89,6 +88,13 @@ enum class TimeResolution
     NANOSECOND,
     PICOSECOND
 };
+
+/// Alias for MJ date in days
+using MJDType = long long;
+/// Alias for MJ datetime in days with decimals
+using MJDtType = long double;
+/// Alias for second of day with decimals
+using SoDType = long double;
 
 //======================================================================================================================
 

@@ -69,10 +69,10 @@ public:
     {
         long double az_entry;       ///< Azimuth of sun sector entry point
         long double el_entry;       ///< Elevation of sun sector entry point
-        long double mjdt_entry;     ///< MJ datetime of sun sector entry point
+        MJDtType mjdt_entry;        ///< MJ datetime of sun sector entry point
         long double az_exit;        ///< Azimuth of sun sector exit point
         long double el_exit;        ///< Elevation of sun sector exit point
-        long double mjdt_exit;      ///< MJ datetime of sun sector exit point
+        MJDtType mjdt_exit;         ///< MJ datetime of sun sector exit point
         bool cw;                    ///< Rotation direction of the sun avoidance manoeuvre
     };
 
@@ -83,7 +83,7 @@ public:
     {
         long double az;             ///< Azimuth of the position in degrees.
         long double el;             ///< Elevation of the position in degrees.
-        long double mjdt;           ///< MJ datetime of the position in days.
+        MJDtType mjdt;             ///< MJ datetime of the position in days.
     };
 
     /**
@@ -94,6 +94,7 @@ public:
         NOT_ERROR,                  ///< Position is correct, there was no error.
         AVOIDING_SUN,               ///< Position is correct, but is avoiding sun security sector.
         CANT_AVOID_SUN,             ///< Position is NOT correct, since it cannot avoid sun security sector.
+        OUT_OF_TRACK,               ///< Position is NOT correct, since it is outside of tracking.
         PREDICTION_ERROR            ///< Position is NOT correct, there was a prediction error.
     };
 
@@ -106,49 +107,61 @@ public:
      * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    LIBDPSLR_EXPORT TrackingSLR(long double min_elev, unsigned int mjd_start, long double sod_start, PredictorSLR&& predictor,
-                                 bool avoid_sun = true, long double sun_avoid_angle = 15.L);
+    TrackingSLR(long double min_elev, MJDType mjd_start, SoDType sod_start,
+                PredictorSLR&& predictor, bool avoid_sun = true, long double sun_avoid_angle = 15.L);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
      * @return true if there is a valid tracking, false otherwise.
      */
-    LIBDPSLR_EXPORT bool isValid() const;
+    bool isValid() const;
     /**
      * @brief This function returns the minimum elevation of this tracking in degrees.
      * @return the minimum elevation of the tracking in degrees.
      */
-    LIBDPSLR_EXPORT long double getMinElev() const;
+    long double getMinElev() const;
     /**
      * @brief If this traking is valid, you can get the tracking start with this function.
      * @param mjd, the MJ date in days for the tracking start.
      * @param sod, the second of day for the tracking start.
      */
-    LIBDPSLR_EXPORT void getTrackingStart(unsigned int &mjd, long double& sod) const;
+    void getTrackingStart(MJDType &mjd, SoDType& sod) const;
     /**
      * @brief If this tracking is valid, you can get the tracking end with this function.
      * @param mjd, the MJ date in days for the tracking end.
      * @param sod, the second of day for the tracking end.
      */
-    LIBDPSLR_EXPORT void getTrackingEnd(unsigned int &mjd, long double& sod) const;
+    void getTrackingEnd(MJDType &mjd, SoDType& sod) const;
     /**
      * @brief This function returns if sun avoidance is applied.
      * @return true if sun avoidance is applied, false otherwise.
      */
-    LIBDPSLR_EXPORT bool getSunAvoidApplied() const;
+    bool getSunAvoidApplied() const;
 
     /**
      * @brief This function returns if there is sun overlapping in this tracking.
      * @return true if sun avoid is applied and there is an overlapping with the sun, false otherwise.
      */
-    LIBDPSLR_EXPORT bool getSunOverlapping() const;
+    bool getSunOverlapping() const;
+
+    /**
+     * @brief This function returns if the start time of the tracking was modified due to a sun collision at the begining.
+     * @return if sun avoid is applied, it returns true if tracking start time was modified due to sun, false otherwise.
+     */
+    bool getSunAtStart() const;
+
+    /**
+     * @brief This function returns if the end time of the tracking was modified due to a sun collision at the end.
+     * @return if sun avoid is applied, it returns true if tracking end time was modified due to sun, false otherwise.
+     */
+    bool getSunAtEnd() const;
 
     /**
      * @brief This function returns the radius of the sun security sector applied to sun avoidance manouvre.
      *        This function should not be called if sun avoidance is not applied.
      * @return the radius of the sun security sector
      */
-    LIBDPSLR_EXPORT long double getSunAvoidAngle() const;
+    long double getSunAvoidAngle() const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -157,12 +170,12 @@ public:
      * @param pos, the returned position data.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    LIBDPSLR_EXPORT PositionResult getPosition(unsigned int mjd, long double sod, Position &pos);
+    PositionResult getPosition(MJDType mjd, SoDType sod, Position &pos);
 
 private:
 
-    void analyzeTracking(unsigned int mjd_start, long double sod_start);
-    bool findTrackingStart(unsigned int mjd_start, long double sod_start);
+    void analyzeTracking(MJDType mjd_start, SoDType sod_start);
+    bool findTrackingStart(MJDType mjd_start, SoDType sod_start);
     bool findTrackingEnd();
 
     bool insideSunSector(const PredictorSLR::InstantData& pos,
@@ -172,14 +185,16 @@ private:
 
     long double min_elev_;
 
-    unsigned int mjd_start_;
-    long double sod_start_;
-    unsigned int mjd_end_;
-    long double sod_end_;
+    MJDType mjd_start_;
+    SoDType sod_start_;
+    MJDType mjd_end_;
+    SoDType sod_end_;
 
     bool valid_pass_;
     bool avoid_sun_;
     long double sun_avoid_angle_;
+    bool sun_at_start_;
+    bool sun_at_end_;
     std::vector<SunSector> sun_sectors_;
 
     dpslr::algoslr::utils::PredictorSLR predictor_;

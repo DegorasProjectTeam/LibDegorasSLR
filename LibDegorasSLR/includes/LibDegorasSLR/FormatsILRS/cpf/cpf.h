@@ -238,8 +238,8 @@ public:
      * @param mjd_end The output parameter to store the Modified Julian Date of the end time.
      * @param secs_end The output parameter to store the seconds of the day of the end time with decimals.
      */
-    void getAvailableTimeWindow(long long& mjd_start, long double &secs_start,
-                                long long& mjd_end, long double& secs_end) const;
+    void getAvailableTimeWindow(timing::common::MJDType& mjd_start, timing::common::SoDType &secs_start,
+                                timing::common::MJDType& mjd_end, timing::common::SoDType& secs_end) const;
 
     /**
      * @brief Gets the available time window for the CPF as an Interval (will be invalid if the CPF is empty).

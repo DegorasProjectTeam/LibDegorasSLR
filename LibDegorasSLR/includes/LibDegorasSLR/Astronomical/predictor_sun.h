@@ -75,8 +75,8 @@ public:
     PredictorSun(const geo::common::GeodeticPoint<T>& obs_geod)
     {
         // Convert latitude and longitude to radians.
-        this->obs_lat_ = math::units::degToRad(obs_geod.lat);
-        this->obs_lon_ = math::units::degToRad(obs_geod.lon);
+        this->obs_lat_ = obs_geod.lat.get(decltype(obs_geod.lat)::Unit::RADIANS);
+        this->obs_lon_ = obs_geod.lon.get(decltype(obs_geod.lon)::Unit::RADIANS);
         this->obs_alt_ = obs_geod.alt;
     }
 

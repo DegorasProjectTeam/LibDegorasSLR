@@ -47,6 +47,7 @@
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/Mathematics/containers/vector3d.h"
+#include "LibDegorasSLR/Timing/common/time_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -107,8 +108,8 @@ public:
     {
         // Members.
         DirectionFlag dir_flag;             ///< Direction flag.
-        long long mjd;                      ///< Modified Julian Date.
-        long double sod;                    ///< Second of day (UTC).
+        timing::common::MJDType mjd;        ///< Modified Julian Date.
+        timing::common::SoDType sod;        ///< Second of day (UTC).
         int leap_second;                    ///< Leap second flag (0 or the value of new leap second).
         Vector3D<long double> position;     ///< Geocentric position in meters (x, y, z).
 
