@@ -221,6 +221,14 @@ void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd, unsig
     second_day = static_cast<unsigned>(static_cast<long long>(unix_seconds) % common::kSecsInDay);
 }
 
+void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd, SoDType& second_day_fract)
+{
+    unsigned second_day;
+    long double second_fract;
+    timePointToModifiedJulianDate(tp, mjd, second_day, second_fract);
+    second_day_fract += second_day;
+}
+
 long double timePointToJulianDatetime(const HRTimePointStd &tp)
 {
     long double unix_seconds = duration_cast<duration<long double>>(tp.time_since_epoch()).count();

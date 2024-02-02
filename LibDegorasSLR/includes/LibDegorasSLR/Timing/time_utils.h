@@ -69,7 +69,7 @@ using dpslr::timing::common::MJDtType;
 
 // =====================================================================================================================
 
-// STRING FUNCTIONS
+// TIME STRING FUNCTIONS
 //======================================================================================================================
 
 LIBDPSLR_EXPORT std::string timePointToString(const HRTimePointStd& tp, const std::string& format = "%Y-%m-%dT%H:%M:%S",
@@ -234,6 +234,8 @@ LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, un
  */
 LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd,
                                                    unsigned int& second_day, long double& second_fract);
+
+LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd, SoDType& second_day_fract);
 
 /**
  * @brief Converts a TimePoint to Julian Datetime

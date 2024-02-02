@@ -62,6 +62,22 @@ TrackingSLR::TrackingSLR(long double min_elev, MJDType mjd_start, SoDType sod_st
     this->analyzeTracking(mjd_start, sod_start);
 }
 
+TrackingSLR::TrackingSLR(long double min_elev,const timing::HRTimePointStd& tp_start,
+                         PredictorSLR &&predictor, bool avoid_sun, long double sun_avoid_angle) :
+    min_elev_(min_elev),
+    avoid_sun_(avoid_sun),
+    sun_avoid_angle_(sun_avoid_angle),
+    sun_at_start_(false),
+    sun_at_end_(false),
+    predictor_(std::move(predictor)),
+    sun_predictor_(this->predictor_.getGeodeticLocation())
+{
+    MJDType mjd_start;
+    SoDType sod_start;
+    timing::timePointToModifiedJulianDate(tp_start, mjd_start, sod_start);
+    this->analyzeTracking(mjd_start, sod_start);
+}
+
 bool TrackingSLR::isValid() const
 {
     return this->valid_pass_;
@@ -109,6 +125,14 @@ bool TrackingSLR::getSunAtEnd() const
 long double TrackingSLR::getSunAvoidAngle() const
 {
     return this->sun_avoid_angle_;
+}
+
+TrackingSLR::PositionResult TrackingSLR::getPosition(const timing::HRTimePointStd& tp_time, Position &pos)
+{
+    MJDType mjd;
+    SoDType sod;
+    timing::timePointToModifiedJulianDate(tp_time, mjd, sod);
+    return getPosition(mjd, sod, pos);
 }
 
 TrackingSLR::PositionResult TrackingSLR::getPosition(MJDType mjd, SoDType sod, Position &pos)

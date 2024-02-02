@@ -111,6 +111,17 @@ public:
                 PredictorSLR&& predictor, bool avoid_sun = true, long double sun_avoid_angle = 15.L);
 
     /**
+     * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.
+     * @param min_elev, the minimum elevation in degrees at which the tracking starts.
+     * @param tp_start, the time point datetime to start looking for a tracking.
+     * @param predictor, the predictor used for calculating the tracked object positions at a given time.
+     * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
+     * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
+     */
+    TrackingSLR(long double min_elev, const timing::HRTimePointStd& tp_start, PredictorSLR&& predictor,
+                bool avoid_sun = true, long double sun_avoid_angle = 15.L);
+
+    /**
      * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
      * @return true if there is a valid tracking, false otherwise.
      */
@@ -162,6 +173,14 @@ public:
      * @return the radius of the sun security sector
      */
     long double getSunAvoidAngle() const;
+
+    /**
+     * @brief This function returns the object's position at a given time.
+     * @param tp_time The time point datetime.
+     * @param pos, the returned position data.
+     * @return the result of the operation. Must be checked to ensure the position is valid.
+     */
+    PositionResult getPosition(const timing::HRTimePointStd& tp_time, Position &pos);
 
     /**
      * @brief This function returns the object's position at a given time.
