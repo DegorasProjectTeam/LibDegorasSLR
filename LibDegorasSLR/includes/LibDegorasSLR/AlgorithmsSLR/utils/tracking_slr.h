@@ -104,22 +104,25 @@ public:
      * @param mjd_start, the MJ date in days to start looking for a tracking.
      * @param sod_start, the second of day to start looking for a tracking.
      * @param predictor, the predictor used for calculating the tracked object positions at a given time.
+     * @param time_delta, the time delta used to analyze the tracking. The smallest, the more precise.
      * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
     TrackingSLR(long double min_elev, MJDType mjd_start, SoDType sod_start,
-                PredictorSLR&& predictor, bool avoid_sun = true, long double sun_avoid_angle = 15.L);
+                PredictorSLR&& predictor, long double time_delta = 1.L,
+                bool avoid_sun = true, long double sun_avoid_angle = 15.L);
 
     /**
      * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.
      * @param min_elev, the minimum elevation in degrees at which the tracking starts.
      * @param tp_start, the time point datetime to start looking for a tracking.
      * @param predictor, the predictor used for calculating the tracked object positions at a given time.
+     * @param time_delta, the time delta used to analyze the tracking. The smallest, the more precise.
      * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
     TrackingSLR(long double min_elev, const timing::HRTimePointStd& tp_start, PredictorSLR&& predictor,
-                bool avoid_sun = true, long double sun_avoid_angle = 15.L);
+                long double time_delta = 1.L, bool avoid_sun = true, long double sun_avoid_angle = 15.L);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
@@ -203,6 +206,7 @@ private:
         SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double>> &sun_positions);
 
     long double min_elev_;
+    long double time_delta_;
 
     MJDType mjd_start_;
     SoDType sod_start_;

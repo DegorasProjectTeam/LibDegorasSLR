@@ -46,12 +46,11 @@ namespace dpslr{
 namespace algoslr{
 namespace utils{
 
-// TODO: maybe this time delta should be configurable
-constexpr long double kTimeDelta = 0.5L;  // The time delta used for analyzing the tracking in seconds.
 
 TrackingSLR::TrackingSLR(long double min_elev, MJDType mjd_start, SoDType sod_start, PredictorSLR &&predictor,
-                         bool avoid_sun, long double sun_avoid_angle) :
+                         long double time_delta, bool avoid_sun, long double sun_avoid_angle) :
     min_elev_(min_elev),
+    time_delta_(time_delta),
     avoid_sun_(avoid_sun),
     sun_avoid_angle_(sun_avoid_angle),
     sun_at_start_(false),
@@ -62,9 +61,10 @@ TrackingSLR::TrackingSLR(long double min_elev, MJDType mjd_start, SoDType sod_st
     this->analyzeTracking(mjd_start, sod_start);
 }
 
-TrackingSLR::TrackingSLR(long double min_elev,const timing::HRTimePointStd& tp_start,
-                         PredictorSLR &&predictor, bool avoid_sun, long double sun_avoid_angle) :
+TrackingSLR::TrackingSLR(long double min_elev, const timing::HRTimePointStd& tp_start,
+                         PredictorSLR &&predictor, long double time_delta, bool avoid_sun, long double sun_avoid_angle) :
     min_elev_(min_elev),
+    time_delta_(time_delta),
     avoid_sun_(avoid_sun),
     sun_avoid_angle_(sun_avoid_angle),
     sun_at_start_(false),
@@ -256,7 +256,7 @@ bool TrackingSLR::findTrackingStart(timing::common::MJDType mjd_start, timing::c
         // Advance to next time position.
         if (look_backward)
         {
-            sod -= kTimeDelta;
+            sod -= this->time_delta_;
             if (sod < 0.L)
             {
                 mjd--;
@@ -265,7 +265,7 @@ bool TrackingSLR::findTrackingStart(timing::common::MJDType mjd_start, timing::c
         }
         else
         {
-            sod += kTimeDelta;
+            sod += this->time_delta_;
             if (sod > 86400.L)
             {
                 mjd++;
@@ -311,14 +311,14 @@ bool TrackingSLR::findTrackingStart(timing::common::MJDType mjd_start, timing::c
         while (this->insideSunSector(*result.instant_data, this->sun_predictor_.fastPredict(j2000, false)))
         {
             // Advance to next time position.
-            this->sod_start_ += kTimeDelta;
+            this->sod_start_ += this->time_delta_;
             if (this->sod_start_ > 86400.L)
             {
                 this->mjd_start_++;
                 this->sod_start_ -= 86400.L;
             }
 
-            j2000 += kTimeDelta / static_cast<long double>(dpslr::timing::common::kSecsInDay);
+            j2000 += this->time_delta_ / static_cast<long double>(dpslr::timing::common::kSecsInDay);
 
             error_code = this->predictor_.predict(this->mjd_start_, this->sod_start_, result);
 
@@ -359,14 +359,14 @@ bool TrackingSLR::findTrackingEnd()
     do
     {
         // Advance to next time position.
-        sod += kTimeDelta;
+        sod += this->time_delta_;
         if (sod > 86400.L)
         {
             mjd++;
             sod -= 86400.L;
         }
 
-        j2000 += kTimeDelta / static_cast<long double>(dpslr::timing::common::kSecsInDay);
+        j2000 += this->time_delta_ / static_cast<long double>(dpslr::timing::common::kSecsInDay);
 
         error_code = this->predictor_.predict(mjd, sod, result);
 
@@ -456,7 +456,7 @@ void TrackingSLR::setSunSectorRotationDirection(
     dpslr::astro::SunPosition<long double> sun_end(
         this->sun_predictor_.fastPredict(dpslr::timing::mjdtToJ2000Datetime(sector.mjdt_exit), false));
 
-    MJDtType mjdt = sector.mjdt_entry + kTimeDelta / static_cast<long double>(dpslr::timing::common::kSecsInDay);
+    MJDtType mjdt = sector.mjdt_entry + this->time_delta_ / static_cast<long double>(dpslr::timing::common::kSecsInDay);
     bool valid_cw = true;
     bool valid_ccw = true;
 
