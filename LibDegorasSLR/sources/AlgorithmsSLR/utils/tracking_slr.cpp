@@ -133,10 +133,10 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(const timing::H
     MJDate mjd;
     SoD sod;
     timing::timePointToModifiedJulianDate(tp_time, mjd, sod);
-    return PredictTrackingPosition(mjd, sod, tracking_result);
+    return predictTrackingPosition(mjd, sod, tracking_result);
 }
 
-TrackingSLR::PositionStatus TrackingSLR::PredictTrackingPosition(MJDate mjd, SoD sod,
+TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD sod,
                                                                  TrackingResult &tracking_result)
 {
     // Update the times.

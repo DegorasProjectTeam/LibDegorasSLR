@@ -84,7 +84,7 @@ int main ()
     while (mjd < mjd_end || sod < sod_end)
     {
         res.push_back({});
-        auto error = tracking.PredictTrackingPosition(mjd, sod, res.back());
+        auto error = tracking.predictTrackingPosition(mjd, sod, res.back());
 
 
         if (error == dpslr::algoslr::utils::TrackingSLR::OUTSIDE_SUN

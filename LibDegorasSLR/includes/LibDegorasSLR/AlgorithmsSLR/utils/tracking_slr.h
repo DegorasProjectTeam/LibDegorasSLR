@@ -216,7 +216,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus PredictTrackingPosition(MJDate mjd, SoD sod, TrackingResult &tracking_result);
+    PositionStatus predictTrackingPosition(MJDate mjd, SoD sod, TrackingResult &tracking_result);
 
 private:
 
