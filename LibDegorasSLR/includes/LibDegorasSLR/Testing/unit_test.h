@@ -28,18 +28,15 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-//#include <unistd.h>
-#include <iostream>
-#include <sstream>
-#include <list>
 #include <map>
 #include <vector>
+#include <functional>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdpslr_global.h"
-#include <LibDegorasSLR/Timing/time_utils.h>
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -54,17 +51,14 @@ struct LIBDPSLR_EXPORT TestLog
 public:
 
     TestLog(const std::string& module, const std::string& test, const std::string &det_ex,
-            bool passed, const timing::HRTimePointStd &tp, long long elapsed);
-
-    TestLog(const TestLog&) = default;
+            bool passed, const timing::HRTimePointStd &tp, long long elapsed,
+            const std::vector<std::pair<unsigned, bool>>& results);
 
     std::string makeLog(const std::string& storage_path = std::string()) const;
 
     const std::string& getModuleName() const;
 
     bool getResult() const;
-
-    ~TestLog() = default;
 
 private:
 
@@ -77,6 +71,7 @@ private:
     bool passed_;
     std::string tp_str_;
     long long elapsed_;
+    std::vector<std::pair<unsigned, bool>> results_;
 };
 
 
@@ -95,8 +90,6 @@ public:
 
     void makeSummary(bool show = true, const std::string& storage_path = std::string()) const;
 
-    ~TestSummary() = default;
-
 private:
 
     std::multimap<std::string, TestLog> test_logs_;
@@ -109,44 +102,186 @@ class LIBDPSLR_EXPORT TestBase
 {
 public:
 
-    virtual ~TestBase() = default;
-
 protected:
 
     TestBase(const std::string& name);
 
 public:
 
-    template<typename T, typename = std::enable_if_t<!std::is_floating_point<T>::value>>
-    bool expectEQ(const T& arg1, const T& arg2)
+    // Type traits.
+    template <typename T>
+    struct is_container : std::false_type {};
+
+    template <typename... Args>
+    struct is_container<std::vector<Args...>> : std::true_type {};
+
+    template <typename T, size_t N>
+    struct is_container<std::array<T, N>> : std::true_type {};
+
+    bool forceFail();
+
+    bool forcePass();
+
+    template<typename... Args>
+    bool customCheck(const std::function<bool(const Args&...)>& check_function, const Args&... args)
+    {
+        bool result = check_function(args...);
+        this->updateCheckResults(result);
+        return result;
+    }
+
+    bool expectEQ(const std::string& str1, const std::string& str2)
+    {
+        bool result = (str1 == str2);
+        this->updateCheckResults(result);
+        return result;
+    }
+
+    bool expectEQ(const char* str1, const char* str2)
+    {
+        bool result = (std::string(str1) == std::string(str2));
+        this->updateCheckResults(result);
+        return result;
+    }
+
+    template<typename T>
+    typename std::enable_if_t<
+        !is_container<T>::value &&
+            !std::is_floating_point_v<T>, bool>
+    expectEQ(const T& arg1, const T& arg2)
     {
         bool result = (arg1 == arg2);
+        this->updateCheckResults(result);
         return result;
     }
 
-    template<typename T, typename = std::enable_if_t<!std::is_floating_point<T>::value>>
-    bool expectNE(const T& arg1, const T& arg2)
+    template<typename T>
+    typename std::enable_if_t<
+        !is_container<T>::value &&
+            std::is_floating_point_v<T>, bool>
+    expectEQ(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
+    {
+        bool result = std::abs(arg1 - arg2) <= tolerance;
+        this->updateCheckResults(result);
+        return result;
+    }
+
+    template<typename T>
+    typename std::enable_if_t<
+        !std::is_floating_point_v<T>, bool>
+    expectEQ(const std::vector<T>& v1, const std::vector<T>& v2)
+    {
+        if (v1.size() != v2.size())
+        {
+            this->updateCheckResults(false);
+            return false;
+        }
+
+        for (size_t i = 0; i < v1.size(); ++i)
+        {
+            if (v1[i] != v2[i])
+            {
+                this->updateCheckResults(false);
+                return false;
+            }
+        }
+        this->updateCheckResults(true);
+        return true;
+    }
+
+    template<typename T>
+    typename std::enable_if_t<
+        std::is_floating_point_v<T>, bool>
+    expectEQ(const std::vector<T>& v1, const std::vector<T>& v2,  const T& tol = std::numeric_limits<T>::epsilon())
+    {
+        if (v1.size() != v2.size())
+        {
+            this->updateCheckResults(false);
+            return false;
+        }
+
+        for (size_t i = 0; i < v1.size(); ++i)
+        {
+            if (std::abs(v1[i] - v2[i]) > tol)
+            {
+                this->updateCheckResults(false);
+                return false;
+            }
+        }
+        this->updateCheckResults(true);
+        return true;
+    }
+
+    template <typename T, size_t N>
+    typename std::enable_if_t<!std::is_floating_point_v<T>, bool>
+    expectEQ(const std::array<T, N>& arr1, const std::array<T, N>& arr2)
+    {
+        for (size_t i = 0; i < N; ++i)
+        {
+            if (arr1[i] != arr2[i])
+            {
+                this->updateCheckResults(false);
+                return false;
+            }
+        }
+        this->updateCheckResults(true);
+        return true;
+    }
+
+    template <typename T, size_t N>
+    typename std::enable_if_t<std::is_floating_point_v<T>, bool>
+    expectEQ(const std::array<T, N>& arr1, const std::array<T, N>& arr2, const T& tol = std::numeric_limits<T>::epsilon())
+    {
+        for (size_t i = 0; i < N; ++i)
+        {
+            if (std::abs(arr1[i] - arr2[i]) > tol)
+            {
+                this->updateCheckResults(false);
+                return false;
+            }
+        }
+        this->updateCheckResults(true);
+        return true;
+    }
+
+    template<typename T>
+    typename std::enable_if_t<
+        !is_container<T>::value &&
+            !std::is_floating_point_v<T>, bool>
+    expectNE(const T& arg1, const T& arg2)
     {
         bool result = (arg1 != arg2);
+        this->updateCheckResults(result);
         return result;
     }
 
-    template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
-    bool expectEQ(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
+    template<typename T>
+    typename std::enable_if_t<
+        !is_container<T>::value &&
+            std::is_floating_point_v<T>, bool>
+    expectNE(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
     {
-        return std::abs(arg1 - arg2) <= tolerance;
-    }
-
-    template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
-    bool expectNE(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
-    {
+        bool result = std::abs(arg1 - arg2) > tolerance;
+        this->updateCheckResults(result);
         return std::abs(arg1 - arg2) > tolerance;
     }
 
     virtual void runTest();
 
+    virtual ~TestBase();
+
     std::string test_name_;
     bool result_;
+    unsigned current_check_n_;
+    std::vector<std::pair<unsigned, bool>> check_results_;
+
+private:
+
+    void updateCheckResults(bool res)
+    {
+        current_check_n_++;
+        this->check_results_.push_back(std::make_pair(current_check_n_, res));
+    }
 };
 
 
@@ -168,10 +303,6 @@ public:
     void runTests();
 
     void clear();
-
-
-
-    virtual ~UnitTest();
 
 private:
 

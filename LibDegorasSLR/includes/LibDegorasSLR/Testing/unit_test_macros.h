@@ -24,7 +24,6 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <stdlib.h>
 #include <thread>
 #include <chrono>
 // =====================================================================================================================
@@ -64,13 +63,26 @@ void Test_##Module##_##TestName::runTest()      \
             std::pair<std::string, TestBase*>(#Module, Test_##Module##_##TestName::instance()));   \
 
 #define M_RUN_UNIT_TESTS() \
-dpslr::testing::UnitTest::instance().runTests();  \
+dpslr::testing::UnitTest::instance().runTests(); \
+return 0; \
 
-#define M_EXPECTED_EQ(arg1, arg2)          \
+#define M_CUSTOM_CHECK(func, ...) \
+this->result_ &= customCheck(func, __VA_ARGS__); \
+
+#define M_EXPECTED_EQ(arg1, arg2)        \
 this->result_ &= expectEQ(arg1, arg2);   \
 
-#define MEXPECTED_NE(arg1, arg2)          \
+#define M_EXPECTED_EQ_F(arg1, arg2, eps)    \
+this->result_ &= expectEQ(arg1, arg2, eps); \
+
+#define M_EXPECTED_NE(arg1, arg2)          \
 this->result_ &= expectNE(arg1, arg2);   \
+
+#define M_FORCE_FAIL()        \
+this->result_ &= forceFail(); \
+
+#define M_FORCE_PASS()        \
+this->result_ &= forcePass(); \
 
 #define M_SLEEP_US(arg1)          \
 std::this_thread::sleep_for(std::chrono::microseconds(arg1));   \

@@ -3,13 +3,15 @@
 // =====================================================================================================================
 #include <future>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Testing/unit_test.h>
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
+#include "LibDegorasSLR/Testing/unit_test.h"
+#include "LibDegorasSLR/Helpers/container_helpers.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 
@@ -21,13 +23,15 @@ namespace testing{
 
 
 TestLog::TestLog(const std::string& module, const std::string& test, const std::string& det_ex,
-                 bool passed, const timing::HRTimePointStd& tp, long long elapsed) :
+                 bool passed, const timing::HRTimePointStd& tp, long long elapsed,
+                 const std::vector<std::pair<unsigned int, bool> > &results) :
     module_(module),
     test_(test),
     det_ex_(det_ex),
     passed_(passed),
-    tp_str_(timing::timePointToIso8601(tp, true, false)),
-    elapsed_(elapsed)
+    tp_str_(timing::timePointToIso8601(tp, timing::TimeResolution::MILLISECONDS)),
+    elapsed_(elapsed),
+    results_(results)
 {}
 
 std::string TestLog::makeLog(const std::string& storage_path) const
@@ -43,7 +47,7 @@ std::string TestLog::makeLog(const std::string& storage_path) const
     stream << this->module_ << " - " << this->test_ << " ";
     std::string aux_str = formatResult();
     size_t dot_w = 50 - this->test_.size() - this->module_.size() - aux_str.size();
-    stream << std::left << std::setw(dot_w) << std::setfill('.') << "" << aux_str;
+    stream << std::left << std::setw(static_cast<int>(dot_w)) << std::setfill('.') << "" << aux_str;
 
     // Add the elapsed time.
     stream << " [ET: " << this->elapsed_ << "us]";
@@ -51,6 +55,22 @@ std::string TestLog::makeLog(const std::string& storage_path) const
     // Check if we have detailed error.
     if(!this->det_ex_.empty())
         stream << " [Except: " << this->det_ex_ << "]";
+
+    // Put all the checks.
+    if(!this->passed_)
+    {
+        stream << "\n";
+        stream << "   Subtest - Result \n";
+        for(const auto& check : this->results_)
+        {
+            stream << "     " << check.first << "   -   ";
+            if(check.second)
+                stream << "PASS";
+            else
+                stream << "FAIL";
+            stream << "\n";
+        }
+    }
 
     // Restore the default color
     stream << "\x1b[0m";
@@ -95,6 +115,14 @@ TestSummary::TestSummary(const std::vector<TestLog> &):
 
 void UnitTest::runTests()
 {
+    // Separator.
+    std::string sep = helpers::strings::fillStr("=", 100) + "\n";
+
+    // Log.
+    std::cout<<"\033[38;2;255;128;0m"<<sep<<"=                                    ";
+    std::cout << "EXECUTING UNIT TEST SESSION                                   =\n";
+    std::cout<<"\033[38;2;255;128;0m"<<sep;
+
     // Iterate over the multimap in order of keys
     for (auto it = this->test_dict_.begin(); it != this->test_dict_.end();)
     {
@@ -102,14 +130,20 @@ void UnitTest::runTests()
         std::string c_module = it->first;
         auto range = this->test_dict_.equal_range(c_module);
 
+        // Process all elements with the same key
         for (auto range_it = range.first; range_it != range.second; ++range_it)
         {
             // Auxiliar containers.
+            std::vector<std::pair<unsigned, bool>> results;
             TestBase* test = range_it->second;
             std::string det_ex;
             long long elapsed = 0;
-            auto now_t = std::chrono::high_resolution_clock::now();
+            auto now_t = timing::HRTimePointStd::clock::now();
             bool result;
+
+            // Log.
+            std::cout<<"\033[38;2;255;128;0m"<<"Executing test: "<<"\033[038;2;0;140;255m"
+                      <<test->test_name_<<"..."<<std::endl;
 
             // Async execution.
             std::future<long long> future =
@@ -141,7 +175,7 @@ void UnitTest::runTests()
             }
 
             // Instantiate the test and store.
-            TestLog t_log(c_module, test->test_name_, det_ex, result, now_t, elapsed);
+            TestLog t_log(c_module, test->test_name_, det_ex, result, now_t, elapsed, test->check_results_);
             t_log.makeLog();
             this->summary_.addLog(t_log);
         }
@@ -149,6 +183,10 @@ void UnitTest::runTests()
         // Move the iterator to the next unique key
         it = range.second;
     }
+
+    // Log.
+    std::cout<<"\033[38;2;255;128;0m"<<"All tests executed!"<<std::endl;
+    std::cout<<"\033[38;2;255;128;0m"<<sep<<std::endl;
 
     // Make the summary.
     this->summary_.makeSummary(true);
@@ -180,8 +218,8 @@ void TestSummary::makeSummary(bool show, const std::string& storage_path) const
     std::string keys_str = "= Modules:  " + helpers::strings::join(keys, " - ");
     std::string filename = this->session_;
     std::string date_file = timing::timePointToString(std::chrono::high_resolution_clock::now(),
-                                                      "%Y%m%d_%H%M%S", false, false);
-    filename = helpers::strings::replaceStr(filename, " ", "");
+                                                      "%Y%m%d_%H%M%S", timing::TimeResolution::SECONDS);
+    filename = helpers::strings::replaceStr(filename, " ", "-");
     filename = helpers::strings::replaceStr(filename, ":", "");
     filename = helpers::strings::replaceStr(filename, "_", "-");
     filename = helpers::strings::toLower(filename) + "_";
@@ -249,15 +287,12 @@ void TestSummary::makeSummary(bool show, const std::string& storage_path) const
         // Process all elements with the same key.
         for (auto range_it = range.first; range_it != range.second; ++range_it)
         {
-
-
             std::cerr << range_it->second.makeLog() << std::endl;
         }
 
         // Finish the section.
         std::cerr << "\033[38;2;255;128;0m";
         std::cerr << sep2 << "\n";
-
 
         // Move the iterator to the next unique key
         it = range.second;
@@ -291,14 +326,27 @@ void UnitTest::clear()
     this->summary_.clear();
 }
 
-UnitTest::~UnitTest() {}
-
 TestBase::TestBase(const std::string &name):
     test_name_(name),
-    result_(true)
+    result_(true),
+    current_check_n_(0)
 {}
 
 void TestBase::runTest(){}
+
+bool TestBase::forceFail()
+{
+    this->updateCheckResults(false);
+    return false;
+}
+
+bool TestBase::forcePass()
+{
+    this->updateCheckResults(true);
+    return false;
+}
+
+TestBase::~TestBase(){}
 
 }} // END NAMESPACES.
 // =====================================================================================================================
