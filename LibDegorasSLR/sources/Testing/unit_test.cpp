@@ -24,7 +24,7 @@ namespace testing{
 
 TestLog::TestLog(const std::string& module, const std::string& test, const std::string& det_ex,
                  bool passed, const timing::HRTimePointStd& tp, long long elapsed,
-                 const std::vector<std::pair<unsigned int, bool> > &results) :
+                 const std::vector<std::tuple<unsigned int, bool, std::string> > &results) :
     module_(module),
     test_(test),
     det_ex_(det_ex),
@@ -60,14 +60,27 @@ std::string TestLog::makeLog(const std::string& storage_path) const
     if(!this->passed_)
     {
         stream << "\n";
-        stream << "   Subtest - Result \n";
-        for(const auto& check : this->results_)
+        stream << "   Subtest - Result - Data\n";
+        for (const auto& check : this->results_)
         {
-            stream << "     " << check.first << "   -   ";
-            if(check.second)
+            // Extract tuple elements using structured bindings
+            const auto& [num, result, message] = check;
+
+            // Calculate padding for check numbers to align PASS/FAIL in the same column.
+            // Considering up to 999 subtests, ensuring 3 spaces for subtest numbers and a padding space.
+            size_t padd = 3 - std::to_string(num).length();
+            stream << (result ? "\033[038;2;0;210;0m" : "\033[170;2;0;038;0m");
+
+            stream << "      " << num << std::string(padd, ' ') << "   -   ";
+            if (result)
                 stream << "PASS";
             else
+            {
                 stream << "FAIL";
+                // Output the message associated with the check, if any.
+                if (!message.empty())
+                    stream << " - " << message;
+            }
             stream << "\n";
         }
     }
@@ -90,28 +103,6 @@ std::string TestLog::formatResult() const
 const std::string &TestLog::getModuleName() const{return this->module_;}
 
 bool TestLog::getResult() const{return this->passed_;}
-
-/*
-TestSummary::TestSummary(const std::vector<TestLog> &):
-    total(passed + failed)
-{
-    _sBorder.fill('=');
-    _sBorder.width(80);
-    _sBorder << "\n";
-
-    _sPassed << "Tests Passed : " << "\x1b[38;5;40m"
-             << passed << "\x1b[0m";
-    _sFailed << "Tests Failed : " << "\x1b[38;5;160m"
-             << failed << "\x1b[0m";
-
-    _sTotal << "Number of tests: ";
-
-    std::cerr << "\n" << _sBorder.str() <<  _sTotal.str()
-              << total << "\n" << _sPassed.str() << "\n" << _sFailed.str()
-              << "\n" << _sBorder.str() << std::endl;
-}
-*/
-
 
 void UnitTest::runTests()
 {

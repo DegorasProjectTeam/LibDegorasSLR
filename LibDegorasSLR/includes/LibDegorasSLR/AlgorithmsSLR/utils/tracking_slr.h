@@ -145,6 +145,11 @@ public:
     // Inicialmente, solo tendremos en cuenta el Sol y limites de altura, pero en el futuro puede añadirse nuevos
     // parámetros como la máxima velocidad del pase.
 
+    // inicio > final
+    // El intervalo se encuentra dentro del CPF (predictor). Validar predictor respecto a intervalos.
+    // Comprobar que existe un pase (la elevacion es en todo momento > minimo).
+    //
+
 
     /**
      * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.

@@ -31,6 +31,9 @@
 #include <map>
 #include <vector>
 #include <functional>
+#include <sstream>
+#include <type_traits>
+#include <utility>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
@@ -45,6 +48,16 @@ namespace dpslr{
 namespace testing{
 // =====================================================================================================================
 
+// Helper to convert value to string if it supports streaming to an ostringstream
+template<typename T, typename = void>
+struct is_streamable : std::false_type {};
+
+template<typename T>
+struct is_streamable<T, std::void_t<decltype(std::declval<std::ostringstream&>()
+                                             << std::declval<T>())>> : std::true_type {};
+
+
+
 struct LIBDPSLR_EXPORT TestLog
 {
 
@@ -52,7 +65,7 @@ public:
 
     TestLog(const std::string& module, const std::string& test, const std::string &det_ex,
             bool passed, const timing::HRTimePointStd &tp, long long elapsed,
-            const std::vector<std::pair<unsigned, bool>>& results);
+            const std::vector<std::tuple<unsigned, bool, std::string>>& results);
 
     std::string makeLog(const std::string& storage_path = std::string()) const;
 
@@ -71,7 +84,7 @@ private:
     bool passed_;
     std::string tp_str_;
     long long elapsed_;
-    std::vector<std::pair<unsigned, bool>> results_;
+    std::vector<std::tuple<unsigned, bool, std::string>> results_;
 };
 
 
@@ -133,14 +146,14 @@ public:
     bool expectEQ(const std::string& str1, const std::string& str2)
     {
         bool result = (str1 == str2);
-        this->updateCheckResults(result);
+        this->updateCheckResults(result, str1, str2);
         return result;
     }
 
     bool expectEQ(const char* str1, const char* str2)
     {
         bool result = (std::string(str1) == std::string(str2));
-        this->updateCheckResults(result);
+        this->updateCheckResults(result, str1, str2);
         return result;
     }
 
@@ -151,7 +164,7 @@ public:
     expectEQ(const T& arg1, const T& arg2)
     {
         bool result = (arg1 == arg2);
-        this->updateCheckResults(result);
+        this->updateCheckResults(result, arg1, arg2);
         return result;
     }
 
@@ -162,7 +175,7 @@ public:
     expectEQ(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
     {
         bool result = std::abs(arg1 - arg2) <= tolerance;
-        this->updateCheckResults(result);
+        this->updateCheckResults(result, arg1, arg2);
         return result;
     }
 
@@ -185,7 +198,7 @@ public:
                 return false;
             }
         }
-        this->updateCheckResults(true);
+        this->updateCheckResults(true, v1, v2);
         return true;
     }
 
@@ -204,7 +217,7 @@ public:
         {
             if (std::abs(v1[i] - v2[i]) > tol)
             {
-                this->updateCheckResults(false);
+                this->updateCheckResults(false, v1, v2);
                 return false;
             }
         }
@@ -220,7 +233,7 @@ public:
         {
             if (arr1[i] != arr2[i])
             {
-                this->updateCheckResults(false);
+                this->updateCheckResults(false, arr1, arr2);
                 return false;
             }
         }
@@ -236,7 +249,7 @@ public:
         {
             if (std::abs(arr1[i] - arr2[i]) > tol)
             {
-                this->updateCheckResults(false);
+                this->updateCheckResults(false, arr1, arr2);
                 return false;
             }
         }
@@ -251,7 +264,7 @@ public:
     expectNE(const T& arg1, const T& arg2)
     {
         bool result = (arg1 != arg2);
-        this->updateCheckResults(result);
+        this->updateCheckResults(result, arg1, arg2);
         return result;
     }
 
@@ -262,7 +275,7 @@ public:
     expectNE(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
     {
         bool result = std::abs(arg1 - arg2) > tolerance;
-        this->updateCheckResults(result);
+        this->updateCheckResults(result, arg1, arg2);
         return std::abs(arg1 - arg2) > tolerance;
     }
 
@@ -273,14 +286,43 @@ public:
     std::string test_name_;
     bool result_;
     unsigned current_check_n_;
-    std::vector<std::pair<unsigned, bool>> check_results_;
+    std::vector<std::tuple<unsigned, bool, std::string>> check_results_;
 
 private:
 
-    void updateCheckResults(bool res)
+    template<typename T>
+    static std::enable_if_t<is_streamable<T>::value, std::string> valueToString(const T& value)
     {
-        current_check_n_++;
-        this->check_results_.push_back(std::make_pair(current_check_n_, res));
+        std::ostringstream os;
+        os << value;
+        return os.str();
+    }
+
+    // Fallback for non-streamable types, could be adjusted based on needs.
+    template<typename T>
+    static std::enable_if_t<!is_streamable<T>::value, std::string> valueToString(const T&)
+    {
+        return "<NON STREAMABLE TYPE>";
+    }
+
+    template<typename... Args>
+    void updateCheckResults(bool res, Args&&... args)
+    {
+        std::string combined_msg;
+        this->current_check_n_++;
+
+        if(!res)
+        {
+            if constexpr (sizeof...(args) > 0)
+            {
+                std::ostringstream os;
+                (..., (os << " | " << valueToString(std::forward<Args>(args))));
+                combined_msg = os.str();
+            }
+        }
+
+        // Store the results.
+        check_results_.emplace_back(current_check_n_, res, combined_msg);
     }
 };
 

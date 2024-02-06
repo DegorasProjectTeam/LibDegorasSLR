@@ -59,42 +59,6 @@ using std::chrono::time_point_cast;
 // AUXILIAR
 // =====================================================================================================================
 
-std::chrono::seconds iso8601RegexParser(const std::string& input, const std::regex& re)
-{
-    // Regex search.
-    std::smatch matching;
-    std::regex_search(input, matching, re);
-
-    // Check the pattern.
-    if (matching.empty())
-        throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601RegexParser] Invalid argument: " + input);
-
-    // Data vector (years, months, days, hours, minutes, seconds).
-    std::vector<double> vec = {0,0,0,0,0,0};
-
-    // Get the data.
-    for (size_t i = 1; i < matching.size(); ++i)
-    {
-        if (matching[i].matched)
-        {
-            std::string str = matching[i];
-            str.pop_back();
-            vec[i-1] = std::stod(str);
-        }
-    }
-
-    // Get the seconds.
-    double sec = 31556926   * vec[0] +  // years
-              2629743.83 * vec[1] +  // months
-              86400      * vec[2] +  // days
-              3600       * vec[3] +  // hours
-              60         * vec[4] +  // minutes
-              1          * vec[5];   // seconds
-
-    // Return the duration.
-    return std::chrono::seconds(static_cast<long long>(sec));
-}
-
 // =====================================================================================================================
 
 
@@ -158,6 +122,49 @@ std::string currentISO8601Date(TimeResolution resolution, bool utc)
 {
     auto now = high_resolution_clock::now();
     return timePointToIso8601(now, resolution, utc);
+}
+
+std::string millisecondsToISO8601Duration(const std::chrono::milliseconds& msecs)
+{
+    if(msecs.count() == 0)
+    {
+        return "PT0H0M0S";
+    }
+
+    long long hours = msecs.count() / 3600000;
+    int minutes = (msecs.count() % 3600000) / 60000;
+    double seconds = (msecs.count() % 60000) / 1000.0;
+
+    std::ostringstream os;
+    os << "PT" << hours << "H" << minutes << "M";
+
+    // Use modf to separate the seconds into whole and fractional parts
+    double fractionalPart;
+    double wholeSeconds;
+    fractionalPart = std::modf(seconds, &wholeSeconds);
+
+    if (fractionalPart > 0.0) {
+        // Temporarily output with fractional seconds, preserving up to 3 decimal places
+        std::ostringstream fractionalStream;
+        fractionalStream << std::fixed << std::setprecision(3) << seconds;
+        std::string fractionalStr = fractionalStream.str();
+
+        // Trim trailing zeros and the decimal point if necessary
+        auto pos = fractionalStr.find_last_not_of('0');
+        if (pos != std::string::npos) {
+            if (fractionalStr[pos] == '.') {
+                pos -= 1; // Keep the number integral if the fractional part is effectively zero
+            }
+            fractionalStr.erase(pos + 1);
+        }
+
+        os << fractionalStr << "S";
+    } else {
+        // Whole seconds only
+        os << static_cast<int>(wholeSeconds) << "S";
+    }
+
+    return os.str();
 }
 
 // =====================================================================================================================
@@ -234,11 +241,7 @@ std::chrono::seconds iso8601DurationParser(const std::string& duration)
     std::regex r2(
         "P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?T([[:d:]]+H)?([[:d:]]+M)?([[:d:]]+S|[[:d:]]+\\.[[:d:]]+S)?");
 
-    // Check if the expression has the T (time).
-    std::regex rparser = std::regex_match(duration, rcheck) ? r1 : r2;
-
-    // Parse the duration and return.
-    return iso8601RegexParser(duration, rparser);
+    //TODO
 }
 
 // =====================================================================================================================
@@ -567,6 +570,7 @@ int daysFromCivil(int y, unsigned m, unsigned d)
     // Return the result.
     return era * 146097 + static_cast<int>(doe) - 719468;
 }
+
 
 
 }}// END NAMESPACES.

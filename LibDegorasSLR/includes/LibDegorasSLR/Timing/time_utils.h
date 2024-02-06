@@ -143,26 +143,33 @@ LIBDPSLR_EXPORT std::string timePointToIso8601(const HRTimePointStd& tp,
 LIBDPSLR_EXPORT std::string currentISO8601Date(TimeResolution resolution = TimeResolution::MILLISECONDS,
                                                bool utc = true);
 
+LIBDPSLR_EXPORT std::string millisecondsToISO8601Duration(const std::chrono::milliseconds& msecs);
+
 //======================================================================================================================
 
 // ISO 8601 RELATED FUNCTIONS
 //======================================================================================================================
 
 /**
- * @brief Parses an ISO 8601 datetime string and converts it to a HRTimePointStd.
+ * @brief Parses an ISO 8601 UTC datetime string and converts it to a HRTimePointStd.
  *
- * This function parses a UTC datetime string formatted according to ISO 8601, including up to nanosecond
- * precision, and converts it into a HRTimePointStd time point. The input string must conform to the
- * ISO 8601 format "YYYY-MM-DDTHH:MM:SS.sssZ", where the fractional seconds (".sss") are optional and
- * can represent milliseconds up to nanoseconds.
+ * This function parses a UTC datetime string formatted according to ISO 8601, supporting both extended
+ * and basic formats, including up to nanosecond precision, and converts it into a HRTimePointStd time point.
+ * The input string must conform to the ISO 8601 formats:
+ * - Extended format: "YYYY-MM-DDTHH:MM:SS.sssZ"
+ * - Basic format: "YYYYMMDDTHHMMSS.sssZ"
+ * In both formats, the fractional seconds (".sss") are optional and can represent milliseconds up to nanoseconds.
  *
- * @param datetime The ISO 8601 datetime string to be parsed.
- *
+ * @param datetime The ISO 8601 UTC datetime string to be parsed, in either extended or basic format.
  * @return HRTimePointStd A time point representing the specified datetime.
  *
  * @throws std::invalid_argument If the input string does not match the ISO 8601 format.
+ *
+ * @warning This function uses regular expressions, which may not be fully supported or performant on some older
+ * compiler versions. Ensure compatibility with your compiler's regex implementation when using this function.
  */
 LIBDPSLR_EXPORT HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime);
+
 
 LIBDPSLR_EXPORT std::chrono::seconds iso8601DurationParser(const std::string& duration);
 

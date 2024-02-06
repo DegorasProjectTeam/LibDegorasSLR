@@ -33,6 +33,7 @@
 // C++ INCLUDES
 // =====================================================================================================================
 #include <iostream>
+#include <regex>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
@@ -49,8 +50,8 @@ using namespace dpslr::timing;
 M_DECLARE_UNIT_TEST(Timing, timePointToString)
 M_DECLARE_UNIT_TEST(Timing, timePointToIso8601)
 M_DECLARE_UNIT_TEST(Timing, currentISO8601Date)
+M_DECLARE_UNIT_TEST(Timing, millisecondsToISO8601Duration)
 M_DECLARE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
-M_DECLARE_UNIT_TEST(Timing, iso8601DurationParser)
 
 // UNIT TESTS IMPLEMENTATIONS
 
@@ -169,6 +170,44 @@ M_DEFINE_UNIT_TEST(Timing, currentISO8601Date)
     M_EXPECTED_EQ(formatted_now.substr(0, 22), current_now.substr(0, 22)) // Approximation.
 }
 
+M_DEFINE_UNIT_TEST(Timing, millisecondsToISO8601Duration)
+{
+    // Test cases with expected inputs and outputs
+    std::vector<std::pair<long long, std::string>> test_cases =
+    {
+        {0, "PT0H0M0S"},
+        {1000, "PT0H0M1S"},
+        {61000, "PT0H1M1S"},
+        {3661000, "PT1H1M1S"},
+        {45000, "PT0H0M45S"},
+        {123456789, "PT34H17M36.789S"},
+        {86400000, "PT24H0M0S"}, // 24 hours
+        {90061000, "PT25H1M1S"},
+        {590325164, "PT163H58M45.164S"},
+        {10500, "PT0H0M10.5S"},
+        {100, "PT0H0M0.1S"}
+    };
+
+    // Custom check for format correctness: PTxxHxxMxx.SSSS
+    std::function<bool(const std::string&)> checkISO8601DurationFormat =
+        [](const std::string& duration) -> bool
+    {
+        std::regex durationRegex(R"(^PT(\d+H)?(\d+M)?(\d+(\.\d+)?S)$)");
+        return std::regex_match(duration, durationRegex);
+    };
+
+    // Do the checks.
+    for (const auto& [input, output] : test_cases)
+    {
+        std::chrono::milliseconds msecs(input);
+        std::string result = timing::millisecondsToISO8601Duration(msecs);
+        M_EXPECTED_EQ(result, output)
+        M_CUSTOM_CHECK(checkISO8601DurationFormat, result)
+    }
+}
+
+
+
 M_DEFINE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
 {
     // Exception result.
@@ -199,14 +238,15 @@ M_DEFINE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
     // Test invalid ISO 8601 datetime strings
     std::vector<std::string> invalid_cases =
         {
-            "1975-04-20 19:15:49Z",       // Incorrect separator between date and time
-            "19750420T19:15:49Z",         // Using both formats
-            "1975-04-20T19:15Z",          // Missing seconds
-            "1975-20 19:15:49Z",          // Missing month
-            "1975-20 19:15:49",           // Missing Z
-            "20240205T202528-123456789Z", // Bad format.
-            "",                           // Empty.
-            "This is not a date"          // Completely invalid format
+            "1975-04-20T19:15:49.1-02:00", // Local time
+            "1975-04-20 19:15:49Z",        // Incorrect separator between date and time
+            "19750420T19:15:49Z",          // Using both formats
+            "1975-04-20T19:15Z",           // Missing seconds
+            "1975-20 19:15:49Z",           // Missing month
+            "1975-20 19:15:49",            // Missing Z
+            "20240205T202528-123456789Z",  // Bad format
+            "",                            // Empty
+            "This is not a date"           // Completely invalid format
         };
 
     // Do the checks.
@@ -248,6 +288,7 @@ int main()
     M_REGISTER_UNIT_TEST(Timing, timePointToString)
     M_REGISTER_UNIT_TEST(Timing, timePointToIso8601)
     M_REGISTER_UNIT_TEST(Timing, currentISO8601Date)
+    M_REGISTER_UNIT_TEST(Timing, millisecondsToISO8601Duration)
     M_REGISTER_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
 
     // Run unit tests.
