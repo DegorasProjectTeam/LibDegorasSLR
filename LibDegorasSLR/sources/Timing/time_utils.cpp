@@ -571,6 +571,12 @@ int daysFromCivil(int y, unsigned m, unsigned d)
     return era * 146097 + static_cast<int>(doe) - 719468;
 }
 
+bool mjdInsideTimeWindow(MJDate mjd, SoD sod, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end)
+{
+    return mjd >= mjd_start && mjd <= mjd_end &&
+           !(mjd == mjd_start && sod < sod_start) && !(mjd == mjd_end && sod > sod_end);
+}
+
 
 
 }}// END NAMESPACES.

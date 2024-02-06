@@ -132,9 +132,9 @@ public:
      * @param avoid_sun, true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle, if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    TrackingSLR(double min_elev, MJDate mjd_search, SoD sod_search,
-                PredictorSLR&& predictor, double time_delta = 1.L,
-                bool avoid_sun = true, double sun_avoid_angle = 15.L);
+    TrackingSLR(double min_elev, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
+                PredictorSLR&& predictor, double time_delta = 1.,
+                bool avoid_sun = true, double sun_avoid_angle = 15.);
 
     // TRACKING SLR VS PassCalculatorSLR
     // TrackingSLR está pensado para un unico track. La idea es que pass calculator tiene capacidad de calcular todos
@@ -160,8 +160,8 @@ public:
      * @param avoid_sun, true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle, if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    TrackingSLR(double min_elev, const timing::HRTimePointStd& tp_start, PredictorSLR&& predictor,
-                double time_delta = 1.L, bool avoid_sun = true, double sun_avoid_angle = 15.L);
+    TrackingSLR(double min_elev, const timing::HRTimePointStd& tp_start, const timing::HRTimePointStd& tp_end,
+                PredictorSLR&& predictor, double time_delta = 1., bool avoid_sun = true, double sun_avoid_angle = 15.);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
@@ -235,9 +235,10 @@ public:
 
 private:
 
-    void analyzeTracking(MJDate mjd_start, SoD sod_start);
-    bool findTrackingStart(MJDate mjd_start, SoD sod_start);
-    bool findTrackingEnd();
+    void analyzeTracking();
+    bool checkTrackingStart();
+    bool checkTrackingEnd();
+    bool checkTracking();
 
     bool insideSunSector(const PredictorSLR::InstantData& pos,
                          const dpslr::astro::SunPosition<long double>& sun_pos) const;

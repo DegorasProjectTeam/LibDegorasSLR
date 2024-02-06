@@ -734,6 +734,14 @@ PredictorSLR::PredictionError PredictorSLR::predict(MJDateTime mjdt, PredictionR
     return this->predict(mjd, sod, result);
 }
 
+void PredictorSLR::getTimeWindow(MJDate &mjd_start, SoD &sod_start, MJDate &mjd_end, SoD &sod_end) const
+{
+    if (this->isReady())
+    {
+        this->cpf_.getAvailableTimeWindow(mjd_start, sod_start, mjd_end, sod_end);
+    }
+}
+
 long double PredictorSLR::applyCorrections(long double &range, PredictionResult &result, bool cali, double el) const
 {
     // Auxiliar variable.

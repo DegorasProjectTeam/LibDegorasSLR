@@ -484,6 +484,15 @@ public:
     PredictionError predict(MJDateTime mjdt, PredictionResult& result) const;
 
 
+    /**
+     * @brief If predictor is ready, returns the time window in which the predictor can be used.
+     * @param mjd_start, Modified Julian Date in days of time window start.
+     * @param sod_start, Second of day in seconds of time window start.
+     * @param mjd_end, Modified Julian Date in days of time window end.
+     * @param sod_end, Second of day in seconds of time window end.
+     */
+    void getTimeWindow(MJDate &mjd_start, SoD &sod_start, MJDate &mjd_end, SoD &sod_end) const;
+
 
 private:
     

@@ -11,10 +11,8 @@ int main ()
 
     // Configure the CPF folder and example file.
     std::string cpf_dir("C:/0-SALARA_PROJECT/SP_DataFiles/SP_CPF/SP_CurrentCPF/");
-    std::string cpf_name("41240_cpf_240128_02801.hts");
+    std::string cpf_name("38077_cpf_240128_02901.sgf");
 
-    // Datetime for search the pass.
-    std::string search_time = "2024-01-31T11:30:00";
 
     // SFEL station geodetic coordinates.
     long double latitude = 36.46525556L, longitude = 353.79469440L, alt = 98.177L;
@@ -22,8 +20,6 @@ int main ()
     // SFEL station geocentric coordinates
     long double x = 5105473.885L, y = -555110.526L, z = 3769892.958L;
 
-    // Get the search time point.
-    timing::HRTimePointStd search_tp = timing::iso8601DatetimeParserUTC(search_time);
 
     // Store the local coordinates.
     geo::common::GeocentricPoint<long double> stat_geocentric(x,y,z);
@@ -38,9 +34,11 @@ int main ()
     dpslr::algoslr::utils::PredictorSLR predictor(cpf, stat_geodetic, stat_geocentric);
     predictor.setPredictionMode(dpslr::algoslr::utils::PredictorSLR::PredictionMode::INSTANT_VECTOR);
 
-    timing::MJDate mjd_start_look = 60340;
-    timing::SoD sod_start_look = 42000;
-    dpslr::algoslr::utils::TrackingSLR tracking(10.L, mjd_start_look, sod_start_look, std::move(predictor));
+    timing::MJDate mjd_start = 60340;
+    timing::SoD sod_start = 56730;
+    timing::MJDate mjd_end = 60340;
+    timing::SoD sod_end = 57750;
+    dpslr::algoslr::utils::TrackingSLR tracking(9.L, mjd_start, sod_start, mjd_end, sod_end, std::move(predictor), 1.);
     dpslr::astro::PredictorSun<long double> sun_pred(stat_geodetic);
     std::vector<dpslr::astro::SunPosition<long double>> sun_pos;
 
@@ -61,41 +59,39 @@ int main ()
             std::cout << "Sun overlapping at the end" << std::endl;
     }
 
-    timing::MJDate mjd_start, mjd_end;
-    unsigned int hour, min, sec, ns;
-    timing::SoD sod_start, sod_end;
+    // Get new start and end
     tracking.getTrackingStart(mjd_start, sod_start);
-
-    dpslr::timing::nsDayTohhmmssns(sod_start * 1e9, hour, min, sec, ns);
-
-    std::cout << "Pass starts at " << hour << ":" << min << ":" << sec << std::endl;
-
     tracking.getTrackingEnd(mjd_end, sod_end);
-
-    dpslr::timing::nsDayTohhmmssns(sod_end * 1e9, hour, min, sec, ns);
-
-    std::cout << "Pass ends at " << hour << ":" << min << ":" << sec << std::endl;
 
     timing::MJDate mjd = mjd_start;
     timing::SoD sod = sod_start;
     long double j2000;
     std::vector<dpslr::algoslr::utils::TrackingSLR::TrackingResult> res;
+    dpslr::algoslr::utils::TrackingSLR::TrackingResult pos;
 
     while (mjd < mjd_end || sod < sod_end)
     {
-        res.push_back({});
-        auto error = tracking.predictTrackingPosition(mjd, sod, res.back());
+
+        auto error = tracking.predictTrackingPosition(mjd, sod, pos);
 
 
-        if (error == dpslr::algoslr::utils::TrackingSLR::OUTSIDE_SUN
-            || error == dpslr::algoslr::utils::TrackingSLR::INSIDE_SUN)
+        if (error == dpslr::algoslr::utils::TrackingSLR::INSIDE_SUN)
         {
             // DO NOTHING
+        }
+        else if (error == dpslr::algoslr::utils::TrackingSLR::OUTSIDE_SUN)
+        {
+            res.push_back(std::move(pos));
+            pos = {};
         }
         else if (error == dpslr::algoslr::utils::TrackingSLR::AVOIDING_SUN)
         {
             j2000 = dpslr::timing::mjdToJ2000Datetime(mjd, sod);
             sun_pos.push_back(sun_pred.fastPredict(j2000, false));
+
+            res.push_back(std::move(pos));
+            pos = {};
+
         }
         else
         {
@@ -103,7 +99,7 @@ int main ()
             return -1;
         }
 
-        sod += 0.5L;
+        sod += 1.L;
         if (sod > 86400.L)
         {
             sod -= 86400.L;
@@ -111,7 +107,7 @@ int main ()
         }
     }
 
-    // If there was no sun overlapping, store the sun position in 5 s interval
+    // If there was no sun overlapping, store the sun position in 10 s interval
     if (sun_pos.empty())
     {
         timing::MJDate mjd = mjd_start;
@@ -120,8 +116,11 @@ int main ()
         while (mjd < mjd_end || sod < sod_end)
         {
             j2000 = dpslr::timing::mjdToJ2000Datetime(mjd, sod);
-            sun_pos.push_back(sun_pred.fastPredict(j2000, false));
-            sod += 5.L;
+            // Only store if sun has positive elvation
+            auto p = sun_pred.fastPredict(j2000, false);
+            if (p.elevation > 0)
+                sun_pos.push_back(std::move(p));
+            sod += 10.L;
             if (sod > 86400.L)
             {
                 sod -= 86400.L;

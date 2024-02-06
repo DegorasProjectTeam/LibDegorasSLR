@@ -393,6 +393,18 @@ LIBDPSLR_EXPORT long double mjdToJ2000Datetime(MJDate mjd, SoD seconds);
  */
 LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(MJDateTime mjdt);
 
+/**
+ * @brief Checks if a timestamp given by pair MJDate, SoD, is within a time window.
+ * @param mjd, The Modified Julian date in days to check if it is inside a time window.
+ * @param sod, The Second of Day in seconds to check if it is inside a time window.
+ * @param mjd_start, The Modified Julian date in days of time window start.
+ * @param sod_start, The Second of Day in seconds of time window start.
+ * @param mjd_end, The Modified Julian date in days of time window end.
+ * @param sod_end, The Second of Day in seconds of time window start.
+ * @return true if time is inside window, false otherwise.
+ */
+bool mjdInsideTimeWindow(MJDate mjd, SoD sod, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end);
+
 // C++ time point to TLE date (year and fractional day).
 LIBDPSLR_EXPORT void timePointToTLEDate(const HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
 
