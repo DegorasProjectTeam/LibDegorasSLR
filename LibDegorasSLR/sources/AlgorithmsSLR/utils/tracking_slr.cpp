@@ -47,26 +47,26 @@ namespace algoslr{
 namespace utils{
 
 
-TrackingSLR::TrackingSLR(long double min_elev, MJDate mjd_start, SoD sod_start, PredictorSLR &&predictor,
-                         long double time_delta, bool avoid_sun, long double sun_avoid_angle) :
+TrackingSLR::TrackingSLR(double min_elev, MJDate mjd_search, SoD sod_search, PredictorSLR &&predictor,
+                         double time_delta, bool avoid_sun, double sun_avoid_angle) :
     min_elev_(min_elev),
     time_delta_(time_delta),
-    avoid_sun_(avoid_sun),
     sun_avoid_angle_(sun_avoid_angle),
+    avoid_sun_(avoid_sun),
     sun_at_start_(false),
     sun_at_end_(false),
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
-    this->analyzeTracking(mjd_start, sod_start);
+    this->analyzeTracking(mjd_search, sod_search);
 }
 
-TrackingSLR::TrackingSLR(long double min_elev, const timing::HRTimePointStd& tp_start,
-                         PredictorSLR &&predictor, long double time_delta, bool avoid_sun, long double sun_avoid_angle) :
+TrackingSLR::TrackingSLR(double min_elev, const timing::HRTimePointStd& tp_start,
+                         PredictorSLR &&predictor, double time_delta, bool avoid_sun, double sun_avoid_angle) :
     min_elev_(min_elev),
     time_delta_(time_delta),
-    avoid_sun_(avoid_sun),
     sun_avoid_angle_(sun_avoid_angle),
+    avoid_sun_(avoid_sun),
     sun_at_start_(false),
     sun_at_end_(false),
     predictor_(std::move(predictor)),
@@ -83,7 +83,7 @@ bool TrackingSLR::isValid() const
     return this->valid_pass_;
 }
 
-long double TrackingSLR::getMinElev() const
+double TrackingSLR::getMinElev() const
 {
     return this->min_elev_;
 }
@@ -122,7 +122,7 @@ bool TrackingSLR::getSunAtEnd() const
     return this->avoid_sun_ && this->sun_at_end_;
 }
 
-long double TrackingSLR::getSunAvoidAngle() const
+double TrackingSLR::getSunAvoidAngle() const
 {
     return this->sun_avoid_angle_;
 }
@@ -274,7 +274,7 @@ bool TrackingSLR::findTrackingStart(timing::common::MJDate mjd_start, timing::co
     bool start_found = false;
     MJDate mjd = mjd_start;
     SoD sod = sod_start;
-    long double j2000;
+    double j2000;
     PredictorSLR::PredictionResult result;
     PredictorSLR::PredictionResult previous_result;
     PredictorSLR::PredictionError error_code = this->predictor_.predict(mjd, sod, result);

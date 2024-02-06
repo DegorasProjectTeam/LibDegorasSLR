@@ -125,28 +125,38 @@ public:
     /**
      * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.
      * @param min_elev, the minimum elevation in degrees at which the tracking starts.
-     * @param mjd_start, the MJ date in days to start looking for a tracking.
-     * @param sod_start, the second of day to start looking for a tracking.
+     * @param mjd_search, the search Modified Julian Date in days to start looking for a tracking.
+     * @param sod_search, the search Second of Day inside the previous `mjd_search` to start looking for a tracking.
      * @param predictor, the predictor used for calculating the tracked object positions at a given time.
-     * @param time_delta, the time delta used to analyze the tracking. The smallest, the more precise.
-     * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
-     * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
+     * @param time_delta, the time delta in seconds used to analyze the tracking. The smallest, the more precise.
+     * @param avoid_sun, true if you want the sun avoidance to be applied, false otherwise.
+     * @param sun_avoid_angle, if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    TrackingSLR(long double min_elev, MJDate mjd_start, SoD sod_start,
-                PredictorSLR&& predictor, long double time_delta = 1.L,
-                bool avoid_sun = true, long double sun_avoid_angle = 15.L);
+    TrackingSLR(double min_elev, MJDate mjd_search, SoD sod_search,
+                PredictorSLR&& predictor, double time_delta = 1.L,
+                bool avoid_sun = true, double sun_avoid_angle = 15.L);
+
+    // TRACKING SLR VS PassCalculatorSLR
+    // TrackingSLR está pensado para un unico track. La idea es que pass calculator tiene capacidad de calcular todos
+    // los pases (o los que se requieran) a partir de un CPF y sacar las características del mismo. En este caso, los
+    // datos serían los reales respecto al pase. TrackingSLR lo que permite es modificar estos datos y generar una
+    // nueva clase TrackSLR (diferente de PassSLR pero que contiene tambien el original) en la que el pase pueda verse
+    // modificado por distintas cuestiones, siempre desde el punto de vista de la seguridad o mécanico de la montura.
+    // Inicialmente, solo tendremos en cuenta el Sol y limites de altura, pero en el futuro puede añadirse nuevos
+    // parámetros como la máxima velocidad del pase.
+
 
     /**
      * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.
      * @param min_elev, the minimum elevation in degrees at which the tracking starts.
      * @param tp_start, the time point datetime to start looking for a tracking.
      * @param predictor, the predictor used for calculating the tracked object positions at a given time.
-     * @param time_delta, the time delta used to analyze the tracking. The smallest, the more precise.
-     * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
-     * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
+     * @param time_delta, the time delta in seconds used to analyze the tracking. The smallest, the more precise.
+     * @param avoid_sun, true if you want the sun avoidance to be applied, false otherwise.
+     * @param sun_avoid_angle, if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    TrackingSLR(long double min_elev, const timing::HRTimePointStd& tp_start, PredictorSLR&& predictor,
-                long double time_delta = 1.L, bool avoid_sun = true, long double sun_avoid_angle = 15.L);
+    TrackingSLR(double min_elev, const timing::HRTimePointStd& tp_start, PredictorSLR&& predictor,
+                double time_delta = 1.L, bool avoid_sun = true, double sun_avoid_angle = 15.L);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
@@ -157,7 +167,7 @@ public:
      * @brief This function returns the minimum elevation of this tracking in degrees.
      * @return the minimum elevation of the tracking in degrees.
      */
-    long double getMinElev() const;
+    double getMinElev() const;
     /**
      * @brief If this traking is valid, you can get the tracking start with this function.
      * @param mjd, the MJ date in days for the tracking start.
@@ -199,7 +209,7 @@ public:
      *        This function should not be called if sun avoidance is not applied.
      * @return the radius of the sun security sector
      */
-    long double getSunAvoidAngle() const;
+    double getSunAvoidAngle() const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -229,19 +239,20 @@ private:
     void setSunSectorRotationDirection(
         SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double>> &sun_positions);
 
-    long double min_elev_;
-    long double time_delta_;
 
     MJDate mjd_start_;
     SoD sod_start_;
     MJDate mjd_end_;
     SoD sod_end_;
 
+    double min_elev_;           ///< Degrees.
+    double time_delta_;         ///< Seconds.
+    double sun_avoid_angle_;    ///< Degrees.
     bool valid_pass_;
     bool avoid_sun_;
-    long double sun_avoid_angle_;
     bool sun_at_start_;
     bool sun_at_end_;
+
     std::vector<SunSector> sun_sectors_;
 
     dpslr::algoslr::utils::PredictorSLR predictor_;
