@@ -47,7 +47,7 @@ namespace algoslr{
 namespace utils{
 
 
-TrackingSLR::TrackingSLR(long double min_elev, MJDType mjd_start, SoDType sod_start, PredictorSLR &&predictor,
+TrackingSLR::TrackingSLR(long double min_elev, MJDate mjd_start, SoD sod_start, PredictorSLR &&predictor,
                          long double time_delta, bool avoid_sun, long double sun_avoid_angle) :
     min_elev_(min_elev),
     time_delta_(time_delta),
@@ -72,8 +72,8 @@ TrackingSLR::TrackingSLR(long double min_elev, const timing::HRTimePointStd& tp_
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
-    MJDType mjd_start;
-    SoDType sod_start;
+    MJDate mjd_start;
+    SoD sod_start;
     timing::timePointToModifiedJulianDate(tp_start, mjd_start, sod_start);
     this->analyzeTracking(mjd_start, sod_start);
 }
@@ -88,13 +88,13 @@ long double TrackingSLR::getMinElev() const
     return this->min_elev_;
 }
 
-void TrackingSLR::getTrackingStart(timing::common::MJDType &mjd, timing::common::SoDType &sod) const
+void TrackingSLR::getTrackingStart(timing::common::MJDate &mjd, timing::common::SoD &sod) const
 {
     mjd = this->mjd_start_;
     sod = this->sod_start_;
 }
 
-void TrackingSLR::getTrackingEnd(timing::common::MJDType &mjd, timing::common::SoDType &sod) const
+void TrackingSLR::getTrackingEnd(timing::common::MJDate &mjd, timing::common::SoD &sod) const
 {
     mjd = this->mjd_end_;
     sod = this->sod_end_;
@@ -127,42 +127,62 @@ long double TrackingSLR::getSunAvoidAngle() const
     return this->sun_avoid_angle_;
 }
 
-TrackingSLR::PositionResult TrackingSLR::getPosition(const timing::HRTimePointStd& tp_time, Position &pos)
+TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(const timing::HRTimePointStd& tp_time,
+                                                                 TrackingResult &tracking_result)
 {
-    MJDType mjd;
-    SoDType sod;
+    MJDate mjd;
+    SoD sod;
     timing::timePointToModifiedJulianDate(tp_time, mjd, sod);
-    return getPosition(mjd, sod, pos);
+    return PredictTrackingPosition(mjd, sod, tracking_result);
 }
 
-TrackingSLR::PositionResult TrackingSLR::getPosition(MJDType mjd, SoDType sod, Position &pos)
+TrackingSLR::PositionStatus TrackingSLR::PredictTrackingPosition(MJDate mjd, SoD sod,
+                                                                 TrackingResult &tracking_result)
 {
+    // Update the times.
+    tracking_result.mjd = mjd;
+    tracking_result.sod = sod;
+    tracking_result.mjdt = timing::mjdAndSecsToMjdt(mjd, sod);
+
     // Check if requested position is inside valid tracking time. Otherwise return out of tracking error.
     if (mjd < this->mjd_start_ ||
         mjd > this->mjd_end_ ||
         (mjd == this->mjd_start_ && sod < this->sod_start_) ||
-        (mjd == this->mjd_end_ && sod > this->sod_end_)
-        )
-        return PositionResult::OUT_OF_TRACK;
+        (mjd == this->mjd_end_ && sod > this->sod_end_))
+    {
+        tracking_result.status =  PositionStatus::OUT_OF_TRACK;
+        return PositionStatus::OUT_OF_TRACK;
+    }
 
-
-
-    PredictorSLR::PredictionResult result;
+    // Calculates the Sun position.
     long double j2000 = dpslr::timing::mjdToJ2000Datetime(mjd, sod);
     dpslr::astro::SunPosition<long double> sun_pos = this->sun_predictor_.fastPredict(j2000, false);
 
-    auto pred_error = this->predictor_.predict(mjd, sod, result);
+    // Calculates the space object position.
+    PredictorSLR::PredictionResult prediction_result;
+    auto pred_error = this->predictor_.predict(mjd, sod, prediction_result);
 
+    // Store the info.
+    tracking_result.prediction_result = prediction_result;
+    tracking_result.sun_pos = sun_pos;
+
+    // Check for errors.
     if (pred_error != PredictorSLR::PredictionError::NO_ERROR &&
         pred_error != PredictorSLR::PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE)
-        return PositionResult::PREDICTION_ERROR;
+    {
+        tracking_result.status =  PositionStatus::PREDICTION_ERROR;
+        return PositionStatus::PREDICTION_ERROR;
+    }
+
+    // Final position.
+    TrackingPosition tracking_position;
 
     // If sun avoidance is applied and position for requested time is inside a sun security sector, map the point
     // to its corresponding point in the sun security sector circumference.
     // Otherwise, return calculated position.
-    if (this->avoid_sun_ && this->insideSunSector(*result.instant_data, sun_pos))
+    if (this->avoid_sun_ && this->insideSunSector(*prediction_result.instant_data, sun_pos))
     {
-        MJDtType mjdt = dpslr::timing::mjdAndSecsToMjdt(mjd, sod);
+        MJDateTime mjdt = dpslr::timing::mjdAndSecsToMjdt(mjd, sod);
 
         auto sector_it = std::find_if(this->sun_sectors_.begin(), this->sun_sectors_.end(), [mjdt](const auto& sector)
         {
@@ -170,7 +190,10 @@ TrackingSLR::PositionResult TrackingSLR::getPosition(MJDType mjd, SoDType sod, P
         });
 
         if (sector_it == this->sun_sectors_.end())
-            return PositionResult::CANT_AVOID_SUN;
+        {
+            tracking_result.status =  PositionStatus::CANT_AVOID_SUN;
+            return PositionStatus::CANT_AVOID_SUN;
+        }
 
         long double time_perc = (mjdt - sector_it->mjdt_entry) / (sector_it->mjdt_exit - sector_it->mjdt_entry);
 
@@ -208,34 +231,49 @@ TrackingSLR::PositionResult TrackingSLR::getPosition(MJDType mjd, SoDType sod, P
             }
         }
 
-        pos.az = sun_pos.azimuth + this->sun_avoid_angle_ * std::cos(angle);
-        pos.el = sun_pos.elevation + this->sun_avoid_angle_ * std::sin(angle);
-        pos.mjdt = mjdt;
+        // Calculate the final tracking position and differences.
+        tracking_position.az = sun_pos.azimuth + this->sun_avoid_angle_ * std::cos(angle);
+        tracking_position.el = sun_pos.elevation + this->sun_avoid_angle_ * std::sin(angle);
+        tracking_position.diff_az = prediction_result.instant_data->az - tracking_position.az;
+        tracking_position.diff_el = prediction_result.instant_data->el - tracking_position.el;
 
-        return PositionResult::AVOIDING_SUN;
+        // Return the status.
+        tracking_result.status =  PositionStatus::AVOIDING_SUN;
+        return PositionStatus::AVOIDING_SUN;
     }
     else
     {
-        pos.az = result.instant_data->az;
-        pos.el = result.instant_data->el;
-        pos.mjdt = result.instant_data->mjdt;
-        return PositionResult::NOT_ERROR;
+        // Store the info.
+        tracking_position.az = prediction_result.instant_data->az;
+        tracking_position.el = prediction_result.instant_data->el;
+        tracking_position.diff_az = 0;
+        tracking_position.diff_el = 0;
+
+        // Check the Sun position for safety.
+        if(this->insideSunSector(*prediction_result.instant_data, sun_pos))
+        {
+            tracking_result.status =  PositionStatus::INSIDE_SUN;
+            return PositionStatus::INSIDE_SUN;
+        }
+
+        tracking_result.status =  PositionStatus::OUTSIDE_SUN;
+        return PositionStatus::OUTSIDE_SUN;
     }
 }
 
-void TrackingSLR::analyzeTracking(MJDType mjd_start, SoDType sod_start)
+void TrackingSLR::analyzeTracking(MJDate mjd_start, SoD sod_start)
 {   
     this->valid_pass_ = this->predictor_.isReady() &&
                         this->findTrackingStart(mjd_start, sod_start) &&
                         this->findTrackingEnd();
 }
 
-bool TrackingSLR::findTrackingStart(timing::common::MJDType mjd_start, timing::common::SoDType sod_start)
+bool TrackingSLR::findTrackingStart(timing::common::MJDate mjd_start, timing::common::SoD sod_start)
 {
     // This function will look for the next tracking, starting at mjd_start, sod_start datetime.
     bool start_found = false;
-    MJDType mjd = mjd_start;
-    SoDType sod = sod_start;
+    MJDate mjd = mjd_start;
+    SoD sod = sod_start;
     long double j2000;
     PredictorSLR::PredictionResult result;
     PredictorSLR::PredictionResult previous_result;
@@ -341,8 +379,8 @@ bool TrackingSLR::findTrackingEnd()
     // This function MUST NOT be called before finding tracking start.
     bool end_found = false;
     bool in_sun_sector = false;
-    MJDType mjd = this->mjd_start_;
-    SoDType sod = this->sod_start_;
+    MJDate mjd = this->mjd_start_;
+    SoD sod = this->sod_start_;
     long double j2000 = dpslr::timing::mjdToJ2000Datetime(mjd, sod);
 
     PredictorSLR::PredictionResult result;
@@ -456,7 +494,7 @@ void TrackingSLR::setSunSectorRotationDirection(
     dpslr::astro::SunPosition<long double> sun_end(
         this->sun_predictor_.fastPredict(dpslr::timing::mjdtToJ2000Datetime(sector.mjdt_exit), false));
 
-    MJDtType mjdt = sector.mjdt_entry + this->time_delta_ / static_cast<long double>(dpslr::timing::common::kSecsInDay);
+    MJDateTime mjdt = sector.mjdt_entry + this->time_delta_ / static_cast<long double>(dpslr::timing::common::kSecsInDay);
     bool valid_cw = true;
     bool valid_ccw = true;
 

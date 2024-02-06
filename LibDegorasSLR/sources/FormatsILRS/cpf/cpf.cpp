@@ -117,8 +117,8 @@ const std::string &CPF::getSourceFilename() const {return this->cpf_filename_;}
 
 const std::string &CPF::getSourceFilepath() const {return this->cpf_fullpath_;}
 
-void CPF::getAvailableTimeWindow(timing::common::MJDType &mjd_start, timing::common::SoDType &secs_start,
-                                 timing::common::MJDType &mjd_end, timing::common::SoDType &secs_end) const
+void CPF::getAvailableTimeWindow(timing::common::MJDate &mjd_start, timing::common::SoD &secs_start,
+                                 timing::common::MJDate &mjd_end, timing::common::SoD &secs_end) const
 {
     if (this->empty_)
     {
@@ -147,10 +147,10 @@ math::Interval<long double> CPF::getAvailableTimeInterval() const
     if (!this->empty_)
     {
         // Get the start time.
-        timing::common::MJDtType mjdt_start = timing::mjdAndSecsToMjdt(this->getData().positionRecords().front().mjd,
+        timing::MJDateTime mjdt_start = timing::mjdAndSecsToMjdt(this->getData().positionRecords().front().mjd,
                                                           this->getData().positionRecords().front().sod);
         // Get the stop time.
-        timing::common::MJDtType mjdt_stop = timing::mjdAndSecsToMjdt(this->getData().positionRecords().back().mjd,
+        timing::MJDateTime mjdt_stop = timing::mjdAndSecsToMjdt(this->getData().positionRecords().back().mjd,
                                                          this->getData().positionRecords().back().sod);
         // Update the interval.
         interval.setMin(mjdt_start);

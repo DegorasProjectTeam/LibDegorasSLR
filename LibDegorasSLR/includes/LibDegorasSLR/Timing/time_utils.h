@@ -27,7 +27,7 @@
  * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2402.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -63,32 +63,109 @@ namespace timing{
 
 // =====================================================================================================================
 using dpslr::timing::common::HRTimePointStd;
-using dpslr::timing::common::SoDType;
-using dpslr::timing::common::MJDType;
-using dpslr::timing::common::MJDtType;
-
+using namespace dpslr::timing::common;
 // =====================================================================================================================
 
 // TIME STRING FUNCTIONS
 //======================================================================================================================
 
-LIBDPSLR_EXPORT std::string timePointToString(const HRTimePointStd& tp, const std::string& format = "%Y-%m-%dT%H:%M:%S",
-                                              bool add_ms = true, bool add_ns = false, bool utc = true);
+/**
+ * Converts a time point to a string representation with specified format and resolution.
+ *
+ * This function formats a given time point according to the specified strftime-compatible
+ * format string. The function allows specifying the time resolution for the fractional part
+ * of the seconds.It supports displaying the time in either UTC or local time.
+ *
+ * @warning This function relies on std::gmtime and std::localtime, which are based on the
+ * time_t type. Consequently, it may not correctly handle dates before January 1, 1970, on
+ * all systems due to the limitations of time_t and these functions. Users requiring support
+ * for dates before the Unix epoch should consider alternative solutions or verify behavior
+ * on their target platforms.
+ *
+ * @param tp The time point to format.
+ * @param format The strftime format string for the date and time part.
+ * @param resolution The resolution (seconds, milliseconds, microseconds, nanoseconds) for the time part.
+ * @param utc Boolean flag to use UTC (true) or local time (false) for formatting.
+ * @return A string representation of the time point according to the specified format and resolution.
+ *
+ * @throws std::runtime_error If there's an error during formatting.
+ */
+LIBDPSLR_EXPORT std::string timePointToString(const HRTimePointStd& tp,
+                                              const std::string& format = "%Y-%m-%dT%H:%M:%S",
+                                              TimeResolution resolution = TimeResolution::MILLISECONDS,
+                                              bool utc = true);
 
-LIBDPSLR_EXPORT std::string timePointToIso8601(const HRTimePointStd& tp, bool add_ms = true, bool add_ns = false);
+/**
+ * Converts a high-resolution time point to an ISO 8601 formatted string.
+ *
+ * This function formats a given time point into a string following the ISO 8601 standard. The function
+ * allows specifying the time resolution for the fractional part of the seconds. If the `utc`
+ * flag is set to true, the formatted string is suffixed with 'Z' to indicate that the time is in
+ * Coordinated Universal Time (UTC). If `utc` is false, the function does not qualify the time zone,
+ * and the resulting string represents local time, unqualified by a specific time zone.
+ *
+ * @param tp The high-resolution time point to format.
+ * @param resolution The desired resolution for the fractional part of the seconds in the output.
+ * @param utc A boolean flag indicating whether the output should be in UTC (true) or
+ *            local time (false). Default is true, appending 'Z' to the formatted string.
+ * @return A std::string containing the formatted date and time in ISO 8601 format.
+ *
+ * @warning If `utc` is false, the resulting string represents local time without specifying the
+ * time zone. This means that the time zone qualification (e.g., 'Z' for UTC) is omitted, and the time is assumed
+ * to be undefined local.
+ *
+ * @throws std::runtime_error If there's an error during formatting.
+ */
+LIBDPSLR_EXPORT std::string timePointToIso8601(const HRTimePointStd& tp,
+                                               TimeResolution resolution = TimeResolution::MILLISECONDS,
+                                               bool utc = true);
 
-LIBDPSLR_EXPORT std::string currentISO8601Date(bool add_ms = true);
-
-LIBDPSLR_EXPORT std::string currentUTCISODate();
+/**
+ * @brief Generates the current date and time as a string formatted according to ISO 8601.
+ *
+ * This function captures the current system time and formats it into a standardized
+ * ISO 8601 date and time string. The function allows specifying the time resolution for the
+ * fractional part of the seconds. If the `utc` flag is set to true, the formatted string is
+ * suffixed with 'Z' to indicate that the time is in Coordinated Universal Time (UTC). If `utc`
+ * is false, the function does not qualify the time zone, and the resulting string represents
+ * local time, unqualified by a specific time zone.
+ *
+ * @param resolution The desired resolution for the fractional part of the seconds in the output.
+ * @param utc A boolean flag indicating whether the output should be in UTC (true) or
+ *            local time (false). Default is true, appending 'Z' to the formatted string.
+ * @return A std::string containing the formatted date and time in ISO 8601 format.
+ *
+ * @warning The precision of the system clock and the resolution parameter may affect the
+ * accuracy and granularity of the output. Additionally, when using local time (utc=false),
+ * the output string does not include timezone information, and users must be aware of
+ * the local timezone context.
+ */
+LIBDPSLR_EXPORT std::string currentISO8601Date(TimeResolution resolution = TimeResolution::MILLISECONDS,
+                                               bool utc = true);
 
 //======================================================================================================================
 
 // ISO 8601 RELATED FUNCTIONS
 //======================================================================================================================
 
+/**
+ * @brief Parses an ISO 8601 datetime string and converts it to a HRTimePointStd.
+ *
+ * This function parses a UTC datetime string formatted according to ISO 8601, including up to nanosecond
+ * precision, and converts it into a HRTimePointStd time point. The input string must conform to the
+ * ISO 8601 format "YYYY-MM-DDTHH:MM:SS.sssZ", where the fractional seconds (".sss") are optional and
+ * can represent milliseconds up to nanoseconds.
+ *
+ * @param datetime The ISO 8601 datetime string to be parsed.
+ *
+ * @return HRTimePointStd A time point representing the specified datetime.
+ *
+ * @throws std::invalid_argument If the input string does not match the ISO 8601 format.
+ */
+LIBDPSLR_EXPORT HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime);
+
 LIBDPSLR_EXPORT std::chrono::seconds iso8601DurationParser(const std::string& duration);
 
-LIBDPSLR_EXPORT common::HRTimePointStd iso8601DatetimeParser(const std::string& datetime);
 
 //======================================================================================================================
 
@@ -152,7 +229,7 @@ LIBDPSLR_EXPORT HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h=0, int
  * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
  * @return A TimePoint.
  */
-LIBDPSLR_EXPORT HRTimePointStd mjdtToTp(MJDtType mjdt);
+LIBDPSLR_EXPORT HRTimePointStd mjdtToTp(MJDateTime mjdt);
 
 /**
  * @brief Converts a Julian Datetime to a TimePoint.
@@ -232,10 +309,10 @@ LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, un
  * @param second_day, Modified Julian second of day. Output param.
  * @param second_fract, Fraction of second. Precission up to ns. Output param.
  */
-LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd,
+LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd,
                                                    unsigned int& second_day, long double& second_fract);
 
-LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd, SoDType& second_day_fract);
+LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& second_day_fract);
 
 /**
  * @brief Converts a TimePoint to Julian Datetime
@@ -256,7 +333,7 @@ LIBDPSLR_EXPORT long double timePointToJ2000Datetime(const HRTimePointStd &tp);
  * @param tp, TimePoint to convert.
  * @return A floating point value representing Modified Julian Datetime in days. Precission up to ns.
  */
-LIBDPSLR_EXPORT MJDtType timePointToModifiedJulianDatetime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT MJDateTime timePointToModifiedJulianDatetime(const HRTimePointStd &tp);
 
 /**
  * @brief Converts a TimePoint to Reduced Julian Datetime
@@ -280,7 +357,7 @@ LIBDPSLR_EXPORT long double timePointToReducedJulianDatetime(const HRTimePointSt
  * @warning Using this function can make your timestamp inaccurate. Use only to
  *          work with times where nanoseconds are not important.
  */
-LIBDPSLR_EXPORT long double mjdAndSecsToMjdt(MJDType mjd, SoDType seconds);
+LIBDPSLR_EXPORT long double mjdAndSecsToMjdt(MJDate mjd, SoD seconds);
 
 /**
  * @brief Convert a Modified Julian datetime to a Modified Julian Date and seconds (with decimals).
@@ -288,7 +365,7 @@ LIBDPSLR_EXPORT long double mjdAndSecsToMjdt(MJDType mjd, SoDType seconds);
  * @param mjd     The Modified Julian Date in days.
  * @param seconds The number of seconds with decimals.
  */
-LIBDPSLR_EXPORT void MjdtToMjdAndSecs(MJDtType mjdt, MJDType &mjd, SoDType &seconds);
+LIBDPSLR_EXPORT void MjdtToMjdAndSecs(MJDateTime mjdt, MJDate &mjd, SoD &seconds);
 
 /**
  * @brief Convert a MJD with second of day to a J2000 datetime
@@ -298,7 +375,7 @@ LIBDPSLR_EXPORT void MjdtToMjdAndSecs(MJDtType mjdt, MJDType &mjd, SoDType &seco
  * @warning Using this function can make your timestamp inaccurate. Use only to
  *          work with times where nanoseconds are not important.
  */
-LIBDPSLR_EXPORT long double mjdToJ2000Datetime(MJDType mjd, SoDType seconds);
+LIBDPSLR_EXPORT long double mjdToJ2000Datetime(MJDate mjd, SoD seconds);
 
 /**
  * @brief Convert a modified julian datetime to a J2000 datetime
@@ -307,15 +384,45 @@ LIBDPSLR_EXPORT long double mjdToJ2000Datetime(MJDType mjd, SoDType seconds);
  * @warning Using this function can make your timestamp inaccurate. Use only to
  *          work with times where nanoseconds are not important.
  */
-LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(MJDtType mjdt);
-
-// SPECIFIC FORMATS FUNCTIONS
-//======================================================================================================================
+LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(MJDateTime mjdt);
 
 // C++ time point to TLE date (year and fractional day).
 LIBDPSLR_EXPORT void timePointToTLEDate(const HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
 
+/**
+ * @brief Calculates the number of days since the civil date of 1970-01-01.
+ *
+ * This function computes the number of days from the Gregorian calendar date
+ * specified by the year (y), month (m), and day (d) parameters to the epoch date
+ * of 1970-01-01. Negative return values indicate dates prior to 1970-01-01. The
+ * input date must be in the civil (Gregorian) calendar.
+ *
+ * @param y The year of the date, can be any integer representing the year.
+ * @param m The month of the date, must be in the range [1, 12].
+ * @param d The day of the month, must be in the valid range for the given month and year.
+ *
+ * @return The number of days since 1970-01-01. Negative values indicate dates before 1970-01-01.
+ *
+ * @warning The function uses static_assert to ensure that the size of unsigned and int types
+ * meets the minimum requirements for the calculation.
+ */
+LIBDPSLR_EXPORT int daysFromCivil(int y, unsigned m, unsigned d);
+
+
 //======================================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }} // END NAMESPACES.
 // =====================================================================================================================

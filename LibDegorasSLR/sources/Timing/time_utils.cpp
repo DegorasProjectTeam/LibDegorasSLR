@@ -23,18 +23,22 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file TimeUtils.cpp
+ * @file time_utils.cpp
  * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2402.1
 ***********************************************************************************************************************/
+
+// C++ INCLUDES
+//======================================================================================================================
+#include <regex>
+// =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Mathematics/math.h"
-#include <LibDegorasSLR/Timing/time_utils.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -51,6 +55,198 @@ using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::time_point_cast;
 // =====================================================================================================================
+
+// AUXILIAR
+// =====================================================================================================================
+
+std::chrono::seconds iso8601RegexParser(const std::string& input, const std::regex& re)
+{
+    // Regex search.
+    std::smatch matching;
+    std::regex_search(input, matching, re);
+
+    // Check the pattern.
+    if (matching.empty())
+        throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601RegexParser] Invalid argument: " + input);
+
+    // Data vector (years, months, days, hours, minutes, seconds).
+    std::vector<double> vec = {0,0,0,0,0,0};
+
+    // Get the data.
+    for (size_t i = 1; i < matching.size(); ++i)
+    {
+        if (matching[i].matched)
+        {
+            std::string str = matching[i];
+            str.pop_back();
+            vec[i-1] = std::stod(str);
+        }
+    }
+
+    // Get the seconds.
+    double sec = 31556926   * vec[0] +  // years
+              2629743.83 * vec[1] +  // months
+              86400      * vec[2] +  // days
+              3600       * vec[3] +  // hours
+              60         * vec[4] +  // minutes
+              1          * vec[5];   // seconds
+
+    // Return the duration.
+    return std::chrono::seconds(static_cast<long long>(sec));
+}
+
+// =====================================================================================================================
+
+
+// IMPLEMENTATIONS
+// =====================================================================================================================
+
+std::string timePointToString(const HRTimePointStd &tp, const std::string& format, TimeResolution resolution, bool utc)
+{
+    std::ostringstream ss;
+    auto dur = tp.time_since_epoch();
+    auto secs = std::chrono::duration_cast<std::chrono::seconds>(dur).count();
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(dur).count();
+    auto sec_ns = secs * 1'000'000'000LL; // Seconds in nanoseconds
+    auto remaining_ns = ns - sec_ns; // Remaining nanoseconds after subtracting full seconds
+
+    std::time_t time_t = static_cast<std::time_t>(secs);
+    const std::tm* tm = (utc ? std::gmtime(&time_t) : std::localtime(&time_t));
+    if (!tm)
+    {
+        throw std::runtime_error("[LibDegorasSLR,Timing,timePointToString] Error in tm struct.");
+    }
+
+    ss << std::put_time(tm, format.c_str());
+
+    if (resolution != TimeResolution::SECONDS) {
+        long long fraction = 0;
+        int width = 0;
+
+        switch (resolution) {
+        case TimeResolution::MILLISECONDS:
+            fraction = remaining_ns / 1'000'000; // Convert nanoseconds to milliseconds
+            width = 3;
+            break;
+        case TimeResolution::MICROSECONDS:
+            fraction = remaining_ns / 1'000; // Convert nanoseconds to microseconds
+            width = 6;
+            break;
+        case TimeResolution::NANOSECONDS:
+            fraction = remaining_ns;
+            width = 9;
+            break;
+        default:
+            break; // This case is handled by the if condition above
+        }
+
+        ss << '.' << std::setw(width) << std::setfill('0') << fraction;
+    }
+
+    return ss.str();
+}
+
+std::string timePointToIso8601(const HRTimePointStd& tp, TimeResolution resolution, bool utc)
+{
+    std::string result = timePointToString(tp, "%Y-%m-%dT%H:%M:%S", resolution, utc);
+    if(utc)
+        result += 'Z';
+    return result;
+}
+
+std::string currentISO8601Date(TimeResolution resolution, bool utc)
+{
+    auto now = high_resolution_clock::now();
+    return timePointToIso8601(now, resolution, utc);
+}
+
+// =====================================================================================================================
+
+HRTimePointStd iso8601DatetimeParser(const std::string& datetime)
+{
+    // Check if it is UTC and call to
+}
+
+HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime)
+{
+    // Auxiliar variables.
+    int y,m,d,h,M, s;
+    std::smatch match;
+
+    // Regex.
+    std::regex iso8601_regex_extended(R"(^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?Z$)");
+    std::regex iso8601_regex_basic(R"(^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\.(\d+))?Z$)");
+
+    // Check the regexes.
+    if (!std::regex_search(datetime, match, iso8601_regex_extended))
+    {
+        if (!std::regex_search(datetime, match, iso8601_regex_basic))
+            throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601DatetimeParser] Invalid argument: " + datetime);
+    }
+
+    // Get the datetime values.
+    y = std::stoi(match[1].str());
+    m = std::stoi(match[2].str());
+    d = std::stoi(match[3].str());
+    h = std::stoi(match[4].str());
+    M = std::stoi(match[5].str());
+    s = std::stoi(match[6].str());
+    std::string fractional_seconds_str = match[7].str();
+
+    // Get the time point.
+    auto days_since_epoch = daysFromCivil(y, static_cast<unsigned>(m), static_cast<unsigned>(d));
+    HRTimePointStd t = HRClock::time_point(std::chrono::duration<int, std::ratio<86400>>(days_since_epoch));
+
+    // Add the hours, minutes, seconds and milliseconds.
+    t += std::chrono::hours(h);
+    t += std::chrono::minutes(M);
+    t += std::chrono::seconds(s);
+
+    // Process the fractional part.
+    if (!fractional_seconds_str.empty())
+    {
+        long long fractional_seconds = std::stoll(fractional_seconds_str);
+        size_t length = fractional_seconds_str.length();
+
+        // Convert fractional seconds to the appropriate duration
+        if (length <= 3)
+            t += std::chrono::milliseconds(fractional_seconds);
+        else if (length <= 6)
+            t += std::chrono::microseconds(fractional_seconds);
+        else
+            t += std::chrono::nanoseconds(fractional_seconds);
+    }
+
+    // Return the time point.
+    return t;
+}
+
+
+
+
+std::chrono::seconds iso8601DurationParser(const std::string& duration)
+{
+    // WARNING Regex not works with old compilers.
+
+    // Regex expressions.
+    std::regex rcheck("^((?!T).)*$");
+    std::regex r1("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?");
+    std::regex r2(
+        "P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?T([[:d:]]+H)?([[:d:]]+M)?([[:d:]]+S|[[:d:]]+\\.[[:d:]]+S)?");
+
+    // Check if the expression has the T (time).
+    std::regex rparser = std::regex_match(duration, rcheck) ? r1 : r2;
+
+    // Parse the duration and return.
+    return iso8601RegexParser(duration, rparser);
+}
+
+// =====================================================================================================================
+
+
+
+
+
 
 long double timePointToSecsDay(const HRTimePointStd &tp)
 {
@@ -211,7 +407,7 @@ void jdtogr(long long jd_day, long double jd_fract, int &year, unsigned int &mon
     year += 1900;
 }
 
-void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd, unsigned& second_day,
+void timePointToModifiedJulianDate(const HRTimePointStd &tp, common::MJDate &mjd, unsigned& second_day,
                                    long double& second_fract)
 {
     long double unix_seconds = duration_cast<duration<long double>>(tp.time_since_epoch()).count();
@@ -221,7 +417,7 @@ void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd, unsig
     second_day = static_cast<unsigned>(static_cast<long long>(unix_seconds) % common::kSecsInDay);
 }
 
-void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDType &mjd, SoDType& second_day_fract)
+void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& second_day_fract)
 {
     unsigned second_day;
     long double second_fract;
@@ -241,7 +437,7 @@ long double timePointToJ2000Datetime(const HRTimePointStd &tp)
     return timePointToJulianDatetime(tp) + common::kJulianToJ2000;
 }
 
-MJDtType timePointToModifiedJulianDatetime(const HRTimePointStd &tp)
+common::MJDateTime timePointToModifiedJulianDatetime(const HRTimePointStd &tp)
 {
     return timePointToJulianDatetime(tp) + common::kJulianToModifiedJulian;
 }
@@ -251,7 +447,7 @@ long double timePointToReducedJulianDatetime(const HRTimePointStd &tp)
     return timePointToJulianDatetime(tp) + common::kJulianToReducedJulian;
 }
 
-HRTimePointStd mjdtToTp(MJDtType mjt)
+HRTimePointStd mjdtToTp(common::MJDateTime mjt)
 {
     duration<long double, std::ratio<common::kSecsInDay>> unix_days(
         mjt + common::kModifiedJulianToJulian + common::kJulianToPosixEpoch);
@@ -287,50 +483,13 @@ HRTimePointStd win32TicksToTimePoint(unsigned long long ticks)
     return tp_sec + common::NsStd(frc);
 }
 
-std::string timePointToString(const HRTimePointStd &tp, const std::string& format,
-                              bool add_ms, bool add_ns, bool utc)
-{
-    // Stream to hold the formatted string and the return container.
-    std::ostringstream ss;
-    // Convert the time point to a duration and get the different time fractions.
-    HRTimePointStd::duration dur = tp.time_since_epoch();
-    const time_t secs = duration_cast<common::SecStd>(dur).count();
-    const long long mill = duration_cast<common::MsStd>(dur).count();
-    const unsigned long long ns = duration_cast<common::NsStd>(dur).count();
-    const unsigned long long s_ns = secs * 1e9;
-    const unsigned long long t_ns = (ns - s_ns);
-    // Format the duration.
-    if (const std::tm *tm = (utc ? std::gmtime(&secs) : std::localtime(&secs)))
-    {
-        ss << std::put_time(tm, format.c_str());
-        if(add_ms && !add_ns)
-            ss << '.' << std::setw(3) << std::setfill('0') << (mill - secs * 1e3);
-        else if(add_ns)
-            ss << '.' << std::setw(9) << std::setfill('0') << t_ns;
-    }
-    else
-    {
-        // If error, return an empty string.
-        return std::string();
-    }
-    // Return the container.
-    return ss.str();
-}
-
-std::string timePointToIso8601(const HRTimePointStd& tp, bool add_ms, bool add_ns)
-{
-    // Return the ISO 8601 datetime.
-    return timePointToString(tp, "%Y-%m-%dT%H:%M:%S", add_ms, add_ns) + 'Z';
-}
 
 
-std::string currentISO8601Date(bool add_ms)
-{
-    auto now = high_resolution_clock::now();
-    return timePointToIso8601(now, add_ms);
-}
 
-void adjMJDAndSecs(MJDType& mjd, SoDType& seconds)
+
+
+
+void adjMJDAndSecs(MJDate& mjd, SoD& seconds)
 {
     if (seconds >= common::kSecsInDay)
     {
@@ -340,7 +499,7 @@ void adjMJDAndSecs(MJDType& mjd, SoDType& seconds)
     }
 }
 
-long double mjdAndSecsToMjdt(MJDType mjd, SoDType seconds)
+long double mjdAndSecsToMjdt(common::MJDate mjd, SoD seconds)
 {
     if (seconds >= common::kSecsInDay)
     {
@@ -374,22 +533,39 @@ long double jdtToLmst(long double jdt, long double lon)
     return lmst;
 }
 
-long double mjdToJ2000Datetime(MJDType mjd, SoDType seconds)
+long double mjdToJ2000Datetime(MJDate mjd, SoD seconds)
 {
     auto mjdt = mjdAndSecsToMjdt(mjd, seconds);
     return mjdtToJ2000Datetime(mjdt);
 }
 
-long double mjdtToJ2000Datetime(MJDtType mjdt)
+long double mjdtToJ2000Datetime(MJDateTime mjdt)
 {
     return mjdt + common::kModifiedJulianToJulian + common::kJulianToJ2000;
 }
 
-void MjdtToMjdAndSecs(MJDtType mjdt, MJDType &mjd, SoDType &seconds)
+void MjdtToMjdAndSecs(MJDateTime mjdt, common::MJDate &mjd, SoD &seconds)
 {
     long double int_part;
     seconds = std::modf(mjdt, &int_part) * common::kSecsInDay;
-    mjd = static_cast<MJDType>(int_part);
+    mjd = static_cast<MJDate>(int_part);
+}
+
+int daysFromCivil(int y, unsigned m, unsigned d)
+{
+    // Check the numeric limits.
+    static_assert(std::numeric_limits<unsigned>::digits >= 18,
+                  "[LibDegorasSLR,Timing,daysFromCivil] >= 16 bit unsigned integer");
+    static_assert(std::numeric_limits<int>::digits >= 20,
+                  "[LibDegorasSLR,Timing,daysFromCivil] >= 16 bit signed integer");
+    // Calculate the number of days since 1970-01-01.
+    y -= m <= 2;
+    const int era = (y >= 0 ? y : y-399) / 400;
+    const unsigned yoe = static_cast<unsigned>(y - era * 400);   // [0, 399]
+    const unsigned doy = (153*(m > 2 ? m-3 : m+9) + 2)/5 + d-1;  // [0, 365]
+    const unsigned doe = yoe * 365 + yoe/4 - yoe/100 + doy;      // [0, 146096]
+    // Return the result.
+    return era * 146097 + static_cast<int>(doe) - 719468;
 }
 
 

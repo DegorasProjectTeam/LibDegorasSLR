@@ -27,7 +27,7 @@
  * @brief This file contains several timing definitions.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ * @version 2402.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -37,10 +37,6 @@
 // C++ INCLUDES
 // =====================================================================================================================
 #include <chrono>
-// =====================================================================================================================
-
-// LIBDPSLR INCLUDES
-// =====================================================================================================================
 // =====================================================================================================================
 
 // DEFINITIONS
@@ -62,11 +58,17 @@ namespace common{
 // CONVENIENT ALIAS AND ENUMERATIONS
 //======================================================================================================================
 
+/// High resolution clock.
+using HRClock = std::chrono::high_resolution_clock;
+
 /// High resolution time point to store datetimes (uses Unix Time).
 using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
 /// Normal time point to store datetimes (uses Unix Time).
 using TimePointStd = std::chrono::time_point<std::chrono::system_clock>;
+
+/// Steady clock time point for measuring intervals.
+using SCTimePointStd =  std::chrono::steady_clock::time_point;
 
 /// Short way of referring to seconds.
 using SecStd = std::chrono::seconds;
@@ -80,21 +82,25 @@ using UsStd = std::chrono::microseconds;
 /// Short way of referring to nanoseconds.
 using NsStd = std::chrono::nanoseconds;
 
+/// Alias for Modified Julian Date in days.
+using MJDate = long long;
+
+/// Alias for Modified Julian Datetime in days with decimals.
+using MJDateTime = long double;
+
+/// Alias for second of day with decimals.
+using SoD = long double;
+
+/**
+ * Enum class for specifying the time resolution in string representations.
+ */
 enum class TimeResolution
 {
-    SECONDS,
-    MILLISECONDS,
-    MICROSECOND,
-    NANOSECOND,
-    PICOSECOND
+    SECONDS,        ///< Represents the seconds.
+    MILLISECONDS,   ///< Represents the milliseconds.
+    MICROSECONDS,   ///< Represents the microseconds.
+    NANOSECONDS     ///< Represents the nanoseconds.
 };
-
-/// Alias for MJ date in days
-using MJDType = long long;
-/// Alias for MJ datetime in days with decimals
-using MJDtType = long double;
-/// Alias for second of day with decimals
-using SoDType = long double;
 
 //======================================================================================================================
 

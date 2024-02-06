@@ -69,33 +69,57 @@ public:
     {
         long double az_entry;       ///< Azimuth of sun sector entry point
         long double el_entry;       ///< Elevation of sun sector entry point
-        MJDtType mjdt_entry;        ///< MJ datetime of sun sector entry point
+        MJDateTime mjdt_entry;        ///< MJ datetime of sun sector entry point
         long double az_exit;        ///< Azimuth of sun sector exit point
         long double el_exit;        ///< Elevation of sun sector exit point
-        MJDtType mjdt_exit;         ///< MJ datetime of sun sector exit point
+        MJDateTime mjdt_exit;       ///< MJ datetime of sun sector exit point
         bool cw;                    ///< Rotation direction of the sun avoidance manoeuvre
     };
 
     /**
-     * @brief This struct contanis the azimuth and elevation for a given time of the tracking.
+     * @brief The PositionStatus enum represents the possible situations of calling getPosition function.
      */
-    struct Position
+    enum PositionStatus
     {
-        long double az;             ///< Azimuth of the position in degrees.
-        long double el;             ///< Elevation of the position in degrees.
-        MJDtType mjdt;             ///< MJ datetime of the position in days.
+        OUTSIDE_SUN,        ///< The final tracking position is outside the sun.
+        INSIDE_SUN,         ///< The final tracking position is in the Sun and is configured for not avoiding.
+        AVOIDING_SUN,       ///< The final tracking position is avoiding sun security sector.
+        CANT_AVOID_SUN,     ///< Final position can't be calculated, since it cannot avoid sun security sector.
+        OUT_OF_TRACK,       ///< The time provided for prediction is outside of tracking.
+        PREDICTION_ERROR    ///< The object position can't be calculated, there was a SLR prediction error.
+    };
+
+    // TODO Explicar el por que puede ser diferente la real que la
+    struct TrackingPosition
+    {
+        long double az;      ///< Azimuth of the space object in degrees.
+        long double el;      ///< Elevation of the space object in degrees.
+        long double diff_az; ///< Azimuth difference between the real prediction and tracking position.
+        long double diff_el; ///< Elevation difference between the real prediction and tracking position.
     };
 
     /**
-     * @brief The PositionResult enum represents the possible result of calling @a getPosition function.
+     * @brief This struct contanis the azimuth and elevation postion for a given time of the tracking.
+     * TODO Explican more
+     * Si OUT_OF_TRACK los optional no estan.
+     * Si PREDICTION_ERROR el prediction result y el sun position están.
+     * Si CANT_AVOID_SUN el prediction result y el sun position están.
+     *
      */
-    enum PositionResult
+    struct TrackingResult
     {
-        NOT_ERROR,                  ///< Position is correct, there was no error.
-        AVOIDING_SUN,               ///< Position is correct, but is avoiding sun security sector.
-        CANT_AVOID_SUN,             ///< Position is NOT correct, since it cannot avoid sun security sector.
-        OUT_OF_TRACK,               ///< Position is NOT correct, since it is outside of tracking.
-        PREDICTION_ERROR            ///< Position is NOT correct, there was a prediction error.
+        // Datetime members.
+        MJDate mjd;                   ///< Modified julian date in days.
+        SoD sod;                   ///< Second of day in that MJD.
+        MJDateTime mjdt;                 ///< Modified julian datetime (day & fraction).
+
+        // Result members.
+        Optional<PredictorSLR::PredictionResult> prediction_result; ///< SLR prediction result.
+        Optional<TrackingPosition> tracking_position;               ///< Tracking position.
+        Optional<astro::SunPosition<long double>> sun_pos;          ///< Sun position.
+
+        // Status.
+        PositionStatus status;  ///< The postion status.
     };
 
     /**
@@ -108,7 +132,7 @@ public:
      * @param avoid_sun (optional), true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle (optional), if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    TrackingSLR(long double min_elev, MJDType mjd_start, SoDType sod_start,
+    TrackingSLR(long double min_elev, MJDate mjd_start, SoD sod_start,
                 PredictorSLR&& predictor, long double time_delta = 1.L,
                 bool avoid_sun = true, long double sun_avoid_angle = 15.L);
 
@@ -139,13 +163,13 @@ public:
      * @param mjd, the MJ date in days for the tracking start.
      * @param sod, the second of day for the tracking start.
      */
-    void getTrackingStart(MJDType &mjd, SoDType& sod) const;
+    void getTrackingStart(MJDate &mjd, SoD& sod) const;
     /**
      * @brief If this tracking is valid, you can get the tracking end with this function.
      * @param mjd, the MJ date in days for the tracking end.
      * @param sod, the second of day for the tracking end.
      */
-    void getTrackingEnd(MJDType &mjd, SoDType& sod) const;
+    void getTrackingEnd(MJDate &mjd, SoD& sod) const;
     /**
      * @brief This function returns if sun avoidance is applied.
      * @return true if sun avoidance is applied, false otherwise.
@@ -180,24 +204,24 @@ public:
     /**
      * @brief This function returns the object's position at a given time.
      * @param tp_time The time point datetime.
-     * @param pos, the returned position data.
+     * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionResult getPosition(const timing::HRTimePointStd& tp_time, Position &pos);
+    PositionStatus predictTrackingPosition(const timing::HRTimePointStd& tp_time, TrackingResult &tracking_result);
 
     /**
      * @brief This function returns the object's position at a given time.
      * @param mjd, the MJD in days.
      * @param sod, the second of day in seconds.
-     * @param pos, the returned position data.
+     * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionResult getPosition(MJDType mjd, SoDType sod, Position &pos);
+    PositionStatus PredictTrackingPosition(MJDate mjd, SoD sod, TrackingResult &tracking_result);
 
 private:
 
-    void analyzeTracking(MJDType mjd_start, SoDType sod_start);
-    bool findTrackingStart(MJDType mjd_start, SoDType sod_start);
+    void analyzeTracking(MJDate mjd_start, SoD sod_start);
+    bool findTrackingStart(MJDate mjd_start, SoD sod_start);
     bool findTrackingEnd();
 
     bool insideSunSector(const PredictorSLR::InstantData& pos,
@@ -208,10 +232,10 @@ private:
     long double min_elev_;
     long double time_delta_;
 
-    MJDType mjd_start_;
-    SoDType sod_start_;
-    MJDType mjd_end_;
-    SoDType sod_end_;
+    MJDate mjd_start_;
+    SoD sod_start_;
+    MJDate mjd_end_;
+    SoD sod_end_;
 
     bool valid_pass_;
     bool avoid_sun_;
