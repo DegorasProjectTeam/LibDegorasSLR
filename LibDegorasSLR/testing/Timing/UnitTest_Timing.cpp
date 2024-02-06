@@ -47,13 +47,18 @@ using namespace dpslr;
 using namespace dpslr::timing;
 
 // UNIT TEST DECLARATIONS
+// ---------------------------------------------------------------------------------------------------------------------
 M_DECLARE_UNIT_TEST(Timing, timePointToString)
 M_DECLARE_UNIT_TEST(Timing, timePointToIso8601)
 M_DECLARE_UNIT_TEST(Timing, currentISO8601Date)
 M_DECLARE_UNIT_TEST(Timing, millisecondsToISO8601Duration)
+M_DECLARE_UNIT_TEST(Timing, secondsToISO8601Duration)
 M_DECLARE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
+M_DECLARE_UNIT_TEST(Timing, win32TicksToTimePoint)
+// ---------------------------------------------------------------------------------------------------------------------
 
 // UNIT TESTS IMPLEMENTATIONS
+// ---------------------------------------------------------------------------------------------------------------------
 
 M_DEFINE_UNIT_TEST(Timing, timePointToString)
 {
@@ -67,12 +72,17 @@ M_DEFINE_UNIT_TEST(Timing, timePointToString)
     std::string out_2 = "1975-04-20T19:15:49.123";
     std::string out_3 = "1975-04-20T19:15:49.123456";
     std::string out_4 = "1975-04-20T19:15:49.123456789";
-    std::string out_5 = "20240205111104.000";
+    std::string out_5 = "20240205111104";
     std::string out_6 = "1970-01-01T00:00:00";
     std::string out_7 = "January 01, 1970 - 00:00";
+    std::string out_8 = "1970-01-01T00:00:00";
+    // Trailing.
+    std::string out_9 = "January 01, 1970 - 00:00.000";
+    std::string out_10 = "20240205111104.000000";
+    std::string out_11 = "1970-01-01T00:00:00.000000000";
 
     // Results.
-    std::string res_1, res_2, res_3, res_4, res_5, res_6, res_7;
+    std::string res_1, res_2, res_3, res_4, res_5, res_6, res_7, res_8, res_9, res_10, res_11;
 
     // Time points.
     timing::HRTimePointStd tp_1(in_1);
@@ -87,6 +97,11 @@ M_DEFINE_UNIT_TEST(Timing, timePointToString)
     res_5 = timing::timePointToString(tp_2, "%Y%m%d%H%M%S", TimeResolution::MILLISECONDS);
     res_6 = timing::timePointToString(tp_3, "%Y-%m-%dT%H:%M:%S", TimeResolution::SECONDS);
     res_7 = timing::timePointToString(tp_3, "%B %d, %Y - %H:%M", TimeResolution::SECONDS);
+    res_8 = timing::timePointToString(tp_3, "%Y-%m-%dT%H:%M:%S", TimeResolution::NANOSECONDS);
+    // Trailing
+    res_9 = timing::timePointToString(tp_3, "%B %d, %Y - %H:%M", TimeResolution::MILLISECONDS, true, false);
+    res_10 = timing::timePointToString(tp_2, "%Y%m%d%H%M%S", TimeResolution::MICROSECONDS, true, false);
+    res_11 = timing::timePointToString(tp_3, "%Y-%m-%dT%H:%M:%S", TimeResolution::NANOSECONDS, true, false);
 
     // Checks.
     M_EXPECTED_EQ(out_1, res_1)
@@ -96,6 +111,10 @@ M_DEFINE_UNIT_TEST(Timing, timePointToString)
     M_EXPECTED_EQ(out_5, res_5)
     M_EXPECTED_EQ(out_6, res_6)
     M_EXPECTED_EQ(out_7, res_7)
+    M_EXPECTED_EQ(out_8, res_8)
+    M_EXPECTED_EQ(out_9, res_9)
+    M_EXPECTED_EQ(out_10, res_10)
+    M_EXPECTED_EQ(out_11, res_11)
 }
 
 M_DEFINE_UNIT_TEST(Timing, timePointToIso8601)
@@ -107,7 +126,7 @@ M_DEFINE_UNIT_TEST(Timing, timePointToIso8601)
     // Expected outputs.
     std::string out_1 = "1975-04-20T19:15:49.123Z";
     std::string out_2 = "1975-04-20T19:15:49.123456789Z";
-    std::string out_3 = "2024-02-05T13:56:03.000Z";
+    std::string out_3 = "2024-02-05T13:56:03Z";
 
     // Results.
     std::string res_1, res_2, res_3, res_4;
@@ -145,7 +164,7 @@ M_DEFINE_UNIT_TEST(Timing, currentISO8601Date)
     std::string current_s_local = timing::currentISO8601Date(TimeResolution::SECONDS, false);
 
     // Obtain the current time.
-    auto now = std::chrono::system_clock::now();
+    auto now = std::chrono::high_resolution_clock::now();
     std::string formatted_now = timing::timePointToIso8601(now, TimeResolution::MILLISECONDS, true);
     std::string current_now = timing::currentISO8601Date(TimeResolution::MILLISECONDS, true);
 
@@ -154,7 +173,7 @@ M_DEFINE_UNIT_TEST(Timing, currentISO8601Date)
         [](const std::string& dateTime) -> bool
     {
         // Example check for UTC with milliseconds resolution: "YYYY-MM-DDTHH:MM:SS.sssZ"
-        return dateTime.length() == 24 && dateTime[23] == 'Z';
+        return dateTime.length() >= 20 &&  dateTime.find('Z') != std::string::npos;
     };
 
     std::function<bool(const std::string&)> checkISO8601FormatLocal =
@@ -167,7 +186,7 @@ M_DEFINE_UNIT_TEST(Timing, currentISO8601Date)
     // Validate formats
     M_CUSTOM_CHECK(checkISO8601FormatUTC, current_ms_utc)
     M_CUSTOM_CHECK(checkISO8601FormatLocal, current_s_local)
-    M_EXPECTED_EQ(formatted_now.substr(0, 22), current_now.substr(0, 22)) // Approximation.
+    M_EXPECTED_EQ(formatted_now.substr(0, 21), current_now.substr(0, 21)) // Approximation.
 }
 
 M_DEFINE_UNIT_TEST(Timing, millisecondsToISO8601Duration)
@@ -206,7 +225,39 @@ M_DEFINE_UNIT_TEST(Timing, millisecondsToISO8601Duration)
     }
 }
 
+M_DEFINE_UNIT_TEST(Timing, secondsToISO8601Duration)
+{
+    // Test cases with expected inputs and outputs
+    std::vector<std::pair<long long, std::string>> test_cases =
+        {
+            {0, "PT0H0M0S"},
+            {1, "PT0H0M1S"},
+            {61, "PT0H1M1S"},
+            {3661, "PT1H1M1S"},
+            {45, "PT0H0M45S"},
+            {123456, "PT34H17M36S"},
+            {86400, "PT24H0M0S"},
+            {90061, "PT25H1M1S"},
+            {590325, "PT163H58M45S"}
+        };
 
+    // Custom check for format correctness: PTxxHxxMxxS
+    std::function<bool(const std::string&)> checkISO8601DurationFormat =
+        [](const std::string& duration) -> bool
+    {
+        std::regex durationRegex(R"(^PT(\d+H)?(\d+M)?(\d+S)$)");
+        return std::regex_match(duration, durationRegex);
+    };
+
+    // Do the checks.
+    for (const auto& [input, expectedOutput] : test_cases)
+    {
+        std::chrono::seconds secs(input);
+        std::string result = timing::secondsToISO8601Duration(secs);
+        M_EXPECTED_EQ(result, expectedOutput)
+        M_CUSTOM_CHECK(checkISO8601DurationFormat, result)
+    }
+}
 
 M_DEFINE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
 {
@@ -279,18 +330,80 @@ M_DEFINE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
     }
 }
 
-int main()
+M_DEFINE_UNIT_TEST(Timing, win32TicksToTimePoint)
 {
-    // Start the Unit Test Session.
-    M_START_UNIT_TEST_SESSION("LibDegorasSLR Timing Session")
+    // Exception result.
+    std::string exception_str =
+        "[LibDegorasSLR,Timing,iso8601DatetimeParser] The ticks represent a time before the Unix epoch.";
 
-    // Register the tests.
-    M_REGISTER_UNIT_TEST(Timing, timePointToString)
-    M_REGISTER_UNIT_TEST(Timing, timePointToIso8601)
-    M_REGISTER_UNIT_TEST(Timing, currentISO8601Date)
-    M_REGISTER_UNIT_TEST(Timing, millisecondsToISO8601Duration)
-    M_REGISTER_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
+    // Increments
+    std::chrono::seconds ns_1(123456789);
+    std::chrono::seconds ns_2(001002003);
 
-    // Run unit tests.
-    M_RUN_UNIT_TESTS()
+    std::vector<std::pair<unsigned long long, std::string>> valid_cases =
+    {
+        // Converting hexadecimal tick values to decimal
+        {116444736000000000ULL, "1970-01-01T00:00:00Z"},
+
+
+        {117093590311632896ULL, "1972-01-21T23:43:51.1632896Z"},
+
+        {125911584000000000ULL, "2000-01-01T00:00:00Z"}
+
+    };
+
+    std::vector<unsigned long long> invalid_cases = {0ULL, 123456789123ULL, 116444735999999999ULL};
+
+    // Do the checks.
+    for (const auto& input : invalid_cases)
+    {
+        try
+        {
+            timing::win32TicksToTimePoint(input);
+            M_FORCE_FAIL()
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::string exception_msg = e.what();
+            M_EXPECTED_EQ(exception_msg, exception_str)
+        }
+    }
+
+    for (const auto& [input, expected] : valid_cases)
+    {
+        auto result_tp = win32TicksToTimePoint(input);
+        std::string result_str = timing::timePointToIso8601(result_tp, TimeResolution::NANOSECONDS);
+        M_EXPECTED_EQ(expected, result_str)
+    }
+
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// UNIT TESTS EXECUTION
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Start the Unit Test Session.
+M_START_UNIT_TEST_SESSION("LibDegorasSLR Timing Session")
+
+// Configuration.
+M_FORCE_SHOW_RESULTS(false)
+
+// Register the tests.
+M_REGISTER_UNIT_TEST(Timing, timePointToString)
+M_REGISTER_UNIT_TEST(Timing, timePointToIso8601)
+M_REGISTER_UNIT_TEST(Timing, currentISO8601Date)
+M_REGISTER_UNIT_TEST(Timing, millisecondsToISO8601Duration)
+M_REGISTER_UNIT_TEST(Timing, secondsToISO8601Duration)
+M_REGISTER_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
+M_REGISTER_UNIT_TEST(Timing, win32TicksToTimePoint)
+
+// Run unit tests.
+M_RUN_UNIT_TESTS()
+
+// Finish the session.
+M_FINISH_UNIT_TEST_SESSION()
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// =====================================================================================================================

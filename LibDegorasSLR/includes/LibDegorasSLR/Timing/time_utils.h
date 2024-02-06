@@ -93,7 +93,7 @@ using namespace dpslr::timing::common;
 LIBDPSLR_EXPORT std::string timePointToString(const HRTimePointStd& tp,
                                               const std::string& format = "%Y-%m-%dT%H:%M:%S",
                                               TimeResolution resolution = TimeResolution::MILLISECONDS,
-                                              bool utc = true);
+                                              bool utc = true, bool rm_trailing_zeros = true);
 
 /**
  * Converts a high-resolution time point to an ISO 8601 formatted string.
@@ -118,7 +118,7 @@ LIBDPSLR_EXPORT std::string timePointToString(const HRTimePointStd& tp,
  */
 LIBDPSLR_EXPORT std::string timePointToIso8601(const HRTimePointStd& tp,
                                                TimeResolution resolution = TimeResolution::MILLISECONDS,
-                                               bool utc = true);
+                                               bool utc = true, bool rm_trailing_zeros = true);
 
 /**
  * @brief Generates the current date and time as a string formatted according to ISO 8601.
@@ -141,9 +141,57 @@ LIBDPSLR_EXPORT std::string timePointToIso8601(const HRTimePointStd& tp,
  * the local timezone context.
  */
 LIBDPSLR_EXPORT std::string currentISO8601Date(TimeResolution resolution = TimeResolution::MILLISECONDS,
-                                               bool utc = true);
+                                               bool utc = true, bool rm_trailing_zeros = true);
 
+/**
+ * @brief Converts a duration in milliseconds to an ISO 8601 duration string.
+ *
+ * This function takes a duration represented as milliseconds and formats it
+ * into a string following the ISO 8601 duration format. The output format
+ * is restricted to hours, minutes, and seconds (including fractional seconds),
+ * to provide a precise representation of time intervals without introducing
+ * complexities associated with longer time units like days or months.
+ *
+ * The decision to exclude days, months, and years from the format is to avoid
+ * potential inaccuracies due to variable durations of these units, such as leap
+ * seconds, leap years, and differences in month lengths.
+ *
+ * @param msecs The duration in milliseconds to be converted into an ISO 8601 duration string.
+ * @return A std::string representing the formatted duration as per ISO 8601, including hours,
+ *         minutes, and seconds. Fractional seconds are included if the duration includes partial
+ *         seconds, and are represented without trailing zeros.
+ *
+ * @note The function returns "PT0H0M0S" for a duration of 0 milliseconds.
+ *
+ * @warning The function does not account for durations in terms of days, months, or years due
+ * to the potential for leap seconds to introduce discrepancies. As such, it is ideal when precise
+ * control over hours, minutes, and seconds is required.
+ */
 LIBDPSLR_EXPORT std::string millisecondsToISO8601Duration(const std::chrono::milliseconds& msecs);
+
+/**
+ * @brief Converts a duration in seconds to an ISO 8601 duration string.
+ *
+ * This function takes a duration represented as seconds and formats it into a string
+ * following the ISO 8601 duration format. The output format is restricted to hours,
+ * minutes, and seconds, to provide a precise representation of time intervals without
+ * introducing complexities associated with longer time units like days or months.
+ *
+ * The decision to exclude days, months, and years from the format is to avoid
+ * potential inaccuracies due to variable durations of these units, such as leap
+ * seconds, leap years, and differences in month lengths.
+ *
+ * @param msecs The duration in seconds to be converted into an ISO 8601 duration string.
+ * @return A std::string representing the formatted duration as per ISO 8601, including hours,
+ *         minutes, and seconds.
+ *
+ * @note The function returns "PT0H0M0S" for a duration of 0 seconds.
+ *
+ * @warning The function does not account for durations in terms of days, months, or years due
+ * to the potential for leap seconds to introduce discrepancies. As such, it is ideal when precise
+ * control over hours, minutes, and seconds is required.
+ */
+LIBDPSLR_EXPORT std::string secondsToISO8601Duration(const std::chrono::seconds& secs);
 
 //======================================================================================================================
 
@@ -170,23 +218,7 @@ LIBDPSLR_EXPORT std::string millisecondsToISO8601Duration(const std::chrono::mil
  */
 LIBDPSLR_EXPORT HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime);
 
-
-LIBDPSLR_EXPORT std::chrono::seconds iso8601DurationParser(const std::string& duration);
-
-
 //======================================================================================================================
-
-// SIDEREAL RELATED FUNCTIONS
-//======================================================================================================================
-
-LIBDPSLR_EXPORT long double jdtToGmst(long double jd);
-
-
-LIBDPSLR_EXPORT long double jdtToLmst(long double jdt, long double lon);
-
-
-//======================================================================================================================
-
 
 // TIMING CONVERSION FUNCTIONS
 //======================================================================================================================
@@ -214,6 +246,16 @@ LIBDPSLR_EXPORT long double jdtToLmst(long double jdt, long double lon);
  * https://stackoverflow.com/questions/10849717/what-is-the-significance-of-january-1-1601
  */
 LIBDPSLR_EXPORT HRTimePointStd win32TicksToTimePoint(unsigned long long ticks);
+
+
+
+
+
+LIBDPSLR_EXPORT long double jdtToGmst(long double jd);
+
+
+LIBDPSLR_EXPORT long double jdtToLmst(long double jdt, long double lon);
+
 
 /**
  * @brief Convert a given date and time to a HRTimePointStd.

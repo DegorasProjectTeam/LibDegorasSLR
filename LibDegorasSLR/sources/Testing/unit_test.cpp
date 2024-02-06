@@ -29,12 +29,12 @@ TestLog::TestLog(const std::string& module, const std::string& test, const std::
     test_(test),
     det_ex_(det_ex),
     passed_(passed),
-    tp_str_(timing::timePointToIso8601(tp, timing::TimeResolution::MILLISECONDS)),
+    tp_str_(timing::timePointToIso8601(tp, timing::TimeResolution::MILLISECONDS, true, false)),
     elapsed_(elapsed),
     results_(results)
 {}
 
-std::string TestLog::makeLog(const std::string& storage_path) const
+std::string TestLog::makeLog(bool force_show) const
 {
     // Stream.
     std::stringstream stream;
@@ -57,7 +57,7 @@ std::string TestLog::makeLog(const std::string& storage_path) const
         stream << " [Except: " << this->det_ex_ << "]";
 
     // Put all the checks.
-    if(!this->passed_)
+    if(!this->passed_ || force_show)
     {
         stream << "\n";
         stream << "   Subtest - Result - Data\n";
@@ -73,7 +73,11 @@ std::string TestLog::makeLog(const std::string& storage_path) const
 
             stream << "      " << num << std::string(padd, ' ') << "   -   ";
             if (result)
+            {
                 stream << "PASS";
+                if(force_show && !message.empty())
+                    stream << " - " << message;
+            }
             else
             {
                 stream << "FAIL";
@@ -104,15 +108,22 @@ const std::string &TestLog::getModuleName() const{return this->module_;}
 
 bool TestLog::getResult() const{return this->passed_;}
 
-void UnitTest::runTests()
+bool UnitTest::runTests()
 {
+    // Final result.
+    bool final_res = true;
+
     // Separator.
     std::string sep = helpers::strings::fillStr("=", 100) + "\n";
 
     // Log.
     std::cout<<"\033[38;2;255;128;0m"<<sep<<"=                                    ";
-    std::cout << "EXECUTING UNIT TEST SESSION                                   =\n";
+    std::cout<<"EXECUTING UNIT TEST SESSION                                   =\n";
     std::cout<<"\033[38;2;255;128;0m"<<sep;
+    auto now_t = timing::HRTimePointStd::clock::now();
+    std::string now_str = timing::timePointToIso8601(now_t, timing::TimeResolution::MILLISECONDS, true, false);
+    std::cout<<"\033[38;2;255;128;0m"<<"["<<now_str<<"]"<<"\033[038;2;0;210;0m";
+    std::cout<<" Starting the session: "<<this->session_<<"\033[38;2;255;128;0m"<<std::endl;
 
     // Iterate over the multimap in order of keys
     for (auto it = this->test_dict_.begin(); it != this->test_dict_.end();)
@@ -129,18 +140,21 @@ void UnitTest::runTests()
             TestBase* test = range_it->second;
             std::string det_ex;
             long long elapsed = 0;
-            auto now_t = timing::HRTimePointStd::clock::now();
             bool result;
 
+            auto now_t = timing::HRTimePointStd::clock::now();
+            std::string now_str = timing::timePointToIso8601(now_t, timing::TimeResolution::MILLISECONDS, true, false);
+
             // Log.
-            std::cout<<"\033[38;2;255;128;0m"<<"Executing test: "<<"\033[038;2;0;140;255m"
-                      <<test->test_name_<<"..."<<std::endl;
+            std::cout<<"\033[38;2;255;128;0m"<<"["<<now_str<<"] "<<"\033[038;2;0;140;255m"
+                      <<c_module << " | " << test->test_name_<<"..."<<std::endl;
 
             // Async execution.
             std::future<long long> future =
-                std::async(std::launch::async,
-                           [test, &result]()
+                std::async(std::launch::async, [test, &result, this]()
                            {
+                               // Configure the base test.
+                               test->setForceStreamData(this->force_show_results_);
                                // Start time.
                                auto start = std::chrono::steady_clock::now();
                                // Run the test.
@@ -165,9 +179,12 @@ void UnitTest::runTests()
                 det_ex = e.what();
             }
 
-            // Instantiate the test and store.
+            // Update final result.
+            if(final_res && !result)
+                final_res = false;
+
+            // Instantiate the test log and store.
             TestLog t_log(c_module, test->test_name_, det_ex, result, now_t, elapsed, test->check_results_);
-            t_log.makeLog();
             this->summary_.addLog(t_log);
         }
 
@@ -176,11 +193,17 @@ void UnitTest::runTests()
     }
 
     // Log.
-    std::cout<<"\033[38;2;255;128;0m"<<"All tests executed!"<<std::endl;
+    now_t = timing::HRTimePointStd::clock::now();
+    now_str = timing::timePointToIso8601(now_t, timing::TimeResolution::MILLISECONDS, true, false);
+    std::cout<<"\033[38;2;255;128;0m"<<"["<<now_str<<"]";
+    std::cout<<"\033[038;2;0;210;0m"<<" All registerted unit tests executed!"<<std::endl;
     std::cout<<"\033[38;2;255;128;0m"<<sep<<std::endl;
 
     // Make the summary.
-    this->summary_.makeSummary(true);
+    this->summary_.makeSummary(this->force_show_results_);
+
+    // Return the final result.
+    return final_res;
 }
 
 TestSummary::TestSummary():n_pass_(0),n_fail_(0){}
@@ -198,7 +221,7 @@ void TestSummary::clear()
     this->test_logs_.clear();
 }
 
-void TestSummary::makeSummary(bool show, const std::string& storage_path) const
+void TestSummary::makeSummary(bool force_show) const
 {
     // Auxiliar containers.
     std::vector<std::string> keys = helpers::containers::getMapKeys(this->test_logs_);
@@ -278,7 +301,7 @@ void TestSummary::makeSummary(bool show, const std::string& storage_path) const
         // Process all elements with the same key.
         for (auto range_it = range.first; range_it != range.second; ++range_it)
         {
-            std::cerr << range_it->second.makeLog() << std::endl;
+            std::cerr << range_it->second.makeLog(force_show) << std::endl;
         }
 
         // Finish the section.
@@ -317,9 +340,19 @@ void UnitTest::clear()
     this->summary_.clear();
 }
 
+void UnitTest::setForceShowResults(bool enable)
+{
+    this->force_show_results_ = enable;
+}
+
+UnitTest::UnitTest() :
+    force_show_results_(false)
+{}
+
 TestBase::TestBase(const std::string &name):
     test_name_(name),
     result_(true),
+    force_stream_data_(false),
     current_check_n_(0)
 {}
 
@@ -338,6 +371,11 @@ bool TestBase::forcePass()
 }
 
 TestBase::~TestBase(){}
+
+void TestBase::setForceStreamData(bool enable)
+{
+    this->force_stream_data_ = enable;
+}
 
 }} // END NAMESPACES.
 // =====================================================================================================================

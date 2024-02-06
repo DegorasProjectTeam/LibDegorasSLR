@@ -37,8 +37,13 @@
 // =====================================================================================================================
 
 #define M_START_UNIT_TEST_SESSION(SessionName)                    \
+int main(){                                                       \
 UnitTest::instance().clear();                                     \
 UnitTest::instance().setSessionName(std::string(SessionName));    \
+
+#define M_FORCE_SHOW_RESULTS(enable)                              \
+UnitTest::instance().clear();                                     \
+    UnitTest::instance().setForceShowResults(enable);             \
 
 #define M_DECLARE_UNIT_TEST(Module, TestName)               \
 using dpslr::testing::TestBase;                             \
@@ -63,8 +68,10 @@ void Test_##Module##_##TestName::runTest() \
             std::pair<std::string, TestBase*>(#Module, Test_##Module##_##TestName::instance())); \
 
 #define M_RUN_UNIT_TESTS() \
-dpslr::testing::UnitTest::instance().runTests(); \
-return 0; \
+bool final_res = dpslr::testing::UnitTest::instance().runTests(); \
+
+#define M_FINISH_UNIT_TEST_SESSION() \
+return final_res; } \
 
 #define M_CUSTOM_CHECK(func, ...) \
 this->result_ &= customCheck(func, __VA_ARGS__); \

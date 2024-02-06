@@ -33,6 +33,10 @@
 // C++ INCLUDES
 //======================================================================================================================
 #include <regex>
+#include <sstream>
+#include <chrono>
+#include <iomanip>
+#include <stdexcept>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
@@ -65,9 +69,10 @@ using std::chrono::time_point_cast;
 // IMPLEMENTATIONS
 // =====================================================================================================================
 
-std::string timePointToString(const HRTimePointStd &tp, const std::string& format, TimeResolution resolution, bool utc)
+std::string timePointToString(const HRTimePointStd &tp, const std::string& format, TimeResolution resolution,
+                              bool utc, bool rm_trailing_zeros)
 {
-    std::ostringstream ss;
+    std::ostringstream ss, frac;
     auto dur = tp.time_since_epoch();
     auto secs = std::chrono::duration_cast<std::chrono::seconds>(dur).count();
     auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(dur).count();
@@ -83,11 +88,13 @@ std::string timePointToString(const HRTimePointStd &tp, const std::string& forma
 
     ss << std::put_time(tm, format.c_str());
 
-    if (resolution != TimeResolution::SECONDS) {
+    if (resolution != TimeResolution::SECONDS)
+    {
         long long fraction = 0;
         int width = 0;
 
-        switch (resolution) {
+        switch (resolution)
+        {
         case TimeResolution::MILLISECONDS:
             fraction = remaining_ns / 1'000'000; // Convert nanoseconds to milliseconds
             width = 3;
@@ -104,24 +111,37 @@ std::string timePointToString(const HRTimePointStd &tp, const std::string& forma
             break; // This case is handled by the if condition above
         }
 
-        ss << '.' << std::setw(width) << std::setfill('0') << fraction;
+        frac << '.' << std::setw(width) << std::setfill('0') << fraction;
+
+        // Remove last 0.
+        if(rm_trailing_zeros)
+        {
+            std::string frac_str = frac.str();
+            frac_str.erase(frac_str.find_last_not_of('0') + 1, std::string::npos);
+            if (frac_str.back() == '.')
+                frac_str.erase(frac_str.length() - 1);
+            ss << frac_str;
+        }
+        else
+            ss << frac.str();
     }
 
+    // Return the string.
     return ss.str();
 }
 
-std::string timePointToIso8601(const HRTimePointStd& tp, TimeResolution resolution, bool utc)
+std::string timePointToIso8601(const HRTimePointStd& tp, TimeResolution resolution, bool utc, bool rm_trailing_zeros)
 {
-    std::string result = timePointToString(tp, "%Y-%m-%dT%H:%M:%S", resolution, utc);
+    std::string result = timePointToString(tp, "%Y-%m-%dT%H:%M:%S", resolution, utc, rm_trailing_zeros);
     if(utc)
         result += 'Z';
     return result;
 }
 
-std::string currentISO8601Date(TimeResolution resolution, bool utc)
+std::string currentISO8601Date(TimeResolution resolution, bool utc, bool rm_trailing_zeros)
 {
     auto now = high_resolution_clock::now();
-    return timePointToIso8601(now, resolution, utc);
+    return timePointToIso8601(now, resolution, utc, rm_trailing_zeros);
 }
 
 std::string millisecondsToISO8601Duration(const std::chrono::milliseconds& msecs)
@@ -165,6 +185,14 @@ std::string millisecondsToISO8601Duration(const std::chrono::milliseconds& msecs
     }
 
     return os.str();
+}
+
+std::string secondsToISO8601Duration(const std::chrono::seconds& secs)
+{
+    // Convert seconds to milliseconds
+    std::chrono::milliseconds msecs = std::chrono::duration_cast<std::chrono::milliseconds>(secs);
+    // Call the original function with the converted duration
+    return millisecondsToISO8601Duration(msecs);
 }
 
 // =====================================================================================================================
@@ -228,22 +256,21 @@ HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime)
     return t;
 }
 
-
-
-
-std::chrono::seconds iso8601DurationParser(const std::string& duration)
+HRTimePointStd win32TicksToTimePoint(unsigned long long ticks)
 {
-    // WARNING Regex not works with old compilers.
-
-    // Regex expressions.
-    std::regex rcheck("^((?!T).)*$");
-    std::regex r1("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?");
-    std::regex r2(
-        "P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?T([[:d:]]+H)?([[:d:]]+M)?([[:d:]]+S|[[:d:]]+\\.[[:d:]]+S)?");
-
-    //TODO
+    const unsigned long long ns = ticks * common::kNsPerWin32Tick;
+    const unsigned long long sec = ns / 1000000000ULL;
+    const unsigned long long frc = ns % 1000000000ULL;
+    auto offset = common::SecStd(sec + static_cast<unsigned long long>(common::kWin32EpochToPosixEpoch));
+    if (offset.count() < 0)
+    {
+        throw std::invalid_argument(
+            "[LibDegorasSLR,Timing,iso8601DatetimeParser] The ticks represent a time before the Unix epoch.");
+    }
+    auto tp_sec = time_point_cast<common::SecStd>(HRTimePointStd()) +
+                  common::SecStd(sec + static_cast<unsigned long long>(common::kWin32EpochToPosixEpoch));
+    return tp_sec + common::NsStd(frc);
 }
-
 // =====================================================================================================================
 
 
@@ -476,15 +503,7 @@ HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h, int min, int s)
     return high_resolution_clock::from_time_t(MKGMTIME(&datetime));
 }
 
-HRTimePointStd win32TicksToTimePoint(unsigned long long ticks)
-{
-    const unsigned long long ns = ticks * common::kNsPerWin32Tick;
-    const unsigned long long sec = ns / 1000000000ULL;
-    const unsigned long long frc = ns % 1000000000ULL;
-    auto tp_sec = time_point_cast<common::SecStd>(
-                      HRTimePointStd()) + common::SecStd(sec + common::kWin32EpochToPosixEpoch);
-    return tp_sec + common::NsStd(frc);
-}
+
 
 
 

@@ -48,14 +48,6 @@ namespace dpslr{
 namespace testing{
 // =====================================================================================================================
 
-// Helper to convert value to string if it supports streaming to an ostringstream
-template<typename T, typename = void>
-struct is_streamable : std::false_type {};
-
-template<typename T>
-struct is_streamable<T, std::void_t<decltype(std::declval<std::ostringstream&>()
-                                             << std::declval<T>())>> : std::true_type {};
-
 
 
 struct LIBDPSLR_EXPORT TestLog
@@ -67,7 +59,7 @@ public:
             bool passed, const timing::HRTimePointStd &tp, long long elapsed,
             const std::vector<std::tuple<unsigned, bool, std::string>>& results);
 
-    std::string makeLog(const std::string& storage_path = std::string()) const;
+    std::string makeLog(bool force_show = false) const;
 
     const std::string& getModuleName() const;
 
@@ -101,7 +93,7 @@ public:
 
     void clear();
 
-    void makeSummary(bool show = true, const std::string& storage_path = std::string()) const;
+    void makeSummary(bool force_show = true) const;
 
 private:
 
@@ -139,7 +131,7 @@ public:
     bool customCheck(const std::function<bool(const Args&...)>& check_function, const Args&... args)
     {
         bool result = check_function(args...);
-        this->updateCheckResults(result);
+        this->updateCheckResults(result, args...);
         return result;
     }
 
@@ -283,13 +275,23 @@ public:
 
     virtual ~TestBase();
 
+    void setForceStreamData(bool enable);
+
     std::string test_name_;
     bool result_;
+    bool force_stream_data_;
     unsigned current_check_n_;
     std::vector<std::tuple<unsigned, bool, std::string>> check_results_;
 
 private:
 
+    // Helper to convert value to string if it supports streaming to an ostringstream.
+    template<typename T, typename = void>
+    struct is_streamable : std::false_type {};
+
+    template<typename T>
+    struct is_streamable<T, std::void_t<decltype(std::declval<std::ostringstream&>()
+                                                 << std::declval<T>())>> : std::true_type {};
     template<typename T>
     static std::enable_if_t<is_streamable<T>::value, std::string> valueToString(const T& value)
     {
@@ -305,13 +307,30 @@ private:
         return "<NON STREAMABLE TYPE>";
     }
 
+    // Specialization for std::chrono::time_point types
+    template<typename Clock, typename Duration>
+    std::string valueToString(const std::chrono::time_point<Clock, Duration>& tp)
+    {
+        return valueToString(tp.time_since_epoch());
+    }
+
+    // Specialization for std::chrono::duration types
+    template<typename Rep, typename Period>
+    std::string valueToString(const std::chrono::duration<Rep, Period>& dur)
+    {
+        return std::to_string(dur.count()) + " [" + std::to_string(Period::num) +
+               "/" + std::to_string(Period::den) + "]s";
+    }
+
+
+
     template<typename... Args>
     void updateCheckResults(bool res, Args&&... args)
     {
         std::string combined_msg;
         this->current_check_n_++;
 
-        if(!res)
+        if(!res || this->force_stream_data_)
         {
             if constexpr (sizeof...(args) > 0)
             {
@@ -342,18 +361,24 @@ public:
 
     void addTest(std::pair<std::string, TestBase*> p);
 
-    void runTests();
+    bool runTests();
 
     void clear();
 
+    void setForceShowResults(bool enable);
+
 private:
 
-    UnitTest() = default;
+    // Constructor.
+    UnitTest();
 
     // Members.
     std::multimap<std::string, TestBase*> test_dict_;
     TestSummary summary_;
     std::string session_;
+
+    // Configuration.
+    bool force_show_results_;
 };
 
 }} // END NAMESPACES.

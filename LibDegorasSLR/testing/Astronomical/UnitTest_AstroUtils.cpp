@@ -21,14 +21,12 @@ M_DEFINE_UNIT_TEST(AstroUtils, azElToRaDec)
     M_EXPECTED_EQ(1,1)
 }
 
-int main()
-{
-    M_START_UNIT_TEST_SESSION("LibDegorasSLR Astronomical Session")
 
-    // Register the tests.
-    M_REGISTER_UNIT_TEST(AstroUtils, azElToRaDec)
+M_START_UNIT_TEST_SESSION("LibDegorasSLR Astronomical Session")
 
-    M_RUN_UNIT_TESTS()
+// Register the tests.
+M_REGISTER_UNIT_TEST(AstroUtils, azElToRaDec)
 
-    return 0;
-}
+M_RUN_UNIT_TESTS()
+
+M_FINISH_UNIT_TEST_SESSION()
