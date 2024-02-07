@@ -122,6 +122,23 @@ public:
         PositionStatus status;  ///< The postion status.
     };
 
+    struct TrackSLR
+    {
+        // Toda la info generada de analizar el pase.
+        // Basicamente es guardar la info ya generada, no dejarla en la clase aislada.
+
+        // TODO culmination elevation del track -> maxima si el fragmento finaliza antes de la culminación del pase, o si
+        // hay un esquive del Sol hacia arriba.
+        // TODO Máximas velocidades en azimuth y elevación.
+
+        // Meter la start elevation del track.
+        // Meter la end elevation del track.
+        // Poner get solo cuando sea get de verdad, si no poner "is" o similar.
+        // TrackSlr -> estructura que almacene la anterior información más la información step a step generada.
+        // Incluir optional con tiempo de comienzo de la colision con el sol (coincidente con inicio del pase si es al principio)
+        // y tiempo de finalización (coincidente con el fin del pase si es al final).
+    };
+
     /**
      * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.
      * @param min_elev, the minimum elevation in degrees at which the tracking starts.
@@ -135,6 +152,17 @@ public:
     TrackingSLR(double min_elev, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
                 PredictorSLR&& predictor, double time_delta = 1.,
                 bool avoid_sun = true, double sun_avoid_angle = 15.);
+
+    // No se procesa la elevacion maxima porque es trivial, a diferencia de un cambio de trayectoria completo como
+    // puede ser el resultado de una posible interferencia del Sol. La elevación minima simplemente se utiliza para
+    // comprobar la existencia o no de un pase en el intervalo seleccionado. Por defecto, para satélites que no sean
+    // altos, 10 grados es suficiente. Esta elevación debe de coincidir con la que se use para generar las predicciones
+    // para evitar incongruencias.
+
+    // Este sistema no analiza los limites físicos de la montura de seguimiento. En SFEl, la montura AMELAS tiene
+    // capacidad independiente de cálculo, y es la encargada de realizar internamente una modificación de la trayectoria
+    // si el pase es demasiado alto o demasiado rápido. En otros sistemas, este cálculo específico debe de ser realizado
+    // independientemente una vez realizada la predicción con esta clase.
 
     // TRACKING SLR VS PassCalculatorSLR
     // TrackingSLR está pensado para un unico track. La idea es que pass calculator tiene capacidad de calcular todos
@@ -163,16 +191,30 @@ public:
     TrackingSLR(double min_elev, const timing::HRTimePointStd& tp_start, const timing::HRTimePointStd& tp_end,
                 PredictorSLR&& predictor, double time_delta = 1., bool avoid_sun = true, double sun_avoid_angle = 15.);
 
+
+    // TODO culmination elevation del track -> maxima si el fragmento finaliza antes de la culminación del pase, o si
+    // hay un esquive del Sol hacia arriba.
+    // TODO Máximas velocidades en azimuth y elevación.
+
+    // Meter la start elevation del track.
+    // Meter la end elevation del track.
+    // Poner get solo cuando sea get de verdad, si no poner "is" o similar.
+    // TrackSlr -> estructura que almacene la anterior información más la información step a step generada.
+    // Incluir optional con tiempo de comienzo de la colision con el sol (coincidente con inicio del pase si es al principio)
+    // y tiempo de finalización (coincidente con el fin del pase si es al final).
+
     /**
      * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
      * @return true if there is a valid tracking, false otherwise.
      */
     bool isValid() const;
+
     /**
      * @brief This function returns the minimum elevation of this tracking in degrees.
      * @return the minimum elevation of the tracking in degrees.
      */
     double getMinElev() const;
+
     /**
      * @brief If this traking is valid, you can get the tracking start with this function.
      * @param mjd, the MJ date in days for the tracking start.
@@ -185,6 +227,7 @@ public:
      * @param sod, the second of day for the tracking end.
      */
     void getTrackingEnd(MJDate &mjd, SoD& sod) const;
+
     /**
      * @brief This function returns if sun avoidance is applied.
      * @return true if sun avoidance is applied, false otherwise.
@@ -264,7 +307,7 @@ private:
     dpslr::algoslr::utils::PredictorSLR predictor_;
     dpslr::astro::PredictorSun<long double> sun_predictor_;
 
-
+    TrackSLR info_guardada_todo;
 };
 
 }}} // END NAMESPACES
