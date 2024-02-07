@@ -7,9 +7,9 @@
 
 using namespace dpslr;
 
-M_DECLARE_UNIT_TEST(AstroUtils, azElToRaDec)
+M_DECLARE_UNIT_TEST(azElToRaDec)
 
-M_DEFINE_UNIT_TEST(AstroUtils, azElToRaDec)
+M_DEFINE_UNIT_TEST(azElToRaDec)
 {
     long double ra, dec;
 
@@ -25,7 +25,7 @@ M_DEFINE_UNIT_TEST(AstroUtils, azElToRaDec)
 M_START_UNIT_TEST_SESSION("LibDegorasSLR Astronomical Session")
 
 // Register the tests.
-M_REGISTER_UNIT_TEST(AstroUtils, azElToRaDec)
+M_REGISTER_UNIT_TEST(Astronomical, astro_utils, azElToRaDec)
 
 M_RUN_UNIT_TESTS()
 

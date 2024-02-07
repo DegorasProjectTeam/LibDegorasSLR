@@ -22,73 +22,49 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
+
 // C++ INCLUDES
 // =====================================================================================================================
+#include <map>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Testing/unit_test.h"
+#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/Testing/unit_test_log.h"
 // =====================================================================================================================
 
-// MACROS
+// DPSLR NAMESPACES
+// =====================================================================================================================
+namespace dpslr{
+namespace testing{
 // =====================================================================================================================
 
-#define M_START_UNIT_TEST_SESSION(SessionName)                    \
-int main(){                                                       \
-UnitTest::instance().clear();                                     \
-UnitTest::instance().setSessionName(std::string(SessionName));    \
+class LIBDPSLR_EXPORT UnitTestSummary
+{
 
-#define M_FORCE_SHOW_RESULTS(enable)                              \
-UnitTest::instance().clear();                                     \
-    UnitTest::instance().setForceShowResults(enable);             \
+public:
 
-#define M_DECLARE_UNIT_TEST(TestName)                       \
-using dpslr::testing::UnitTestBase;                         \
-using dpslr::testing::UnitTest;                             \
-class Test_##TestName : public UnitTestBase                 \
-{                                                           \
-        Test_##TestName(): UnitTestBase(#TestName){}        \
-        public:                                             \
-        static Test_##TestName* instance()                  \
-    {                                                       \
-            static Test_##TestName test;                    \
-            return &test;                                   \
-    }                                                       \
-        void runTest() override;                            \
-};                                                          \
+    UnitTestSummary();
 
-#define M_DEFINE_UNIT_TEST(TestName) \
-void Test_##TestName::runTest() \
+    void setSessionName(const std::string& name);
 
-#define M_REGISTER_UNIT_TEST(Module, Submodule, TestName) \
-    UnitTest::instance().registerTest(#Module, #Submodule, Test_##TestName::instance()); \
+    void addLog(const UnitTestLog& log);
 
-#define M_RUN_UNIT_TESTS() \
-bool final_res = dpslr::testing::UnitTest::instance().runTests(); \
+    void clear();
 
-#define M_FINISH_UNIT_TEST_SESSION() \
-return (final_res ? 0 : 1); } \
+    void makeSummary(bool force_show = true) const;
 
-#define M_CUSTOM_CHECK(func, ...) \
-this->result_ &= customCheck(func, __VA_ARGS__); \
+private:
 
-#define M_EXPECTED_EQ(arg1, arg2) \
-this->result_ &= expectEQ(arg1, arg2); \
+    std::multimap<std::string, UnitTestLog> test_logs_;
+    std::string session_;
+    unsigned n_pass_;
+    unsigned n_fail_;
+};
 
-#define M_EXPECTED_EQ_F(arg1, arg2, eps) \
-this->result_ &= expectEQ(arg1, arg2, eps); \
-
-#define M_EXPECTED_NE(arg1, arg2) \
-this->result_ &= expectNE(arg1, arg2); \
-
-#define M_FORCE_FAIL() \
-this->result_ &= forceFail(); \
-
-#define M_FORCE_PASS() \
-this->result_ &= forcePass(); \
-
-#define M_SLEEP_US(arg1) \
-std::this_thread::sleep_for(std::chrono::microseconds(arg1)); \
- \
+}} // END NAMESPACES.
 // =====================================================================================================================

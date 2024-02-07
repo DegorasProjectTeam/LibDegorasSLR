@@ -64,9 +64,6 @@ using HRClock = std::chrono::high_resolution_clock;
 /// High resolution time point to store datetimes (uses Unix Time).
 using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
-/// Normal time point to store datetimes (uses Unix Time).
-using TimePointStd = std::chrono::time_point<std::chrono::system_clock>;
-
 /// Steady clock time point for measuring intervals.
 using SCTimePointStd =  std::chrono::steady_clock::time_point;
 

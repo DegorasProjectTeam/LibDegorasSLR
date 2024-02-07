@@ -36,31 +36,33 @@
 #include <regex>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/Testing/UnitTest>
 #include <LibDegorasSLR/Timing/TimeUtils>
 // =====================================================================================================================
 
 // NAMESPACES
+// ---------------------------------------------------------------------------------------------------------------------
 using namespace dpslr;
 using namespace dpslr::timing;
+// ---------------------------------------------------------------------------------------------------------------------
 
 // UNIT TEST DECLARATIONS
 // ---------------------------------------------------------------------------------------------------------------------
-M_DECLARE_UNIT_TEST(Timing, timePointToString)
-M_DECLARE_UNIT_TEST(Timing, timePointToIso8601)
-M_DECLARE_UNIT_TEST(Timing, currentISO8601Date)
-M_DECLARE_UNIT_TEST(Timing, millisecondsToISO8601Duration)
-M_DECLARE_UNIT_TEST(Timing, secondsToISO8601Duration)
-M_DECLARE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
-M_DECLARE_UNIT_TEST(Timing, win32TicksToTimePoint)
+M_DECLARE_UNIT_TEST(timePointToString)
+M_DECLARE_UNIT_TEST(timePointToIso8601)
+M_DECLARE_UNIT_TEST(currentISO8601Date)
+M_DECLARE_UNIT_TEST(millisecondsToISO8601Duration)
+M_DECLARE_UNIT_TEST(secondsToISO8601Duration)
+M_DECLARE_UNIT_TEST(iso8601DatetimeParserUTC)
+M_DECLARE_UNIT_TEST(win32TicksToTimePoint)
 // ---------------------------------------------------------------------------------------------------------------------
 
 // UNIT TESTS IMPLEMENTATIONS
 // ---------------------------------------------------------------------------------------------------------------------
 
-M_DEFINE_UNIT_TEST(Timing, timePointToString)
+M_DEFINE_UNIT_TEST(timePointToString)
 {
     // Inputs.
     std::chrono::nanoseconds in_1(167253349123456789);
@@ -117,7 +119,7 @@ M_DEFINE_UNIT_TEST(Timing, timePointToString)
     M_EXPECTED_EQ(out_11, res_11)
 }
 
-M_DEFINE_UNIT_TEST(Timing, timePointToIso8601)
+M_DEFINE_UNIT_TEST(timePointToIso8601)
 {
     // Inputs.
     std::chrono::nanoseconds in_1(167253349123456789);
@@ -156,7 +158,7 @@ M_DEFINE_UNIT_TEST(Timing, timePointToIso8601)
     M_CUSTOM_CHECK(checkDoesNotEndWithZ, res_4)
 }
 
-M_DEFINE_UNIT_TEST(Timing, currentISO8601Date)
+M_DEFINE_UNIT_TEST(currentISO8601Date)
 {
     // Call currentISO8601Date with different resolutions and UTC settings
     std::string current_ms_utc = timing::currentISO8601Date(TimeResolution::MILLISECONDS, true);
@@ -189,7 +191,7 @@ M_DEFINE_UNIT_TEST(Timing, currentISO8601Date)
     M_EXPECTED_EQ(formatted_now.substr(0, 21), current_now.substr(0, 21)) // Approximation.
 }
 
-M_DEFINE_UNIT_TEST(Timing, millisecondsToISO8601Duration)
+M_DEFINE_UNIT_TEST(millisecondsToISO8601Duration)
 {
     // Test cases with expected inputs and outputs
     std::vector<std::pair<long long, std::string>> test_cases =
@@ -225,7 +227,7 @@ M_DEFINE_UNIT_TEST(Timing, millisecondsToISO8601Duration)
     }
 }
 
-M_DEFINE_UNIT_TEST(Timing, secondsToISO8601Duration)
+M_DEFINE_UNIT_TEST(secondsToISO8601Duration)
 {
     // Test cases with expected inputs and outputs
     std::vector<std::pair<long long, std::string>> test_cases =
@@ -259,7 +261,7 @@ M_DEFINE_UNIT_TEST(Timing, secondsToISO8601Duration)
     }
 }
 
-M_DEFINE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
+M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
 {
     // Exception result.
     std::string exception_str = "[LibDegorasSLR,Timing,iso8601DatetimeParser] Invalid argument:";
@@ -330,7 +332,7 @@ M_DEFINE_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
     }
 }
 
-M_DEFINE_UNIT_TEST(Timing, win32TicksToTimePoint)
+M_DEFINE_UNIT_TEST(win32TicksToTimePoint)
 {
     // Exception result.
     std::string exception_str =
@@ -390,13 +392,13 @@ M_START_UNIT_TEST_SESSION("LibDegorasSLR Timing Session")
 M_FORCE_SHOW_RESULTS(false)
 
 // Register the tests.
-M_REGISTER_UNIT_TEST(Timing, timePointToString)
-M_REGISTER_UNIT_TEST(Timing, timePointToIso8601)
-M_REGISTER_UNIT_TEST(Timing, currentISO8601Date)
-M_REGISTER_UNIT_TEST(Timing, millisecondsToISO8601Duration)
-M_REGISTER_UNIT_TEST(Timing, secondsToISO8601Duration)
-M_REGISTER_UNIT_TEST(Timing, iso8601DatetimeParserUTC)
-M_REGISTER_UNIT_TEST(Timing, win32TicksToTimePoint)
+M_REGISTER_UNIT_TEST(Timing, time_utils, timePointToString)
+M_REGISTER_UNIT_TEST(Timing, time_utils, timePointToIso8601)
+M_REGISTER_UNIT_TEST(Timing, time_utils, currentISO8601Date)
+M_REGISTER_UNIT_TEST(Timing, time_utils, millisecondsToISO8601Duration)
+M_REGISTER_UNIT_TEST(Timing, time_utils, secondsToISO8601Duration)
+M_REGISTER_UNIT_TEST(Timing, time_utils, iso8601DatetimeParserUTC)
+M_REGISTER_UNIT_TEST(Timing, time_utils, win32TicksToTimePoint)
 
 // Run unit tests.
 M_RUN_UNIT_TESTS()

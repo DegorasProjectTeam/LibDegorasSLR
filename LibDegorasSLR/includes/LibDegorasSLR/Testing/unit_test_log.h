@@ -22,73 +22,69 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
+
 // C++ INCLUDES
 // =====================================================================================================================
+#include <vector>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Testing/unit_test.h"
+#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
-// MACROS
+// DPSLR NAMESPACES
+// =====================================================================================================================
+namespace dpslr{
+namespace testing{
 // =====================================================================================================================
 
-#define M_START_UNIT_TEST_SESSION(SessionName)                    \
-int main(){                                                       \
-UnitTest::instance().clear();                                     \
-UnitTest::instance().setSessionName(std::string(SessionName));    \
+// ALIAS
+// ---------------------------------------------------------------------------------------------------------------------
+using UnitTestResult = std::vector<std::tuple<unsigned, bool, std::string>>;
+// ---------------------------------------------------------------------------------------------------------------------
 
-#define M_FORCE_SHOW_RESULTS(enable)                              \
-UnitTest::instance().clear();                                     \
-    UnitTest::instance().setForceShowResults(enable);             \
+struct LIBDPSLR_EXPORT UnitTestLog
+{
 
-#define M_DECLARE_UNIT_TEST(TestName)                       \
-using dpslr::testing::UnitTestBase;                         \
-using dpslr::testing::UnitTest;                             \
-class Test_##TestName : public UnitTestBase                 \
-{                                                           \
-        Test_##TestName(): UnitTestBase(#TestName){}        \
-        public:                                             \
-        static Test_##TestName* instance()                  \
-    {                                                       \
-            static Test_##TestName test;                    \
-            return &test;                                   \
-    }                                                       \
-        void runTest() override;                            \
-};                                                          \
+public:
 
-#define M_DEFINE_UNIT_TEST(TestName) \
-void Test_##TestName::runTest() \
+    UnitTestLog(const std::string& module,
+                const std::string& submodule,
+                const std::string& test,
+                const std::string &det_ex,
+                bool passed,
+                const timing::HRTimePointStd &tp,
+                long long elapsed,
+                const UnitTestResult& results);
 
-#define M_REGISTER_UNIT_TEST(Module, Submodule, TestName) \
-    UnitTest::instance().registerTest(#Module, #Submodule, Test_##TestName::instance()); \
+    std::string makeLog(bool force_show = false) const;
 
-#define M_RUN_UNIT_TESTS() \
-bool final_res = dpslr::testing::UnitTest::instance().runTests(); \
+    const std::string& getModuleName() const;
 
-#define M_FINISH_UNIT_TEST_SESSION() \
-return (final_res ? 0 : 1); } \
+    const std::string& getSubmoduleName() const;
 
-#define M_CUSTOM_CHECK(func, ...) \
-this->result_ &= customCheck(func, __VA_ARGS__); \
 
-#define M_EXPECTED_EQ(arg1, arg2) \
-this->result_ &= expectEQ(arg1, arg2); \
+    bool getResult() const;
 
-#define M_EXPECTED_EQ_F(arg1, arg2, eps) \
-this->result_ &= expectEQ(arg1, arg2, eps); \
+private:
 
-#define M_EXPECTED_NE(arg1, arg2) \
-this->result_ &= expectNE(arg1, arg2); \
+    std::string formatResult() const;
 
-#define M_FORCE_FAIL() \
-this->result_ &= forceFail(); \
+    // Stringstreams.
+    std::string module_;
+    std::string submodule_;
+    std::string test_;
+    std::string tp_str_;
+    std::string det_ex_;
+    bool passed_;
+    long long elapsed_;
+    UnitTestResult results_;
+};
 
-#define M_FORCE_PASS() \
-this->result_ &= forcePass(); \
-
-#define M_SLEEP_US(arg1) \
-std::this_thread::sleep_for(std::chrono::microseconds(arg1)); \
- \
+}} // END NAMESPACES.
 // =====================================================================================================================
