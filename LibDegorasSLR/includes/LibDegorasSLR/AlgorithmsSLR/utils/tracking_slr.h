@@ -157,6 +157,8 @@ public:
         bool sun_collision_at_end;
 
         std::vector<SunSector> sun_sectors;
+
+        std::vector<TrackingResult> positions;
     };
 
     /**

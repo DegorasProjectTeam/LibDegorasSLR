@@ -62,6 +62,7 @@ TrackingSLR::TrackingSLR(unsigned int min_elev, MJDate mjd_start, SoD sod_start,
     this->track_info_.avoid_sun = avoid_sun;
     this->track_info_.sun_collision_at_start = false;
     this->track_info_.sun_collision_at_end = false;
+    this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
     this->analyzeTracking();
 }
 
@@ -80,6 +81,7 @@ TrackingSLR::TrackingSLR(unsigned int min_elev, const timing::HRTimePointStd& tp
     this->track_info_.sun_collision_at_end = false;
     timing::timePointToModifiedJulianDate(tp_start, this->track_info_.mjd_start, this->track_info_.sod_start);
     timing::timePointToModifiedJulianDate(tp_end, this->track_info_.mjd_end, this->track_info_.sod_end);
+    this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
     this->analyzeTracking();
 }
 
@@ -288,6 +290,8 @@ void TrackingSLR::analyzeTracking()
 
 bool TrackingSLR::checkTrackingStart()
 {
+    TrackingResult tr;
+    dpslr::astro::SunPosition<long double> sun_pos;
     MJDate predict_mjd_start, predict_mjd_end;
     SoD predict_sod_start, predict_sod_end;
     this->predictor_.getTimeWindow(predict_mjd_start, predict_sod_start, predict_mjd_end, predict_sod_end);
@@ -312,8 +316,9 @@ bool TrackingSLR::checkTrackingStart()
     if (this->track_info_.avoid_sun)
     {
         double j2000 = dpslr::timing::mjdToJ2000Datetime(this->track_info_.mjd_start, this->track_info_.sod_start);
+        sun_pos = this->sun_predictor_.fastPredict(j2000, false);
 
-        while (this->insideSunSector(*result.instant_data, this->sun_predictor_.fastPredict(j2000, false)))
+        while (this->insideSunSector(*result.instant_data, sun_pos))
         {
             // Advance to next time position.
             this->track_info_.sod_start += this->track_info_.time_delta;
@@ -340,11 +345,23 @@ bool TrackingSLR::checkTrackingStart()
 
     this->track_info_.start_elev = result.instant_data->el;
 
+    tr.mjd = this->track_info_.mjd_start;
+    tr.sod = this->track_info_.sod_start;
+    tr.mjdt = timing::mjdAndSecsToMjdt(tr.mjd, tr.sod);
+    tr.prediction_result = result;
+    tr.sun_pos = sun_pos;
+    tr.tracking_position = TrackingPosition{result.instant_data->az, result.instant_data->el, 0, 0};
+    tr.status = PositionStatus::OUTSIDE_SUN;
+
+    this->track_info_.positions.push_back(std::move(tr));
+
     return true;
 }
 
 bool TrackingSLR::checkTrackingEnd()
 {
+    TrackingResult tr;
+    dpslr::astro::SunPosition<long double> sun_pos;
     MJDate predict_mjd_start, predict_mjd_end;
     SoD predict_sod_start, predict_sod_end;
     this->predictor_.getTimeWindow(predict_mjd_start, predict_sod_start, predict_mjd_end, predict_sod_end);
@@ -370,8 +387,9 @@ bool TrackingSLR::checkTrackingEnd()
             return false;
 
         double j2000 = dpslr::timing::mjdToJ2000Datetime(this->track_info_.mjd_end, this->track_info_.sod_end);
+        sun_pos = this->sun_predictor_.fastPredict(j2000, false);
 
-        while (this->insideSunSector(*result.instant_data, this->sun_predictor_.fastPredict(j2000, false)))
+        while (this->insideSunSector(*result.instant_data, sun_pos))
         {
             // Advance to previous time position.
             this->track_info_.sod_end -= this->track_info_.time_delta;
@@ -398,13 +416,26 @@ bool TrackingSLR::checkTrackingEnd()
 
     this->track_info_.end_elev = result.instant_data->el;
 
+    tr.mjd = this->track_info_.mjd_end;
+    tr.sod = this->track_info_.sod_end;
+    tr.mjdt = timing::mjdAndSecsToMjdt(tr.mjd, tr.sod);
+    tr.prediction_result = result;
+    tr.sun_pos = sun_pos;
+    tr.tracking_position = TrackingPosition{result.instant_data->az, result.instant_data->el, 0, 0};
+    tr.status = PositionStatus::OUTSIDE_SUN;
+
+    this->track_info_.positions.push_back(std::move(tr));
+
     return true;
 }
 
 bool TrackingSLR::checkTracking()
 {
+    TrackingResult tr;
     bool in_sun_sector = false;
+    bool sun_collision = false;
     std::vector<dpslr::astro::SunPosition<long double>> sun_positions;
+    dpslr::astro::SunPosition<long double> sun_pos;
     SunSector sun_sector;
     MJDate mjd = this->track_info_.mjd_start;
     SoD sod = this->track_info_.sod_start;
@@ -433,6 +464,7 @@ bool TrackingSLR::checkTracking()
         }
 
         j2000 += this->track_info_.time_delta / static_cast<long double>(dpslr::timing::common::kSecsInDay);
+        sun_pos = this->sun_predictor_.fastPredict(j2000, false);
 
         error_code = this->predictor_.predict(mjd, sod, result);
 
@@ -445,8 +477,7 @@ bool TrackingSLR::checkTracking()
         // We will store the data for each sector where the tracking goes through the sun security sector.
         if (this->track_info_.avoid_sun)
         {
-            auto sun_pos = this->sun_predictor_.fastPredict(j2000, false);
-            bool sun_collision = this->insideSunSector(*result.instant_data, sun_pos);
+            sun_collision = this->insideSunSector(*result.instant_data, sun_pos);
             if (sun_collision)
             {
                 // If there is a sun collision, start saving sun positions for this sector
@@ -482,6 +513,31 @@ bool TrackingSLR::checkTracking()
             max_elev_mjd = mjd;
             max_elev_sod = sod;
         }
+
+        tr.mjd = mjd;
+        tr.sod = sod;
+        tr.mjdt = timing::mjdAndSecsToMjdt(tr.mjd, tr.sod);
+        tr.prediction_result = result;
+        tr.sun_pos = sun_pos;
+        tr.tracking_position = TrackingPosition{result.instant_data->az, result.instant_data->el, 0, 0};
+
+        if (!sun_collision)
+        {
+            tr.status = PositionStatus::OUTSIDE_SUN;
+        }
+        else
+        {
+            if (this->track_info_.avoid_sun)
+            {
+                tr.status = PositionStatus::AVOIDING_SUN;
+                // TODO: calculate sun avoid trajectory for storing diff.
+            }
+            else
+                tr.status = PositionStatus::INSIDE_SUN;
+        }
+
+        this->track_info_.positions.insert(this->track_info_.positions.end() - 1, std::move(tr));
+        tr = {};
 
         previous_result = std::move(result);
         result = {};
