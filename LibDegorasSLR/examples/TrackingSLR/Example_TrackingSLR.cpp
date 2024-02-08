@@ -11,7 +11,7 @@ int main ()
 
     // Configure the CPF folder and example file.
     std::string cpf_dir("C:/0-SALARA_PROJECT/SP_DataFiles/SP_CPF/SP_CurrentCPF/");
-    std::string cpf_name("38077_cpf_240128_02901.sgf");
+    std::string cpf_name("41240_cpf_240128_02801.hts");
 
 
     // SFEL station geodetic coordinates.
@@ -35,10 +35,10 @@ int main ()
     predictor.setPredictionMode(dpslr::algoslr::utils::PredictorSLR::PredictionMode::INSTANT_VECTOR);
 
     timing::MJDate mjd_start = 60340;
-    timing::SoD sod_start = 56730;
+    timing::SoD sod_start = 42140;
     timing::MJDate mjd_end = 60340;
-    timing::SoD sod_end = 57750;
-    dpslr::algoslr::utils::TrackingSLR tracking(9.L, mjd_start, sod_start, mjd_end, sod_end, std::move(predictor), 1.);
+    timing::SoD sod_end = 43150;
+    dpslr::algoslr::utils::TrackingSLR tracking(8.L, mjd_start, sod_start, mjd_end, sod_end, std::move(predictor));
     dpslr::astro::PredictorSun<long double> sun_pred(stat_geodetic);
     std::vector<dpslr::astro::SunPosition<long double>> sun_pos;
 
@@ -48,14 +48,14 @@ int main ()
         return -1;
     }
 
-    if (tracking.getSunOverlapping())
+    if (tracking.isSunOverlapping())
     {
         std::cout << "There is sun overlapping" << std::endl;
 
-        if (tracking.getSunAtStart())
+        if (tracking.isSunAtStart())
             std::cout << "Sun overlapping at the beginning" << std::endl;
-
-        if (tracking.getSunAtEnd())
+        
+        if (tracking.isSunAtEnd())
             std::cout << "Sun overlapping at the end" << std::endl;
     }
 

@@ -53,9 +53,12 @@ namespace utils{
 /**
  * @brief The TrackingSLR class implements an abstraction for a SLR tracking.
  *
- * This class uses a @a PredictorSLR to look for a SLR tracking next to a given datetime. This class also offers a sun
- * avoidance algorithm. This algorithm changes the tracking trajectory whenever it passes through a circular sector
- * around the sun (the sun security sector).
+ * This class uses a @a PredictorSLR to look for a SLR tracking within the given time window, i.e., the object is
+ * always above the minimum elevation.
+ *
+ * This class also offers a sun avoidance algorithm. This algorithm changes the tracking trajectory whenever it passes
+ * through a circular sector around the sun (the sun security sector). There are other checkings performed to the
+ * tracking by this class. Before using the tracking you should check whether the tracking is valid or not.
  *
  */
 class LIBDPSLR_EXPORT TrackingSLR
@@ -69,7 +72,7 @@ public:
     {
         long double az_entry;       ///< Azimuth of sun sector entry point
         long double el_entry;       ///< Elevation of sun sector entry point
-        MJDateTime mjdt_entry;        ///< MJ datetime of sun sector entry point
+        MJDateTime mjdt_entry;      ///< MJ datetime of sun sector entry point
         long double az_exit;        ///< Azimuth of sun sector exit point
         long double el_exit;        ///< Elevation of sun sector exit point
         MJDateTime mjdt_exit;       ///< MJ datetime of sun sector exit point
@@ -89,7 +92,12 @@ public:
         PREDICTION_ERROR    ///< The object position can't be calculated, there was a SLR prediction error.
     };
 
-    // TODO Explicar el por que puede ser diferente la real que la
+    /**
+     * @brief The TrackingPosition struct represents the pointing position of a tracking at a given time. It includes
+     * a diff_az and diff_el members, which are used when the tracking is avoiding a sun security sector. In that case,
+     * these members hold the difference between the real azimuth and elevation and the azimuth and elevation used for
+     * avoiding the sun sector.
+     */
     struct TrackingPosition
     {
         long double az;      ///< Azimuth of the space object in degrees.
@@ -100,18 +108,20 @@ public:
 
     /**
      * @brief This struct contanis the azimuth and elevation postion for a given time of the tracking.
-     * TODO Explican more
-     * Si OUT_OF_TRACK los optional no estan.
-     * Si PREDICTION_ERROR el prediction result y el sun position están.
-     * Si CANT_AVOID_SUN el prediction result y el sun position están.
-     *
+     * Depending on the status returned, the available data may vary.
+     * If status is OUT_OF_TRACK no result member is available, only the datetime
+     * If status is PREDICTION_ERROR, prediction_result and sun_pos are available, but no tracking_position.
+     * If status is CANT_AVOID_SUN, prediction_result and sun_pos are available, but no tracking_position.
+     * If status is either OUTSIDE_SUN, INSIDE_SUN OR AVOIDING_SUN, all result members are available.
+     * Care must be taken if status is INSIDE_SUN, since the class is configured to not avoid sun and the position
+     * returned is within a sun security sector.
      */
     struct TrackingResult
     {
         // Datetime members.
-        MJDate mjd;                   ///< Modified julian date in days.
-        SoD sod;                   ///< Second of day in that MJD.
-        MJDateTime mjdt;                 ///< Modified julian datetime (day & fraction).
+        MJDate mjd;                                                 ///< Modified julian date in days.
+        SoD sod;                                                    ///< Second of day in that MJD.
+        MJDateTime mjdt;                                            ///< Modified julian datetime (day & fraction).
 
         // Result members.
         Optional<PredictorSLR::PredictionResult> prediction_result; ///< SLR prediction result.
@@ -119,24 +129,34 @@ public:
         Optional<astro::SunPosition<long double>> sun_pos;          ///< Sun position.
 
         // Status.
-        PositionStatus status;  ///< The postion status.
+        PositionStatus status;                                      ///< The postion status.
     };
 
     struct TrackSLR
     {
-        // Toda la info generada de analizar el pase.
-        // Basicamente es guardar la info ya generada, no dejarla en la clase aislada.
+        // TODO: velocities
+        MJDate mjd_start;
+        SoD sod_start;
+        MJDate mjd_end;
+        SoD sod_end;
+        MJDate mjd_max_elev;
+        SoD sod_max_elev;
 
-        // TODO culmination elevation del track -> maxima si el fragmento finaliza antes de la culminación del pase, o si
-        // hay un esquive del Sol hacia arriba.
-        // TODO Máximas velocidades en azimuth y elevación.
+        double start_elev;
+        double end_elev;
+        double max_elev;
 
-        // Meter la start elevation del track.
-        // Meter la end elevation del track.
-        // Poner get solo cuando sea get de verdad, si no poner "is" o similar.
-        // TrackSlr -> estructura que almacene la anterior información más la información step a step generada.
-        // Incluir optional con tiempo de comienzo de la colision con el sol (coincidente con inicio del pase si es al principio)
-        // y tiempo de finalización (coincidente con el fin del pase si es al final).
+        bool valid_pass;
+        bool avoid_sun;
+
+        double min_elev;           ///< Degrees.
+        double time_delta;         ///< Seconds.
+        double sun_avoid_angle;    ///< Degrees.
+
+        bool sun_at_start;
+        bool sun_at_end;
+
+        std::vector<SunSector> sun_sectors;
     };
 
     /**
@@ -145,75 +165,44 @@ public:
      * @param mjd_search, the search Modified Julian Date in days to start looking for a tracking.
      * @param sod_search, the search Second of Day inside the previous `mjd_search` to start looking for a tracking.
      * @param predictor, the predictor used for calculating the tracked object positions at a given time.
-     * @param time_delta, the time delta in seconds used to analyze the tracking. The smallest, the more precise.
+     * @param time_delta, the time delta in milliseconds used to analyze the tracking. The smallest, the more precise.
      * @param avoid_sun, true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle, if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    TrackingSLR(double min_elev, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
-                PredictorSLR&& predictor, double time_delta = 1.,
-                bool avoid_sun = true, double sun_avoid_angle = 15.);
-
-    // No se procesa la elevacion maxima porque es trivial, a diferencia de un cambio de trayectoria completo como
-    // puede ser el resultado de una posible interferencia del Sol. La elevación minima simplemente se utiliza para
-    // comprobar la existencia o no de un pase en el intervalo seleccionado. Por defecto, para satélites que no sean
-    // altos, 10 grados es suficiente. Esta elevación debe de coincidir con la que se use para generar las predicciones
-    // para evitar incongruencias.
-
-    // Este sistema no analiza los limites físicos de la montura de seguimiento. En SFEl, la montura AMELAS tiene
-    // capacidad independiente de cálculo, y es la encargada de realizar internamente una modificación de la trayectoria
-    // si el pase es demasiado alto o demasiado rápido. En otros sistemas, este cálculo específico debe de ser realizado
-    // independientemente una vez realizada la predicción con esta clase.
-
-    // TRACKING SLR VS PassCalculatorSLR
-    // TrackingSLR está pensado para un unico track. La idea es que pass calculator tiene capacidad de calcular todos
-    // los pases (o los que se requieran) a partir de un CPF y sacar las características del mismo. En este caso, los
-    // datos serían los reales respecto al pase. TrackingSLR lo que permite es modificar estos datos y generar una
-    // nueva clase TrackSLR (diferente de PassSLR pero que contiene tambien el original) en la que el pase pueda verse
-    // modificado por distintas cuestiones, siempre desde el punto de vista de la seguridad o mécanico de la montura.
-    // Inicialmente, solo tendremos en cuenta el Sol y limites de altura, pero en el futuro puede añadirse nuevos
-    // parámetros como la máxima velocidad del pase.
-
-    // inicio > final
-    // El intervalo se encuentra dentro del CPF (predictor). Validar predictor respecto a intervalos.
-    // Comprobar que existe un pase (la elevacion es en todo momento > minimo).
-    //
-
+    TrackingSLR(unsigned min_elev, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
+                PredictorSLR&& predictor, unsigned time_delta = 1000,
+                bool avoid_sun = true, unsigned sun_avoid_angle = 15);
 
     /**
      * @brief TrackingSLR constructor. Receives the necessary parameters for looking for a SLR tracking.
      * @param min_elev, the minimum elevation in degrees at which the tracking starts.
      * @param tp_start, the time point datetime to start looking for a tracking.
      * @param predictor, the predictor used for calculating the tracked object positions at a given time.
-     * @param time_delta, the time delta in seconds used to analyze the tracking. The smallest, the more precise.
+     * @param time_delta, the time delta in milliseconds used to analyze the tracking. The smallest, the more precise.
      * @param avoid_sun, true if you want the sun avoidance to be applied, false otherwise.
      * @param sun_avoid_angle, if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
-    TrackingSLR(double min_elev, const timing::HRTimePointStd& tp_start, const timing::HRTimePointStd& tp_end,
-                PredictorSLR&& predictor, double time_delta = 1., bool avoid_sun = true, double sun_avoid_angle = 15.);
-
-
-    // TODO culmination elevation del track -> maxima si el fragmento finaliza antes de la culminación del pase, o si
-    // hay un esquive del Sol hacia arriba.
-    // TODO Máximas velocidades en azimuth y elevación.
-
-    // Meter la start elevation del track.
-    // Meter la end elevation del track.
-    // Poner get solo cuando sea get de verdad, si no poner "is" o similar.
-    // TrackSlr -> estructura que almacene la anterior información más la información step a step generada.
-    // Incluir optional con tiempo de comienzo de la colision con el sol (coincidente con inicio del pase si es al principio)
-    // y tiempo de finalización (coincidente con el fin del pase si es al final).
+    TrackingSLR(unsigned min_elev, const timing::HRTimePointStd& tp_start, const timing::HRTimePointStd& tp_end,
+                PredictorSLR&& predictor, unsigned time_delta = 1000,
+                bool avoid_sun = true, unsigned sun_avoid_angle = 15);
 
     /**
-     * @brief This function checks if there is a valid SLR tracking. You MUST check this, before requesting positions.
+     * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
      * @return true if there is a valid tracking, false otherwise.
      */
     bool isValid() const;
 
     /**
+     * @brief This function returns the tracking info available.
+     * @return the tracking info.
+     */
+    const TrackSLR& getTrackingInfo() const;
+
+    /**
      * @brief This function returns the minimum elevation of this tracking in degrees.
      * @return the minimum elevation of the tracking in degrees.
      */
-    double getMinElev() const;
+    unsigned getMinElev() const;
 
     /**
      * @brief If this traking is valid, you can get the tracking start with this function.
@@ -238,26 +227,27 @@ public:
      * @brief This function returns if there is sun overlapping in this tracking.
      * @return true if sun avoid is applied and there is an overlapping with the sun, false otherwise.
      */
-    bool getSunOverlapping() const;
+    bool isSunOverlapping() const;
 
     /**
-     * @brief This function returns if the start time of the tracking was modified due to a sun collision at the begining.
+     * @brief This function returns if the start time of the tracking was modified due to a sun collision
+     * at the begining.
      * @return if sun avoid is applied, it returns true if tracking start time was modified due to sun, false otherwise.
      */
-    bool getSunAtStart() const;
+    bool isSunAtStart() const;
 
     /**
      * @brief This function returns if the end time of the tracking was modified due to a sun collision at the end.
      * @return if sun avoid is applied, it returns true if tracking end time was modified due to sun, false otherwise.
      */
-    bool getSunAtEnd() const;
+    bool isSunAtEnd() const;
 
     /**
      * @brief This function returns the radius of the sun security sector applied to sun avoidance manouvre.
      *        This function should not be called if sun avoidance is not applied.
      * @return the radius of the sun security sector
      */
-    double getSunAvoidAngle() const;
+    unsigned getSunAvoidAngle() const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -282,32 +272,16 @@ private:
     bool checkTrackingStart();
     bool checkTrackingEnd();
     bool checkTracking();
-
     bool insideSunSector(const PredictorSLR::InstantData& pos,
                          const dpslr::astro::SunPosition<long double>& sun_pos) const;
     void setSunSectorRotationDirection(
         SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double>> &sun_positions);
 
 
-    MJDate mjd_start_;
-    SoD sod_start_;
-    MJDate mjd_end_;
-    SoD sod_end_;
-
-    double min_elev_;           ///< Degrees.
-    double time_delta_;         ///< Seconds.
-    double sun_avoid_angle_;    ///< Degrees.
-    bool valid_pass_;
-    bool avoid_sun_;
-    bool sun_at_start_;
-    bool sun_at_end_;
-
-    std::vector<SunSector> sun_sectors_;
-
     dpslr::algoslr::utils::PredictorSLR predictor_;
     dpslr::astro::PredictorSun<long double> sun_predictor_;
 
-    TrackSLR info_guardada_todo;
+    TrackSLR track_info_;
 };
 
 }}} // END NAMESPACES
