@@ -41,7 +41,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Mathematics/units.h"
 #include <cmath>
 // =====================================================================================================================

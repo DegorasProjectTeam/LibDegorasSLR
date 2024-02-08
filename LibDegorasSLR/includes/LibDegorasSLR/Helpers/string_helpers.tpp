@@ -132,6 +132,28 @@ std::string numberToStr(T x, unsigned int prec, unsigned int dec_places, bool fi
     }
 }
 
+template<typename T>
+std::string numberToMaxDecStr(T x)
+{
+    static_assert(std::is_floating_point<T>::value, "T must be a floating-point type");
+
+    std::ostringstream strout;
+    // Set precision to maximum possible for the type
+    strout << std::showpoint << std::setprecision(std::numeric_limits<T>::max_digits10) << x;
+
+    // Convert to string
+    std::string str = strout.str();
+
+    // Remove trailing zeros and potential trailing decimal point
+    size_t end = str.find_last_not_of('0') + 1;
+    if (str[end - 1] == '.') {
+        --end; // If the last character is now a decimal point, remove it as well
+    }
+    str.erase(end);
+
+    return str;
+}
+
 template <typename Container>
 std::string join(const Container& strings, const std::string& delimiter)
 {

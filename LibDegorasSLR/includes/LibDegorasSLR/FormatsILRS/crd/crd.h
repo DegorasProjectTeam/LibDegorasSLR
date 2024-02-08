@@ -281,7 +281,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_header.h"
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_configuration.h"
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_data.h"

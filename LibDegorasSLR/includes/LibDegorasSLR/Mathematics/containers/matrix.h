@@ -48,8 +48,8 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdpslr_global.h"
-#include "LibDegorasSLR/libdpslr_init.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/libdegorasslr_init.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES

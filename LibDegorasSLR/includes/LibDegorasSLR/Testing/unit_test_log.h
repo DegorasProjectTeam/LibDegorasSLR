@@ -33,7 +33,7 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 

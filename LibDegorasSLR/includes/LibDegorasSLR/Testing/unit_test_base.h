@@ -38,7 +38,8 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -56,10 +57,6 @@ protected:
 
 public:
 
-    bool forceFail();
-
-    bool forcePass();
-
     // Type traits.
     template <typename T>
     struct is_container : std::false_type {};
@@ -70,6 +67,26 @@ public:
     template <typename T, size_t N>
     struct is_container<std::array<T, N>> : std::true_type {};
 
+    // Run all test.
+    virtual void runTest();
+
+    // Virtual destructor.
+    virtual ~UnitTestBase();
+
+    // Force stream (show) the input test data.
+    void setForceStreamData(bool enable);
+
+    // Force fail the test.
+    bool forceFail();
+
+    // Force pass the test.
+    bool forcePass();
+
+    bool expectEQ(const std::string& str1, const std::string& str2);
+
+    bool expectEQ(const char* str1, const char* str2);
+
+    // Custom checks.
     template<typename... Args>
     bool customCheck(const std::function<bool(const Args&...)>& check_function, const Args&... args)
     {
@@ -78,24 +95,8 @@ public:
         return result;
     }
 
-    bool expectEQ(const std::string& str1, const std::string& str2)
-    {
-        bool result = (str1 == str2);
-        this->updateCheckResults(result, str1, str2);
-        return result;
-    }
-
-    bool expectEQ(const char* str1, const char* str2)
-    {
-        bool result = (std::string(str1) == std::string(str2));
-        this->updateCheckResults(result, str1, str2);
-        return result;
-    }
-
-    template<typename T>
-    typename std::enable_if_t<
-        !is_container<T>::value &&
-            !std::is_floating_point_v<T>, bool>
+    // Integral types.
+    template<typename T>  typename std::enable_if_t<!is_container<T>::value && !std::is_floating_point_v<T>, bool>
     expectEQ(const T& arg1, const T& arg2)
     {
         bool result = (arg1 == arg2);
@@ -103,10 +104,9 @@ public:
         return result;
     }
 
+    // Floating types.
     template<typename T>
-    typename std::enable_if_t<
-        !is_container<T>::value &&
-            std::is_floating_point_v<T>, bool>
+    typename std::enable_if_t<!is_container<T>::value && std::is_floating_point_v<T>, bool>
     expectEQ(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
     {
         bool result = std::abs(arg1 - arg2) <= tolerance;
@@ -178,7 +178,8 @@ public:
 
     template <typename T, size_t N>
     typename std::enable_if_t<std::is_floating_point_v<T>, bool>
-    expectEQ(const std::array<T, N>& arr1, const std::array<T, N>& arr2, const T& tol = std::numeric_limits<T>::epsilon())
+    expectEQ(const std::array<T, N>& arr1, const std::array<T, N>& arr2,
+             const T& tol = std::numeric_limits<T>::epsilon())
     {
         for (size_t i = 0; i < N; ++i)
         {
@@ -214,11 +215,7 @@ public:
         return std::abs(arg1 - arg2) > tolerance;
     }
 
-    virtual void runTest();
 
-    virtual ~UnitTestBase();
-
-    void setForceStreamData(bool enable);
 
     std::string test_name_;
     bool result_;
@@ -235,8 +232,14 @@ private:
     template<typename T>
     struct is_streamable<T, std::void_t<decltype(std::declval<std::ostringstream&>()
                                                  << std::declval<T>())>> : std::true_type {};
+
+    // Conversion to string for streamable types
     template<typename T>
-    static std::enable_if_t<is_streamable<T>::value, std::string> valueToString(const T& value)
+    static std::enable_if_t<
+                    is_streamable<T>::value &&
+                    !std::is_floating_point<T>::value,
+                    std::string>
+    valueToString(const T& value)
     {
         std::ostringstream os;
         os << value;
@@ -245,9 +248,22 @@ private:
 
     // Fallback for non-streamable types, could be adjusted based on needs.
     template<typename T>
-    static std::enable_if_t<!is_streamable<T>::value, std::string> valueToString(const T&)
+    static std::enable_if_t<
+                    !is_streamable<T>::value,
+                    std::string>
+    valueToString(const T&)
     {
         return "<NON STREAMABLE TYPE>";
+    }
+
+    // Specialization for floating-point types using numberToMaxDecStr
+    template<typename T>
+    static std::enable_if_t<
+                    std::is_floating_point<T>::value,
+                    std::string>
+    valueToString(const T& value)
+    {
+        return helpers::strings::numberToMaxDecStr(value);
     }
 
     // Specialization for std::chrono::time_point types

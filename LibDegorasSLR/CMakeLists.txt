@@ -49,7 +49,7 @@ macro_cmakemodules_init()
 
 # Base project configuration.
 set(LIB_NAME LibDegorasSLR)
-set(LIB_VER 2.1.0)
+set(LIB_VER 1.9.0)
 set(LIB_BUILD_MODE Debug)
 set(LIB_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../${LIB_NAME}_product_v${LIB_VER})
 set(LIB_CMAKE_CONFIG_NAME ${LIB_NAME}_config)

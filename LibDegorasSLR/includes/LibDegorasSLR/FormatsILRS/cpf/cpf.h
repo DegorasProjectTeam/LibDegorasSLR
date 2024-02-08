@@ -64,7 +64,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"

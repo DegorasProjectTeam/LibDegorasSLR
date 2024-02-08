@@ -79,11 +79,23 @@ using UsStd = std::chrono::microseconds;
 /// Short way of referring to nanoseconds.
 using NsStd = std::chrono::nanoseconds;
 
+/// Alias for Windows Ticks.
+using Windows32Ticks = unsigned long long;
+
 /// Alias for Modified Julian Date in days.
 using MJDate = long long;
 
+/// Alias for Julian Date in days.
+using JDate = long long;
+
 /// Alias for Modified Julian Datetime in days with decimals.
 using MJDateTime = long double;
+
+/// Alias for Reduced Julian Datetime in days with decimals.
+using RJDateTime = long double;
+
+/// Alias for Julian Datetime in days with decimals.
+using JDateTime = long double;
 
 /// Alias for second of day with decimals.
 using SoD = long double;
@@ -110,6 +122,7 @@ constexpr long double kJulianToJ2000 = -2451545.0L;
 constexpr long double kJ2000ToJulian = 2451545.0L;
 constexpr long double kPosixEpochToJulian = 2440587.5L;
 constexpr long double kJulianToPosixEpoch = -2440587.5L;
+constexpr long long kNsPerSecond = 1000000000LL;
 constexpr long long kSecsInDay = 86400LL;
 constexpr long long kNsPerWin32Tick = 100ULL;
 constexpr long long kWin32EpochToPosixEpoch = -11644473600LL;

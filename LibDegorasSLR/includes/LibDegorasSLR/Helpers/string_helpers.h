@@ -41,7 +41,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -125,6 +125,9 @@ std::string numberToFixstr(T x, unsigned int prec);
 // Custom number to fixed string conversion.
 template<typename T>
 std::string numberToStr(T x, unsigned int prec, unsigned int dec_places, bool fixed = true);
+
+template<typename T>
+std::string numberToMaxDecStr(T x);
 
 }}} // END NAMESPACES
 // =====================================================================================================================

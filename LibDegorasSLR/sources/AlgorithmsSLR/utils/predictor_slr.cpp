@@ -188,15 +188,15 @@ PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geo
     interpol_function_(InterpolFunction::LAGRANGE_9),
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     prediction_mode_(PredictionMode::OUTBOUND_VECTOR),
-    objc_ecc_corr_(0.0),
-    grnd_ecc_corr_(0.0),
-    cali_del_corr_(0.0),
-    syst_rnd_corr_(0.0),
+    objc_ecc_corr_(0.0L),
+    grnd_ecc_corr_(0.0L),
+    cali_del_corr_(0.0L),
+    syst_rnd_corr_(0.0L),
     apply_corr_(false),
-    press_(0.0),
-    temp_(0.0),
-    rel_hum_(0.0),
-    wl_(0.0),
+    press_(0.0L),
+    temp_(0.0L),
+    rel_hum_(0.0L),
+    wl_(0.0L),
     wtrvap_model_(WtrVapPressModel::GIACOMO_DAVIS),
     tropo_ready_(false),
     stat_geodetic_(geod),
@@ -218,15 +218,15 @@ PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const Geocent
     interpol_function_(InterpolFunction::LAGRANGE_9),
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     prediction_mode_(PredictionMode::OUTBOUND_VECTOR),
-    objc_ecc_corr_(0.0),
-    grnd_ecc_corr_(0.0),
-    cali_del_corr_(0.0),
-    syst_rnd_corr_(0.0),
+    objc_ecc_corr_(0.0L),
+    grnd_ecc_corr_(0.0L),
+    cali_del_corr_(0.0L),
+    syst_rnd_corr_(0.0L),
     apply_corr_(false),
-    press_(0.0),
-    temp_(0.0),
-    rel_hum_(0.0),
-    wl_(0.0),
+    press_(0.0L),
+    temp_(0.0L),
+    rel_hum_(0.0L),
+    wl_(0.0L),
     wtrvap_model_(WtrVapPressModel::GIACOMO_DAVIS),
     tropo_ready_(false),
     stat_geodetic_(geod),
@@ -247,7 +247,10 @@ bool PredictorSLR::setCPF(const CPF& cpf)
 
     // Store the eccentricity correction from the cpf.
     if(this->cpf_.getHeader().comCorrectionHeader())
-        this->objc_ecc_corr_ = this->cpf_.getHeader().comCorrectionHeader().value().com_correction;
+    {
+        this->objc_ecc_corr_ = static_cast<long double>(
+            this->cpf_.getHeader().comCorrectionHeader().value().com_correction);
+    }
 
     // Auxiliar variables.
     MJDate mjd_start = this->cpf_.getData().positionRecords().front().mjd;
@@ -296,7 +299,8 @@ void PredictorSLR::setCaliDelayCorr(long double correction){this->cali_del_corr_
 
 void PredictorSLR::setSystematicCorr(long double correction){this->syst_rnd_corr_ = correction;}
 
-void PredictorSLR::setTropoCorrParams(double press, double temp, double rh, double wl, WtrVapPressModel wvpm)
+void PredictorSLR::setTropoCorrParams(long double press, long double temp, long double rh,
+                                      long double wl, WtrVapPressModel wvpm)
 {
     this->press_ = press;
     this->temp_ = temp;
@@ -485,7 +489,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.error = PredictionError::NO_ERROR;
 
     // Generate the relative times.
-    int day_relative = mjd - this->cpf_.getData().positionRecords().front().mjd;
+    long long day_relative = mjd - this->cpf_.getData().positionRecords().front().mjd;
     x_instant = (day_relative*kSecsSolDay) + sod_instant - this->cpf_.getData().positionRecords().front().sod;
 
     // Check if the interpolation times are valid in the cpf data interval.
@@ -742,45 +746,46 @@ void PredictorSLR::getTimeWindow(MJDate &mjd_start, SoD &sod_start, MJDate &mjd_
     }
 }
 
-long double PredictorSLR::applyCorrections(long double &range, PredictionResult &result, bool cali, double el) const
+long double PredictorSLR::applyCorrections(long double &range, PredictionResult &result,
+                                           bool cali, long double el) const
 {
     // Auxiliar variable.
     long double aux_range = range;
 
     // Include the half of the system delay to the range. This will be permanent for the rest of computations.
-    if(dpslr::math::compareFloating(this->cali_del_corr_, 0.) && cali)
+    if(dpslr::math::compareFloating(this->cali_del_corr_, 0.0L) && cali)
     {
-        range += 0.5*this->cali_del_corr_*kC*kPsToSec;
+        range += 0.5L*this->cali_del_corr_*kC*kPsToSec;
         result.cali_del_corr = this->cali_del_corr_;
         aux_range = range;
     }
 
     // Include the object eccentricity correction.
-    if(dpslr::math::compareFloating(this->objc_ecc_corr_, 0.))
+    if(dpslr::math::compareFloating(this->objc_ecc_corr_, 0.0L))
     {
         aux_range = aux_range - this->objc_ecc_corr_;
         result.objc_ecc_corr = this->objc_ecc_corr_;
     }
 
     // Include the ground eccentricity correction.
-    if(dpslr::math::compareFloating(this->grnd_ecc_corr_, 0.))
+    if(dpslr::math::compareFloating(this->grnd_ecc_corr_, 0.0L))
     {
         aux_range = aux_range + this->grnd_ecc_corr_;
         result.grnd_ecc_corr = this->grnd_ecc_corr_;
     }
 
     // Include the systematic and random errors.
-    if(dpslr::math::compareFloating(this->syst_rnd_corr_, 0.))
+    if(dpslr::math::compareFloating(this->syst_rnd_corr_, 0.0L))
     {
         aux_range = aux_range + this->syst_rnd_corr_;
         result.syst_rnd_corr = this->syst_rnd_corr_;
     }
 
     // Compute and include the tropospheric path delay.
-    if(dpslr::math::compareFloating(el, 0.))
+    if(dpslr::math::compareFloating(el, 0.0L))
     {
         // Get the elevation in radians.
-        double el_instant_rad = math::units::degToRad(el);
+        long double el_instant_rad = math::units::degToRad(el);
 
         // Calculate the tropospheric path delay (1 way).
         range += geo::tropo::pathDelayMariniMurray(this->press_, this->temp_, this->rel_hum_, el_instant_rad,

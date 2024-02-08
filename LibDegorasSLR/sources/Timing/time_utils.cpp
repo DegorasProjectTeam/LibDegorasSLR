@@ -37,6 +37,7 @@
 #include <chrono>
 #include <iomanip>
 #include <stdexcept>
+#include <iostream>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
@@ -195,13 +196,6 @@ std::string secondsToISO8601Duration(const std::chrono::seconds& secs)
     return millisecondsToISO8601Duration(msecs);
 }
 
-// =====================================================================================================================
-
-HRTimePointStd iso8601DatetimeParser(const std::string& datetime)
-{
-    // Check if it is UTC and call to
-}
-
 HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime)
 {
     // Auxiliar variables.
@@ -216,7 +210,7 @@ HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime)
     if (!std::regex_search(datetime, match, iso8601_regex_extended))
     {
         if (!std::regex_search(datetime, match, iso8601_regex_basic))
-            throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601DatetimeParser] Invalid argument: " + datetime);
+            throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601DatetimeParserUTC] Invalid argument: " + datetime);
     }
 
     // Get the datetime values.
@@ -256,23 +250,61 @@ HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime)
     return t;
 }
 
-HRTimePointStd win32TicksToTimePoint(unsigned long long ticks)
+HRTimePointStd win32TicksToTimePoint(Windows32Ticks ticks)
 {
-    const unsigned long long ns = ticks * common::kNsPerWin32Tick;
+    const unsigned long long ns = ticks * static_cast<unsigned long long>(common::kNsPerWin32Tick);
     const unsigned long long sec = ns / 1000000000ULL;
     const unsigned long long frc = ns % 1000000000ULL;
     auto offset = common::SecStd(sec + static_cast<unsigned long long>(common::kWin32EpochToPosixEpoch));
     if (offset.count() < 0)
     {
         throw std::invalid_argument(
-            "[LibDegorasSLR,Timing,iso8601DatetimeParser] The ticks represent a time before the Unix epoch.");
+            "[LibDegorasSLR,Timing,win32TicksToTimePoint] The ticks represent a time before the Unix epoch.");
     }
     auto tp_sec = time_point_cast<common::SecStd>(HRTimePointStd()) +
                   common::SecStd(sec + static_cast<unsigned long long>(common::kWin32EpochToPosixEpoch));
     return tp_sec + common::NsStd(frc);
 }
-// =====================================================================================================================
 
+HRTimePointStd julianDatetimeToTimePoint(JDateTime jdt)
+{
+    // Convert JDT to Unix timestamp (seconds since Unix epoch)
+    long double unix_stamp = (jdt + kJulianToPosixEpoch) * kSecsInDay;
+    // Check if the resulting time point is before the Unix epoch
+    if (unix_stamp<0)
+    {
+        throw std::invalid_argument(
+            "[LibDegorasSLR,Timing,julianDatetimeToTimePoint] The jdt represent a time before the Unix epoch.");
+    }
+    duration<long double, std::ratio<common::kSecsInDay>> unix_days(jdt + common::kJulianToPosixEpoch);
+    auto dur = duration_cast<HRTimePointStd::duration>(unix_days);
+    return HRTimePointStd(dur);
+}
+
+
+
+
+
+
+JDateTime timePointToJulianDatetime(const HRTimePointStd &tp)
+{
+    long long ns_since_epoch = std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
+    long long days_since_epoch_int = ns_since_epoch / (common::kSecsInDay * common::kNsPerSecond);
+    long long ns_in_current_day = ns_since_epoch % static_cast<long long>(common::kSecsInDay * common::kNsPerSecond);
+    long double fractional_day = static_cast<long double>(ns_in_current_day) / (common::kSecsInDay * common::kNsPerSecond);
+    long double jd = static_cast<long double>(days_since_epoch_int) + fractional_day + common::kPosixEpochToJulian;
+    return jd;
+}
+
+
+
+
+HRTimePointStd modifiedJulianDatetimeToTimePoint(common::MJDateTime mjt)
+{
+    duration<long double, std::ratio<common::kSecsInDay>> unix_days(
+        mjt + common::kModifiedJulianToJulian + common::kJulianToPosixEpoch);
+    return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
+}
 
 
 
@@ -455,12 +487,7 @@ void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& s
     second_day_fract += second_day;
 }
 
-long double timePointToJulianDatetime(const HRTimePointStd &tp)
-{
-    long double unix_seconds = duration_cast<duration<long double>>(tp.time_since_epoch()).count();
-    long double jd = (unix_seconds/common::kSecsInDay) + common::kPosixEpochToJulian;
-    return jd;
-}
+
 
 long double timePointToJ2000Datetime(const HRTimePointStd &tp)
 {
@@ -472,23 +499,13 @@ common::MJDateTime timePointToModifiedJulianDatetime(const HRTimePointStd &tp)
     return timePointToJulianDatetime(tp) + common::kJulianToModifiedJulian;
 }
 
-long double timePointToReducedJulianDatetime(const HRTimePointStd &tp)
+RJDateTime timePointToReducedJulianDatetime(const HRTimePointStd &tp)
 {
     return timePointToJulianDatetime(tp) + common::kJulianToReducedJulian;
 }
 
-HRTimePointStd mjdtToTp(common::MJDateTime mjt)
-{
-    duration<long double, std::ratio<common::kSecsInDay>> unix_days(
-        mjt + common::kModifiedJulianToJulian + common::kJulianToPosixEpoch);
-    return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
-}
 
-HRTimePointStd jdtToTp(long double jt)
-{
-    duration<long double, std::ratio<common::kSecsInDay>> unix_days(jt + common::kJulianToPosixEpoch);
-    return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
-}
+
 
 
 HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h, int min, int s)
@@ -521,7 +538,7 @@ void adjMJDAndSecs(MJDate& mjd, SoD& seconds)
     }
 }
 
-long double mjdAndSecsToMjdt(common::MJDate mjd, SoD seconds)
+long double modifiedJulianDateAndSecondsToModifiedJulianDatetime(common::MJDate mjd, SoD seconds)
 {
     if (seconds >= common::kSecsInDay)
     {
@@ -557,7 +574,7 @@ long double jdtToLmst(long double jdt, long double lon)
 
 long double mjdToJ2000Datetime(MJDate mjd, SoD seconds)
 {
-    auto mjdt = mjdAndSecsToMjdt(mjd, seconds);
+    auto mjdt = modifiedJulianDateAndSecondsToModifiedJulianDatetime(mjd, seconds);
     return mjdtToJ2000Datetime(mjdt);
 }
 

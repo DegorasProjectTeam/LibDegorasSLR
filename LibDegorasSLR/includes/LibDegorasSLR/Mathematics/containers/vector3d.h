@@ -174,7 +174,7 @@ public:
      * @brief Computes the length (magnitude) of the vector.
      * @return The length of the vector.
      */
-    double magnitude() const
+    long double magnitude() const
     {
         return std::sqrt(this->getX() * this->getX() + this->getY() * this->getY() + this->getZ() * this->getZ());
     }
@@ -186,7 +186,7 @@ public:
     Vector3D normalize() const
     {
         Vector3D res;
-        double len = this->magnitude();
+        long double len = this->magnitude();
         if (len != 0)
             res = Vector3D(getX() / len, getY() / len, getZ() / len);
         return res;

@@ -36,7 +36,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdpslr_global.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
 #include "LibDegorasSLR/Geo/common/geo_types.h"
 #include "LibDegorasSLR/Mathematics/containers/matrix.h"
@@ -452,7 +452,7 @@ public:
      * @note If this parameters are not setted, the refraction correction will not be applied.
      * @note To disable the current refraction correction application, call to CPFPredictor::unsetTropoCorrParams().
      */
-    void setTropoCorrParams(double press, double temp, double rh, double wl,
+    void setTropoCorrParams(long double press, long double temp, long double rh, long double wl,
                             WtrVapPressModel wvpm = WtrVapPressModel::GIACOMO_DAVIS);
 
     /**
@@ -496,7 +496,7 @@ public:
 
 private:
     
-    long double applyCorrections(long double& range, PredictionResult& result, bool cali = false, double el = 0) const;
+    long double applyCorrections(long double& range, PredictionResult& result, bool cali = false, long double el = 0) const;
 
     PredictionError callToInterpol(long double x, Vector3D<long double>& y, PredictionResult& result) const;
 
@@ -508,17 +508,17 @@ private:
     PredictionMode prediction_mode_;
 
     // Correction related parameters.
-    double objc_ecc_corr_;       ///< Eccentricity correction at the satellite in meters (usually center of mass).
-    double grnd_ecc_corr_;       ///< Eccentricity correction at the ground in meters (usually not used).
-    double cali_del_corr_;       ///< Station calibration delay correction (in picoseconds).
-    double syst_rnd_corr_;       ///< Other systematic and random error corrections (in meters).
-    bool apply_corr_;            ///< Flag for apply the corrections.
+    long double objc_ecc_corr_;       ///< Eccentricity correction at the satellite in meters (usually center of mass).
+    long double grnd_ecc_corr_;       ///< Eccentricity correction at the ground in meters (usually not used).
+    long double cali_del_corr_;       ///< Station calibration delay correction (in picoseconds).
+    long double syst_rnd_corr_;       ///< Other systematic and random error corrections (in meters).
+    bool apply_corr_;                 ///< Flag for apply the corrections.
 
     // Tropospheric parameters.
-    double press_;
-    double temp_;
-    double rel_hum_;
-    double wl_;
+    long double press_;
+    long double temp_;
+    long double rel_hum_;
+    long double wl_;
     WtrVapPressModel wtrvap_model_;
     bool tropo_ready_;
 

@@ -1,19 +1,15 @@
 /***********************************************************************************************************************
- *   LibDegorasSLR (Degoras Project SLR Library).
- *
- *   A modern C++ libre base library for Satellite Laser Ranging (SLR)
- *
- *   software and real-time hardware related developments.
-                       *                                      *
- *     Developed under the context of Degoras Project for the Spanish Navy Observatory SLR
-(SFEL) station in San Fernando and, of course, any other station that wants to use it!
-
-                                                                                                                *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
+ *                                                                                                                     *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDegorasSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -50,6 +46,7 @@ using namespace dpslr::timing;
 
 // UNIT TEST DECLARATIONS
 // ---------------------------------------------------------------------------------------------------------------------
+M_DECLARE_UNIT_TEST(daysFromCivil)
 M_DECLARE_UNIT_TEST(timePointToString)
 M_DECLARE_UNIT_TEST(timePointToIso8601)
 M_DECLARE_UNIT_TEST(currentISO8601Date)
@@ -57,10 +54,38 @@ M_DECLARE_UNIT_TEST(millisecondsToISO8601Duration)
 M_DECLARE_UNIT_TEST(secondsToISO8601Duration)
 M_DECLARE_UNIT_TEST(iso8601DatetimeParserUTC)
 M_DECLARE_UNIT_TEST(win32TicksToTimePoint)
+M_DECLARE_UNIT_TEST(julianDatetimeToTimePoint)
+
+
+
+M_DECLARE_UNIT_TEST(timePointToJulianDatetime)
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 // UNIT TESTS IMPLEMENTATIONS
 // ---------------------------------------------------------------------------------------------------------------------
+
+M_DEFINE_UNIT_TEST(daysFromCivil)
+{
+    // Test cases with inputs: year, month, day, and expected output: days since 1970-01-01.
+    std::vector<std::tuple<int, unsigned, unsigned, int>> cases =
+    {
+        {1970, 1, 1, 0}, // Unix epoch start
+        {1969, 12, 31, -1}, // Day before Unix epoch
+        {2020, 5, 29, 18411}, // Sample date provided
+        {1601, 1, 1, -134774}, // Start of Win32 epoch, expected negative days
+        {2000, 1, 1, 10957}, // Y2K
+        {2010, 1, 1, 14610}, // Start of 2010
+        {1980, 1, 1, 3652}, // Start of 1980
+        {2058, 11, 20, 32465}, // Future date from the example
+    };
+
+    for (const auto& [year, month, day, expected] : cases)
+    {
+        int result = timing::daysFromCivil(year, month, day);
+        M_EXPECTED_EQ(expected, result)
+    }
+}
 
 M_DEFINE_UNIT_TEST(timePointToString)
 {
@@ -264,7 +289,7 @@ M_DEFINE_UNIT_TEST(secondsToISO8601Duration)
 M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
 {
     // Exception result.
-    std::string exception_str = "[LibDegorasSLR,Timing,iso8601DatetimeParser] Invalid argument:";
+    std::string exception_str = "[LibDegorasSLR,Timing,iso8601DatetimeParserUTC] Invalid argument:";
 
     // Base time.
     std::chrono::seconds secs_1(167253349);
@@ -327,7 +352,7 @@ M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
         catch (const std::invalid_argument& e)
         {
             std::string exception_msg = e.what();
-            M_EXPECTED_EQ(exception_msg.substr(0, 62), exception_str)
+            M_EXPECTED_EQ(exception_msg.substr(0, 65), exception_str)
         }
     }
 }
@@ -336,27 +361,28 @@ M_DEFINE_UNIT_TEST(win32TicksToTimePoint)
 {
     // Exception result.
     std::string exception_str =
-        "[LibDegorasSLR,Timing,iso8601DatetimeParser] The ticks represent a time before the Unix epoch.";
+        "[LibDegorasSLR,Timing,win32TicksToTimePoint] The ticks represent a time before the Unix epoch.";
 
-    // Increments
-    std::chrono::seconds ns_1(123456789);
-    std::chrono::seconds ns_2(001002003);
-
-    std::vector<std::pair<unsigned long long, std::string>> valid_cases =
+    // Valid cases.
+    std::vector<std::pair<timing::Windows32Ticks, std::string>> valid_cases =
     {
-        // Converting hexadecimal tick values to decimal
-        {116444736000000000ULL, "1970-01-01T00:00:00Z"},
-
-
-        {117093590311632896ULL, "1972-01-21T23:43:51.1632896Z"},
-
-        {125911584000000000ULL, "2000-01-01T00:00:00Z"}
-
+        // Windows ticks - Result.
+        {116444736000000000ULL, "1970-01-01T00:00:00Z"},   // Unix epoch.
+        {125911584000000000ULL, "2000-01-01T00:00:00Z"},   // 2000 era.
+        {129067776000000000ULL, "2010-01-01T00:00:00Z"},   // 2000 era.
+        {132223104000000000ULL, "2020-01-01T00:00:00Z"},   // 2000 era.
+        {117093590311632896ULL, "1972-01-21T23:43:51.1632896Z"},    // FILETIME era 1.
+        {121597189939003392ULL, "1986-04-30T11:43:13.9003392Z"},    // FILETIME era 2.
+        {126100789566373888ULL, "2000-08-06T23:42:36.6373888Z"},    // FILETIME era 3.
+        {130604389193744384ULL, "2014-11-14T11:41:59.3744384Z"},    // FILETIME era 4.
+        {135107988821114880ULL, "2029-02-20T23:41:22.111488Z"},     // FILETIME era 5.
+        {139611588448485376ULL, "2043-05-31T11:40:44.8485376Z"},    // FILETIME era 6.
     };
 
-    std::vector<unsigned long long> invalid_cases = {0ULL, 123456789123ULL, 116444735999999999ULL};
+    // Invalid cases.
+    std::vector<timing::Windows32Ticks> invalid_cases = {0ULL, 123456789123ULL, 116444735999999999ULL};
 
-    // Do the checks.
+    // Do the exception checks.
     for (const auto& input : invalid_cases)
     {
         try
@@ -371,13 +397,94 @@ M_DEFINE_UNIT_TEST(win32TicksToTimePoint)
         }
     }
 
+    // Do the valid checks.
     for (const auto& [input, expected] : valid_cases)
     {
         auto result_tp = win32TicksToTimePoint(input);
         std::string result_str = timing::timePointToIso8601(result_tp, TimeResolution::NANOSECONDS);
         M_EXPECTED_EQ(expected, result_str)
     }
+}
 
+M_DEFINE_UNIT_TEST(julianDatetimeToTimePoint)
+{
+    // Exception result.
+    std::string exception_str =
+            "[LibDegorasSLR,Timing,julianDatetimeToTimePoint] The jdt represent a time before the Unix epoch.";
+
+    // Valid cases.
+    std::vector<std::pair<timing::JDateTime, timing::HRTimePointStd>> valid_cases =
+    {
+        {2440587.5L, HRClock::from_time_t(0)},
+        {2440588.5L, HRClock::from_time_t(86400LL)},
+        {2460349.0092144L, HRClock::from_time_t(1707394396LL) + std::chrono::milliseconds(124)},
+        {2496964.259213947L, HRClock::from_time_t(4870951996LL) + std::chrono::milliseconds(85)}
+    };
+
+    // Invalid cases.
+    std::vector<timing::JDateTime> invalid_cases = {2440586.5L, 2040588.5L, 1840890.12345L};
+
+    // Do the exception checks.
+    for (const auto& input : invalid_cases)
+    {
+        try
+        {
+            timing::julianDatetimeToTimePoint(input);
+            M_FORCE_FAIL()
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::string exception_msg = e.what();
+            M_EXPECTED_EQ(exception_msg, exception_str)
+        }
+    }
+
+    // Do the valid checks.
+    for (const auto& [input, expected] : valid_cases)
+    {
+        // Up to ms resolution.
+        timing::HRTimePointStd result_tp = julianDatetimeToTimePoint(input);
+        std::string str_result = timing::timePointToIso8601(result_tp, TimeResolution::MILLISECONDS);
+        std::string str_expected = timing::timePointToIso8601(expected, TimeResolution::MILLISECONDS);
+        M_EXPECTED_EQ(str_expected, str_result)
+    }
+}
+
+
+
+
+
+M_DEFINE_UNIT_TEST(timePointToJulianDatetime)
+{
+    auto epoch_start = std::chrono::system_clock::from_time_t(0); // 1970-01-01 00:00:00 UTC
+    auto one_day_ns = std::chrono::hours(24);
+    auto example_1 = std::chrono::nanoseconds(1677589965123456789);
+    auto example_2 = std::chrono::nanoseconds(4105803825987654321);
+    auto example_3 = std::chrono::nanoseconds(1707386592000123000);
+
+    // Setup test cases
+    // Setup test cases
+    std::vector<std::pair<timing::HRTimePointStd, JDateTime>> test_cases =
+        {
+            // Pair of time since epoch and expected Julian Datetime
+            {epoch_start, 2440587.5L}, // Unix epoch start
+            {epoch_start + one_day_ns, 2440588.5L}, // One day after Unix epoch
+            {epoch_start + example_1, 2460004.05052226223L}, // Example nanoseconds after Unix epoch
+            {epoch_start + example_2, 2488108.37761559785L}, // Far away
+            {epoch_start + example_3, 2460348.91888889031L}
+        };
+
+    // Do the checks.
+    for (const auto& [input, output] : test_cases)
+    {
+        timing::JDateTime jdt = timePointToJulianDatetime(input);
+        timing::HRTimePointStd jdt_tp = julianDatetimeToTimePoint(jdt);
+        std::string str_result = timing::timePointToIso8601(jdt_tp, TimeResolution::MILLISECONDS);
+        std::string str_expected = timing::timePointToIso8601(input, TimeResolution::MILLISECONDS);
+
+        // Microseconds preccision (in day fraction sense).
+        M_EXPECTED_EQ(str_result, str_expected)
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -392,6 +499,7 @@ M_START_UNIT_TEST_SESSION("LibDegorasSLR Timing Session")
 M_FORCE_SHOW_RESULTS(false)
 
 // Register the tests.
+M_REGISTER_UNIT_TEST(Timing, time_utils, daysFromCivil)
 M_REGISTER_UNIT_TEST(Timing, time_utils, timePointToString)
 M_REGISTER_UNIT_TEST(Timing, time_utils, timePointToIso8601)
 M_REGISTER_UNIT_TEST(Timing, time_utils, currentISO8601Date)
@@ -399,6 +507,8 @@ M_REGISTER_UNIT_TEST(Timing, time_utils, millisecondsToISO8601Duration)
 M_REGISTER_UNIT_TEST(Timing, time_utils, secondsToISO8601Duration)
 M_REGISTER_UNIT_TEST(Timing, time_utils, iso8601DatetimeParserUTC)
 M_REGISTER_UNIT_TEST(Timing, time_utils, win32TicksToTimePoint)
+M_REGISTER_UNIT_TEST(Timing, time_utils, julianDatetimeToTimePoint)
+M_REGISTER_UNIT_TEST(Timing, time_utils, timePointToJulianDatetime)
 
 // Run unit tests.
 M_RUN_UNIT_TESTS()

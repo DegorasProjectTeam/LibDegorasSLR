@@ -37,6 +37,20 @@ bool UnitTestBase::forcePass()
     return false;
 }
 
+bool UnitTestBase::expectEQ(const std::string &str1, const std::string &str2)
+{
+    bool result = (str1 == str2);
+    this->updateCheckResults(result, str1, str2);
+    return result;
+}
+
+bool UnitTestBase::expectEQ(const char *str1, const char *str2)
+{
+    bool result = (std::string(str1) == std::string(str2));
+    this->updateCheckResults(result, str1, str2);
+    return result;
+}
+
 UnitTestBase::~UnitTestBase(){}
 
 void UnitTestBase::setForceStreamData(bool enable)
