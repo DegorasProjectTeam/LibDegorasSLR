@@ -60,24 +60,24 @@ TrackingSLR::TrackingSLR(unsigned int min_elev, MJDate mjd_start, SoD sod_start,
     this->track_info_.time_delta = time_delta / 1000.;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;
     this->track_info_.avoid_sun = avoid_sun;
-    this->track_info_.sun_at_start = false;
-    this->track_info_.sun_at_end = false;
+    this->track_info_.sun_collision_at_start = false;
+    this->track_info_.sun_collision_at_end = false;
     this->analyzeTracking();
 }
 
 TrackingSLR::TrackingSLR(unsigned int min_elev, const timing::HRTimePointStd& tp_start,
                          const timing::common::HRTimePointStd &tp_end, PredictorSLR &&predictor,
-                         unsigned int time_delta, bool avoid_sun, unsigned int sun_avoid_angle) :
+                         unsigned int time_delta_ms, bool avoid_sun, unsigned int sun_avoid_angle) :
 
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
     this->track_info_.min_elev = min_elev;
-    this->track_info_.time_delta = time_delta / 1000.;
+    this->track_info_.time_delta = time_delta_ms / 1000.;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;
     this->track_info_.avoid_sun = avoid_sun;
-    this->track_info_.sun_at_start = false;
-    this->track_info_.sun_at_end = false;
+    this->track_info_.sun_collision_at_start = false;
+    this->track_info_.sun_collision_at_end = false;
     timing::timePointToModifiedJulianDate(tp_start, this->track_info_.mjd_start, this->track_info_.sod_start);
     timing::timePointToModifiedJulianDate(tp_end, this->track_info_.mjd_end, this->track_info_.sod_end);
     this->analyzeTracking();
@@ -120,17 +120,17 @@ bool TrackingSLR::isSunOverlapping() const
     // If sun avoid is enabled, check if there is a sun security sector in the middle of the pass, or if the start or
     // end of the pass were modified due to the sun.
     return this->track_info_.avoid_sun && (!this->track_info_.sun_sectors.empty() ||
-                                           this->track_info_.sun_at_start || this->track_info_.sun_at_end) ;
+                                           this->track_info_.sun_collision_at_start || this->track_info_.sun_collision_at_end) ;
 }
 
 bool TrackingSLR::isSunAtStart() const
 {
-    return this->track_info_.avoid_sun && this->track_info_.sun_at_start;
+    return this->track_info_.avoid_sun && this->track_info_.sun_collision_at_start;
 }
 
 bool TrackingSLR::isSunAtEnd() const
 {
-    return this->track_info_.avoid_sun && this->track_info_.sun_at_end;
+    return this->track_info_.avoid_sun && this->track_info_.sun_collision_at_end;
 }
 
 unsigned TrackingSLR::getSunAvoidAngle() const
@@ -333,7 +333,7 @@ bool TrackingSLR::checkTrackingStart()
                 result.instant_data->el < this->track_info_.min_elev)
                 return false;
 
-            this->track_info_.sun_at_start = true;
+            this->track_info_.sun_collision_at_start = true;
         }
 
     }
@@ -391,7 +391,7 @@ bool TrackingSLR::checkTrackingEnd()
                 result.instant_data->el < this->track_info_.min_elev)
                 return false;
 
-            this->track_info_.sun_at_end = true;
+            this->track_info_.sun_collision_at_end = true;
         }
 
     }
@@ -493,7 +493,7 @@ bool TrackingSLR::checkTracking()
     if (in_sun_sector)
     {
         timing::MjdtToMjdAndSecs(sun_sector.mjdt_entry, this->track_info_.mjd_end, this->track_info_.sod_end);
-        this->track_info_.sun_at_end = true;
+        this->track_info_.sun_collision_at_end = true;
     }
 
     this->track_info_.max_elev = max_elev;

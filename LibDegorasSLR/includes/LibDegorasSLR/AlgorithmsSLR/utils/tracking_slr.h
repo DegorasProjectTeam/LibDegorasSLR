@@ -153,8 +153,8 @@ public:
         double time_delta;         ///< Seconds.
         double sun_avoid_angle;    ///< Degrees.
 
-        bool sun_at_start;
-        bool sun_at_end;
+        bool sun_collision_at_start;
+        bool sun_collision_at_end;
 
         std::vector<SunSector> sun_sectors;
     };
@@ -170,7 +170,7 @@ public:
      * @param sun_avoid_angle, if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
     TrackingSLR(unsigned min_elev, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
-                PredictorSLR&& predictor, unsigned time_delta = 1000,
+                PredictorSLR&& predictor, unsigned time_delta_ms = 1000,
                 bool avoid_sun = true, unsigned sun_avoid_angle = 15);
 
     /**
@@ -183,7 +183,7 @@ public:
      * @param sun_avoid_angle, if sun avoidance is applied, the radius of the sun security sector in degrees.
      */
     TrackingSLR(unsigned min_elev, const timing::HRTimePointStd& tp_start, const timing::HRTimePointStd& tp_end,
-                PredictorSLR&& predictor, unsigned time_delta = 1000,
+                PredictorSLR&& predictor, unsigned time_delta_ms = 1000,
                 bool avoid_sun = true, unsigned sun_avoid_angle = 15);
 
     /**
