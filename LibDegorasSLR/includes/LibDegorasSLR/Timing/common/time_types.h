@@ -82,6 +82,9 @@ using NsStd = std::chrono::nanoseconds;
 /// Alias for Windows Ticks.
 using Windows32Ticks = unsigned long long;
 
+/// Alias for J2000 time.
+using J2000 = long double;
+
 /// Alias for Modified Julian Date in days.
 using MJDate = long long;
 

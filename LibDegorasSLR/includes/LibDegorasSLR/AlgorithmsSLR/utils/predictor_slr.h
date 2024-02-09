@@ -44,6 +44,7 @@
 #include "LibDegorasSLR/Statistics/common/statistics_types.h"
 #include "LibDegorasSLR/Geo/meteo.h"
 #include "LibDegorasSLR/Timing/common/time_types.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -63,6 +64,7 @@ using dpslr::geo::meteo::WtrVapPressModel;
 using dpslr::timing::MJDate;
 using dpslr::timing::SoD;
 using dpslr::timing::MJDateTime;
+using dpslr::timing::J2000;
 // =====================================================================================================================
 
 // CONSTANTS
@@ -114,6 +116,7 @@ public:
         UNKNOWN_INTERPOLATOR,
         UNKNOWN_TROPO_MODEL,
         NO_POS_RECORDS,
+        INVALID_INTERVAL,
         OTHER_ERROR
     };
 
@@ -360,6 +363,15 @@ public:
      */
     struct LIBDPSLR_EXPORT PredictionResult
     {
+        // Constructors.
+        PredictionResult() = default;
+        PredictionResult(const PredictionResult&) = default;
+        PredictionResult(PredictionResult&&) = default;
+
+        // Operators.
+        PredictionResult& operator=(const PredictionResult&) = default;
+        PredictionResult& operator=(PredictionResult&&) = default;
+
         // Result containers for the different modes.
         InstantRange instant_range;           ///< Result range for the instant time in the ONLY_INSTANT_RANGE mode.
         Optional<InstantData> instant_data;   ///< Result data for the instant time (instant vectors).
@@ -385,6 +397,9 @@ public:
          */
         std::string toJsonStr() const;
     };
+
+    /// Alias for PredictionResult vector.
+    using PredictionResults = std::vector<PredictionResult>;
 
     /**
      * @brief Constructs the interpolator by getting CPF and the station location. CPF must be correctly opened.
@@ -466,6 +481,24 @@ public:
      */
     bool isReady() const;
 
+    bool isInsideTimeWindow(MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end) const
+    {
+        // Check for valid time.
+        if(!(mjd_start < mjd_end || (mjd_start == mjd_end && sod_start < sod_end)))
+            return false;
+
+        // Auxiliar.
+        MJDate predict_mjd_start, predict_mjd_end;
+        SoD predict_sod_start, predict_sod_end;
+
+        // Get the time window.
+        this->getTimeWindow(predict_mjd_start, predict_sod_start, predict_mjd_end, predict_sod_end);
+
+        // Check if start time is inside predictor available time window
+        return (timing::mjdInsideTimeWindow(mjd_start, sod_start, predict_mjd_start, predict_sod_start,
+                                            predict_mjd_end, predict_sod_end));
+    }
+
     /**
      * @brief Interpolates position at requested instant.
      * @param mjd, the modified julian date (in days) of the instant to be interpolated.
@@ -484,6 +517,58 @@ public:
     PredictionError predict(MJDateTime mjdt, PredictionResult& result) const;
 
 
+    // En este caso se debe comprobar los resultados mirando el vector. Estará vacío en caso de error critico.
+    // Explicar la computacion paralela.
+    PredictionResults predict(MJDate mjd_start, SoD sod_start,
+                              MJDate mjd_end, SoD sod_end,
+                              unsigned step_ms) const
+    {
+        // Container and auxiliar.
+        std::vector<std::pair<MJDate, SoD>> interp_times;
+        MJDate mjd_current = mjd_start;
+        SoD sod_current = sod_start;
+        long double step_sec = step_ms/1000.0L;
+
+        // Check interval.
+        if(!this->isReady() || !isInsideTimeWindow(mjd_start, sod_start, mjd_end, sod_end))
+            return PredictorSLR::PredictionResults();
+
+        // Calculates all the interpolation time.
+        // Parallel calculation of all times.
+
+
+        // Calculates all the interpolation times.
+        while(mjd_current < mjd_end ||sod_current <= sod_end)
+        {
+            interp_times.push_back({mjd_current, sod_current});
+            sod_current += step_sec;
+            if (sod_current >= 86400.0L)
+            {
+                mjd_current++;
+                sod_current -= 86400.0L;
+            }
+        }
+
+        // Results container.
+        PredictorSLR::PredictionResults results(interp_times.size());
+
+        // TODO QUITAR
+        // Configure OMP.
+        omp_set_num_threads(omp_get_max_threads());
+
+        // Parallel calculation.
+        #pragma omp parallel for
+        for(size_t i = 0; i<interp_times.size(); i++)
+        {
+            this->predict(interp_times[i].first, interp_times[i].second, results[i]);
+        }
+
+        // Return the container.
+        return results;
+    }
+
+
+
     /**
      * @brief If predictor is ready, returns the time window in which the predictor can be used.
      * @param mjd_start, Modified Julian Date in days of time window start.
@@ -492,6 +577,9 @@ public:
      * @param sod_end, Second of day in seconds of time window end.
      */
     void getTimeWindow(MJDate &mjd_start, SoD &sod_start, MJDate &mjd_end, SoD &sod_end) const;
+
+
+
 
 
 private:

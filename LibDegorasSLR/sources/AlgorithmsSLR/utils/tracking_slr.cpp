@@ -74,7 +74,7 @@ TrackingSLR::TrackingSLR(unsigned min_elev, const timing::HRTimePointStd& tp_sta
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
     this->track_info_.min_elev = min_elev;
-    this->track_info_.time_delta = time_delta_ms / 1000.;
+    this->track_info_.time_delta = time_delta_ms / 1000.0L;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;
     this->track_info_.avoid_sun = avoid_sun;
     this->track_info_.sun_collision_at_start = false;
@@ -167,7 +167,7 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
 
     // Calculates the Sun position.
     long double j2000 = dpslr::timing::mjdToJ2000Datetime(mjd, sod);
-    dpslr::astro::SunPosition<long double> sun_pos = this->sun_predictor_.fastPredict(j2000, false);
+    astro::PredictorSun::SunPosition sun_pos = this->sun_predictor_.fastPredict(j2000, false);
 
     // Calculates the space object position.
     PredictorSLR::PredictionResult prediction_result;
@@ -276,30 +276,39 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
 }
 
 void TrackingSLR::analyzeTracking()
-{
-    bool valid_time = this->track_info_.mjd_start < this->track_info_.mjd_end ||
-                      (this->track_info_.mjd_start == this->track_info_.mjd_end &&
-                       this->track_info_.sod_start < this->track_info_.sod_end);
+{    
+    // Results container and auxiliar.
+    unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta)*1000;
+    PredictorSLR::PredictionResults results_slr;
+    astro::PredictorSun::SunPositions results_sun;
 
-    this->track_info_.valid_pass = valid_time &&
-                                    this->predictor_.isReady() &&
-                                    this->checkTrackingStart() &&
+    // Parallel calculation of all SLR positions.
+    results_slr = this->predictor_.predict(this->track_info_.mjd_start, this->track_info_.sod_start,
+                                           this->track_info_.mjd_end, this->track_info_.sod_end, step_ms);
+
+    // Store the validation and check.
+    this->track_info_.valid_pass = !results_slr.empty();
+    if(!this->track_info_.valid_pass)
+        return;
+
+    // Time transformations.
+    J2000 j2000_start = timing::mjdToJ2000Datetime(this->track_info_.mjd_start, this->track_info_.sod_start);
+    J2000 j2000_end = timing::mjdToJ2000Datetime(this->track_info_.mjd_end, this->track_info_.sod_end);
+
+    // Parallel calculation of all Sun positions.
+    results_sun = this->sun_predictor_.fastPredict(j2000_start, j2000_end, step_ms);
+
+    // TODO CONTINUE REFACTOR
+
+    this->track_info_.valid_pass =  this->checkTrackingStart() &&
                                     this->checkTrackingEnd() &&
                                     this->checkTracking();
 }
 
 bool TrackingSLR::checkTrackingStart()
-{
+{    
     TrackingResult tr;
     dpslr::astro::SunPosition<long double> sun_pos;
-    MJDate predict_mjd_start, predict_mjd_end;
-    SoD predict_sod_start, predict_sod_end;
-    this->predictor_.getTimeWindow(predict_mjd_start, predict_sod_start, predict_mjd_end, predict_sod_end);
-    // Check if start time is inside predictor available time window
-    if (!dpslr::timing::mjdInsideTimeWindow(this->track_info_.mjd_start, this->track_info_.sod_start,
-                                            predict_mjd_start, predict_sod_start, predict_mjd_end, predict_sod_end))
-        return false;
-
     PredictorSLR::PredictionResult result;
     PredictorSLR::PredictionResult previous_result;
     PredictorSLR::PredictionError error_code = this->predictor_.predict(
@@ -433,8 +442,8 @@ bool TrackingSLR::checkTracking()
 {
     TrackingResult tr;
     bool in_sun_sector = false;
+    std::vector<astro::PredictorSun::SunPosition> sun_positions;
     bool sun_collision = false;
-    std::vector<dpslr::astro::SunPosition<long double>> sun_positions;
     dpslr::astro::SunPosition<long double> sun_pos;
     SunSector sun_sector;
     MJDate mjd = this->track_info_.mjd_start;
@@ -560,19 +569,18 @@ bool TrackingSLR::checkTracking()
 }
 
 bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
-                                  const dpslr::astro::SunPosition<long double> &sun_pos) const
+                                  const astro::PredictorSun::SunPosition &sun_pos) const
 {
     long double diff_az = pos.az - sun_pos.azimuth;
     long double diff_el = pos.el - sun_pos.elevation;
     return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->track_info_.sun_avoid_angle;
 }
 
-void TrackingSLR::setSunSectorRotationDirection(
-    SunSector &sector, const std::vector<dpslr::astro::SunPosition<long double>> &sun_positions)
+void TrackingSLR::setSunSectorRotationDirection(SunSector &sector, const std::vector<astro::PredictorSun::SunPosition > &sun_positions)
 {
-    dpslr::astro::SunPosition<long double> sun_start(
+    astro::PredictorSun::SunPosition sun_start(
         this->sun_predictor_.fastPredict(dpslr::timing::mjdtToJ2000Datetime(sector.mjdt_entry), false));
-    dpslr::astro::SunPosition<long double> sun_end(
+    astro::PredictorSun::SunPosition sun_end(
         this->sun_predictor_.fastPredict(dpslr::timing::mjdtToJ2000Datetime(sector.mjdt_exit), false));
 
     MJDateTime mjdt = sector.mjdt_entry + this->track_info_.time_delta /

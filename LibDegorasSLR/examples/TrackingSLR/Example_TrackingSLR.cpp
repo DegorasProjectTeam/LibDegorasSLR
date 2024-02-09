@@ -39,8 +39,8 @@ int main ()
     timing::MJDate mjd_end = 60340;
     timing::SoD sod_end = 43150;
     dpslr::algoslr::utils::TrackingSLR tracking(8.L, mjd_start, sod_start, mjd_end, sod_end, std::move(predictor));
-    dpslr::astro::PredictorSun<long double> sun_pred(stat_geodetic);
-    std::vector<dpslr::astro::SunPosition<long double>> sun_pos;
+    dpslr::astro::PredictorSun sun_pred(stat_geodetic);
+    std::vector<astro::PredictorSun::SunPosition> sun_pos;
 
     if (!tracking.isValid())
     {

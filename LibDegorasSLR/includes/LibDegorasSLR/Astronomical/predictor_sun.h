@@ -46,6 +46,7 @@
 #include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Mathematics/units.h"
 #include "LibDegorasSLR/Geo/common/geo_types.h"
+#include "LibDegorasSLR/Timing/common/time_types.h"
 // =====================================================================================================================
 
 
@@ -55,24 +56,40 @@ namespace dpslr{
 namespace astro{
 // =====================================================================================================================
 
-template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
-struct SunPosition
-{
-    T azimuth;
-    T elevation;
-};
+using dpslr::timing::common::J2000;
 
 // Simple algorithm (VSOP87 algorithm is much more complicated). 0.01 degree accuracy, up to 2099. Only for non scientific purposes.
 //    Inspiration from: http ://stjarnhimlen.se/comp/tutorial.html#5
 // Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages
 
-template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
 class LIBDPSLR_EXPORT PredictorSun
 {
 
 public:
 
-    PredictorSun(const geo::common::GeodeticPoint<T>& obs_geod)
+    struct SunPosition
+    {
+        // Constructors.
+        SunPosition() = default;
+        SunPosition(const SunPosition&) = default;
+        SunPosition(SunPosition&&) = default;
+
+        // Operators.
+        SunPosition& operator=(const SunPosition&) = default;
+        SunPosition& operator=(SunPosition&&) = default;
+
+        // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
+        // TODO Add the times.
+        long double azimuth;
+        long double elevation;
+    };
+
+    /// Alias for Sun position vector.
+    using SunPositions = std::vector<SunPosition>;
+
+
+
+    PredictorSun(const geo::common::GeodeticPoint<long double>& obs_geod)
     {
         // Convert latitude and longitude to radians.
         this->obs_lat_ = obs_geod.lat.get(decltype(obs_geod.lat)::Unit::RADIANS);
@@ -80,34 +97,33 @@ public:
         this->obs_alt_ = obs_geod.alt;
     }
 
-
-    SunPosition<T> fastPredict(T j2000, bool refr) const
+    SunPosition fastPredict(timing::common::J2000 j2000, bool refraction = false) const
     {
         // Local sidereal time.
-        T sidereal = 4.894961213L + 6.300388099L * j2000 + this->obs_lon_;
+        long double sidereal = 4.894961213L + 6.300388099L * j2000 + this->obs_lon_;
 
         // Mean longitude and anomaly of the sun.
-        T mean_long = j2000 * 1.720279239e-2L + 4.894967873L;
-        T mean_anom = j2000 * 1.720197034e-2L + 6.240040768L;
+        long double mean_long = j2000 * 1.720279239e-2L + 4.894967873L;
+        long double mean_anom = j2000 * 1.720197034e-2L + 6.240040768L;
 
         // Ecliptic longitude of the sun.
-        T eclip_long = mean_long + 3.342305518e-2L * std::sin(mean_anom)
+        long double eclip_long = mean_long + 3.342305518e-2L * std::sin(mean_anom)
                                  + 3.490658504e-4L * std::sin(2 * mean_anom);
 
         // Obliquity of the ecliptic
-        T obliquity = 0.4090877234L - 6.981317008e-9L * j2000;
+        long double obliquity = 0.4090877234L - 6.981317008e-9L * j2000;
 
         // Right ascension of the sun and declination.
-        T rasc = std::atan2(std::cos(obliquity) * std::sin(eclip_long), std::cos(eclip_long));
-        T decl = std::asin(std::sin(obliquity) * std::sin(eclip_long));
+        long double rasc = std::atan2(std::cos(obliquity) * std::sin(eclip_long), std::cos(eclip_long));
+        long double decl = std::asin(std::sin(obliquity) * std::sin(eclip_long));
 
         // Hour angle of the sun
-        T hour_ang = sidereal - rasc;
+        long double hour_ang = sidereal - rasc;
 
         // Local elevation and azimuth of the sun.
-        T elevation = std::asin(std::sin(decl) * std::sin(this->obs_lat_) + std::cos(decl) *
+        long double elevation = std::asin(std::sin(decl) * std::sin(this->obs_lat_) + std::cos(decl) *
                                                                            std::cos(this->obs_lat_) * std::cos(hour_ang));
-        T azimuth = std::atan2(-std::cos(decl) * std::cos(this->obs_lat_) * std::sin(hour_ang),
+        long double azimuth = std::atan2(-std::cos(decl) * std::cos(this->obs_lat_) * std::sin(hour_ang),
                                     std::sin(decl) - std::sin(this->obs_lat_) * std::sin(elevation));
 
         // Convert azimuth and elevation to degrees and normalize.
@@ -115,24 +131,62 @@ public:
         azimuth = math::normalizeVal(math::units::radToDegree(azimuth), 0.0L, 360.0L);
 
         // Very simple refraction correction.
-        if (refr && (elevation >= -1 * (0.26667L + 0.5667L)))
+        if (refraction && (elevation >= -1 * (0.26667L + 0.5667L)))
         {
-            T targ = math::units::degToRad((elevation + (10.3L / (elevation + 5.11L))));
-            elevation += (1.02L / tan(targ)) / 60.0L;
+            long double targ = math::units::degToRad((elevation + (10.3L / (elevation + 5.11L))));
+            elevation += (1.02L / std::tan(targ)) / 60.0L;
         }
 
-        SunPosition<T> position;
+        SunPosition position;
         position.azimuth = azimuth;
         position.elevation = elevation;
 
         return position;
     }
 
+    SunPositions fastPredict(timing::common::J2000 j2000_start,
+                             timing::common::J2000 j2000_end,
+                             unsigned step_ms, bool refraction = false) const
+    {
+        // Container and auxiliar.
+        std::vector<J2000> interp_times;
+        J2000 j2000_current = j2000_start;
+        long double step_sec = step_ms/1000.0L;
+
+        // Check for valid time.
+        if(!(j2000_start < j2000_end))
+            return {};
+
+        // Calculates all the interpolation times.
+        while(j2000_current <= j2000_end)
+        {
+            interp_times.push_back(j2000_current);
+            j2000_current += step_sec;
+        }
+
+        // Results container.
+        PredictorSun::SunPositions results(interp_times.size());
+
+        // TODO QUITAR
+        // Configure OMP.
+        omp_set_num_threads(omp_get_max_threads());
+
+        // Parallel calculation.
+        #pragma omp parallel for
+        for(size_t i = 0; i<interp_times.size(); i++)
+        {
+            results[i] = this->fastPredict(interp_times[i], refraction);
+        }
+
+        // Return the container.
+        return results;
+    }
+
 private:
 
-    T obs_lat_; ///< Geodetic observer latitude in radians.
-    T obs_lon_; ///< Geodetic observer longitude in radians.
-    T obs_alt_; ///< Observer altitude in meters.
+    long double obs_lat_; ///< Geodetic observer latitude in radians.
+    long double obs_lon_; ///< Geodetic observer longitude in radians.
+    long double obs_alt_; ///< Observer altitude in meters.
 
 };
 
