@@ -151,7 +151,7 @@ public:
         // Container and auxiliar.
         std::vector<J2000> interp_times;
         J2000 j2000_current = j2000_start;
-        long double step_sec = step_ms/1000.0L;
+        long double step_days = step_ms/86400000.0L;
 
         // Check for valid time.
         if(!(j2000_start < j2000_end))
@@ -161,7 +161,7 @@ public:
         while(j2000_current <= j2000_end)
         {
             interp_times.push_back(j2000_current);
-            j2000_current += step_sec;
+            j2000_current += step_days;
         }
 
         // Results container.

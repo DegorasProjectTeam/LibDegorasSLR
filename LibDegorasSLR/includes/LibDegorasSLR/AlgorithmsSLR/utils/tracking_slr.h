@@ -308,7 +308,8 @@ private:
 
     /// Helper to set the rotation direction of a sun sector.
     void setSunSectorRotationDirection(SunSector &sector,
-                                       const astro::PredictorSun::SunPositions& sun_positions);
+                                       std::vector<TrackingResult>::const_iterator sun_start,
+                                       std::vector<TrackingResult>::const_iterator sun_end);
 
     // Private members.
     algoslr::utils::PredictorSLR predictor_;           ///< SLR predictor.
