@@ -83,7 +83,7 @@ bool UnitTest::runTests()
 
             // Log.
             std::cout<<"\033[38;2;255;128;0m"<<"["<<now_str<<"] "<<"\033[038;2;0;140;255m"
-                      <<c_module << " | " << submodule << " | " << test->test_name_<<"..."<<std::endl;
+                      <<c_module << " | " << submodule << " | " << test->test_name_<<std::endl;
 
             // Async execution.
             std::future<long long> future =

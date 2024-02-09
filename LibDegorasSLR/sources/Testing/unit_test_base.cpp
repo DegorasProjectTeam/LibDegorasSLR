@@ -37,6 +37,20 @@ bool UnitTestBase::forcePass()
     return false;
 }
 
+bool UnitTestBase::expectTrue(bool result)
+{
+    std::cout<<"                           - Expecting true result"<<std::endl;
+    this->updateCheckResults(result);
+    return result;
+}
+
+bool UnitTestBase::expectFalse(bool result)
+{
+    std::cout<<"                           - Expecting false result"<<std::endl;
+    this->updateCheckResults(!result);
+    return !result;
+}
+
 bool UnitTestBase::expectEQ(const std::string &str1, const std::string &str2)
 {
     bool result = (str1 == str2);

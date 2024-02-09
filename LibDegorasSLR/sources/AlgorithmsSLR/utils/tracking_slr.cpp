@@ -155,7 +155,7 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
     // Update the times.
     tracking_result.mjd = mjd;
     tracking_result.sod = sod;
-    tracking_result.mjdt = timing::modifiedJulianDateAndSecondsToModifiedJulianDatetime(mjd, sod);
+    tracking_result.mjdt = timing::modifiedJulianDateToModifiedJulianDatetime(mjd, sod);
 
     // Check if requested position is inside valid tracking time. Otherwise return out of tracking error.
     if (!dpslr::timing::mjdInsideTimeWindow(mjd, sod, this->track_info_.mjd_start, this->track_info_.sod_start,
@@ -193,13 +193,13 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
     // Otherwise, return calculated position.
     if (this->track_info_.avoid_sun && this->insideSunSector(*prediction_result.instant_data, sun_pos))
     {
-        MJDateTime mjdt = dpslr::timing::modifiedJulianDateAndSecondsToModifiedJulianDatetime(mjd, sod);
+        MJDateTime mjdt = dpslr::timing::modifiedJulianDateToModifiedJulianDatetime(mjd, sod);
 
         auto sector_it = std::find_if(this->track_info_.sun_sectors.begin(),
                                       this->track_info_.sun_sectors.end(), [mjdt](const auto& sector)
-        {
-            return mjdt >= sector.mjdt_entry && mjdt <= sector.mjdt_exit;
-        });
+                                      {
+                                          return mjdt >= sector.mjdt_entry && mjdt <= sector.mjdt_exit;
+                                      });
 
         if (sector_it == this->track_info_.sun_sectors.end())
         {
@@ -276,7 +276,7 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
 }
 
 void TrackingSLR::analyzeTracking()
-{    
+{
     // Results container and auxiliar.
     unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta)*1000;
     PredictorSLR::PredictionResults results_slr;
@@ -316,8 +316,8 @@ void TrackingSLR::analyzeTracking()
     // Now, after positions have been calculated, check them
 
     this->track_info_.valid_pass =  this->checkTrackingStart() &&
-                                    this->checkTrackingEnd() &&
-                                    this->checkTracking();
+                                   this->checkTrackingEnd() &&
+                                   this->checkTracking();
 }
 
 bool TrackingSLR::checkTrackingStart()
@@ -331,7 +331,7 @@ bool TrackingSLR::checkTrackingStart()
 
 
     if (this->track_info_.avoid_sun)
-    {    
+    {
         // If sun avoid is activated check if tracking starts inside a sun sector. If that is the case, move the
         // tracking start to the end of the sun sector if possible
         while (start != this->track_info_.positions.end() &&
@@ -537,7 +537,7 @@ void TrackingSLR::setSunSectorRotationDirection(
 {
 
     MJDateTime mjdt = sector.mjdt_entry + this->track_info_.time_delta /
-                                              static_cast<long double>(dpslr::timing::common::kSecsInDay);
+                                              static_cast<long double>(dpslr::timing::common::kSecsPerDay);
     bool valid_cw = true;
     bool valid_ccw = true;
 

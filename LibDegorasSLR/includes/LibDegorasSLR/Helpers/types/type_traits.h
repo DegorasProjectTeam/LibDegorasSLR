@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -22,82 +26,45 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
+/** ********************************************************************************************************************
+ * @file type_traits.h
+ * @brief
+ * @author Degoras Project Team
+ * @copyright EUPL License
+ * @version
+***********************************************************************************************************************/
+
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
+
 // C++ INCLUDES
 // =====================================================================================================================
+#include <type_traits>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// DPSLR NAMESPACES
 // =====================================================================================================================
-#include "LibDegorasSLR/Testing/unit_test.h"
+namespace dpslr{
+namespace helpers{
+namespace types{
 // =====================================================================================================================
 
-// MACROS
-// =====================================================================================================================
 
-#define M_START_UNIT_TEST_SESSION(SessionName)                    \
-int main(){                                                       \
-UnitTest::instance().clear();                                     \
-UnitTest::instance().setSessionName(std::string(SessionName));    \
+template<typename T>
+struct is_numeric : std::integral_constant<bool, std::is_integral<T>::value || std::is_floating_point<T>::value> {};
 
-#define M_FORCE_SHOW_RESULTS(enable)                              \
-UnitTest::instance().clear();                                     \
-    UnitTest::instance().setForceShowResults(enable);             \
+// Custom type trait to check if a type is a NumericStrongType with a floating point underlying type
+template<typename T>
+struct is_strong_floating : std::false_type {};
 
-#define M_DECLARE_UNIT_TEST(TestName)                       \
-using dpslr::testing::UnitTestBase;                         \
-using dpslr::testing::UnitTest;                             \
-class Test_##TestName : public UnitTestBase                 \
-{                                                           \
-        Test_##TestName(): UnitTestBase(#TestName){}        \
-        public:                                             \
-        static Test_##TestName* instance()                  \
-    {                                                       \
-            static Test_##TestName test;                    \
-            return &test;                                   \
-    }                                                       \
-        void runTest() override;                            \
-};                                                          \
+// Custom type trait to check if a type is a NumericStrongType with an integral underlying type
+template<typename T>
+struct is_strong_integral : std::false_type {};
 
-#define M_DEFINE_UNIT_TEST(TestName) \
-void Test_##TestName::runTest() \
 
-#define M_REGISTER_UNIT_TEST(Module, Submodule, TestName) \
-    UnitTest::instance().registerTest(#Module, #Submodule, Test_##TestName::instance()); \
 
-#define M_RUN_UNIT_TESTS() \
-bool final_res = dpslr::testing::UnitTest::instance().runTests(); \
 
-#define M_FINISH_UNIT_TEST_SESSION() \
-return (final_res ? 0 : 1); } \
 
-#define M_CUSTOM_CHECK(func, ...) \
-this->result_ &= customCheck(func, __VA_ARGS__); \
-
-#define M_EXPECTED_TRUE(arg1) \
-this->result_ &= expectTrue(arg1); \
-
-#define M_EXPECTED_FALSE(arg1) \
-this->result_ &= expectFalse(arg1); \
-
-#define M_EXPECTED_EQ(arg1, arg2) \
-this->result_ &= expectEQ(arg1, arg2); \
-
-#define M_EXPECTED_EQ_F(arg1, arg2, eps) \
-this->result_ &= expectEQ(arg1, arg2, eps); \
-
-#define M_EXPECTED_EQ(arg1, arg2) \
-this->result_ &= expectEQ(arg1, arg2); \
-
-#define M_EXPECTED_NE(arg1, arg2) \
-this->result_ &= expectNE(arg1, arg2); \
-
-#define M_FORCE_FAIL() \
-this->result_ &= forceFail(); \
-
-#define M_FORCE_PASS() \
-this->result_ &= forcePass(); \
-
-#define M_SLEEP_US(arg1) \
-std::this_thread::sleep_for(std::chrono::microseconds(arg1)); \
- \
+}}} // END NAMESPACES.
 // =====================================================================================================================

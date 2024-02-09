@@ -28,6 +28,7 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <iostream>
 #include <vector>
 #include <functional>
 #include <sstream>
@@ -57,7 +58,37 @@ protected:
 
 public:
 
+    // Forward declaration of StrongType
+    template<typename T, class Tag>
+    class StrongType;
+
+    // Trait to check if a type is a StrongType
+    template<typename T>
+    struct is_strong_type : std::false_type {};
+
+    template<typename T, class Tag>
+    struct is_strong_type<StrongType<T, Tag>> : std::true_type {};
+
+    // Trait to check if a StrongType wraps a floating-point type
+    template<typename T>
+    struct is_strong_type_floating_point : std::false_type {};
+
+    template<typename T, class Tag>
+    struct is_strong_type_floating_point<StrongType<T, Tag>> : std::is_floating_point<T> {};
+
+    // Trait to check if a StrongType wraps an integral type
+    template<typename T>
+    struct is_strong_type_integral : std::false_type {};
+
+    template<typename T, class Tag>
+    struct is_strong_type_integral<StrongType<T, Tag>> : std::is_integral<T> {};
+
     // Type traits.
+
+    // Base template for identifying numeric types
+    template<typename T>
+    struct is_numeric_type : std::false_type {};
+
     template <typename T>
     struct is_container : std::false_type {};
 
@@ -82,6 +113,10 @@ public:
     // Force pass the test.
     bool forcePass();
 
+    bool expectTrue(bool result);
+
+    bool expectFalse(bool result);
+
     bool expectEQ(const std::string& str1, const std::string& str2);
 
     bool expectEQ(const char* str1, const char* str2);
@@ -96,9 +131,11 @@ public:
     }
 
     // Integral types.
-    template<typename T>  typename std::enable_if_t<!is_container<T>::value && !std::is_floating_point_v<T>, bool>
+    template<typename T>
+    typename std::enable_if_t<!is_container<T>::value && (!std::is_floating_point_v<T>), bool>
     expectEQ(const T& arg1, const T& arg2)
     {
+        std::cout<<"                           - Comparing integrals equality"<<std::endl;
         bool result = (arg1 == arg2);
         this->updateCheckResults(result, arg1, arg2);
         return result;
@@ -106,9 +143,10 @@ public:
 
     // Floating types.
     template<typename T>
-    typename std::enable_if_t<!is_container<T>::value && std::is_floating_point_v<T>, bool>
-    expectEQ(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
+    typename std::enable_if_t<!is_container<T>::value && (std::is_floating_point_v<T>), bool>
+    expectEQ(const T& arg1, const T& arg2, const long double& tolerance = std::numeric_limits<T>::epsilon())
     {
+        std::cout<<"                           - Comparing float equality"<<std::endl;
         bool result = std::abs(arg1 - arg2) <= tolerance;
         this->updateCheckResults(result, arg1, arg2);
         return result;
@@ -196,9 +234,11 @@ public:
     template<typename T>
     typename std::enable_if_t<
         !is_container<T>::value &&
-            !std::is_floating_point_v<T>, bool>
+        !std::is_floating_point_v<T>, bool>
     expectNE(const T& arg1, const T& arg2)
     {
+        std::cout<<"                           - Comparing float inequality"<<std::endl;
+
         bool result = (arg1 != arg2);
         this->updateCheckResults(result, arg1, arg2);
         return result;
@@ -210,6 +250,7 @@ public:
             std::is_floating_point_v<T>, bool>
     expectNE(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
     {
+        std::cout<<"                           - Comparing floats inequality"<<std::endl;
         bool result = std::abs(arg1 - arg2) > tolerance;
         this->updateCheckResults(result, arg1, arg2);
         return std::abs(arg1 - arg2) > tolerance;

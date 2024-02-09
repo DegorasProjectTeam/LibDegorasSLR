@@ -27,11 +27,11 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file time_types.h
- * @brief This file contains several timing definitions.
+ * @file numeric_strong_type.h
+ * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2402.1
+ * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -40,108 +40,120 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <chrono>
+#include <algorithm>
+#include <type_traits>
 // =====================================================================================================================
 
-// DEFINITIONS
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#define MKGMTIME _mkgmtime
-#else
-#define MKGMTIME timegm
-#endif
+#include "type_traits.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace timing{
-namespace common{
+namespace helpers{
+namespace types{
 // =====================================================================================================================
 
-// CONVENIENT ALIAS AND ENUMERATIONS
-//======================================================================================================================
-
-/// High resolution clock.
-using HRClock = std::chrono::high_resolution_clock;
-
-/// High resolution time point to store datetimes (uses Unix Time).
-using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
-
-/// Steady clock time point for measuring intervals.
-using SCTimePointStd =  std::chrono::steady_clock::time_point;
-
-/// Short way of referring to seconds.
-using SecStd = std::chrono::seconds;
-
-/// Short way of referring to milliseconds.
-using MsStd = std::chrono::milliseconds;
-
-/// Short way of referring to microseconds.
-using UsStd = std::chrono::microseconds;
-
-/// Short way of referring to nanoseconds.
-using NsStd = std::chrono::nanoseconds;
-
-/// Alias for Windows Ticks.
-using Windows32Ticks = unsigned long long;
-
-/// Alias for J2000 time.
-using J2000 = long double;
-
-/// Alias for Modified Julian Date in days.
-using MJDate = long long;
-
-/// Alias for Julian Date in days.
-using JDate = long long;
-
-/// Alias for Modified Julian Datetime in days with decimals.
-using MJDateTime = long double;
-
-/// Alias for Reduced Julian Datetime in days with decimals.
-using RJDateTime = long double;
-
-/// Alias for Julian Datetime in days with decimals.
-using JDateTime = long double;
-
-/// Alias for second of day with decimals (ns precision).
-using SoD = long double;
-//using SoD = NumericStrongType<long double, struct SoDTag>;;
-
-/// Alias for fraction of day with decimals (ns precision in the sense of fraction of the day).
-using DayFraction = long double;
-//using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
-
-/**
- * Enum class for specifying the time resolution in string representations.
- */
-enum class TimeResolution
+// Strong type template
+template<typename T, class Tag>
+class NumericStrongType
 {
-    SECONDS,        ///< Represents the seconds.
-    MILLISECONDS,   ///< Represents the milliseconds.
-    MICROSECONDS,   ///< Represents the microseconds.
-    NANOSECONDS     ///< Represents the nanoseconds.
+    static_assert(std::is_arithmetic_v<T>,
+                  "[LibDegorasBase,Helpers,NumericStrongType] Can only be used with numeric types.");
+    T value;
+
+public:
+
+    NumericStrongType() = default;
+
+    NumericStrongType(T const& value) : value(value) {}
+
+    NumericStrongType(const NumericStrongType&) = default;
+
+    NumericStrongType(NumericStrongType&&) = default;
+
+    NumericStrongType& operator=(const NumericStrongType& other)
+    {
+        if (this != &other)
+        {
+            this->value = other.value;
+        }
+        return *this;
+    }
+
+    NumericStrongType& operator=(NumericStrongType&& other) noexcept
+    {
+        if (this != &other)
+        {
+            this->value = std::move(other.value);
+        }
+        return *this;
+    }
+
+    // Overloading += operator
+    NumericStrongType& operator+=(const T& rhs)
+    {
+        this->value += rhs;
+        return *this;
+    }
+
+    // Overloading -= operator
+    NumericStrongType& operator-=(const T& rhs)
+    {
+        this->value -= rhs;
+        return *this;
+    }
+
+    // Overloading += operator for NumericStrongType
+    NumericStrongType& operator+=(const NumericStrongType& rhs)
+    {
+        this->value += rhs.value;
+        return *this;
+    }
+
+    // Overloading -= operator for NumericStrongType
+    NumericStrongType& operator-=(const NumericStrongType& rhs)
+    {
+        this->value -= rhs.value;
+        return *this;
+    }
+
+    // Conversion back to the underlying type.
+    operator T() const { return this->value; }
+
+    // Getter for the value.
+    T get() const { return this->value; }
 };
 
-//======================================================================================================================
+// Type traits.
 
-// CONSTANTS
-//======================================================================================================================
-constexpr long double kModifiedJulianToJulian = 2400000.5L;
-constexpr long double kJulianToModifiedJulian = -2400000.5L;
-constexpr long double kJulianToReducedJulian = -2400000.0L;
-constexpr long double kJulianToJ2000 = -2451545.0L;
-constexpr long double kJ2000ToJulian = 2451545.0L;
-constexpr long double kPosixEpochToJulian = 2440587.5L;
-constexpr long double kJulianToPosixEpoch = -2440587.5L;
-constexpr long long kNsPerSecond = 1000000000LL;
-constexpr long long kSecsPerDay = 86400LL;
-constexpr long long kSecsPerHalfDay = 43200LL;
-constexpr long long kNsPerDay = 86400000000000LL;
-constexpr long long kNsPerHalfDay = 43200000000000LL;
-constexpr long long kNsPerWin32Tick = 100ULL;
-constexpr long long kWin32EpochToPosixEpoch = -11644473600LL;
-//======================================================================================================================
+template<typename T, typename Tag>
+struct is_strong_floating<NumericStrongType<T, Tag>> : std::is_floating_point<T> {};
+
+template<typename T, typename Tag>
+struct is_strong_integral<NumericStrongType<T, Tag>> : std::is_integral<T> {};
 
 }}} // END NAMESPACES.
+// =====================================================================================================================
+
+// Specializing std::numeric_limits for NumericStrongType
+namespace std
+{
+
+template<typename T, class Tag>
+class numeric_limits<dpslr::helpers::types::NumericStrongType<T, Tag>>
+{
+public:
+    static constexpr bool is_specialized = numeric_limits<T>::is_specialized;
+
+    static constexpr auto digits10 = std::numeric_limits<T>::digits10;
+    static constexpr T min() noexcept { return numeric_limits<T>::min(); }
+    static constexpr T max() noexcept { return numeric_limits<T>::max(); }
+    static constexpr T epsilon() noexcept { return numeric_limits<T>::epsilon(); }
+};
+
+}
+
 // =====================================================================================================================

@@ -27,11 +27,11 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file time_types.h
- * @brief This file contains several timing definitions.
+ * @file degoras_time.h
+ * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2402.1
+ * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -39,109 +39,48 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-// =====================================================================================================================
+//======================================================================================================================
 #include <chrono>
 // =====================================================================================================================
 
-// DEFINITIONS
+// LIBDPSLR INCLUDES
 // =====================================================================================================================
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#define MKGMTIME _mkgmtime
-#else
-#define MKGMTIME timegm
-#endif
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/common/time_types.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace timing{
-namespace common{
 // =====================================================================================================================
 
-// CONVENIENT ALIAS AND ENUMERATIONS
-//======================================================================================================================
 
-/// High resolution clock.
-using HRClock = std::chrono::high_resolution_clock;
-
-/// High resolution time point to store datetimes (uses Unix Time).
-using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
-
-/// Steady clock time point for measuring intervals.
-using SCTimePointStd =  std::chrono::steady_clock::time_point;
-
-/// Short way of referring to seconds.
-using SecStd = std::chrono::seconds;
-
-/// Short way of referring to milliseconds.
-using MsStd = std::chrono::milliseconds;
-
-/// Short way of referring to microseconds.
-using UsStd = std::chrono::microseconds;
-
-/// Short way of referring to nanoseconds.
-using NsStd = std::chrono::nanoseconds;
-
-/// Alias for Windows Ticks.
-using Windows32Ticks = unsigned long long;
-
-/// Alias for J2000 time.
-using J2000 = long double;
-
-/// Alias for Modified Julian Date in days.
-using MJDate = long long;
-
-/// Alias for Julian Date in days.
-using JDate = long long;
-
-/// Alias for Modified Julian Datetime in days with decimals.
-using MJDateTime = long double;
-
-/// Alias for Reduced Julian Datetime in days with decimals.
-using RJDateTime = long double;
-
-/// Alias for Julian Datetime in days with decimals.
-using JDateTime = long double;
-
-/// Alias for second of day with decimals (ns precision).
-using SoD = long double;
-//using SoD = NumericStrongType<long double, struct SoDTag>;;
-
-/// Alias for fraction of day with decimals (ns precision in the sense of fraction of the day).
-using DayFraction = long double;
-//using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
-
-/**
- * Enum class for specifying the time resolution in string representations.
- */
-enum class TimeResolution
+class LIBDPSLR_EXPORT DegorasTime : public HRTimePointStd
 {
-    SECONDS,        ///< Represents the seconds.
-    MILLISECONDS,   ///< Represents the milliseconds.
-    MICROSECONDS,   ///< Represents the microseconds.
-    NANOSECONDS     ///< Represents the nanoseconds.
+
+public:
+
+    LIBDPSLR_EXPORT DegorasTime(const HRTimePointStd& tp) :
+        HRTimePointStd(tp)
+    {}
+
+    LIBDPSLR_EXPORT DegorasTime(const std::chrono::nanoseconds& ns) :
+        HRTimePointStd(ns)
+    {}
+
+    LIBDPSLR_EXPORT static DegorasTime fromSecsSinceUnixEpoch(long long secs)
+    {
+        return(HRClock::from_time_t(secs));
+    }
+
+    LIBDPSLR_EXPORT static DegorasTime fromWin32Ticks(Windows32Ticks ticks)
+    {
+        return DegorasTime(timing::win32TicksToTimePoint(ticks));
+    }
 };
 
-//======================================================================================================================
 
-// CONSTANTS
-//======================================================================================================================
-constexpr long double kModifiedJulianToJulian = 2400000.5L;
-constexpr long double kJulianToModifiedJulian = -2400000.5L;
-constexpr long double kJulianToReducedJulian = -2400000.0L;
-constexpr long double kJulianToJ2000 = -2451545.0L;
-constexpr long double kJ2000ToJulian = 2451545.0L;
-constexpr long double kPosixEpochToJulian = 2440587.5L;
-constexpr long double kJulianToPosixEpoch = -2440587.5L;
-constexpr long long kNsPerSecond = 1000000000LL;
-constexpr long long kSecsPerDay = 86400LL;
-constexpr long long kSecsPerHalfDay = 43200LL;
-constexpr long long kNsPerDay = 86400000000000LL;
-constexpr long long kNsPerHalfDay = 43200000000000LL;
-constexpr long long kNsPerWin32Tick = 100ULL;
-constexpr long long kWin32EpochToPosixEpoch = -11644473600LL;
-//======================================================================================================================
-
-}}} // END NAMESPACES.
+}} // END NAMESPACES.
 // =====================================================================================================================

@@ -147,10 +147,10 @@ math::Interval<long double> CPF::getAvailableTimeInterval() const
     if (!this->empty_)
     {
         // Get the start time.
-        timing::MJDateTime mjdt_start = timing::modifiedJulianDateAndSecondsToModifiedJulianDatetime(this->getData().positionRecords().front().mjd,
+        timing::MJDateTime mjdt_start = timing::modifiedJulianDateToModifiedJulianDatetime(this->getData().positionRecords().front().mjd,
                                                           this->getData().positionRecords().front().sod);
         // Get the stop time.
-        timing::MJDateTime mjdt_stop = timing::modifiedJulianDateAndSecondsToModifiedJulianDatetime(this->getData().positionRecords().back().mjd,
+        timing::MJDateTime mjdt_stop = timing::modifiedJulianDateToModifiedJulianDatetime(this->getData().positionRecords().back().mjd,
                                                          this->getData().positionRecords().back().sod);
         // Update the interval.
         interval.setMin(mjdt_start);
