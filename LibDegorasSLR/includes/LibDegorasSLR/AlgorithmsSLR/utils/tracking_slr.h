@@ -168,6 +168,9 @@ public:
         PositionStatus status;  ///< The current postion status.
     };
 
+    ///< Alias for Tracking results vector.
+    using TrackingResults = std::vector<TrackingResult>;
+
     struct TrackSLR
     {
         // TODO: velocities
@@ -194,7 +197,7 @@ public:
 
         std::vector<SunSector> sun_sectors;
 
-        std::vector<TrackingResult> positions;
+        TrackingResults positions;
     };
 
 
@@ -236,6 +239,18 @@ public:
      * @param sod, the second of day for the tracking end.
      */
     void getTrackingEnd(MJDate &mjd, SoD& sod) const;
+
+    /**
+     * @brief This function returns an interator to the first valid position in tracking.
+     * @return an interator to the first valid position in tracking, if tracking is valid. Otherwise end iterator.
+     */
+    TrackingResults::const_iterator getTrackingBegin() const;
+
+    /**
+     * @brief This function returns an interator to the last valid position in tracking.
+     * @return an interator to the last valid position in tracking, if tracking is valid. Otherwise end iterator.
+     */
+    TrackingResults::const_iterator getTrackingEnd() const;
 
     /**
      * @brief This function returns if sun avoidance is applied.
@@ -307,14 +322,23 @@ private:
                          const astro::PredictorSun::SunPosition &sun_pos) const;
 
     /// Helper to set the rotation direction of a sun sector.
-    void setSunSectorRotationDirection(SunSector &sector,
-                                       std::vector<TrackingResult>::const_iterator sun_start,
-                                       std::vector<TrackingResult>::const_iterator sun_end);
+    void setSunSectorRotationDirection(
+        SunSector &sector, TrackingResults::const_iterator sun_start, TrackingResults::const_iterator sun_end);
+
+    /// Helper to check positions whithin a sun sector to see if it is possible to avoid sun
+    void checkSunSectorPositions(
+        const SunSector &sector, TrackingResults::iterator sun_start, TrackingResults::iterator sun_end);
+
+    long double calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector,
+                                       const astro::PredictorSun::SunPosition &sun_pos);
 
     // Private members.
-    algoslr::utils::PredictorSLR predictor_;           ///< SLR predictor.
-    astro::PredictorSun sun_predictor_;         ///< Sun predictor.
-    TrackSLR track_info_;                              ///< Track information.
+    algoslr::utils::PredictorSLR predictor_;         ///< SLR predictor.
+    astro::PredictorSun sun_predictor_;              ///< Sun predictor.
+    TrackSLR track_info_;                            ///< Track information.
+
+    TrackingResults::iterator tracking_begin_;
+    TrackingResults::iterator tracking_end_;
 };
 
 }}} // END NAMESPACES

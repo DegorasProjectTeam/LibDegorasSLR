@@ -12,14 +12,10 @@
 # Set the installation example path.
 set(GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH ${MODULES_GLOBAL_INSTALL_BIN_PATH}/examples   )
 
-# Ignore paths for basic unit test:
-set(IGNORED_PATHS
-    " ")
 
 # Add all the basic unit tests.
-macro_setup_lib_basic_unit_tests("${CMAKE_CURRENT_SOURCE_DIR}"
-                                 "${GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH}"
-                                 "${IGNORED_PATHS}")
+macro_setup_lib_basic_examples("${CMAKE_CURRENT_SOURCE_DIR}"
+                                 "${GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH}")
 
 # ----------------------------------------------------------------------------------------------------------------------
 

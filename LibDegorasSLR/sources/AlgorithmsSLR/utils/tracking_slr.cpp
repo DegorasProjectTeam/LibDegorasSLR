@@ -112,6 +112,16 @@ void TrackingSLR::getTrackingEnd(timing::common::MJDate &mjd, timing::common::So
     sod = this->track_info_.sod_end;
 }
 
+TrackingSLR::TrackingResults::const_iterator TrackingSLR::getTrackingBegin() const
+{
+    return this->track_info_.valid_pass ? this->tracking_begin_ : this->track_info_.positions.cend();
+}
+
+TrackingSLR::TrackingResults::const_iterator TrackingSLR::getTrackingEnd() const
+{
+    return this->track_info_.valid_pass ? this->tracking_end_ : this->track_info_.positions.cend();
+}
+
 bool TrackingSLR::getSunAvoidApplied() const
 {
     return this->track_info_.avoid_sun;
@@ -207,45 +217,12 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
             return PositionStatus::CANT_AVOID_SUN;
         }
 
-        long double time_perc = (mjdt - sector_it->mjdt_entry) / (sector_it->mjdt_exit - sector_it->mjdt_entry);
+        long double angle_avoid = this->calcSunAvoidTrajectory(mjdt, *sector_it, sun_pos);
 
-        long double entry_angle = std::atan2(sector_it->el_entry - sun_pos.elevation,
-                                             sector_it->az_entry - sun_pos.azimuth);
-
-        long double exit_angle = std::atan2(sector_it->el_exit - sun_pos.elevation,
-                                            sector_it->az_exit - sun_pos.azimuth);
-
-        long double angle;
-
-        if (exit_angle > entry_angle)
-        {
-            if (sector_it->cw)
-            {
-                angle = entry_angle - time_perc * (2 * dpslr::math::common::pi - exit_angle + entry_angle);
-                if (angle < 0.L)
-                    angle += 2 * dpslr::math::common::pi;
-            }
-            else
-                angle = entry_angle + time_perc * (exit_angle - entry_angle);
-
-        }
-        else
-        {
-            if (sector_it->cw)
-            {
-                angle = entry_angle - time_perc * (entry_angle - exit_angle);
-            }
-            else
-            {
-                angle = entry_angle + time_perc * (2 * dpslr::math::common::pi - entry_angle + exit_angle);
-                if (angle >= 2 * dpslr::math::common::pi)
-                    angle -= 2 * dpslr::math::common::pi;
-            }
-        }
 
         // Calculate the final tracking position and differences.
-        tracking_position.az = sun_pos.azimuth + this->track_info_.sun_avoid_angle * std::cos(angle);
-        tracking_position.el = sun_pos.elevation + this->track_info_.sun_avoid_angle * std::sin(angle);
+        tracking_position.az = sun_pos.azimuth + this->track_info_.sun_avoid_angle * std::cos(angle_avoid);
+        tracking_position.el = sun_pos.elevation + this->track_info_.sun_avoid_angle * std::sin(angle_avoid);
         tracking_position.diff_az = prediction_result.instant_data->az - tracking_position.az;
         tracking_position.diff_el = prediction_result.instant_data->el - tracking_position.el;
         tracking_result.tracking_position = std::move(tracking_position);
@@ -295,8 +272,10 @@ void TrackingSLR::analyzeTracking()
     J2000 j2000_start = timing::mjdToJ2000Datetime(this->track_info_.mjd_start, this->track_info_.sod_start);
     J2000 j2000_end = timing::mjdToJ2000Datetime(this->track_info_.mjd_end, this->track_info_.sod_end);
 
-    // Parallel calculation of all Sun positions.
-    results_sun = this->sun_predictor_.fastPredict(j2000_start, j2000_end, step_ms);
+    // Parallel calculation of all Sun positions. Adds time delta to end date to ensure there is enough sun positions
+    // calculated.
+    results_sun = this->sun_predictor_.fastPredict(
+        j2000_start, j2000_end + this->track_info_.time_delta / timing::kSecsPerDay, step_ms);
 
     TrackingResult tr;
 
@@ -323,12 +302,6 @@ void TrackingSLR::analyzeTracking()
 bool TrackingSLR::checkTrackingStart()
 {
     auto start = this->track_info_.positions.begin();
-    // If there was an error with prediction at start, or its elevation is below minimum, then the tracking
-    // is not valid.
-    if (start->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
-        start->tracking_position->el < this->track_info_.min_elev)
-        return false;
-
 
     if (this->track_info_.avoid_sun)
     {
@@ -337,18 +310,22 @@ bool TrackingSLR::checkTrackingStart()
         while (start != this->track_info_.positions.end() &&
                this->insideSunSector(*start->prediction_result->instant_data, *start->sun_pos))
         {
-            // Set current start out of track
-            start->status = PositionStatus::OUT_OF_TRACK;
-
-            // Advance to next time position.
-            start++;
             // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
             // as invalid.
             if (start->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
                 start->tracking_position->el < this->track_info_.min_elev)
                 return false;
 
+            // Set current start out of track
+            start->status = PositionStatus::OUT_OF_TRACK;
+
+            // Advance to next time position.
+            start++;
         }
+
+        // If the whole tracking is within sun sector, then it is invalid.
+        if (start == this->track_info_.positions.end())
+            return false;
 
         if (start != this->track_info_.positions.begin())
         {
@@ -363,6 +340,12 @@ bool TrackingSLR::checkTrackingStart()
     }
     else
     {
+        // If there was an error with prediction at start, or its elevation is below minimum, then the tracking
+        // is not valid.
+        if (start->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
+            start->tracking_position->el < this->track_info_.min_elev)
+            return false;
+
         // If sun avoid is disabled, check whether position is inside or outside sun security sector
         // without changing start
         if (this->insideSunSector(*start->prediction_result->instant_data, *start->sun_pos))
@@ -377,6 +360,8 @@ bool TrackingSLR::checkTrackingStart()
 
     this->track_info_.start_elev = start->tracking_position->el;
 
+    this->tracking_begin_ = start;
+
     return true;
 }
 
@@ -384,12 +369,6 @@ bool TrackingSLR::checkTrackingEnd()
 {
 
     auto last = this->track_info_.positions.rbegin();
-    // If there was an error with prediction at end, or its elevation is below minimum, then the tracking
-    // is not valid.
-    if (last->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
-        last->tracking_position->el < this->track_info_.min_elev)
-        return false;
-
 
     if (this->track_info_.avoid_sun)
     {
@@ -398,18 +377,23 @@ bool TrackingSLR::checkTrackingEnd()
         while (last != this->track_info_.positions.rend() &&
                this->insideSunSector(*last->prediction_result->instant_data, *last->sun_pos))
         {
-            // Set current end as out of track
-            last->status = PositionStatus::OUT_OF_TRACK;
-
-            // Advance to previous time position.
-            last++;
-
             // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
             // as invalid.
             if (last->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
                 last->tracking_position->el < this->track_info_.min_elev)
                 return false;
+
+            // Set current end as out of track
+            last->status = PositionStatus::OUT_OF_TRACK;
+
+            // Advance to previous time position.
+            last++;
         }
+
+        // If the whole tracking is at sun, then it is invalid. This should be impossible, since it should have been
+        // detected at checkTrackingStart.
+        if (last == this->track_info_.positions.rend())
+            return false;
 
         if (last != this->track_info_.positions.rbegin())
         {
@@ -423,6 +407,12 @@ bool TrackingSLR::checkTrackingEnd()
     }
     else
     {
+        // If there was an error with prediction at end, or its elevation is below minimum, then the tracking
+        // is not valid.
+        if (last->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
+            last->tracking_position->el < this->track_info_.min_elev)
+            return false;
+
         // If sun avoid is disabled, check whether position is inside or outside sun security sector
         // without changing end
         if (this->insideSunSector(*last->prediction_result->instant_data, *last->sun_pos))
@@ -437,6 +427,8 @@ bool TrackingSLR::checkTrackingEnd()
 
     this->track_info_.end_elev = last->tracking_position->el;
 
+    this->tracking_end_ = (last + 1).base();
+
     return true;
 }
 
@@ -449,10 +441,10 @@ bool TrackingSLR::checkTracking()
     MJDate max_elev_mjd = 0;
     SoD max_elev_sod = 0;
     double max_elev = -1.;
-    std::vector<TrackingResult>::const_iterator sun_sector_start;
+    TrackingResults::iterator sun_sector_start;
 
     // Check the tracking.
-    for (auto it = this->track_info_.positions.begin() + 1; it != this->track_info_.positions.end() - 1; it++)
+    for (auto it = this->tracking_begin_ + 1; it != this->tracking_end_ - 1; it++)
     {
 
         // If position cannot be predicted for this time, or elevation is below minimum, then tracking is not valid.
@@ -462,37 +454,41 @@ bool TrackingSLR::checkTracking()
 
         // Check if this position is inside sun security sector
         sun_collision = this->insideSunSector(*it->prediction_result->instant_data, *it->sun_pos);
+
+        // Store whether position is inside or outside sun. Later, if sun avoid algorithm is applied, those positions
+        // which are inside sun will be checked to see if it is possible or not to avoid sun.
         it->status = sun_collision ? PositionStatus::INSIDE_SUN : PositionStatus::OUTSIDE_SUN;
 
 
         if (this->track_info_.avoid_sun)
         {
-            // If sun avoid is applied we have to check if we will store the data for each sector
-            // where the tracking goes through the sun security sector. This data will be used for calculating
-            // an alternative trajetctory at those sectors
+            // If sun avoid is applied we have to store the data for each sector  where the tracking goes through a sun security sector.
+            // This data will be used for calculating an alternative trajetctory at those sectors.
             if (sun_collision)
             {
-                // If there is a sun collision, start saving sun positions for this sector
+                // If there is a sun collision, start saving sun positions for this sector. The first positions is the first position before entering
+                // the sector, i.e., it is ouside sun security sector.
                 if (!in_sun_sector)
                 {
                     in_sun_sector = true;
-                    sun_sector.az_entry = (it-1)->tracking_position->az;
-                    sun_sector.el_entry = (it-1)->tracking_position->el;
-                    sun_sector.mjdt_entry = (it-1)->mjdt;
                     sun_sector_start = it-1;
+                    sun_sector.az_entry = sun_sector_start->tracking_position->az;
+                    sun_sector.el_entry = sun_sector_start->tracking_position->el;
+                    sun_sector.mjdt_entry = sun_sector_start->mjdt;
+
                 }
 
             }
             else if (!sun_collision && in_sun_sector)
             {
-                // If we were inside a sun sector, and we are going out of it, check sun sector rotation direction and
-                // store the sector
+                // If we were inside a sun sector, and we are going out of it, check sun sector rotation direction and positions within the sector and
+                // store the sector. The last position stored is the first position after exiting the sector, i.e., it is outside sun security sector.
                 in_sun_sector = false;
                 sun_sector.az_exit = it->tracking_position->az;
                 sun_sector.el_exit = it->tracking_position->el;
                 sun_sector.mjdt_exit = it->mjdt;
                 this->setSunSectorRotationDirection(sun_sector, sun_sector_start, it);
-                // TODO: update position status for positions inside sector. Check if it is possible to avoid sun
+                this->checkSunSectorPositions(sun_sector, sun_sector_start, it);
                 this->track_info_.sun_sectors.push_back(std::move(sun_sector));
                 sun_sector = {};
             }
@@ -508,10 +504,13 @@ bool TrackingSLR::checkTracking()
     }
 
     // If there was a sun security sector until the position previous to the last one, finish the tracking before
-    // starting the sector.
+    // starting the sector. This case should be almost impossible.
     if (in_sun_sector)
     {
         timing::MjdtToMjdAndSecs(sun_sector.mjdt_entry, this->track_info_.mjd_end, this->track_info_.sod_end);
+        for (auto it = sun_sector_start + 1; it !=this->track_info_.positions.end(); it++)
+            it->status = PositionStatus::OUT_OF_TRACK;
+        this->tracking_end_ = sun_sector_start;
         this->track_info_.sun_collision_at_end = true;
     }
 
@@ -531,9 +530,7 @@ bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
 }
 
 void TrackingSLR::setSunSectorRotationDirection(
-    SunSector &sector,
-    std::vector<TrackingResult>::const_iterator sun_start,
-    std::vector<TrackingResult>::const_iterator sun_end)
+    SunSector &sector, TrackingResults::const_iterator sun_start, TrackingResults::const_iterator sun_end)
 {
 
     MJDateTime mjdt = sector.mjdt_entry + this->track_info_.time_delta /
@@ -620,6 +617,63 @@ void TrackingSLR::setSunSectorRotationDirection(
 
     // TODO: what happens if the two ways are not valid?
 
+}
+
+void TrackingSLR::checkSunSectorPositions(
+    const SunSector &sector, TrackingResults::iterator sun_start, TrackingResults::iterator sun_end)
+{
+    // Check positions within sun sector. First and last are excluded, since they are outside sun sector
+    for (auto it = sun_start + 1; it != sun_end; it++)
+    {
+        long double angle_avoid = this->calcSunAvoidTrajectory(it->mjdt, sector, *it->sun_pos);
+        it->tracking_position->az = it->sun_pos->azimuth + this->track_info_.sun_avoid_angle * std::cos(angle_avoid);
+        it->tracking_position->el = it->sun_pos->elevation + this->track_info_.sun_avoid_angle * std::sin(angle_avoid);
+        it->tracking_position->diff_az = it->prediction_result->instant_data->az - it->tracking_position->az;
+        it->tracking_position->diff_el = it->prediction_result->instant_data->el - it->tracking_position->el;
+        it->status = PositionStatus::AVOIDING_SUN;
+    }
+}
+
+long double TrackingSLR::calcSunAvoidTrajectory(timing::common::MJDateTime mjdt, const SunSector &sector,
+                                                const astro::PredictorSun::SunPosition &sun_pos)
+{
+    long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
+
+    long double entry_angle = std::atan2(sector.el_entry - sun_pos.elevation,
+                                         sector.az_entry - sun_pos.azimuth);
+
+    long double exit_angle = std::atan2(sector.el_exit - sun_pos.elevation,
+                                        sector.az_exit - sun_pos.azimuth);
+
+    long double angle;
+
+    if (exit_angle > entry_angle)
+    {
+        if (sector.cw)
+        {
+            angle = entry_angle - time_perc * (2 * dpslr::math::common::pi - exit_angle + entry_angle);
+            if (angle < 0.L)
+                angle += 2 * dpslr::math::common::pi;
+        }
+        else
+            angle = entry_angle + time_perc * (exit_angle - entry_angle);
+
+    }
+    else
+    {
+        if (sector.cw)
+        {
+            angle = entry_angle - time_perc * (entry_angle - exit_angle);
+        }
+        else
+        {
+            angle = entry_angle + time_perc * (2 * dpslr::math::common::pi - entry_angle + exit_angle);
+            if (angle >= 2 * dpslr::math::common::pi)
+                angle -= 2 * dpslr::math::common::pi;
+        }
+    }
+
+    return angle;
 }
 
 

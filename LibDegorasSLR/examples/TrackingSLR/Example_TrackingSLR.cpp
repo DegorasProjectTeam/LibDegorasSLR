@@ -11,7 +11,15 @@ int main ()
 
     // Configure the CPF folder and example file.
     std::string cpf_dir("C:/0-SALARA_PROJECT/SP_DataFiles/SP_CPF/SP_CurrentCPF/");
-    std::string cpf_name("41240_cpf_240128_02801.hts");
+
+    // Lares. Sun at beginning
+    std::string cpf_name("38077_cpf_240128_02901.sgf");
+
+    // Jason 3. Sun in the middle.
+    //std::string cpf_name("41240_cpf_240128_02801.hts");
+
+    // Explorer27. Sun in the end.
+    //std::string cpf_name("1328_cpf_240128_02901.sgf");
 
 
     // SFEL station geodetic coordinates.
@@ -34,10 +42,25 @@ int main ()
     dpslr::algoslr::utils::PredictorSLR predictor(cpf, stat_geodetic, stat_geocentric);
     predictor.setPredictionMode(dpslr::algoslr::utils::PredictorSLR::PredictionMode::INSTANT_VECTOR);
 
+    // Lares. Sun in the beginning.
     timing::MJDate mjd_start = 60340;
-    timing::SoD sod_start = 42140;
+    timing::SoD sod_start = 56726;
     timing::MJDate mjd_end = 60340;
-    timing::SoD sod_end = 43150;
+    timing::SoD sod_end = 57756;
+
+    // Jason 3. Sun in the middle.
+    // timing::MJDate mjd_start = 60340;
+    // timing::SoD sod_start = 42140;
+    // timing::MJDate mjd_end = 60340;
+    // timing::SoD sod_end = 43150;
+
+    // Explorer27. Sun in the end.
+    // timing::MJDate mjd_start = 60340;
+    // timing::SoD sod_start = 30687;
+    // timing::MJDate mjd_end = 60340;
+    // timing::SoD sod_end = 31467;
+
+
     dpslr::algoslr::utils::TrackingSLR tracking(8.L, mjd_start, sod_start, mjd_end, sod_end, std::move(predictor));
     dpslr::astro::PredictorSun sun_pred(stat_geodetic);
     std::vector<astro::PredictorSun::SunPosition> sun_pos;

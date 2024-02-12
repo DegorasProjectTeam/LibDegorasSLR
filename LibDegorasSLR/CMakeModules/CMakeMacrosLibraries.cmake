@@ -45,14 +45,17 @@ MACRO(macro_setup_lib_basic_examples examples_sources_path examples_install_path
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${APP_BUILD_FOLDER})
 
     # List of basic tests.
-    file(GLOB EXAMPLE_SOURCES "${examples_sources_path}/*.cpp")
+    #file(GLOB EXAMPLE_SOURCES "${examples_sources_path}/*.cpp")
+
+    # List of basic tests.
+    file(GLOB_RECURSE EXAMPLE_SOURCES RELATIVE "${examples_sources_path}" "${examples_sources_path}/*.cpp")
 
     # Loop through the example names and configure each basic example.
     foreach(EXAMPLE_SOURCE_FILE ${EXAMPLE_SOURCES})
 
         # Get the example name and source.
         get_filename_component(EXAMPLE_NAME ${EXAMPLE_SOURCE_FILE} NAME_WE)
-        set(SOURCES ${EXAMPLE_NAME}.cpp)
+        set(SOURCES ${examples_sources_path}/${EXAMPLE_SOURCE_FILE})
 
         # Setup the launcher.
         macro_setup_launcher("${EXAMPLE_NAME}"
