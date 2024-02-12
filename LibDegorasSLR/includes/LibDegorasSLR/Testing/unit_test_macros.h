@@ -85,6 +85,9 @@ this->result_ &= expectEQ(arg1, arg2); \
 #define M_EXPECTED_EQ_F(arg1, arg2, eps) \
 this->result_ &= expectEQ(arg1, arg2, eps); \
 
+#define M_EXPECTED_NE_F(arg1, arg2, eps) \
+this->result_ &= expectNE(arg1, arg2, eps); \
+
 #define M_EXPECTED_EQ(arg1, arg2) \
 this->result_ &= expectEQ(arg1, arg2); \
 

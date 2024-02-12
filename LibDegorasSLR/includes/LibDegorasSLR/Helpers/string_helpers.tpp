@@ -36,19 +36,18 @@
 
 // C++ INCLUDES
 //======================================================================================================================
+#include <iostream>
 #include <string>
 #include <limits>
-#include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <vector>
-#include <map>
-#include <cmath>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/Helpers/container_helpers.h>
+#include <LibDegorasSLR/Helpers/types/numeric_strong_type.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -133,24 +132,24 @@ std::string numberToStr(T x, unsigned int prec, unsigned int dec_places, bool fi
 }
 
 template<typename T>
-std::string numberToMaxDecStr(T x)
+std::string numberToMaxDecStr(const T& x)
 {
-    static_assert(std::is_floating_point<T>::value, "T must be a floating-point type");
-
+    // Check that the number is a float.
+    static_assert(types::is_numeric_strong_type<T>::value ?
+                          helpers::types::is_strong_float<T>::value : std::is_floating_point_v<T>,
+                  "[LibDegorasBase,Helpers,numberToMaxDecStr] T must be a floating-point type.");
+    // Container.
     std::ostringstream strout;
     // Set precision to maximum possible for the type
-    strout << std::showpoint << std::setprecision(std::numeric_limits<T>::max_digits10) << x;
-
+    strout << std::showpoint << std::setprecision(std::numeric_limits<T>::digits10) << x;
     // Convert to string
     std::string str = strout.str();
-
     // Remove trailing zeros and potential trailing decimal point
     size_t end = str.find_last_not_of('0') + 1;
-    if (str[end - 1] == '.') {
-        --end; // If the last character is now a decimal point, remove it as well
-    }
+    if (str[end - 1] == '.')
+        --end;
     str.erase(end);
-
+    // Return the sring.
     return str;
 }
 

@@ -130,10 +130,20 @@ public:
 // Type traits.
 
 template<typename T, typename Tag>
-struct is_strong_floating<NumericStrongType<T, Tag>> : std::is_floating_point<T> {};
+struct is_strong_float<NumericStrongType<T, Tag>> : std::is_floating_point<T> {};
 
 template<typename T, typename Tag>
 struct is_strong_integral<NumericStrongType<T, Tag>> : std::is_integral<T> {};
+
+// Trait to check if a type is a NumericStrongType
+template<typename T>
+struct is_numeric_strong_type : std::false_type {};
+
+template<typename T, class Tag>
+struct is_numeric_strong_type<NumericStrongType<T, Tag>> : std::true_type {};
+
+template<typename T, class Tag>
+struct underlying_type<NumericStrongType<T, Tag>> {using type = T;};
 
 }}} // END NAMESPACES.
 // =====================================================================================================================
@@ -148,6 +158,7 @@ class numeric_limits<dpslr::helpers::types::NumericStrongType<T, Tag>>
 public:
     static constexpr bool is_specialized = numeric_limits<T>::is_specialized;
 
+    static constexpr auto max_digits10 = std::numeric_limits<T>::max_digits10;
     static constexpr auto digits10 = std::numeric_limits<T>::digits10;
     static constexpr T min() noexcept { return numeric_limits<T>::min(); }
     static constexpr T max() noexcept { return numeric_limits<T>::max(); }

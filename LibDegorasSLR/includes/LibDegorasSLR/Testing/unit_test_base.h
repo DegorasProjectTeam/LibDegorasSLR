@@ -41,6 +41,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
+#include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -57,46 +58,6 @@ protected:
     UnitTestBase(const std::string& name);
 
 public:
-
-    // Forward declaration of StrongType
-    template<typename T, class Tag>
-    class StrongType;
-
-    // Trait to check if a type is a StrongType
-    template<typename T>
-    struct is_strong_type : std::false_type {};
-
-    template<typename T, class Tag>
-    struct is_strong_type<StrongType<T, Tag>> : std::true_type {};
-
-    // Trait to check if a StrongType wraps a floating-point type
-    template<typename T>
-    struct is_strong_type_floating_point : std::false_type {};
-
-    template<typename T, class Tag>
-    struct is_strong_type_floating_point<StrongType<T, Tag>> : std::is_floating_point<T> {};
-
-    // Trait to check if a StrongType wraps an integral type
-    template<typename T>
-    struct is_strong_type_integral : std::false_type {};
-
-    template<typename T, class Tag>
-    struct is_strong_type_integral<StrongType<T, Tag>> : std::is_integral<T> {};
-
-    // Type traits.
-
-    // Base template for identifying numeric types
-    template<typename T>
-    struct is_numeric_type : std::false_type {};
-
-    template <typename T>
-    struct is_container : std::false_type {};
-
-    template <typename... Args>
-    struct is_container<std::vector<Args...>> : std::true_type {};
-
-    template <typename T, size_t N>
-    struct is_container<std::array<T, N>> : std::true_type {};
 
     // Run all test.
     virtual void runTest();
@@ -125,32 +86,148 @@ public:
     template<typename... Args>
     bool customCheck(const std::function<bool(const Args&...)>& check_function, const Args&... args)
     {
+        std::cout<<"                           ";
+        std::cout<<"- Customized function evaluation"<<std::endl;
         bool result = check_function(args...);
         this->updateCheckResults(result, args...);
         return result;
     }
 
-    // Integral types.
+    // Integral types equality (non-strong).
     template<typename T>
-    typename std::enable_if_t<!is_container<T>::value && (!std::is_floating_point_v<T>), bool>
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+        !helpers::types::is_numeric_strong_type<T>::value &&
+        !std::is_floating_point_v<T>,
+        bool>
     expectEQ(const T& arg1, const T& arg2)
     {
-        std::cout<<"                           - Comparing integrals equality"<<std::endl;
+        std::cout<<"                           ";
+        std::cout<<"- Comparing integrals equality (non-strong type)"<<std::endl;
         bool result = (arg1 == arg2);
         this->updateCheckResults(result, arg1, arg2);
         return result;
     }
 
-    // Floating types.
+    // Integral types equality (strong).
     template<typename T>
-    typename std::enable_if_t<!is_container<T>::value && (std::is_floating_point_v<T>), bool>
-    expectEQ(const T& arg1, const T& arg2, const long double& tolerance = std::numeric_limits<T>::epsilon())
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+        helpers::types::is_numeric_strong_type<T>::value &&
+        helpers::types::is_strong_integral<T>::value,
+        bool>
+    expectEQ(const T& arg1, const T& arg2)
     {
-        std::cout<<"                           - Comparing float equality"<<std::endl;
+        std::cout<<"                           ";
+        std::cout<<"- Comparing integrals equality (strong type)"<<std::endl;
+        bool result = (arg1 == arg2);
+        this->updateCheckResults(result, arg1, arg2);
+        return result;
+    }
+
+    // Integral types inequality (non-strong).
+    template<typename T>
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+        !helpers::types::is_numeric_strong_type<T>::value &&
+        !std::is_floating_point_v<T>,
+        bool>
+    expectNE(const T& arg1, const T& arg2)
+    {
+        std::cout<<"                           ";
+        std::cout<<"- Comparing integrals inequality (non-strong type)"<<std::endl;
+        bool result = (arg1 != arg2);
+        this->updateCheckResults(result, arg1, arg2);
+        return result;
+    }
+
+    // Integral types inequality (strong).
+    template<typename T>
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+        helpers::types::is_numeric_strong_type<T>::value &&
+        helpers::types::is_strong_integral<T>::value,
+        bool>
+    expectNE(const T& arg1, const T& arg2)
+    {
+        std::cout<<"                           ";
+        std::cout<<"- Comparing integrals inequality (strong type)"<<std::endl;
+        bool result = (arg1 != arg2);
+        this->updateCheckResults(result, arg1, arg2);
+        return result;
+    }
+
+    // Floating types equality (non-strong).
+    template<typename T>
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+        !helpers::types::is_numeric_strong_type<T>::value &&
+        std::is_floating_point_v<T>,
+        bool>
+    expectEQ(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
+    {
+        std::cout<<"                           ";
+        std::cout <<"- Comparing floats equality (non-strong type)" << std::endl;
         bool result = std::abs(arg1 - arg2) <= tolerance;
         this->updateCheckResults(result, arg1, arg2);
         return result;
     }
+
+    // Floating types equality (strong type).
+    template<typename T>
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+        helpers::types::is_numeric_strong_type<T>::value &&
+        helpers::types::is_strong_float<T>::value,
+        bool>
+    expectEQ(const T& arg1,
+             const T& arg2,
+             const helpers::types::underlying_type_t<T>& tolerance =
+                std::numeric_limits<helpers::types::underlying_type_t<T>>::epsilon())
+    {
+        std::cout<<"                           ";
+        std::cout <<"- Comparing floats equality (strong type)" << std::endl;
+        bool result = std::abs(arg1 - arg2) <= tolerance;
+        this->updateCheckResults(result, arg1, arg2);
+        return result;
+    }
+
+    // Floating types inequality (non-strong).
+    template<typename T>
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+        !helpers::types::is_numeric_strong_type<T>::value &&
+        std::is_floating_point_v<T>,
+        bool>
+    expectNE(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
+    {
+        std::cout<<"                           ";
+        std::cout <<"- Comparing floats inequality (non-strong type)" << std::endl;
+        bool result = std::abs(arg1 - arg2) > tolerance;
+        this->updateCheckResults(result, arg1, arg2);
+        return std::abs(arg1 - arg2) > tolerance;
+    }
+
+    // Floating types inequality (strong).
+    template<typename T>
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+        helpers::types::is_numeric_strong_type<T>::value &&
+        helpers::types::is_strong_float<T>::value,
+        bool>
+    expectNE(const T& arg1,
+             const T& arg2,
+             const helpers::types::underlying_type_t<T>& tolerance =
+                std::numeric_limits<helpers::types::underlying_type_t<T>>::epsilon())
+    {
+        std::cout<<"                           ";
+        std::cout <<"- Comparing floats inequality (strong type)" << std::endl;
+        bool result = std::abs(arg1 - arg2) > tolerance;
+        this->updateCheckResults(result, arg1, arg2);
+        return std::abs(arg1 - arg2) > tolerance;
+    }
+
+    // TODO UPDATE THE NEXT CASES TO USE STRONG TYPES.
 
     template<typename T>
     typename std::enable_if_t<
@@ -231,33 +308,7 @@ public:
         return true;
     }
 
-    template<typename T>
-    typename std::enable_if_t<
-        !is_container<T>::value &&
-        !std::is_floating_point_v<T>, bool>
-    expectNE(const T& arg1, const T& arg2)
-    {
-        std::cout<<"                           - Comparing float inequality"<<std::endl;
-
-        bool result = (arg1 != arg2);
-        this->updateCheckResults(result, arg1, arg2);
-        return result;
-    }
-
-    template<typename T>
-    typename std::enable_if_t<
-        !is_container<T>::value &&
-            std::is_floating_point_v<T>, bool>
-    expectNE(const T& arg1, const T& arg2, const T& tolerance = std::numeric_limits<T>::epsilon())
-    {
-        std::cout<<"                           - Comparing floats inequality"<<std::endl;
-        bool result = std::abs(arg1 - arg2) > tolerance;
-        this->updateCheckResults(result, arg1, arg2);
-        return std::abs(arg1 - arg2) > tolerance;
-    }
-
-
-
+    // Public members.
     std::string test_name_;
     bool result_;
     bool force_stream_data_;
@@ -266,20 +317,15 @@ public:
 
 private:
 
-    // Helper to convert value to string if it supports streaming to an ostringstream.
-    template<typename T, typename = void>
-    struct is_streamable : std::false_type {};
-
-    template<typename T>
-    struct is_streamable<T, std::void_t<decltype(std::declval<std::ostringstream&>()
-                                                 << std::declval<T>())>> : std::true_type {};
 
     // Conversion to string for streamable types
     template<typename T>
     static std::enable_if_t<
-                    is_streamable<T>::value &&
-                    !std::is_floating_point<T>::value,
-                    std::string>
+        helpers::types::is_streamable<T>::value &&
+        (helpers::types::is_numeric_strong_type<T>::value ?
+             helpers::types::is_strong_integral<T>::value :
+             !std::is_floating_point_v<T>),
+        std::string>
     valueToString(const T& value)
     {
         std::ostringstream os;
@@ -289,9 +335,7 @@ private:
 
     // Fallback for non-streamable types, could be adjusted based on needs.
     template<typename T>
-    static std::enable_if_t<
-                    !is_streamable<T>::value,
-                    std::string>
+    static std::enable_if_t<!helpers::types::is_streamable<T>::value, std::string>
     valueToString(const T&)
     {
         return "<NON STREAMABLE TYPE>";
@@ -299,9 +343,12 @@ private:
 
     // Specialization for floating-point types using numberToMaxDecStr
     template<typename T>
-    static std::enable_if_t<
-                    std::is_floating_point<T>::value,
-                    std::string>
+    typename std::enable_if_t<
+        !helpers::types::is_container<T>::value &&
+            (helpers::types::is_numeric_strong_type<T>::value ?
+                 helpers::types::is_strong_float<T>::value :
+                 std::is_floating_point_v<T>),
+        std::string>
     valueToString(const T& value)
     {
         return helpers::strings::numberToMaxDecStr(value);
@@ -321,8 +368,6 @@ private:
         return std::to_string(dur.count()) + " [" + std::to_string(Period::num) +
                "/" + std::to_string(Period::den) + "]s";
     }
-
-
 
     template<typename... Args>
     void updateCheckResults(bool res, Args&&... args)

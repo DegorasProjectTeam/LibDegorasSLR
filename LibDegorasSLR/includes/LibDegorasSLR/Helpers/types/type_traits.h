@@ -41,6 +41,8 @@
 // C++ INCLUDES
 // =====================================================================================================================
 #include <type_traits>
+#include <vector>
+#include <array>
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -50,21 +52,37 @@ namespace helpers{
 namespace types{
 // =====================================================================================================================
 
-
 template<typename T>
 struct is_numeric : std::integral_constant<bool, std::is_integral<T>::value || std::is_floating_point<T>::value> {};
 
-// Custom type trait to check if a type is a NumericStrongType with a floating point underlying type
+// Type trait to check if a type is a NumericStrongType with a floating point underlying type
 template<typename T>
-struct is_strong_floating : std::false_type {};
+struct is_strong_float : std::false_type {};
 
 // Custom type trait to check if a type is a NumericStrongType with an integral underlying type
 template<typename T>
 struct is_strong_integral : std::false_type {};
 
+template <typename T>
+struct is_container : std::false_type {};
 
+template <typename... Args>
+struct is_container<std::vector<Args...>> : std::true_type {};
 
+template <typename T, size_t N>
+struct is_container<std::array<T, N>> : std::true_type {};
 
+// Helper to convert value to string if it supports streaming to an ostringstream.
+template<typename T, typename = void>
+struct is_streamable : std::false_type {};
 
+template<typename T>
+struct is_streamable<T, std::void_t<decltype(std::declval<std::ostringstream&>()
+                                             << std::declval<T>())>> : std::true_type {};
+template<typename T>
+struct underlying_type {using type = T;};
+
+template<typename T>
+using underlying_type_t = typename underlying_type<T>::type;
 }}} // END NAMESPACES.
 // =====================================================================================================================

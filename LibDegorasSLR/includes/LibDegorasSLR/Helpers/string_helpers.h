@@ -127,7 +127,7 @@ template<typename T>
 std::string numberToStr(T x, unsigned int prec, unsigned int dec_places, bool fixed = true);
 
 template<typename T>
-std::string numberToMaxDecStr(T x);
+std::string numberToMaxDecStr(const T& x);
 
 }}} // END NAMESPACES
 // =====================================================================================================================
