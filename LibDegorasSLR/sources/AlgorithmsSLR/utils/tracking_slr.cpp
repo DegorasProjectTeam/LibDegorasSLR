@@ -57,7 +57,7 @@ TrackingSLR::TrackingSLR(unsigned min_elev, MJDate mjd_start, SoD sod_start, MJD
     this->track_info_.mjd_end = mjd_end;
     this->track_info_.sod_end = sod_end;
     this->track_info_.min_elev = min_elev;
-    this->track_info_.time_delta = time_delta_ms / 1000.0;
+    this->track_info_.time_delta = time_delta_ms / 1000.L;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;
     this->track_info_.avoid_sun = avoid_sun;
     this->track_info_.sun_collision_at_start = false;
@@ -74,7 +74,7 @@ TrackingSLR::TrackingSLR(unsigned min_elev, const timing::HRTimePointStd& tp_sta
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
     this->track_info_.min_elev = min_elev;
-    this->track_info_.time_delta = time_delta_ms / 1000.0L;
+    this->track_info_.time_delta = time_delta_ms / 1000.L;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;
     this->track_info_.avoid_sun = avoid_sun;
     this->track_info_.sun_collision_at_start = false;
@@ -278,7 +278,7 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
 void TrackingSLR::analyzeTracking()
 {
     // Results container and auxiliar.
-    unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta)*1000;
+    unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta*1000);
     PredictorSLR::PredictionResults results_slr;
     astro::PredictorSun::SunPositions results_sun;
 
