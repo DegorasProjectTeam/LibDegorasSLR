@@ -53,13 +53,32 @@ namespace geo{
 namespace common{
 // =====================================================================================================================
 
+struct LIBDPSLR_EXPORT MeteoData
+{
+    MeteoData() :
+        temperature(0.0),
+        pressure(0.0),
+        rel_humidity(0.0)
+    {}
+
+    MeteoData(double temp, double press, double hum) :
+        temperature(temp),
+        pressure(press),
+        rel_humidity(hum)
+    {}
+
+    double temperature;
+    double pressure;
+    double rel_humidity;
+};
+
 
 
 /**
  * GeocentricCoords is defined as <x,y,z> tuple
  */
 template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
-struct GeocentricPoint
+struct LIBDPSLR_EXPORT GeocentricPoint
 {
     using DistType = dpslr::math::units::Distance<T>;
 
@@ -83,7 +102,7 @@ struct GeocentricPoint
  * GeodeticCoords is defined as <lat, lon, alt> tuple
  */
 template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
-struct GeodeticPoint
+struct LIBDPSLR_EXPORT GeodeticPoint
 {
     using AngleType = math::units::Angle<T>;
     using DistType = math::units::Distance<T>;
@@ -107,6 +126,16 @@ struct GeodeticPoint
 
     template<typename Container = std::array<long double, 3>>
     inline constexpr Container store() const {return Container{lat, lon, alt};}
+};
+
+template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+struct LIBDPSLR_EXPORT SurfaceLocation
+{
+
+
+    MeteoData meteo;
+    GeodeticPoint<T> geodetic;
+    GeocentricPoint<T> geocentric;
 };
 
 }}} // END NAMESPACES.

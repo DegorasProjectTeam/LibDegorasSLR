@@ -38,13 +38,15 @@ MACRO(macro_link_libnovascpp_default target)
 
     message(STATUS "Linking LibNovasCPP to target ${target}")
 
-    target_link_libraries(${target} PRIVATE LibNovasCpp::LibNovasCpp)
+    target_link_libraries(${target} PUBLIC LibNovasCpp::LibNovasCpp)
 
     if(MODULES_GLOBAL_SHOW_EXTERNALS)
         get_target_property(libnovascpp_includes LibNovasCpp::LibNovasCpp INTERFACE_INCLUDE_DIRECTORIES)
         file(GLOB_RECURSE EXTERNAL_HEADERS ${libnovascpp_includes}/*)
-        target_sources(${target} PRIVATE ${EXTERNAL_HEADERS})
+        target_sources(${target} PUBLIC ${EXTERNAL_HEADERS})
     endif()
+
+
 
 ENDMACRO()
 

@@ -351,8 +351,9 @@ LIBDPSLR_EXPORT HRTimePointStd julianDatetimeToTimePoint(JDateTime jdt);
 LIBDPSLR_EXPORT void timePointToJulianDate(const HRTimePointStd &tp, JDate& jd, DayFraction& fraction);
 
 
+LIBDPSLR_EXPORT void timePointToJulianDate(const HRTimePointStd &tp, JDate& jd, SoD& seconds);
 
-LIBDPSLR_EXPORT JDate timePointToJulianDate(const HRTimePointStd &tp, SoD& seconds);
+//LIBDPSLR_EXPORT JDate timePointToJulianDate(const HRTimePointStd &tp, SoD& seconds);
 
 
 /**

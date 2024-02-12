@@ -68,6 +68,7 @@ macro_setup_base_project(${LIB_NAME} ${LIB_VER} ${LIB_BUILD_MODE} ${LIB_LANGUAGE
 # Other configurations.
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
+set(CMAKE_STATIC_LIBRARY_PREFIX "")
 
 # Setup the install directory for each compiler and operating system.
 macro_setup_default_install_dir(${LIB_INSTALL_DIR})
@@ -101,7 +102,7 @@ source_group("Header Files" FILES ${TEMPLTS})
 source_group("Alias Files" FILES ${ALIAS})
 
 # Setup the shared library.
-macro_setup_shared_lib(${LIB_NAME} ${LIB_INCLUDES_DIR}
+macro_setup_shared_lib("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${LIB_VER}"
                        ${SOURCES1} ${SOURCES2} ${HEADERS} ${TEMPLTS} ${ALIAS})
 
 # Link with LibNovasCPP.
@@ -132,13 +133,15 @@ endif()
 # Installation process.
 macro_default_library_installation(${LIB_NAME} ${LIB_CMAKE_CONFIG_NAME} ${LIB_INCLUDES_DIR})
 
+#macro_install_runtime_artifacts(LibNovasCpp::LibNovasCpp ${dependency_set} ${install_path})
+
 # ----------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE SUBPROJECTS
 
 # Testing subproject.
-add_subdirectory(testing)
+#add_subdirectory(testing)
 
 # Example subproject.
-add_subdirectory(examples)
+#add_subdirectory(examples)
 
 # ----------------------------------------------------------------------------------------------------------------------
