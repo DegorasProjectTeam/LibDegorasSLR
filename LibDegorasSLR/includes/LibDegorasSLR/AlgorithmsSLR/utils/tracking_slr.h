@@ -61,7 +61,7 @@ namespace utils{
 // Este sistema no analiza los limites físicos de la montura de seguimiento. En SFEl, la montura AMELAS tiene
 // capacidad independiente de cálculo, y es la encargada de realizar internamente una modificación de la trayectoria
 // si el pase es demasiado alto o demasiado rápido. En otros sistemas, este cálculo específico debe de ser realizado
-// independientemente una vez realizada la predicción con esta clase.
+// independientemente con otro subsistema dedicado una vez realizada la predicción con esta clase.
 
 // TRACKING SLR VS PassCalculatorSLR
 // TrackingSLR está pensado para un unico track. La idea es que pass calculator tiene capacidad de calcular todos
@@ -80,7 +80,7 @@ namespace utils{
 /**
  * @brief The TrackingSLR class implements an abstraction for a SLR tracking.
  *
- * This class uses a @a PredictorSLR to look for a SLR tracking within the given time window, i.e., the object is
+ * This class uses a PredictorSLR to look for a SLR tracking within the given time window, i.e., the object is
  * always above the minimum elevation.
  *
  * This class also offers a sun avoidance algorithm. This algorithm changes the tracking trajectory whenever it passes
@@ -201,13 +201,13 @@ public:
     };
 
 
-    TrackingSLR(unsigned min_elev, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
-                PredictorSLR&& predictor, unsigned time_delta_ms = 1000,
-                bool avoid_sun = true, unsigned sun_avoid_angle = 15);
+    TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
+                unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
+                unsigned sun_avoid_angle = 15);
 
-    TrackingSLR(unsigned min_elev, const timing::HRTimePointStd& tp_start, const timing::HRTimePointStd& tp_end,
-                PredictorSLR&& predictor, unsigned time_delta_ms = 1000,
-                bool avoid_sun = true, unsigned sun_avoid_angle = 15);
+    TrackingSLR(PredictorSLR&& predictor, const timing::HRTimePointStd& tp_start, const timing::HRTimePointStd& tp_end,
+                unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
+                unsigned sun_avoid_angle = 15);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.

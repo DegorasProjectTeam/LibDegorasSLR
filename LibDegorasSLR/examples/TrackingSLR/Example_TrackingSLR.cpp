@@ -61,7 +61,7 @@ int main ()
     // timing::SoD sod_end = 31467;
 
 
-    dpslr::algoslr::utils::TrackingSLR tracking(8.L, mjd_start, sod_start, mjd_end, sod_end, std::move(predictor));
+    dpslr::algoslr::utils::TrackingSLR tracking(std::move(predictor), mjd_start, sod_start, mjd_end, sod_end, 8);
     dpslr::astro::PredictorSun sun_pred(stat_geodetic);
     std::vector<astro::PredictorSun::SunPosition> sun_pos;
 

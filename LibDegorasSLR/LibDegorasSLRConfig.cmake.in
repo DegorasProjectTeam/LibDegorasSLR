@@ -34,8 +34,4 @@ find_package(LibNovasCpp @LibNovasCpp_VERSION@ EXACT REQUIRED PATHS @LibNovasCpp
 # Include the /LibDegorasSLRTargets file.
 include("${CMAKE_CURRENT_LIST_DIR}/LibDegorasSLRTargets.cmake")
 
-
-
-# You can set any variables or include directories that LibDegorasSLR needs based on LibNovasCpp here.
-# For example, if LibDegorasSLR requires include directories from LibNovasCpp, you can set them like this:
-# set(LibDegorasSLR_INCLUDE_DIRS "${LibNovasCpp_INCLUDE_DIRS}")
+# **********************************************************************************************************************

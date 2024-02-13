@@ -47,8 +47,8 @@ namespace algoslr{
 namespace utils{
 
 
-TrackingSLR::TrackingSLR(unsigned min_elev, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
-                         PredictorSLR &&predictor, unsigned time_delta_ms, bool avoid_sun, unsigned sun_avoid_angle) :
+TrackingSLR::TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
+                         unsigned min_elev_deg, unsigned time_delta_ms, bool sun_avoid, unsigned sun_avoid_angle) :
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
@@ -56,27 +56,27 @@ TrackingSLR::TrackingSLR(unsigned min_elev, MJDate mjd_start, SoD sod_start, MJD
     this->track_info_.sod_start = sod_start;
     this->track_info_.mjd_end = mjd_end;
     this->track_info_.sod_end = sod_end;
-    this->track_info_.min_elev = min_elev;
+    this->track_info_.min_elev = min_elev_deg;
     this->track_info_.time_delta = time_delta_ms / 1000.L;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;
-    this->track_info_.avoid_sun = avoid_sun;
+    this->track_info_.avoid_sun = sun_avoid;
     this->track_info_.sun_collision_at_start = false;
     this->track_info_.sun_collision_at_end = false;
     this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
     this->analyzeTracking();
 }
 
-TrackingSLR::TrackingSLR(unsigned min_elev, const timing::HRTimePointStd& tp_start,
-                         const timing::common::HRTimePointStd &tp_end, PredictorSLR &&predictor,
-                         unsigned time_delta_ms, bool avoid_sun, unsigned sun_avoid_angle) :
+TrackingSLR::TrackingSLR(PredictorSLR&& predictor, const timing::HRTimePointStd& tp_start,
+                         const timing::HRTimePointStd& tp_end, unsigned min_elev_deg, unsigned time_delta_ms,
+                         bool sun_avoid, unsigned sun_avoid_angle) :
 
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
-    this->track_info_.min_elev = min_elev;
+    this->track_info_.min_elev = min_elev_deg;
     this->track_info_.time_delta = time_delta_ms / 1000.L;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;
-    this->track_info_.avoid_sun = avoid_sun;
+    this->track_info_.avoid_sun = sun_avoid;
     this->track_info_.sun_collision_at_start = false;
     this->track_info_.sun_collision_at_end = false;
     timing::timePointToModifiedJulianDate(tp_start, this->track_info_.mjd_start, this->track_info_.sod_start);

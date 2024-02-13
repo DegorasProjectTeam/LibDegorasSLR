@@ -102,6 +102,9 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
     # List of basic tests.
     file(GLOB_RECURSE TESTS_SOURCES RELATIVE "${tests_sources_path}" "${tests_sources_path}/*.cpp")
 
+    # For simple test we will avoit the include the external resources.
+    set(EXTERN)
+
     # Filter out ignored paths.
     foreach(SOURCE_PATH ${TESTS_SOURCES})
 
@@ -127,6 +130,8 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
         set(SOURCES ${tests_sources_path}/${TESTS_SOURCE_FILE})
 
         # For simple test we will avoit the include the external resources.
+        set(EXTERN)
+
         # Uncomment if you need changue this behaviour.
         #if(MODULES_GLOBAL_SHOW_EXTERNALS)
         #    file(GLOB_RECURSE EXTERN ${CMAKE_SOURCE_DIR}/includes/*.h)
@@ -136,10 +141,10 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
         macro_setup_launcher("${TEST_NAME}"
                              "${MODULES_GLOBAL_LIBS_OPTIMIZED}"
                              "${MODULES_GLOBAL_LIBS_DEBUG}"
-                             "${SOURCES}" "${EXTERN}")
+                             "${SOURCES}")
 
         # Include directories for the target.
-        target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/includes)
+        #target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/includes)
 
         # Install the launcher.
         macro_install_launcher(${TEST_NAME} ${install_path})
