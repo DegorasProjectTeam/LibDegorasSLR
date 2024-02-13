@@ -63,7 +63,7 @@ ENDMACRO()
 # **********************************************************************************************************************
 
 # Function to search for packages.
-MACRO(macro_find_package_default package version extra_search_paths extra_search_patterns)
+MACRO(macro_find_package_default package version version_mode extra_search_paths extra_search_patterns)
 
     # Compose the configuration folder.
     macro_compose_current_architecture_folder_name(CONFIG_FOLDER)
@@ -163,13 +163,15 @@ MACRO(macro_find_package_default package version extra_search_paths extra_search
             message(STATUS "  Ignoring version.")
             find_package(${package} REQUIRED PATHS ${FOUND_PATHS} NO_DEFAULT_PATH)
         else()
-            message(STATUS "  Using version: ${version}")
-            find_package(${package} ${version} EXACT REQUIRED PATHS ${FOUND_PATHS} NO_DEFAULT_PATH)
+            message(STATUS "Using version: ${version} with mode: ${version_mode}")
+            find_package(${package} ${version} ${version_mode} REQUIRED PATHS ${FOUND_PATHS})
         endif()
 
         if(NOT ${package}_FOUND)
              message(FATAL_ERROR "  Configuration file for ${package} not found.")
         else()
+            # Set the found configuration path.
+            set(${package}_CONFIG_PATH ${FOUND_PATHS})
             # Log all found package details
             message(STATUS "  Package '${package}' found.")
             message(STATUS "  Package version: ${${package}_VERSION}")

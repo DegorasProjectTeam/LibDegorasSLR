@@ -83,7 +83,7 @@ set(LIB_SOURCES_DIR ${CMAKE_SOURCE_DIR}/sources)
 
 # Configure the LibNovasCPP package.
 include(ConfigLibNovasCpp)
-macro_configure_libnovascpp_default("3.1" "" "")
+macro_configure_libnovascpp_default("3.1" EXACT "" "")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # SETUP THE SHARED LIBRARY
@@ -139,7 +139,7 @@ macro_default_library_installation(${LIB_NAME} ${LIB_CMAKE_CONFIG_NAME} ${LIB_IN
 # CONFIGURE THE SUBPROJECTS
 
 # Testing subproject.
-#add_subdirectory(testing)
+add_subdirectory(testing)
 
 # Example subproject.
 #add_subdirectory(examples)

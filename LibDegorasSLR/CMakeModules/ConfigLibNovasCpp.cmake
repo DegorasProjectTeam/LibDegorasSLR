@@ -5,7 +5,7 @@
 # **********************************************************************************************************************
 
 # Macro to search for LibNovasCpp
-MACRO(macro_configure_libnovascpp_default version extra_search_paths extra_search_patterns)
+MACRO(macro_configure_libnovascpp_default version version_mode extra_search_paths extra_search_patterns)
 
     # Log.
     message(STATUS "Configuring LibNovasCPP...")
@@ -14,15 +14,16 @@ MACRO(macro_configure_libnovascpp_default version extra_search_paths extra_searc
     # ...
 
     # Find the package.
-    macro_find_package_default("LibNovasCpp" "${version}" "${extra_search_paths}" "${extra_search_patterns}")
+    macro_find_package_default("LibNovasCpp" "${version}" ${version_mode} "${extra_search_paths}" "${extra_search_patterns}")
 
     # Logs.
     get_target_property(libnovascpp_includes LibNovasCpp::LibNovasCpp INTERFACE_INCLUDE_DIRECTORIES)
     get_target_property(libnovascpp_link_libs LibNovasCpp::LibNovasCpp INTERFACE_LINK_LIBRARIES)
-    get_target_property(libnovascpp_location LibNovasCpp::LibNovasCpp IMPORTED_LOCATION)
+    get_target_property(libnovascpp_location LibNovasCpp::LibNovasCpp LOCATION)
     get_target_property(libnovascpp_location_debug LibNovasCpp::LibNovasCpp IMPORTED_LOCATION_DEBUG)
     get_target_property(libnovascpp_location_release LibNovasCpp::LibNovasCpp IMPORTED_LOCATION_RELEASE)
     message(STATUS "  LibNovasCpp::LibNovasCpp information:")
+    message(STATUS "    Library version: ${LibNovasCpp_VERSION}")
     message(STATUS "    Include directories: ${libnovascpp_includes}")
     message(STATUS "    Interface link libraries: ${libnovascpp_link_libs}")
     message(STATUS "    DLL location: ${libnovascpp_location}")

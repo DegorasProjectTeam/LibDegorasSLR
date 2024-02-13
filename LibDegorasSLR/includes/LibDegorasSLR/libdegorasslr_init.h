@@ -41,6 +41,11 @@
 namespace dpslr{
 // =====================================================================================================================
 
+class DegorasInit
+{
+
+};
+
 static long double kFloatingCompEpsilon = 0.0000001l;
 
 inline void LIBDPSLR_EXPORT setOMPNumThreads(int n = 0)

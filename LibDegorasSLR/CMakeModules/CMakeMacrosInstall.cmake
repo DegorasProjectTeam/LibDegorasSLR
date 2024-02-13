@@ -239,6 +239,20 @@ MACRO(macro_install_lib lib_name inc_path inc_dest lib_dest bin_dest arch_dest s
          DESTINATION ${sha_dest}/cmake
      )
 
+
+     # Configure the LibDegorasSLRConfig.cmake file from the template
+     configure_file(
+         "${CMAKE_CURRENT_SOURCE_DIR}/${lib_name}Config.cmake.in"
+         "${CMAKE_CURRENT_BINARY_DIR}/${lib_name}Config.cmake"
+         @ONLY
+     )
+
+     # Install the configured LibDegorasSLRConfig.cmake file
+     install(
+         FILES "${CMAKE_CURRENT_BINARY_DIR}/${lib_name}Config.cmake"
+         DESTINATION ${sha_dest}/cmake
+     )
+
 ENDMACRO()
 
 # **********************************************************************************************************************
