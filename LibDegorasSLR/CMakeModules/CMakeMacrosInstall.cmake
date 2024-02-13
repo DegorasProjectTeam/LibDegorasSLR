@@ -132,15 +132,6 @@ MACRO(macro_install_runtime_deps target dependency_set ext_deps_dirs bin_dest pr
                 DIRECTORIES ${ext_deps_dirs}
                 DESTINATION ${bin_dest})
 
-        # Install runtime dependencies for the specific target.
-        # NOTE: Not neccesary I think (Angel Vera).
-        #install(TARGETS ${target}
-        #        RUNTIME_DEPENDENCIES
-        #        PRE_EXCLUDE_REGEXES ${PRE_EXC}
-        #        POST_EXCLUDE_REGEXES ${POST_EXC}
-        #        DIRECTORIES ${ext_deps_dirs}
-        #        DESTINATION ${bin_dest})
-
     endif()
 
 ENDMACRO()
@@ -178,8 +169,7 @@ MACRO(macro_install_lib lib_name inc_path inc_dest lib_dest bin_dest arch_dest s
     # Set target properties for include directories
     target_include_directories(${lib_name} PUBLIC
         $<BUILD_INTERFACE:${inc_path}>
-        $<INSTALL_INTERFACE:${inc_dest}>
-    )
+        $<INSTALL_INTERFACE:${inc_dest}>)
 
     # Install include files
     install(DIRECTORY ${inc_path}
@@ -193,61 +183,51 @@ MACRO(macro_install_lib lib_name inc_path inc_dest lib_dest bin_dest arch_dest s
     write_basic_package_version_file(
         "${CMAKE_CURRENT_BINARY_DIR}/${VERSION_FILE_NAME}"
         VERSION ${EXTRACTED_VERSION}
-        COMPATIBILITY SameMajorVersion
-    )
+        COMPATIBILITY SameMajorVersion)
 
     # Install the library (and binaries if applicable)
-     install(TARGETS ${lib_name}
-             EXPORT ${lib_name}Targets
-             LIBRARY DESTINATION ${lib_dest}
-             ARCHIVE DESTINATION ${arch_dest}
-             RUNTIME DESTINATION ${bin_dest}
-             INCLUDES DESTINATION ${inc_dest}
-     )
+    install(TARGETS ${lib_name}
+            EXPORT ${lib_name}Targets
+            LIBRARY DESTINATION ${lib_dest}
+            ARCHIVE DESTINATION ${arch_dest}
+            RUNTIME DESTINATION ${bin_dest}
+            INCLUDES DESTINATION ${inc_dest})
 
-     # Export the target
-     install(EXPORT ${lib_name}Targets
-             FILE ${lib_name}Targets.cmake
-             NAMESPACE ${lib_name}::
-             DESTINATION ${sha_dest}/cmake
-     )
+    # Export the target
+    install(EXPORT ${lib_name}Targets
+            FILE ${lib_name}Targets.cmake
+            NAMESPACE ${lib_name}::
+            DESTINATION ${sha_dest}/cmake)
 
-     # Manually create the Config.cmake file
-     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${CONFIG_FILE_NAME}"
-          "include(\${CMAKE_CURRENT_LIST_DIR}/${lib_name}Targets.cmake)\n"
-     )
+    # Manually create the Config.cmake file
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${CONFIG_FILE_NAME}"
+         "include(\${CMAKE_CURRENT_LIST_DIR}/${lib_name}Targets.cmake)\n")
 
-     # Install the manually created Config.cmake file
-     install(
-         FILES "${CMAKE_CURRENT_BINARY_DIR}/${CONFIG_FILE_NAME}"
-         DESTINATION ${sha_dest}/cmake
-     )
+    # Check if the ".in" template file exists
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${lib_name}Config.cmake.in")
 
-     # Install the version file
-     install(
-         FILES "${CMAKE_CURRENT_BINARY_DIR}/${VERSION_FILE_NAME}"
-         DESTINATION ${sha_dest}/cmake
-     )
+        # Configure the "Config.cmake" file from the template
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${lib_name}Config.cmake.in"
+                       "${CMAKE_CURRENT_BINARY_DIR}/${lib_name}Config.cmake" @ONLY)
 
+    else()
 
-     # Configure the LibDegorasSLRConfig.cmake file from the template
-     configure_file(
-         "${CMAKE_CURRENT_SOURCE_DIR}/${lib_name}Config.cmake.in"
-         "${CMAKE_CURRENT_BINARY_DIR}/${lib_name}Config.cmake"
-         @ONLY
-     )
+        # Configuration without template.
+        configure_file("${CMAKE_CURRENT_BINARY_DIR}/${lib_name}Config.cmake" @ONLY)
 
-     # Install the configured LibDegorasSLRConfig.cmake file
-     install(
-         FILES "${CMAKE_CURRENT_BINARY_DIR}/${lib_name}Config.cmake"
-         DESTINATION ${sha_dest}/cmake
-     )
+    endif()
+
+    # Install the manually created Config.cmake file
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CONFIG_FILE_NAME}"
+                  "${CMAKE_CURRENT_BINARY_DIR}/${VERSION_FILE_NAME}"
+                  "${CMAKE_CURRENT_BINARY_DIR}/${lib_name}Config.cmake"
+            DESTINATION ${sha_dest}/cmake)
 
 ENDMACRO()
 
 # **********************************************************************************************************************
 
-MACRO(macro_default_library_installation lib_name lib_cmake_config_name lib_includes_dir ext_deps_dirs)
+MACRO(macro_default_library_installation lib_name lib_includes_dir ext_deps_dirs)
 
     # Set the external dependencies dir.
     set(external_deps_search_dirs ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} ${ext_deps_dirs})
@@ -279,7 +259,7 @@ MACRO(macro_default_library_installation lib_name lib_cmake_config_name lib_incl
     elseif(OS_NAME STREQUAL "Linux/Unix")
 
         # Install the library.
-        macro_install_lib("${lib_name}" "${lib_cmake_config_name}" "${lib_includes_dir}"
+        macro_install_lib("${lib_name}" "${lib_includes_dir}"
                           "${MODULES_GLOBAL_INSTALL_INCLUDE_PATH}"
                           "${MODULES_GLOBAL_INSTALL_LIB_PATH}"
                           "${MODULES_GLOBAL_INSTALL_LIB_PATH}"

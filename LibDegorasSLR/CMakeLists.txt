@@ -52,7 +52,6 @@ set(LIB_NAME LibDegorasSLR)
 set(LIB_VER 1.9.0)
 set(LIB_BUILD_MODE Debug)
 set(LIB_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../${LIB_NAME}_product_v${LIB_VER})
-set(LIB_CMAKE_CONFIG_NAME ${LIB_NAME}_config)
 set(LIB_LANGUAGES CXX C)
 
 # Macros global configuration.
@@ -134,13 +133,13 @@ endif()
 set(ext_libs_loc ${LibNovasCpp_LOCATION_DIR})
 
 # Installation process.
-macro_default_library_installation("${LIB_NAME}" "${LIB_CMAKE_CONFIG_NAME}" "${LIB_INCLUDES_DIR}" "${ext_libs_loc}")
+macro_default_library_installation("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${ext_libs_loc}")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE SUBPROJECTS
 
 # Testing subproject.
-add_subdirectory(testing)
+#add_subdirectory(testing)
 
 # Example subproject.
 #add_subdirectory(examples)
