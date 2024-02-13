@@ -26,103 +26,66 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
+/** ********************************************************************************************************************
+ * @file geodetic_point.h
+ * @author Degoras Project Team.
+ * @brief
+ * @copyright EUPL License
+ * @version
+***********************************************************************************************************************/
+
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
+
 // C++ INCLUDES
 // =====================================================================================================================
+#include <type_traits>
+#include <array>
 // =====================================================================================================================
 
-// LIBNOVASCPP INCLUDES
+// LIBDPSLR INCLUDES
 // =====================================================================================================================
-//#include <LibNovasCpp/novascpp.h>
-// =====================================================================================================================
-
-
-// LIBDEGORASSLR INCLUDES
-// =====================================================================================================================
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include <LibDegorasSLR/Testing/UnitTest>
-#include "LibDegorasSLR/Astronomical/novas_utils.h"
-
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Mathematics/units.h"
 // =====================================================================================================================
 
-// NAMESPACES
-// ---------------------------------------------------------------------------------------------------------------------
-// ---------------------------------------------------------------------------------------------------------------------
+// LIBDPSLR NAMESPACES
+// =====================================================================================================================
+namespace dpslr{
+namespace geo{
+namespace types{
+// =====================================================================================================================
 
-// UNIT TEST DECLARATIONS
-// ---------------------------------------------------------------------------------------------------------------------
-M_DECLARE_UNIT_TEST(novas_make_on_surface)
-M_DECLARE_UNIT_TEST(novas_makeOnSurface)
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-// UNIT TESTS IMPLEMENTATIONS
-// ---------------------------------------------------------------------------------------------------------------------
-
-M_DEFINE_UNIT_TEST(novas_make_on_surface)
+/**
+ * GeodeticCoords is defined as <lat, lon, alt> tuple
+ */
+template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+struct LIBDPSLR_EXPORT GeodeticPoint
 {
-    // Parameters.
-    const double latitude = 36.4652577343764;
-    const double longitude = -6.20530535896;
-    const double height = 98.2496715541929;
-    const double temperature = 25.8;
-    const double pressure = 1024.1;
-    // Geo location.
-    novas::on_surface geo_loc;
-    // Make on surface.
-    novas::make_on_surface(latitude,longitude,height,temperature,pressure, &geo_loc);
-    // Checks.
-    M_EXPECTED_EQ(latitude, geo_loc.latitude)
-    M_EXPECTED_EQ(longitude, geo_loc.longitude)
-    M_EXPECTED_EQ(height, geo_loc.height)
-    M_EXPECTED_EQ(temperature, geo_loc.temperature)
-    M_EXPECTED_EQ(pressure, geo_loc.pressure)
-}
+    using AngleType = math::units::Angle<T>;
+    using DistType = math::units::Distance<T>;
 
-M_DEFINE_UNIT_TEST(novas_makeOnSurface)
-{
-    // Parameters.
-    const double latitude = 36.4652577343764;
-    const double longitude = -6.20530535896;
-    const double height = 98.2496715541929;
-    const double temperature = 25.8;
-    const double pressure = 1024.1;
+    AngleType lat;
+    AngleType lon;
+    DistType alt;
 
-    dpslr::geo::types::GeodeticPoint<double> geoc(latitude, longitude, height);
-    dpslr::geo::types::MeteoData meteo(temperature, pressure, 0);
+    GeodeticPoint(T lat = T(), T lon = T(), T alt = T(),
+                  typename AngleType::Unit angle_unit = AngleType::Unit::RADIANS,
+                  typename DistType::Unit dist_unit = DistType::Unit::METRES) :
+        lat(lat, angle_unit), lon(lon, angle_unit), alt(alt, dist_unit)
+    {}
 
-    // Geo location.
-    novas::on_surface geo_loc = dpslr::astro::novas::makeOnSurface(geoc, meteo);
+    void convert(typename AngleType::Unit angle_unit, typename DistType::Unit dist_unit)
+    {
+        this->lat.convert(angle_unit);
+        this->lon.convert(angle_unit);
+        this->alt.convert(dist_unit);
+    }
 
-    // Checks.
-    M_EXPECTED_EQ(latitude, geo_loc.latitude)
-    M_EXPECTED_EQ(longitude, geo_loc.longitude)
-    M_EXPECTED_EQ(height, geo_loc.height)
-    M_EXPECTED_EQ(temperature, geo_loc.temperature)
-    M_EXPECTED_EQ(pressure, geo_loc.pressure)
-}
+    template<typename Container = std::array<long double, 3>>
+    inline constexpr Container store() const {return Container{lat, lon, alt};}
+};
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-// UNIT TESTS EXECUTION
-// ---------------------------------------------------------------------------------------------------------------------
-
-// Start the Unit Test Session.
-M_START_UNIT_TEST_SESSION("LibDegorasSLR Novas Unit Tests")
-
-// Configuration.
-M_FORCE_SHOW_RESULTS(true)
-
-// Register the tests.
-M_REGISTER_UNIT_TEST(Astronomical-Novas, LibNovasCPP, novas_make_on_surface)
-
-M_REGISTER_UNIT_TEST(Astronomical-Novas, NovasUtils, novas_makeOnSurface)
-
-// Run unit tests.
-M_RUN_UNIT_TESTS()
-
-// Finish the session.
-M_FINISH_UNIT_TEST_SESSION()
-
-// ---------------------------------------------------------------------------------------------------------------------
-
+}}} // END NAMESPACES.
 // =====================================================================================================================

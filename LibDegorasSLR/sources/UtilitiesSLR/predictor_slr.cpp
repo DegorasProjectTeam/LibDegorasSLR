@@ -37,8 +37,8 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/AlgorithmsSLR/utils/predictor_slr.h>
-#include <LibDegorasSLR/Timing/common/time_types.h>
+#include <LibDegorasSLR/UtilitiesSLR/predictor_slr.h>
+#include <LibDegorasSLR/Timing/types/time_types.h>
 #include <LibDegorasSLR/Mathematics/units.h>
 #include <LibDegorasSLR/Mathematics/math.h>
 #include <LibDegorasSLR/Mathematics/containers/vector3d.h>
@@ -46,14 +46,13 @@
 #include <LibDegorasSLR/Statistics/fitting.h>
 #include <LibDegorasSLR/Statistics/common/statistics_types.h>
 #include <LibDegorasSLR/Astronomical/common/astro_constants.h>
-#include <LibDegorasSLR/Geo/tropo.h>
+#include <LibDegorasSLR/Geophysics/tropo.h>
 #include <LibDegorasSLR/Helpers/string_helpers.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================namespace dpslr{
 namespace dpslr{
-namespace algoslr{
 namespace utils{
 // =====================================================================================================================
 
@@ -652,12 +651,12 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         az_outbound += 360.L;
 
     // Calculates the difference between the outbound and instant direction at instant time.
-    diff_az = 2*(az_instant-az_outbound);
+    diff_az = static_cast<double>(2*(az_instant-az_outbound));
     if (diff_az < -360)
         diff_az += 720;
     if (diff_az > +360)
         diff_az -= 720;
-    diff_el = 2*(el_instant-el_outbound);
+    diff_el = static_cast<double>(2*(el_instant-el_outbound));
 
     // Calculates the average distance from station to object at bounce time (good approximation).
     range_1w_average = (y_outbound-this->stat_geocentric_).magnitude();
@@ -853,6 +852,5 @@ PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(stats::common:
 PredictorSLR::InstantData::InstantData(InstantRange instant_range) : InstantRange(std::move(instant_range))
 {}
 
-
-}}} // END NAMESPACES
+}} // END NAMESPACES
 // =====================================================================================================================

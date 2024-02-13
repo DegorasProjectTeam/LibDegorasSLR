@@ -48,11 +48,8 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <numeric>
-#include <cstring>
 #include <algorithm>
 #include <array>
 // =====================================================================================================================
@@ -63,7 +60,7 @@
 #include <LibDegorasSLR/Helpers/container_helpers.h>
 #include <LibDegorasSLR/Helpers/string_helpers.h>
 #include <LibDegorasSLR/Timing/time_utils.h>
-#include <LibDegorasSLR/SpaceObject/spaceobject_utils.h>
+#include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
 // =====================================================================================================================
 
 // =====================================================================================================================

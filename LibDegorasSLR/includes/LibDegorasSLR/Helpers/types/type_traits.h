@@ -84,5 +84,13 @@ struct underlying_type {using type = T;};
 
 template<typename T>
 using underlying_type_t = typename underlying_type<T>::type;
+
+template <typename T>
+struct TypeSigns
+{
+    using SignedT = typename std::make_signed<T>::type;
+    using UnsignedT = typename std::make_unsigned<T>::type;
+};
+
 }}} // END NAMESPACES.
 // =====================================================================================================================

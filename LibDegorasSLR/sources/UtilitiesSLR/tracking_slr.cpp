@@ -32,20 +32,24 @@
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/AlgorithmsSLR/utils/tracking_slr.h"
+#include "LibDegorasSLR/UtilitiesSLR/tracking_slr.h"
+#include "LibDegorasSLR/Timing/time_constants.h"
+#include "LibDegorasSLR/Mathematics/math_constants.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
-//======================================================================================================================
+// =====================================================================================================================
 namespace dpslr{
-namespace algoslr{
 namespace utils{
 
+// =====================================================================================================================
+using namespace dpslr::timing::types;
+// =====================================================================================================================
 
 TrackingSLR::TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
                          unsigned min_elev_deg, unsigned time_delta_ms, bool sun_avoid, unsigned sun_avoid_angle) :
@@ -66,8 +70,8 @@ TrackingSLR::TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_sta
     this->analyzeTracking();
 }
 
-TrackingSLR::TrackingSLR(PredictorSLR&& predictor, const timing::HRTimePointStd& tp_start,
-                         const timing::HRTimePointStd& tp_end, unsigned min_elev_deg, unsigned time_delta_ms,
+TrackingSLR::TrackingSLR(PredictorSLR&& predictor, const timing::types::HRTimePointStd &tp_start,
+                         const timing::types::HRTimePointStd &tp_end, unsigned min_elev_deg, unsigned time_delta_ms,
                          bool sun_avoid, unsigned sun_avoid_angle) :
 
     predictor_(std::move(predictor)),
@@ -100,13 +104,13 @@ unsigned TrackingSLR::getMinElev() const
     return static_cast<unsigned>(std::round(this->track_info_.min_elev));
 }
 
-void TrackingSLR::getTrackingStart(timing::common::MJDate &mjd, timing::common::SoD &sod) const
+void TrackingSLR::getTrackingStart(MJDate &mjd, SoD &sod) const
 {
     mjd = this->track_info_.mjd_start;
     sod = this->track_info_.sod_start;
 }
 
-void TrackingSLR::getTrackingEnd(timing::common::MJDate &mjd, timing::common::SoD &sod) const
+void TrackingSLR::getTrackingEnd(MJDate &mjd, SoD &sod) const
 {
     mjd = this->track_info_.mjd_end;
     sod = this->track_info_.sod_end;
@@ -150,16 +154,16 @@ unsigned TrackingSLR::getSunAvoidAngle() const
     return this->track_info_.sun_avoid_angle;
 }
 
-TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(const timing::HRTimePointStd& tp_time,
+TrackingSLR::PositionStatus TrackingSLR::predict(const timing::HRTimePointStd& tp_time,
                                                                  TrackingPrediction &tracking_result)
 {
     MJDate mjd;
     SoD sod;
     timing::timePointToModifiedJulianDate(tp_time, mjd, sod);
-    return predictTrackingPosition(mjd, sod, tracking_result);
+    return predict(mjd, sod, tracking_result);
 }
 
-TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD sod,
+TrackingSLR::PositionStatus TrackingSLR::predict(MJDate mjd, SoD sod,
                                                                  TrackingPrediction &tracking_result)
 {
     // Update the times.
@@ -177,7 +181,7 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
 
     // Calculates the Sun position.
     long double j2000 = dpslr::timing::mjdToJ2000Datetime(mjd, sod);
-    astro::PredictorSun::SunPosition sun_pos = this->sun_predictor_.fastPredict(j2000, false);
+    SunPosition sun_pos = this->sun_predictor_.fastPredict(j2000, false);
 
     // Calculates the space object position.
     PredictorSLR::SLRPrediction prediction_result;
@@ -522,7 +526,7 @@ bool TrackingSLR::checkTracking()
 }
 
 bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
-                                  const astro::PredictorSun::SunPosition &sun_pos) const
+                                  const SunPosition &sun_pos) const
 {
     long double diff_az = pos.az - sun_pos.azimuth;
     long double diff_el = pos.el - sun_pos.elevation;
@@ -534,7 +538,7 @@ void TrackingSLR::setSunSectorRotationDirection(
 {
 
     MJDateTime mjdt = sector.mjdt_entry + this->track_info_.time_delta /
-                                              static_cast<long double>(dpslr::timing::common::kSecsPerDay);
+                                              static_cast<long double>(timing::kSecsPerDay);
     bool valid_cw = true;
     bool valid_ccw = true;
 
@@ -562,16 +566,16 @@ void TrackingSLR::setSunSectorRotationDirection(
         {
 
             ccw_angle = entry_angle + time_perc * (exit_angle - entry_angle);
-            cw_angle = entry_angle - time_perc * (2 * dpslr::math::common::pi - exit_angle + entry_angle);
+            cw_angle = entry_angle - time_perc * (2 * math::pi - exit_angle + entry_angle);
             if (cw_angle < 0.L)
-                cw_angle += 2 * dpslr::math::common::pi;
+                cw_angle += 2 * math::pi;
         }
         else
         {
             cw_angle = entry_angle - time_perc * (entry_angle - exit_angle);
-            ccw_angle = entry_angle + time_perc * (2 * dpslr::math::common::pi - entry_angle + exit_angle);
-            if (ccw_angle >= 2 * dpslr::math::common::pi)
-                ccw_angle -= 2 * dpslr::math::common::pi;
+            ccw_angle = entry_angle + time_perc * (2 * dpslr::math::pi - entry_angle + exit_angle);
+            if (ccw_angle >= 2 * math::pi)
+                ccw_angle -= 2 * math::pi;
         }
 
         long double elev_cw = it->sun_pos->elevation + this->track_info_.sun_avoid_angle * std::sin(cw_angle);
@@ -604,12 +608,12 @@ void TrackingSLR::setSunSectorRotationDirection(
         if (exit_angle > entry_angle)
         {
             ccw_angle = exit_angle - entry_angle;
-            cw_angle = 2 * dpslr::math::common::pi - exit_angle + entry_angle;
+            cw_angle = 2 * math::pi - exit_angle + entry_angle;
         }
         else
         {
             cw_angle = entry_angle - exit_angle;
-            ccw_angle = 2 * dpslr::math::common::pi - entry_angle + exit_angle;
+            ccw_angle = 2 * math::pi - entry_angle + exit_angle;
         }
 
         sector.cw = cw_angle < ccw_angle;
@@ -634,8 +638,8 @@ void TrackingSLR::checkSunSectorPositions(
     }
 }
 
-long double TrackingSLR::calcSunAvoidTrajectory(timing::common::MJDateTime mjdt, const SunSector &sector,
-                                                const astro::PredictorSun::SunPosition &sun_pos)
+long double TrackingSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector,
+                                                SunPosition &sun_pos)
 {
     long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 
@@ -651,9 +655,9 @@ long double TrackingSLR::calcSunAvoidTrajectory(timing::common::MJDateTime mjdt,
     {
         if (sector.cw)
         {
-            angle = entry_angle - time_perc * (2 * dpslr::math::common::pi - exit_angle + entry_angle);
+            angle = entry_angle - time_perc * (2 * math::pi - exit_angle + entry_angle);
             if (angle < 0.L)
-                angle += 2 * dpslr::math::common::pi;
+                angle += 2 * math::pi;
         }
         else
             angle = entry_angle + time_perc * (exit_angle - entry_angle);
@@ -667,9 +671,9 @@ long double TrackingSLR::calcSunAvoidTrajectory(timing::common::MJDateTime mjdt,
         }
         else
         {
-            angle = entry_angle + time_perc * (2 * dpslr::math::common::pi - entry_angle + exit_angle);
-            if (angle >= 2 * dpslr::math::common::pi)
-                angle -= 2 * dpslr::math::common::pi;
+            angle = entry_angle + time_perc * (2 * math::pi - entry_angle + exit_angle);
+            if (angle >= 2 * math::pi)
+                angle -= 2 * math::pi;
         }
     }
 
@@ -677,5 +681,5 @@ long double TrackingSLR::calcSunAvoidTrajectory(timing::common::MJDateTime mjdt,
 }
 
 
-}}} // END NAMESPACES
+}} // END NAMESPACES
 // =====================================================================================================================

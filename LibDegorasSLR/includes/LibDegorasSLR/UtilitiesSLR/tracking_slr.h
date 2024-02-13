@@ -41,15 +41,23 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/AlgorithmsSLR/utils/predictor_slr.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictor_slr.h"
 #include "LibDegorasSLR/Astronomical/predictor_sun.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace algoslr{
 namespace utils{
+// =====================================================================================================================
+
+// =====================================================================================================================
+using dpslr::timing::types::HRTimePointStd;
+using dpslr::timing::types::MJDate;
+using dpslr::timing::types::SoD;
+using astro::SunPosition;
+using astro::PredictorSun;
 // =====================================================================================================================
 
 // No se procesa la elevacion maxima porque es trivial, a diferencia de un cambio de trayectoria completo como
@@ -161,8 +169,8 @@ public:
 
         // Result members.
         Optional<PredictorSLR::SLRPrediction> prediction_result;  ///< SLR prediction result.
-        Optional<TrackingPosition> tracking_position;                ///< Tracking position.
-        Optional<astro::PredictorSun::SunPosition> sun_pos;           ///< Sun position.
+        Optional<TrackingPosition> tracking_position;             ///< Tracking position.
+        Optional<SunPosition> sun_pos;       ///< Sun position.
 
         // Status.
         PositionStatus status;  ///< The current postion status.
@@ -205,7 +213,7 @@ public:
                 unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
                 unsigned sun_avoid_angle = 15);
 
-    TrackingSLR(PredictorSLR&& predictor, const timing::HRTimePointStd& tp_start, const timing::HRTimePointStd& tp_end,
+    TrackingSLR(PredictorSLR&& predictor, const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
                 unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
                 unsigned sun_avoid_angle = 15);
 
@@ -290,7 +298,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predictTrackingPosition(const timing::HRTimePointStd& tp_time, TrackingPrediction &tracking_result);
+    PositionStatus predict(const timing::HRTimePointStd& tp_time, TrackingPrediction &tracking_result);
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -299,7 +307,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predictTrackingPosition(MJDate mjd, SoD sod, TrackingPrediction &tracking_result);
+    PositionStatus predict(MJDate mjd, SoD sod, TrackingPrediction &tracking_result);
 
 private:
 
@@ -319,7 +327,7 @@ private:
 
     /// Helper to check if the predicted position is inside a sun sector.
     bool insideSunSector(const PredictorSLR::InstantData& pos,
-                         const astro::PredictorSun::SunPosition &sun_pos) const;
+                         const SunPosition &sun_pos) const;
 
     /// Helper to set the rotation direction of a sun sector.
     void setSunSectorRotationDirection(
@@ -329,17 +337,16 @@ private:
     void checkSunSectorPositions(
         const SunSector &sector, TrackingPredictions::iterator sun_start, TrackingPredictions::iterator sun_end);
 
-    long double calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector,
-                                       const astro::PredictorSun::SunPosition &sun_pos);
+    long double calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector, SunPosition &sun_pos);
 
     // Private members.
-    algoslr::utils::PredictorSLR predictor_;         ///< SLR predictor.
-    astro::PredictorSun sun_predictor_;              ///< Sun predictor.
-    TrackSLR track_info_;                            ///< Track information.
+    PredictorSLR predictor_;               ///< SLR predictor.
+    astro::PredictorSun sun_predictor_;    ///< Sun predictor.
+    TrackSLR track_info_;                  ///< Track information.
 
     TrackingPredictions::iterator tracking_begin_;
     TrackingPredictions::iterator tracking_end_;
 };
 
-}}} // END NAMESPACES
+}} // END NAMESPACES
 // =====================================================================================================================

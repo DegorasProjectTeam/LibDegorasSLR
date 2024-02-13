@@ -44,6 +44,7 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Mathematics/common/math_types.h"
+#include "LibDegorasSLR/Mathematics/math_constants.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -81,13 +82,13 @@ constexpr long double kLightNsToMm = 299.792458L;
 template <typename T>
 T degToRad(T degree)
 {
-    return (degree*(math::common::pi/180.0));
+    return (degree*(math::pi/180.0));
 }
 
 template <typename T>
 T radToDegree(T radian)
 {
-    return (radian*(180.0/math::common::pi));
+    return (radian*(180.0/math::pi));
 }
 
 // =====================================================================================================================
@@ -112,12 +113,12 @@ public:
         {
             if (unit == Unit::RADIANS)
             {
-                this->angle_ *= math::common::pi / 180.0;
+                this->angle_ *= math::pi / 180.0;
                 this->unit_ = unit;
             }
             else if (unit == Unit::DEGREES)
             {
-                this->angle_ *= 180.0 / math::common::pi;
+                this->angle_ *= 180.0 / math::pi;
                 this->unit_ = unit;
             }
         }
@@ -133,11 +134,11 @@ public:
         {
             if (unit == Unit::RADIANS)
             {
-                result = this->angle_ * math::common::pi / 180.0L;
+                result = this->angle_ * math::pi / 180.0L;
             }
             else if (unit == Unit::DEGREES)
             {
-                result = this->angle_ * 180.0L / math::common::pi;
+                result = this->angle_ * 180.0L / math::pi;
             }
         }
         return result;

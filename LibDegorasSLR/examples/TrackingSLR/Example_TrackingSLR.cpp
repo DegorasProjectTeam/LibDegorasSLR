@@ -1,13 +1,24 @@
-#include <LibDegorasSLR/AlgorithmsSLR/utils/tracking_slr.h>
+#include <LibDegorasSLR/UtilitiesSLR/TrackingSLR>
+#include <LibDegorasSLR/UtilitiesSLR/PredictorSLR>
 #include <LibDegorasSLR/Timing/time_utils.h>
 #include <LibDegorasSLR/Mathematics/units.h>
 
 #include <iostream>
+#include <string>
 
 int main ()
 {
+    /*
+
     // Namespaces.
-    using namespace dpslr;
+    using dpslr::ilrs::cpf::CPF;
+    using dpslr::geo::types::GeocentricPoint;
+    using dpslr::geo::types::GeodeticPoint;
+    using dpslr::utils::PredictorSLR;
+    using dpslr::utils::TrackingSLR;
+    using dpslr::timing::common::MJDate;
+    using dpslr::timing::common::SoD;
+    using dpslr::math::units::Angle;
 
     // Configure the CPF folder and example file.
     std::string cpf_dir("C:/0-SALARA_PROJECT/SP_DataFiles/SP_CPF/SP_CurrentCPF/");
@@ -30,23 +41,21 @@ int main ()
 
 
     // Store the local coordinates.
-    geo::common::GeocentricPoint<long double> stat_geocentric(x,y,z);
-    geo::common::GeodeticPoint<long double> stat_geodetic(
-                                                latitude, longitude, alt,
-                                                math::units::Angle<long double>::Unit::DEGREES);
+    GeocentricPoint<long double> stat_geocentric(x,y,z);
+    GeodeticPoint<long double> stat_geodetic(latitude, longitude, alt, Angle<long double>::Unit::DEGREES);
 
     // Open the CPF file.
-    ilrs::cpf::CPF cpf(cpf_dir + cpf_name, dpslr::ilrs::cpf::CPF::OpenOptionEnum::ALL_DATA);
+    CPF cpf(cpf_dir + cpf_name, dpslr::ilrs::cpf::CPF::OpenOptionEnum::ALL_DATA);
 
     // Configure the SLR predictor.
-    dpslr::algoslr::utils::PredictorSLR predictor(cpf, stat_geodetic, stat_geocentric);
-    predictor.setPredictionMode(dpslr::algoslr::utils::PredictorSLR::PredictionMode::INSTANT_VECTOR);
+    PredictorSLR predictor(cpf, stat_geodetic, stat_geocentric);
+    predictor.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
 
     // Lares. Sun in the beginning.
-    timing::MJDate mjd_start = 60340;
-    timing::SoD sod_start = 56726;
-    timing::MJDate mjd_end = 60340;
-    timing::SoD sod_end = 57756;
+    MJDate mjd_start = 60340;
+    SoD sod_start = 56726;
+    MJDate mjd_end = 60340;
+    SoD sod_end = 57756;
 
     // Jason 3. Sun in the middle.
     // timing::MJDate mjd_start = 60340;
@@ -61,7 +70,7 @@ int main ()
     // timing::SoD sod_end = 31467;
 
 
-    dpslr::algoslr::utils::TrackingSLR tracking(std::move(predictor), mjd_start, sod_start, mjd_end, sod_end, 8);
+    TrackingSLR tracking(std::move(predictor), mjd_start, sod_start, mjd_end, sod_end, 8);
     dpslr::astro::PredictorSun sun_pred(stat_geodetic);
     std::vector<astro::PredictorSun::SunPosition> sun_pos;
 
@@ -167,4 +176,5 @@ int main ()
 
     return 0;
 
+    */
 }

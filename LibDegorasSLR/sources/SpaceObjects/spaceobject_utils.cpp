@@ -28,7 +28,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/SpaceObject/spaceobject_utils.h"
+#include "LibDegorasSLR/Astronomical/spaceobject_utils.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
 #include "LibDegorasSLR/Mathematics/math.h"
 // =====================================================================================================================

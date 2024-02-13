@@ -36,7 +36,12 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <vector>
+#include <type_traits>
+// =====================================================================================================================
+
+// LIBDEGORASSLR INCLUDES
+// =====================================================================================================================
+#include "LibDegorasSLR/helpers/types/type_traits.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -46,29 +51,15 @@ namespace math{
 namespace common{
 // =====================================================================================================================
 
-// CONSTANTS
-// =====================================================================================================================
-constexpr long double pi = 3.14159265358979323846264338327950288419716939937510L;   /// Pi number.
-// =====================================================================================================================
-
-// ========== ENUMS ====================================================================================================
-
 // STRUCTS
 // =====================================================================================================================
 
-template <typename T>
-struct TypeSigns
-{
-    using SignedT = typename std::make_signed<T>::type;
-    using UnsignedT = typename std::make_unsigned<T>::type;
-};
-
 // Strcut for storing the euclidean division result.
 template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
-struct EuclideanDivResult : public TypeSigns<T>
+struct EuclideanDivResult : public helpers::types::TypeSigns<T>
 {
-    typename TypeSigns<T>::SignedT q;
-    typename TypeSigns<T>::UnsignedT r;
+    typename helpers::types::TypeSigns<T>::SignedT q;
+    typename helpers::types::TypeSigns<T>::UnsignedT r;
 };
 
 // ====================================================================================================================

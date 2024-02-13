@@ -26,103 +26,54 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
+/** ********************************************************************************************************************
+ * @file
+ * @brief
+ * @author Degoras Project Team
+ * @copyright EUPL License
+ * @version
+***********************************************************************************************************************/
+
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
+
 // C++ INCLUDES
 // =====================================================================================================================
 // =====================================================================================================================
 
-// LIBNOVASCPP INCLUDES
+// DEFINITIONS
 // =====================================================================================================================
-//#include <LibNovasCpp/novascpp.h>
-// =====================================================================================================================
-
-
-// LIBDEGORASSLR INCLUDES
-// =====================================================================================================================
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include <LibDegorasSLR/Testing/UnitTest>
-#include "LibDegorasSLR/Astronomical/novas_utils.h"
-
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#define MKGMTIME _mkgmtime
+#else
+#define MKGMTIME timegm
+#endif
 // =====================================================================================================================
 
-// NAMESPACES
-// ---------------------------------------------------------------------------------------------------------------------
-// ---------------------------------------------------------------------------------------------------------------------
+// DPSLR NAMESPACES
+// =====================================================================================================================
+namespace dpslr{
+namespace timing{
+// =====================================================================================================================
 
-// UNIT TEST DECLARATIONS
-// ---------------------------------------------------------------------------------------------------------------------
-M_DECLARE_UNIT_TEST(novas_make_on_surface)
-M_DECLARE_UNIT_TEST(novas_makeOnSurface)
+// CONSTANTS
+//======================================================================================================================
+constexpr long double kModifiedJulianToJulian = 2400000.5L;
+constexpr long double kJulianToModifiedJulian = -2400000.5L;
+constexpr long double kJulianToReducedJulian = -2400000.0L;
+constexpr long double kJulianToJ2000 = -2451545.0L;
+constexpr long double kJ2000ToJulian = 2451545.0L;
+constexpr long double kPosixEpochToJulian = 2440587.5L;
+constexpr long double kJulianToPosixEpoch = -2440587.5L;
+constexpr long long kNsPerSecond = 1000000000LL;
+constexpr long long kSecsPerDay = 86400LL;
+constexpr long long kSecsPerHalfDay = 43200LL;
+constexpr long long kNsPerDay = 86400000000000LL;
+constexpr long long kNsPerHalfDay = 43200000000000LL;
+constexpr long long kNsPerWin32Tick = 100ULL;
+constexpr long long kWin32EpochToPosixEpoch = -11644473600LL;
+//======================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-// UNIT TESTS IMPLEMENTATIONS
-// ---------------------------------------------------------------------------------------------------------------------
-
-M_DEFINE_UNIT_TEST(novas_make_on_surface)
-{
-    // Parameters.
-    const double latitude = 36.4652577343764;
-    const double longitude = -6.20530535896;
-    const double height = 98.2496715541929;
-    const double temperature = 25.8;
-    const double pressure = 1024.1;
-    // Geo location.
-    novas::on_surface geo_loc;
-    // Make on surface.
-    novas::make_on_surface(latitude,longitude,height,temperature,pressure, &geo_loc);
-    // Checks.
-    M_EXPECTED_EQ(latitude, geo_loc.latitude)
-    M_EXPECTED_EQ(longitude, geo_loc.longitude)
-    M_EXPECTED_EQ(height, geo_loc.height)
-    M_EXPECTED_EQ(temperature, geo_loc.temperature)
-    M_EXPECTED_EQ(pressure, geo_loc.pressure)
-}
-
-M_DEFINE_UNIT_TEST(novas_makeOnSurface)
-{
-    // Parameters.
-    const double latitude = 36.4652577343764;
-    const double longitude = -6.20530535896;
-    const double height = 98.2496715541929;
-    const double temperature = 25.8;
-    const double pressure = 1024.1;
-
-    dpslr::geo::types::GeodeticPoint<double> geoc(latitude, longitude, height);
-    dpslr::geo::types::MeteoData meteo(temperature, pressure, 0);
-
-    // Geo location.
-    novas::on_surface geo_loc = dpslr::astro::novas::makeOnSurface(geoc, meteo);
-
-    // Checks.
-    M_EXPECTED_EQ(latitude, geo_loc.latitude)
-    M_EXPECTED_EQ(longitude, geo_loc.longitude)
-    M_EXPECTED_EQ(height, geo_loc.height)
-    M_EXPECTED_EQ(temperature, geo_loc.temperature)
-    M_EXPECTED_EQ(pressure, geo_loc.pressure)
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-// UNIT TESTS EXECUTION
-// ---------------------------------------------------------------------------------------------------------------------
-
-// Start the Unit Test Session.
-M_START_UNIT_TEST_SESSION("LibDegorasSLR Novas Unit Tests")
-
-// Configuration.
-M_FORCE_SHOW_RESULTS(true)
-
-// Register the tests.
-M_REGISTER_UNIT_TEST(Astronomical-Novas, LibNovasCPP, novas_make_on_surface)
-
-M_REGISTER_UNIT_TEST(Astronomical-Novas, NovasUtils, novas_makeOnSurface)
-
-// Run unit tests.
-M_RUN_UNIT_TESTS()
-
-// Finish the session.
-M_FINISH_UNIT_TEST_SESSION()
-
-// ---------------------------------------------------------------------------------------------------------------------
-
+}} // END NAMESPACES.
 // =====================================================================================================================

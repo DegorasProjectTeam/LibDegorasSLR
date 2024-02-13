@@ -46,14 +46,15 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Geo/common/geo_types.h"
+#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
+#include "LibDegorasSLR/Geophysics/types/meteo_data.h"
 // =====================================================================================================================
 
 // NAMESPACES
 // =====================================================================================================================
 using novas::make_on_surface;
 using novas::on_surface;
-using namespace dpslr::geo::common;
+using namespace dpslr::geo::types;
 // =====================================================================================================================
 
 // DPSLR NAMESPACES

@@ -41,12 +41,13 @@
 #include <LibDegorasSLR/FormatsILRS/common/consolidated_types.h>
 #include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
 #include <LibDegorasSLR/Timing/time_utils.h>
-#include <LibDegorasSLR/SpaceObject/spaceobject_utils.h>
+#include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
 #include <LibDegorasSLR/Helpers/Helpers>
 // =====================================================================================================================
 
 // =====================================================================================================================
 using namespace dpslr::ilrs::common;
+using namespace dpslr::timing::types;
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -61,7 +62,7 @@ CPF::CPF(float version) :
 {
     // Set the version and creation time at Format Header
     this->header_.basicInfo1Header()->cpf_version = version;
-    this->header_.basicInfo1Header()->cpf_production_date = timing::HRTimePointStd::clock::now();
+    this->header_.basicInfo1Header()->cpf_production_date = HRTimePointStd::clock::now();
 }
 
 CPF::CPF(const std::string &cpf_filepath, OpenOptionEnum option)
@@ -117,8 +118,7 @@ const std::string &CPF::getSourceFilename() const {return this->cpf_filename_;}
 
 const std::string &CPF::getSourceFilepath() const {return this->cpf_fullpath_;}
 
-void CPF::getAvailableTimeWindow(timing::common::MJDate &mjd_start, timing::common::SoD &secs_start,
-                                 timing::common::MJDate &mjd_end, timing::common::SoD &secs_end) const
+void CPF::getAvailableTimeWindow(MJDate &mjd_start, SoD &secs_start, MJDate &mjd_end, SoD &secs_end) const
 {
     if (this->empty_)
     {

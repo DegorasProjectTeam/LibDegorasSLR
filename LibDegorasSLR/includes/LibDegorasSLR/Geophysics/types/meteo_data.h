@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -23,11 +27,11 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file geo_types.h
+ * @file meteo_data.h
  * @author Degoras Project Team.
- * @brief This file contains the declaration of structs related with the geo module.
+ * @brief
  * @copyright EUPL License
- * @version 2305.1
+ * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -36,21 +40,18 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <type_traits>
-#include <array>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Mathematics/units.h>
-#include <LibDegorasSLR/Mathematics/containers/vector3d.h>
+#include "LibDegorasSLR/libdegorasslr_global.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace geo{
-namespace common{
+namespace types{
 // =====================================================================================================================
 
 struct LIBDPSLR_EXPORT MeteoData
@@ -67,75 +68,10 @@ struct LIBDPSLR_EXPORT MeteoData
         rel_humidity(hum)
     {}
 
-    double temperature;
-    double pressure;
-    double rel_humidity;
-};
-
-
-
-/**
- * GeocentricCoords is defined as <x,y,z> tuple
- */
-template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
-struct LIBDPSLR_EXPORT GeocentricPoint
-{
-    using DistType = dpslr::math::units::Distance<T>;
-
-    DistType x;
-    DistType y;
-    DistType z;
-
-    GeocentricPoint(T x = T(), T y = T(), T z = T(), typename DistType::Unit unit = DistType::Unit::METRES) :
-        x(x, unit), y(y, unit), z(z, unit) {}
-
-    GeocentricPoint(std::array<T,3> a, typename DistType::Unit unit = DistType::Unit::METRES) :
-        x(a[0], unit), y(a[1], unit), z(a[2], unit) {}
-
-    template<typename Container = std::array<long double, 3>>
-    inline constexpr Container store() const {return Container{x,y,z};}
-
-    math::Vector3D<T> toVector3D() const {return math::Vector3D<T>(x,y,z);}
-};
-
-/**
- * GeodeticCoords is defined as <lat, lon, alt> tuple
- */
-template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
-struct LIBDPSLR_EXPORT GeodeticPoint
-{
-    using AngleType = math::units::Angle<T>;
-    using DistType = math::units::Distance<T>;
-
-    AngleType lat;
-    AngleType lon;
-    DistType alt;
-
-    GeodeticPoint(T lat = T(), T lon = T(), T alt = T(),
-                   typename AngleType::Unit angle_unit = AngleType::Unit::RADIANS,
-                   typename DistType::Unit dist_unit = DistType::Unit::METRES) :
-        lat(lat, angle_unit), lon(lon, angle_unit), alt(alt, dist_unit)
-    {}
-
-    void convert(typename AngleType::Unit angle_unit, typename DistType::Unit dist_unit)
-    {
-        this->lat.convert(angle_unit);
-        this->lon.convert(angle_unit);
-        this->alt.convert(dist_unit);
-    }
-
-    template<typename Container = std::array<long double, 3>>
-    inline constexpr Container store() const {return Container{lat, lon, alt};}
-};
-
-template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
-struct LIBDPSLR_EXPORT SurfaceLocation
-{
-
-
-    MeteoData meteo;
-    GeodeticPoint<T> geodetic;
-    GeocentricPoint<T> geocentric;
+    // Members.
+    double temperature;   ///< Temperature in degrees Celsius.
+    double pressure;      ///< Pressure in millibars (mbar).
+    double rel_humidity;  ///< Relative humidity in percentage (%).
 };
 
 }}} // END NAMESPACES.

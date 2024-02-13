@@ -26,103 +26,108 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
+/** ********************************************************************************************************************
+ * @file time_types.h
+ * @brief This file contains several timing definitions.
+ * @author Degoras Project Team
+ * @copyright EUPL License
+ * @version 2402.1
+***********************************************************************************************************************/
+
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
+
 // C++ INCLUDES
 // =====================================================================================================================
+#include <chrono>
 // =====================================================================================================================
-
-// LIBNOVASCPP INCLUDES
-// =====================================================================================================================
-//#include <LibNovasCpp/novascpp.h>
-// =====================================================================================================================
-
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include <LibDegorasSLR/Testing/UnitTest>
-#include "LibDegorasSLR/Astronomical/novas_utils.h"
-
+#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
 // =====================================================================================================================
 
-// NAMESPACES
-// ---------------------------------------------------------------------------------------------------------------------
-// ---------------------------------------------------------------------------------------------------------------------
+// DEFINITIONS
+// =====================================================================================================================
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#define MKGMTIME _mkgmtime
+#else
+#define MKGMTIME timegm
+#endif
+// =====================================================================================================================
 
-// UNIT TEST DECLARATIONS
-// ---------------------------------------------------------------------------------------------------------------------
-M_DECLARE_UNIT_TEST(novas_make_on_surface)
-M_DECLARE_UNIT_TEST(novas_makeOnSurface)
+// DPSLR NAMESPACES
+// =====================================================================================================================
+namespace dpslr{
+namespace timing{
+namespace types{
+// =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
+// CONVENIENT TYPES
+//======================================================================================================================
 
-// UNIT TESTS IMPLEMENTATIONS
-// ---------------------------------------------------------------------------------------------------------------------
+/// High resolution clock.
+using HRClock = std::chrono::high_resolution_clock;
 
-M_DEFINE_UNIT_TEST(novas_make_on_surface)
+/// High resolution time point to store datetimes (uses Unix Time).
+using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
+
+/// Steady clock time point for measuring intervals.
+using SCTimePointStd =  std::chrono::steady_clock::time_point;
+
+/// Short way of referring to seconds.
+using SecStd = std::chrono::seconds;
+
+/// Short way of referring to milliseconds.
+using MsStd = std::chrono::milliseconds;
+
+/// Short way of referring to microseconds.
+using UsStd = std::chrono::microseconds;
+
+/// Short way of referring to nanoseconds.
+using NsStd = std::chrono::nanoseconds;
+
+/// Alias for Windows Ticks.
+using Windows32Ticks = unsigned long long;
+
+/// Alias for J2000 time.
+using J2000 = long double;
+
+/// Alias for Modified Julian Date in days.
+using MJDate = long long;
+
+/// Alias for Julian Date in days.
+using JDate = long long;
+
+/// Alias for Modified Julian Datetime in days with decimals.
+using MJDateTime = long double;
+
+/// Alias for Reduced Julian Datetime in days with decimals.
+using RJDateTime = long double;
+
+/// Alias for Julian Datetime in days with decimals.
+using JDateTime = long double;
+
+/// Alias for second of day with decimals (ns precision).
+using SoD = helpers::types::NumericStrongType<long double, struct SoDTag>;
+
+/// Alias for fraction of day with decimals (ns precision in the sense of fraction of the day).
+//using DayFraction = long double;
+using DayFraction = helpers::types::NumericStrongType<long double, struct DayFractionTag>;
+
+/**
+ * Enum class for specifying the time resolution in string representations.
+ */
+enum class TimeResolution
 {
-    // Parameters.
-    const double latitude = 36.4652577343764;
-    const double longitude = -6.20530535896;
-    const double height = 98.2496715541929;
-    const double temperature = 25.8;
-    const double pressure = 1024.1;
-    // Geo location.
-    novas::on_surface geo_loc;
-    // Make on surface.
-    novas::make_on_surface(latitude,longitude,height,temperature,pressure, &geo_loc);
-    // Checks.
-    M_EXPECTED_EQ(latitude, geo_loc.latitude)
-    M_EXPECTED_EQ(longitude, geo_loc.longitude)
-    M_EXPECTED_EQ(height, geo_loc.height)
-    M_EXPECTED_EQ(temperature, geo_loc.temperature)
-    M_EXPECTED_EQ(pressure, geo_loc.pressure)
-}
+    SECONDS,        ///< Represents the seconds.
+    MILLISECONDS,   ///< Represents the milliseconds.
+    MICROSECONDS,   ///< Represents the microseconds.
+    NANOSECONDS     ///< Represents the nanoseconds.
+};
 
-M_DEFINE_UNIT_TEST(novas_makeOnSurface)
-{
-    // Parameters.
-    const double latitude = 36.4652577343764;
-    const double longitude = -6.20530535896;
-    const double height = 98.2496715541929;
-    const double temperature = 25.8;
-    const double pressure = 1024.1;
+//======================================================================================================================
 
-    dpslr::geo::types::GeodeticPoint<double> geoc(latitude, longitude, height);
-    dpslr::geo::types::MeteoData meteo(temperature, pressure, 0);
-
-    // Geo location.
-    novas::on_surface geo_loc = dpslr::astro::novas::makeOnSurface(geoc, meteo);
-
-    // Checks.
-    M_EXPECTED_EQ(latitude, geo_loc.latitude)
-    M_EXPECTED_EQ(longitude, geo_loc.longitude)
-    M_EXPECTED_EQ(height, geo_loc.height)
-    M_EXPECTED_EQ(temperature, geo_loc.temperature)
-    M_EXPECTED_EQ(pressure, geo_loc.pressure)
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-// UNIT TESTS EXECUTION
-// ---------------------------------------------------------------------------------------------------------------------
-
-// Start the Unit Test Session.
-M_START_UNIT_TEST_SESSION("LibDegorasSLR Novas Unit Tests")
-
-// Configuration.
-M_FORCE_SHOW_RESULTS(true)
-
-// Register the tests.
-M_REGISTER_UNIT_TEST(Astronomical-Novas, LibNovasCPP, novas_make_on_surface)
-
-M_REGISTER_UNIT_TEST(Astronomical-Novas, NovasUtils, novas_makeOnSurface)
-
-// Run unit tests.
-M_RUN_UNIT_TESTS()
-
-// Finish the session.
-M_FINISH_UNIT_TEST_SESSION()
-
-// ---------------------------------------------------------------------------------------------------------------------
-
+}}} // END NAMESPACES.
 // =====================================================================================================================

@@ -45,8 +45,8 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Mathematics/units.h"
-#include "LibDegorasSLR/Geo/common/geo_types.h"
-#include "LibDegorasSLR/Timing/common/time_types.h"
+#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
 
 
@@ -56,7 +56,22 @@ namespace dpslr{
 namespace astro{
 // =====================================================================================================================
 
-using dpslr::timing::common::J2000;
+struct SunPosition
+{
+    // Constructors.
+    SunPosition() = default;
+    SunPosition(const SunPosition&) = default;
+    SunPosition(SunPosition&&) = default;
+
+    // Operators.
+    SunPosition& operator=(const SunPosition&) = default;
+    SunPosition& operator=(SunPosition&&) = default;
+
+    // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
+    // TODO Add the times.
+    long double azimuth;
+    long double elevation;
+};
 
 // Simple algorithm (VSOP87 algorithm is much more complicated). 0.01 degree accuracy, up to 2099. Only for non scientific purposes.
 //    Inspiration from: http ://stjarnhimlen.se/comp/tutorial.html#5
@@ -67,29 +82,14 @@ class LIBDPSLR_EXPORT PredictorSun
 
 public:
 
-    struct SunPosition
-    {
-        // Constructors.
-        SunPosition() = default;
-        SunPosition(const SunPosition&) = default;
-        SunPosition(SunPosition&&) = default;
 
-        // Operators.
-        SunPosition& operator=(const SunPosition&) = default;
-        SunPosition& operator=(SunPosition&&) = default;
-
-        // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
-        // TODO Add the times.
-        long double azimuth;
-        long double elevation;
-    };
 
     /// Alias for Sun position vector.
     using SunPositions = std::vector<SunPosition>;
 
 
 
-    PredictorSun(const geo::common::GeodeticPoint<long double>& obs_geod)
+    PredictorSun(const geo::types::GeodeticPoint<long double>& obs_geod)
     {
         // Convert latitude and longitude to radians.
         this->obs_lat_ = obs_geod.lat.get(decltype(obs_geod.lat)::Unit::RADIANS);
@@ -97,7 +97,7 @@ public:
         this->obs_alt_ = obs_geod.alt;
     }
 
-    SunPosition fastPredict(timing::common::J2000 j2000, bool refraction = false) const
+    SunPosition fastPredict(timing::types::J2000 j2000, bool refraction = false) const
     {
         // Local sidereal time.
         long double sidereal = 4.894961213L + 6.300388099L * j2000 + this->obs_lon_;
@@ -144,13 +144,12 @@ public:
         return position;
     }
 
-    SunPositions fastPredict(timing::common::J2000 j2000_start,
-                             timing::common::J2000 j2000_end,
+    SunPositions fastPredict(timing::types::J2000 j2000_start, timing::types::J2000 j2000_end,
                              unsigned step_ms, bool refraction = false) const
     {
         // Container and auxiliar.
-        std::vector<J2000> interp_times;
-        J2000 j2000_current = j2000_start;
+        std::vector<timing::types::J2000> interp_times;
+        timing::types::J2000 j2000_current = j2000_start;
         long double step_days = step_ms/86400000.0L;
 
         // Check for valid time.

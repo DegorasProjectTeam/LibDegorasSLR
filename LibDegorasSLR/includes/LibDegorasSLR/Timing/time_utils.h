@@ -44,10 +44,10 @@
 #include <chrono>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/common/time_types.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
 
 // DEFINITIONS
@@ -66,8 +66,18 @@ namespace timing{
 // =====================================================================================================================
 
 // =====================================================================================================================
-using dpslr::timing::common::HRTimePointStd;
-using namespace dpslr::timing::common;
+using dpslr::timing::types::HRClock;
+using dpslr::timing::types::HRTimePointStd;
+using dpslr::timing::types::TimeResolution;
+using dpslr::timing::types::JDateTime;
+using dpslr::timing::types::JDate;
+using dpslr::timing::types::MJDate;
+using dpslr::timing::types::MJDateTime;
+using dpslr::timing::types::Windows32Ticks;
+using dpslr::timing::types::J2000;
+using dpslr::timing::types::DayFraction;
+using dpslr::timing::types::SoD;
+using dpslr::timing::types::RJDateTime;
 // =====================================================================================================================
 
 // HELPER FUNCTIONS
@@ -379,15 +389,6 @@ LIBDPSLR_EXPORT JDate timePointToJulianDate(const HRTimePointStd &tp);
 
 
 LIBDPSLR_EXPORT HRTimePointStd julianDateToTimePoint(JDate jd, SoD seconds = 0.0L);
-
-
-
-
-
-
-
-
-
 
 
 

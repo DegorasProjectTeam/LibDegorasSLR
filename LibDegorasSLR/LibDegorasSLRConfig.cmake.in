@@ -29,7 +29,7 @@
 @PACKAGE_INIT@
 
 # Find the LibNovasCpp package required by LibDegorasSLR, in this case.
-find_package(LibNovasCpp @LibNovasCpp_VERSION@ EXACT REQUIRED PATHS @LibNovasCpp_CONFIG_PATH@)
+find_package(LibNovasCpp @LibNovasCpp_VERSION@ REQUIRED PATHS @LibNovasCpp_CONFIG_PATH@)
 
 # Include the /LibDegorasSLRTargets file.
 include("${CMAKE_CURRENT_LIST_DIR}/LibDegorasSLRTargets.cmake")

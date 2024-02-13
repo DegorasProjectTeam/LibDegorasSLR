@@ -27,11 +27,11 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file time_types.h
- * @brief This file contains several timing definitions.
- * @author Degoras Project Team
+ * @file geocentric_point.h
+ * @author Degoras Project Team.
+ * @brief
  * @copyright EUPL License
- * @version 2402.1
+ * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -40,110 +40,47 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <chrono>
+#include <type_traits>
+#include <array>
 // =====================================================================================================================
 
-#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
-
-// DEFINITIONS
+// LIBDPSLR INCLUDES
 // =====================================================================================================================
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#define MKGMTIME _mkgmtime
-#else
-#define MKGMTIME timegm
-#endif
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Mathematics/units.h"
+#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
 // =====================================================================================================================
 
-// DPSLR NAMESPACES
+// LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace timing{
-namespace common{
+namespace geo{
+namespace types{
 // =====================================================================================================================
 
-// CONVENIENT ALIAS AND ENUMERATIONS
-//======================================================================================================================
-
-/// High resolution clock.
-using HRClock = std::chrono::high_resolution_clock;
-
-/// High resolution time point to store datetimes (uses Unix Time).
-using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
-
-/// Steady clock time point for measuring intervals.
-using SCTimePointStd =  std::chrono::steady_clock::time_point;
-
-/// Short way of referring to seconds.
-using SecStd = std::chrono::seconds;
-
-/// Short way of referring to milliseconds.
-using MsStd = std::chrono::milliseconds;
-
-/// Short way of referring to microseconds.
-using UsStd = std::chrono::microseconds;
-
-/// Short way of referring to nanoseconds.
-using NsStd = std::chrono::nanoseconds;
-
-/// Alias for Windows Ticks.
-using Windows32Ticks = unsigned long long;
-
-/// Alias for J2000 time.
-using J2000 = long double;
-
-/// Alias for Modified Julian Date in days.
-using MJDate = long long;
-
-/// Alias for Julian Date in days.
-using JDate = long long;
-
-/// Alias for Modified Julian Datetime in days with decimals.
-using MJDateTime = long double;
-
-/// Alias for Reduced Julian Datetime in days with decimals.
-using RJDateTime = long double;
-
-/// Alias for Julian Datetime in days with decimals.
-using JDateTime = long double;
-
-/// Alias for second of day with decimals (ns precision).
-//using SoD = long double;
-using SoD = helpers::types::NumericStrongType<long double, struct SoDTag>;
-
-/// Alias for fraction of day with decimals (ns precision in the sense of fraction of the day).
-using DayFraction = long double;
-//using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
-
 /**
- * Enum class for specifying the time resolution in string representations.
+ * GeocentricCoords is defined as <x,y,z> tuple
  */
-enum class TimeResolution
+template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+struct LIBDPSLR_EXPORT GeocentricPoint
 {
-    SECONDS,        ///< Represents the seconds.
-    MILLISECONDS,   ///< Represents the milliseconds.
-    MICROSECONDS,   ///< Represents the microseconds.
-    NANOSECONDS     ///< Represents the nanoseconds.
+    using DistType = dpslr::math::units::Distance<T>;
+
+    DistType x;
+    DistType y;
+    DistType z;
+
+    GeocentricPoint(T x = T(), T y = T(), T z = T(), typename DistType::Unit unit = DistType::Unit::METRES) :
+        x(x, unit), y(y, unit), z(z, unit) {}
+
+    GeocentricPoint(std::array<T,3> a, typename DistType::Unit unit = DistType::Unit::METRES) :
+        x(a[0], unit), y(a[1], unit), z(a[2], unit) {}
+
+    template<typename Container = std::array<long double, 3>>
+    inline constexpr Container store() const {return Container{x,y,z};}
+
+    math::Vector3D<T> toVector3D() const {return math::Vector3D<T>(x,y,z);}
 };
-
-//======================================================================================================================
-
-// CONSTANTS
-//======================================================================================================================
-constexpr long double kModifiedJulianToJulian = 2400000.5L;
-constexpr long double kJulianToModifiedJulian = -2400000.5L;
-constexpr long double kJulianToReducedJulian = -2400000.0L;
-constexpr long double kJulianToJ2000 = -2451545.0L;
-constexpr long double kJ2000ToJulian = 2451545.0L;
-constexpr long double kPosixEpochToJulian = 2440587.5L;
-constexpr long double kJulianToPosixEpoch = -2440587.5L;
-constexpr long long kNsPerSecond = 1000000000LL;
-constexpr long long kSecsPerDay = 86400LL;
-constexpr long long kSecsPerHalfDay = 43200LL;
-constexpr long long kNsPerDay = 86400000000000LL;
-constexpr long long kNsPerHalfDay = 43200000000000LL;
-constexpr long long kNsPerWin32Tick = 100ULL;
-constexpr long long kWin32EpochToPosixEpoch = -11644473600LL;
-//======================================================================================================================
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

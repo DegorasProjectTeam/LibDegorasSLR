@@ -38,25 +38,25 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
-#include "LibDegorasSLR/Geo/common/geo_types.h"
+#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
+#include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Mathematics/containers/matrix.h"
 #include "LibDegorasSLR/Mathematics/containers/vector3d.h"
 #include "LibDegorasSLR/Statistics/common/statistics_types.h"
-#include "LibDegorasSLR/Geo/meteo.h"
-#include "LibDegorasSLR/Timing/common/time_types.h"
+#include "LibDegorasSLR/Geophysics/meteo.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
 #include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace algoslr{
 namespace utils{
 // =====================================================================================================================
 
 // =====================================================================================================================
-using dpslr::geo::common::GeocentricPoint;
-using dpslr::geo::common::GeodeticPoint;
+using dpslr::geo::types::GeocentricPoint;
+using dpslr::geo::types::GeodeticPoint;
 using dpslr::ilrs::cpf::CPF;
 using dpslr::math::Matrix;
 using dpslr::math::Vector3D;
@@ -631,5 +631,5 @@ private:
     CPF cpf_;
 };
 
-}}} // END NAMESPACES
+}} // END NAMESPACES
 // =====================================================================================================================

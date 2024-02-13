@@ -43,10 +43,10 @@
 #include <chrono>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/common/time_types.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
 #include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 

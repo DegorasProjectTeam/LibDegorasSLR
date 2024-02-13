@@ -34,11 +34,7 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <vector>
-#include <numeric>
 #include <cmath>
-#include <functional>
-#include <algorithm>
 #include <omp.h>
 // =====================================================================================================================
 
@@ -70,7 +66,7 @@ double truncToDouble(T x, unsigned int prec, unsigned int dec_places)
 template<typename T>
 double roundToDouble(T x, unsigned int dec_places)
 {
-    const long double multiplier = std::pow(10.0, dec_places);
+    const long double multiplier = std::pow(10.0L, dec_places);
     return std::round(x * multiplier) / multiplier;
 }
 

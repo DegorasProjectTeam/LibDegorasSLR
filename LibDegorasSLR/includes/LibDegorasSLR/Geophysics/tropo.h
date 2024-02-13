@@ -41,7 +41,7 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Geo/meteo.h"
+#include "LibDegorasSLR/Geophysics/meteo.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
