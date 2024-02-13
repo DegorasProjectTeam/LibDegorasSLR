@@ -1,5 +1,5 @@
 # **********************************************************************************************************************
-# Updated 29/01/2024
+# Updated 13/02/2024
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
@@ -125,19 +125,11 @@ MACRO(macro_install_runtime_deps target dependency_set ext_deps_dirs bin_dest pr
             set(PRE_EXC ${pre_exc_regexes} "api-ms-" "ext-ms-")
         endif()
 
-
-        set(AUX "C:/Users/AVERA/Documents/Workspace_DegorasProject/LibNovasCpp/LibNovasCpp_product_v3.1/mingw-x86_64-8.1.0-debug/lib")
-        #list(APPEND AUX "C:/Users/AVERA/Documents/Workspace_DegorasProject/LibNovasCpp/LibNovasCpp_product_v3.1/mingw-x86_64-8.1.0-debug/lib/")
-
-        message(STATUS "  HEREEEEEEEEEEEEEEEE: " ${AUX})
-
-        set(CACA)
-
         # Install runtime dependencies for the set.
         install(RUNTIME_DEPENDENCY_SET ${dependency_set}
                 PRE_EXCLUDE_REGEXES ${PRE_EXC}
                 POST_EXCLUDE_REGEXES ${POST_EXC}
-                DIRECTORIES ${ext_deps_dirs} ${AUX}
+                DIRECTORIES ${ext_deps_dirs}
                 DESTINATION ${bin_dest})
 
         # Install runtime dependencies for the specific target.
@@ -197,8 +189,6 @@ MACRO(macro_install_lib lib_name inc_path inc_dest lib_dest bin_dest arch_dest s
     # Get the version of the library
     get_target_property(EXTRACTED_VERSION ${lib_name} VERSION)
 
-    message(STATUS "  Extracted version: ${EXTRACTED_VERSION}")
-
     # Write the version to the package file
     write_basic_package_version_file(
         "${CMAKE_CURRENT_BINARY_DIR}/${VERSION_FILE_NAME}"
@@ -257,51 +247,54 @@ ENDMACRO()
 
 # **********************************************************************************************************************
 
-MACRO(macro_default_library_installation lib_name lib_cmake_config_name lib_includes_dir)
+MACRO(macro_default_library_installation lib_name lib_cmake_config_name lib_includes_dir ext_deps_dirs)
+
+    # Set the external dependencies dir.
+    set(external_deps_search_dirs ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} ${ext_deps_dirs})
 
     # Default installation process for windows.
     if(WIN32)
 
         # Install the library.
-        macro_install_lib(${lib_name}
-                          ${lib_includes_dir}
-                          ${MODULES_GLOBAL_INSTALL_INCLUDE_PATH}
-                          ${MODULES_GLOBAL_INSTALL_BIN_PATH}
-                          ${MODULES_GLOBAL_INSTALL_LIB_PATH}
-                          ${MODULES_GLOBAL_INSTALL_LIB_PATH}
-                          ${MODULES_GLOBAL_INSTALL_SHARE_PATH})
+        macro_install_lib("${lib_name}"
+                          "${lib_includes_dir}"
+                          "${MODULES_GLOBAL_INSTALL_INCLUDE_PATH}"
+                          "${MODULES_GLOBAL_INSTALL_BIN_PATH}"
+                          "${MODULES_GLOBAL_INSTALL_LIB_PATH}"
+                          "${MODULES_GLOBAL_INSTALL_LIB_PATH}"
+                          "${MODULES_GLOBAL_INSTALL_SHARE_PATH}")
 
         # Install the runtime artifacts.
-        macro_install_runtime_artifacts(${lib_name}
-                                        ${MODULES_GLOBAL_MAIN_DEP_SET_NAME}
-                                        ${MODULES_GLOBAL_INSTALL_BIN_PATH})
+        macro_install_runtime_artifacts("${lib_name}"
+                                        "${MODULES_GLOBAL_MAIN_DEP_SET_NAME}"
+                                        "${MODULES_GLOBAL_INSTALL_BIN_PATH}")
 
         # Install external dependencies.
-        macro_install_runtime_deps(${lib_name}
-                                   ${MODULES_GLOBAL_MAIN_DEP_SET_NAME}
-                                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                                   ${MODULES_GLOBAL_INSTALL_BIN_PATH}
+        macro_install_runtime_deps("${lib_name}"
+                                   "${MODULES_GLOBAL_MAIN_DEP_SET_NAME}"
+                                   "${external_deps_search_dirs}"
+                                   "${MODULES_GLOBAL_INSTALL_BIN_PATH}"
                                    "" "")
 
     elseif(OS_NAME STREQUAL "Linux/Unix")
 
         # Install the library.
-        macro_install_lib(${lib_name} ${lib_cmake_config_name} ${lib_includes_dir}
-                          ${MODULES_GLOBAL_INSTALL_INCLUDE_PATH}
-                          ${MODULES_GLOBAL_INSTALL_LIB_PATH}
-                          ${MODULES_GLOBAL_INSTALL_LIB_PATH}
-                          ${MODULES_GLOBAL_INSTALL_LIB_PATH}
-                          ${MODULES_GLOBAL_INSTALL_SHARE_PATH})
+        macro_install_lib("${lib_name}" "${lib_cmake_config_name}" "${lib_includes_dir}"
+                          "${MODULES_GLOBAL_INSTALL_INCLUDE_PATH}"
+                          "${MODULES_GLOBAL_INSTALL_LIB_PATH}"
+                          "${MODULES_GLOBAL_INSTALL_LIB_PATH}"
+                          "${MODULES_GLOBAL_INSTALL_LIB_PATH}"
+                          "${MODULES_GLOBAL_INSTALL_SHARE_PATH}")
 
         # Install the runtime artifacts.
-        macro_install_runtime_artifacts(${lib_name}
-                                        ${MODULES_GLOBAL_MAIN_DEP_SET_NAME}
-                                        ${MODULES_GLOBAL_INSTALL_BIN_PATH})
+        macro_install_runtime_artifacts("${lib_name}"
+                                        "${MODULES_GLOBAL_MAIN_DEP_SET_NAME}"
+                                        "${MODULES_GLOBAL_INSTALL_BIN_PATH}")
 
         # Install external dependencies.
         macro_install_runtime_deps("${lib_name}"
                                    "${MODULES_GLOBAL_MAIN_DEP_SET_NAME}"
-                                   "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+                                   "${external_deps_search_dirs}"
                                    "${MODULES_GLOBAL_INSTALL_BIN_PATH}"
                                    "" "")
 

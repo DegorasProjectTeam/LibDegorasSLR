@@ -130,10 +130,11 @@ endif()
 # ----------------------------------------------------------------------------------------------------------------------
 # INSTALLATION PROCESS
 
-# Installation process.
-macro_default_library_installation(${LIB_NAME} ${LIB_CMAKE_CONFIG_NAME} ${LIB_INCLUDES_DIR})
+# External libs locations.
+set(ext_libs_loc ${LibNovasCpp_LOCATION_DIR})
 
-#macro_install_runtime_artifacts(LibNovasCpp::LibNovasCpp ${dependency_set} ${install_path})
+# Installation process.
+macro_default_library_installation("${LIB_NAME}" "${LIB_CMAKE_CONFIG_NAME}" "${LIB_INCLUDES_DIR}" "${ext_libs_loc}")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE SUBPROJECTS
@@ -142,6 +143,6 @@ macro_default_library_installation(${LIB_NAME} ${LIB_CMAKE_CONFIG_NAME} ${LIB_IN
 add_subdirectory(testing)
 
 # Example subproject.
-add_subdirectory(examples)
+#add_subdirectory(examples)
 
 # ----------------------------------------------------------------------------------------------------------------------

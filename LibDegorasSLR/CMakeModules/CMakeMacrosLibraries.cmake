@@ -1,5 +1,5 @@
 # **********************************************************************************************************************
-# Updated 29/01/2024
+# Updated 13/02/2024
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
@@ -122,6 +122,12 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
         endif()
     endforeach()
 
+    # Prepare the external library search folders.
+    set(ext_libs_loc
+        ${MODULES_GLOBAL_INSTALL_LIB_PATH}
+        ${MODULES_GLOBAL_INSTALL_BIN_PATH}
+        ${CMAKE_BINARY_DIR}/bin)
+
     # Loop through the test names and configure each basic test.
     foreach(TESTS_SOURCE_FILE ${FILTERED_TESTS_SOURCES})
 
@@ -129,22 +135,11 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
         get_filename_component(TEST_NAME ${TESTS_SOURCE_FILE} NAME_WE)
         set(SOURCES ${tests_sources_path}/${TESTS_SOURCE_FILE})
 
-        # For simple test we will avoit the include the external resources.
-        set(EXTERN)
-
-        # Uncomment if you need changue this behaviour.
-        #if(MODULES_GLOBAL_SHOW_EXTERNALS)
-        #    file(GLOB_RECURSE EXTERN ${CMAKE_SOURCE_DIR}/includes/*.h)
-        #endif()
-
         # Setup the launcher.
         macro_setup_launcher("${TEST_NAME}"
                              "${MODULES_GLOBAL_LIBS_OPTIMIZED}"
                              "${MODULES_GLOBAL_LIBS_DEBUG}"
                              "${SOURCES}")
-
-        # Include directories for the target.
-        #target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/includes)
 
         # Install the launcher.
         macro_install_launcher(${TEST_NAME} ${install_path})
@@ -157,7 +152,7 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
         # Install the runtime dependencies.
         macro_install_runtime_deps("${EXAMPLE_NAME}"
                                    "${MODULES_GLOBAL_MAIN_DEP_SET_NAME}"
-                                   "${CMAKE_BINARY_DIR}/bin"
+                                   "${ext_libs_loc}"
                                    "${install_path}"
                                    "" "")
 
