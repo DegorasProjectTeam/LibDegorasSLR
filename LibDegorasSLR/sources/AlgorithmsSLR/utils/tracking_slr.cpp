@@ -112,12 +112,12 @@ void TrackingSLR::getTrackingEnd(timing::common::MJDate &mjd, timing::common::So
     sod = this->track_info_.sod_end;
 }
 
-TrackingSLR::TrackingResults::const_iterator TrackingSLR::getTrackingBegin() const
+TrackingSLR::TrackingPredictions::const_iterator TrackingSLR::getTrackingBegin() const
 {
     return this->track_info_.valid_pass ? this->tracking_begin_ : this->track_info_.positions.cend();
 }
 
-TrackingSLR::TrackingResults::const_iterator TrackingSLR::getTrackingEnd() const
+TrackingSLR::TrackingPredictions::const_iterator TrackingSLR::getTrackingEnd() const
 {
     return this->track_info_.valid_pass ? this->tracking_end_ : this->track_info_.positions.cend();
 }
@@ -151,7 +151,7 @@ unsigned TrackingSLR::getSunAvoidAngle() const
 }
 
 TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(const timing::HRTimePointStd& tp_time,
-                                                                 TrackingResult &tracking_result)
+                                                                 TrackingPrediction &tracking_result)
 {
     MJDate mjd;
     SoD sod;
@@ -160,7 +160,7 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(const timing::H
 }
 
 TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD sod,
-                                                                 TrackingResult &tracking_result)
+                                                                 TrackingPrediction &tracking_result)
 {
     // Update the times.
     tracking_result.mjd = mjd;
@@ -180,7 +180,7 @@ TrackingSLR::PositionStatus TrackingSLR::predictTrackingPosition(MJDate mjd, SoD
     astro::PredictorSun::SunPosition sun_pos = this->sun_predictor_.fastPredict(j2000, false);
 
     // Calculates the space object position.
-    PredictorSLR::PredictionResult prediction_result;
+    PredictorSLR::SLRPrediction prediction_result;
     auto pred_error = this->predictor_.predict(mjd, sod, prediction_result);
 
     // Store the info.
@@ -256,7 +256,7 @@ void TrackingSLR::analyzeTracking()
 {
     // Results container and auxiliar.
     unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta*1000);
-    PredictorSLR::PredictionResults results_slr;
+    PredictorSLR::SLRPredictions results_slr;
     astro::PredictorSun::SunPositions results_sun;
 
     // Parallel calculation of all SLR positions.
@@ -277,7 +277,7 @@ void TrackingSLR::analyzeTracking()
     results_sun = this->sun_predictor_.fastPredict(
         j2000_start, j2000_end + this->track_info_.time_delta / timing::kSecsPerDay, step_ms);
 
-    TrackingResult tr;
+    TrackingPrediction tr;
 
     for (std::size_t i = 0; i < results_slr.size(); i++)
     {
@@ -434,14 +434,14 @@ bool TrackingSLR::checkTrackingEnd()
 
 bool TrackingSLR::checkTracking()
 {
-    TrackingResult tr;
+    TrackingPrediction tr;
     bool in_sun_sector = false;
     bool sun_collision = false;
     SunSector sun_sector;
     MJDate max_elev_mjd = 0;
     SoD max_elev_sod = 0;
     double max_elev = -1.;
-    TrackingResults::iterator sun_sector_start;
+    TrackingPredictions::iterator sun_sector_start;
 
     // Check the tracking.
     for (auto it = this->tracking_begin_ + 1; it != this->tracking_end_ - 1; it++)
@@ -530,7 +530,7 @@ bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
 }
 
 void TrackingSLR::setSunSectorRotationDirection(
-    SunSector &sector, TrackingResults::const_iterator sun_start, TrackingResults::const_iterator sun_end)
+    SunSector &sector, TrackingPredictions::const_iterator sun_start, TrackingPredictions::const_iterator sun_end)
 {
 
     MJDateTime mjdt = sector.mjdt_entry + this->track_info_.time_delta /
@@ -620,7 +620,7 @@ void TrackingSLR::setSunSectorRotationDirection(
 }
 
 void TrackingSLR::checkSunSectorPositions(
-    const SunSector &sector, TrackingResults::iterator sun_start, TrackingResults::iterator sun_end)
+    const SunSector &sector, TrackingPredictions::iterator sun_start, TrackingPredictions::iterator sun_end)
 {
     // Check positions within sun sector. First and last are excluded, since they are outside sun sector
     for (auto it = sun_start + 1; it != sun_end; it++)

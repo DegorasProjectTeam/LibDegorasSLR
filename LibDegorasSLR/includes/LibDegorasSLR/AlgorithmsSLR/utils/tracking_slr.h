@@ -152,7 +152,7 @@ public:
      * - If `status` is `PREDICTION_ERROR` or `CANT_AVOID_SUN`, both `prediction_result` and `sun_pos` are provided to
      *   detail the prediction outcome and solar interference, respectively.
      */
-    struct TrackingResult
+    struct TrackingPrediction
     {
         // Datetime members.
         MJDate mjd;              ///< Modified Julian Date in days.
@@ -160,7 +160,7 @@ public:
         MJDateTime mjdt;         ///< Modified Julian DateTime (day & fraction).
 
         // Result members.
-        Optional<PredictorSLR::PredictionResult> prediction_result;  ///< SLR prediction result.
+        Optional<PredictorSLR::SLRPrediction> prediction_result;  ///< SLR prediction result.
         Optional<TrackingPosition> tracking_position;                ///< Tracking position.
         Optional<astro::PredictorSun::SunPosition> sun_pos;           ///< Sun position.
 
@@ -169,7 +169,7 @@ public:
     };
 
     ///< Alias for Tracking results vector.
-    using TrackingResults = std::vector<TrackingResult>;
+    using TrackingPredictions = std::vector<TrackingPrediction>;
 
     struct TrackSLR
     {
@@ -197,7 +197,7 @@ public:
 
         std::vector<SunSector> sun_sectors;
 
-        TrackingResults positions;
+        TrackingPredictions positions;
     };
 
 
@@ -244,13 +244,13 @@ public:
      * @brief This function returns an interator to the first valid position in tracking.
      * @return an interator to the first valid position in tracking, if tracking is valid. Otherwise end iterator.
      */
-    TrackingResults::const_iterator getTrackingBegin() const;
+    TrackingPredictions::const_iterator getTrackingBegin() const;
 
     /**
      * @brief This function returns an interator to the last valid position in tracking.
      * @return an interator to the last valid position in tracking, if tracking is valid. Otherwise end iterator.
      */
-    TrackingResults::const_iterator getTrackingEnd() const;
+    TrackingPredictions::const_iterator getTrackingEnd() const;
 
     /**
      * @brief This function returns if sun avoidance is applied.
@@ -290,7 +290,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predictTrackingPosition(const timing::HRTimePointStd& tp_time, TrackingResult &tracking_result);
+    PositionStatus predictTrackingPosition(const timing::HRTimePointStd& tp_time, TrackingPrediction &tracking_result);
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -299,7 +299,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predictTrackingPosition(MJDate mjd, SoD sod, TrackingResult &tracking_result);
+    PositionStatus predictTrackingPosition(MJDate mjd, SoD sod, TrackingPrediction &tracking_result);
 
 private:
 
@@ -323,11 +323,11 @@ private:
 
     /// Helper to set the rotation direction of a sun sector.
     void setSunSectorRotationDirection(
-        SunSector &sector, TrackingResults::const_iterator sun_start, TrackingResults::const_iterator sun_end);
+        SunSector &sector, TrackingPredictions::const_iterator sun_start, TrackingPredictions::const_iterator sun_end);
 
     /// Helper to check positions whithin a sun sector to see if it is possible to avoid sun
     void checkSunSectorPositions(
-        const SunSector &sector, TrackingResults::iterator sun_start, TrackingResults::iterator sun_end);
+        const SunSector &sector, TrackingPredictions::iterator sun_start, TrackingPredictions::iterator sun_end);
 
     long double calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector,
                                        const astro::PredictorSun::SunPosition &sun_pos);
@@ -337,8 +337,8 @@ private:
     astro::PredictorSun sun_predictor_;              ///< Sun predictor.
     TrackSLR track_info_;                            ///< Track information.
 
-    TrackingResults::iterator tracking_begin_;
-    TrackingResults::iterator tracking_end_;
+    TrackingPredictions::iterator tracking_begin_;
+    TrackingPredictions::iterator tracking_end_;
 };
 
 }}} // END NAMESPACES

@@ -89,8 +89,8 @@ int main ()
     timing::MJDate mjd = mjd_start;
     timing::SoD sod = sod_start;
     long double j2000;
-    std::vector<dpslr::algoslr::utils::TrackingSLR::TrackingResult> res;
-    dpslr::algoslr::utils::TrackingSLR::TrackingResult pos;
+    std::vector<dpslr::algoslr::utils::TrackingSLR::TrackingPrediction> res;
+    dpslr::algoslr::utils::TrackingSLR::TrackingPrediction pos;
 
     while (mjd < mjd_end || sod < sod_end)
     {

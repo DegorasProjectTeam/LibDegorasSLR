@@ -140,7 +140,7 @@ std::string PredictorSLR::InboundData::toJsonStr() const
     return oss.str();
 }
 
-std::string PredictorSLR::PredictionResult::toJsonStr() const
+std::string PredictorSLR::SLRPrediction::toJsonStr() const
 {
     // Result
     std::ostringstream oss;
@@ -330,7 +330,7 @@ bool PredictorSLR::isReady() const {return !this->pos_times_.empty(); }
 
 
 
-PredictorSLR::PredictionError PredictorSLR::predict(MJDate mjd, SoD sod_instant, PredictionResult& result) const
+PredictorSLR::PredictionError PredictorSLR::predict(MJDate mjd, SoD sod_instant, SLRPrediction& result) const
 {
 
 /*
@@ -727,7 +727,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
 
 
-PredictorSLR::PredictionError PredictorSLR::predict(MJDateTime mjdt, PredictionResult& result) const
+PredictorSLR::PredictionError PredictorSLR::predict(MJDateTime mjdt, SLRPrediction& result) const
 {
     // Time conversions.
     MJDate mjd;
@@ -746,7 +746,7 @@ void PredictorSLR::getTimeWindow(MJDate &mjd_start, SoD &sod_start, MJDate &mjd_
     }
 }
 
-long double PredictorSLR::applyCorrections(long double &range, PredictionResult &result,
+long double PredictorSLR::applyCorrections(long double &range, SLRPrediction &result,
                                            bool cali, long double el) const
 {
     // Auxiliar variable.
@@ -801,7 +801,7 @@ long double PredictorSLR::applyCorrections(long double &range, PredictionResult 
 
 
 PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector3D<long double> &y,
-                                                           PredictionResult &result) const
+                                                           SLRPrediction &result) const
 {
     // Auxiliar error container.
     PredictorSLR::PredictionError error = PredictorSLR::PredictionError::UNKNOWN_INTERPOLATOR;
