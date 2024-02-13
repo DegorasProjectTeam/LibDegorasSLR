@@ -261,7 +261,7 @@ void TrackingSLR::analyzeTracking()
     // Results container and auxiliar.
     unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta*1000);
     PredictorSLR::SLRPredictions results_slr;
-    astro::PredictorSun::SunPositions results_sun;
+    astro::SunPositions results_sun;
 
     // Parallel calculation of all SLR positions.
     results_slr = this->predictor_.predict(this->track_info_.mjd_start, this->track_info_.sod_start,
@@ -273,8 +273,8 @@ void TrackingSLR::analyzeTracking()
         return;
 
     // Time transformations.
-    J2000 j2000_start = timing::mjdToJ2000Datetime(this->track_info_.mjd_start, this->track_info_.sod_start);
-    J2000 j2000_end = timing::mjdToJ2000Datetime(this->track_info_.mjd_end, this->track_info_.sod_end);
+    J2DateTime j2000_start = timing::mjdToJ2000Datetime(this->track_info_.mjd_start, this->track_info_.sod_start);
+    J2DateTime j2000_end = timing::mjdToJ2000Datetime(this->track_info_.mjd_end, this->track_info_.sod_end);
 
     // Parallel calculation of all Sun positions. Adds time delta to end date to ensure there is enough sun positions
     // calculated.
@@ -566,16 +566,16 @@ void TrackingSLR::setSunSectorRotationDirection(
         {
 
             ccw_angle = entry_angle + time_perc * (exit_angle - entry_angle);
-            cw_angle = entry_angle - time_perc * (2 * math::pi - exit_angle + entry_angle);
+            cw_angle = entry_angle - time_perc * (2 * math::kPi - exit_angle + entry_angle);
             if (cw_angle < 0.L)
-                cw_angle += 2 * math::pi;
+                cw_angle += 2 * math::kPi;
         }
         else
         {
             cw_angle = entry_angle - time_perc * (entry_angle - exit_angle);
-            ccw_angle = entry_angle + time_perc * (2 * dpslr::math::pi - entry_angle + exit_angle);
-            if (ccw_angle >= 2 * math::pi)
-                ccw_angle -= 2 * math::pi;
+            ccw_angle = entry_angle + time_perc * (2 * dpslr::math::kPi - entry_angle + exit_angle);
+            if (ccw_angle >= 2 * math::kPi)
+                ccw_angle -= 2 * math::kPi;
         }
 
         long double elev_cw = it->sun_pos->elevation + this->track_info_.sun_avoid_angle * std::sin(cw_angle);
@@ -608,12 +608,12 @@ void TrackingSLR::setSunSectorRotationDirection(
         if (exit_angle > entry_angle)
         {
             ccw_angle = exit_angle - entry_angle;
-            cw_angle = 2 * math::pi - exit_angle + entry_angle;
+            cw_angle = 2 * math::kPi - exit_angle + entry_angle;
         }
         else
         {
             cw_angle = entry_angle - exit_angle;
-            ccw_angle = 2 * math::pi - entry_angle + exit_angle;
+            ccw_angle = 2 * math::kPi - entry_angle + exit_angle;
         }
 
         sector.cw = cw_angle < ccw_angle;
@@ -655,9 +655,9 @@ long double TrackingSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector
     {
         if (sector.cw)
         {
-            angle = entry_angle - time_perc * (2 * math::pi - exit_angle + entry_angle);
+            angle = entry_angle - time_perc * (2 * math::kPi - exit_angle + entry_angle);
             if (angle < 0.L)
-                angle += 2 * math::pi;
+                angle += 2 * math::kPi;
         }
         else
             angle = entry_angle + time_perc * (exit_angle - entry_angle);
@@ -671,9 +671,9 @@ long double TrackingSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector
         }
         else
         {
-            angle = entry_angle + time_perc * (2 * math::pi - entry_angle + exit_angle);
-            if (angle >= 2 * math::pi)
-                angle -= 2 * math::pi;
+            angle = entry_angle + time_perc * (2 * math::kPi - entry_angle + exit_angle);
+            if (angle >= 2 * math::kPi)
+                angle -= 2 * math::kPi;
         }
     }
 

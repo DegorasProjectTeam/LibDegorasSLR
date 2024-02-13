@@ -647,7 +647,7 @@ long double jdtToGmst(long double jdt)
     long double gmst = -6.2e-6L*t*t*t + 0.093104L*t*t + (876600.0L * 3600.L + 8640184.812866L)*t + 67310.54841L;  // sec
 
     //360 deg / 86400 s = 1/240, to convert seconds of time to deg, and then convert to rad
-    gmst = dpslr::math::normalizeVal(gmst / 240.L * math::pi / 180.L, 0.L , 2*math::pi);
+    gmst = dpslr::math::normalizeVal(gmst / 240.L * math::kPi / 180.L, 0.L , 2*math::kPi);
 
     return gmst;
 }
@@ -656,7 +656,7 @@ long double jdtToGmst(long double jdt)
 long double jdtToLmst(long double jdt, long double lon)
 {
     long double gmst = jdtToGmst(jdt);
-    long double lmst = dpslr::math::normalizeVal(gmst + lon, 0.L, 2*math::pi);
+    long double lmst = dpslr::math::normalizeVal(gmst + lon, 0.L, 2*math::kPi);
 
     return lmst;
 }

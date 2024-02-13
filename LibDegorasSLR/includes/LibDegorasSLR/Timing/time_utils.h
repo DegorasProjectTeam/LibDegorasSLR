@@ -74,7 +74,7 @@ using dpslr::timing::types::JDate;
 using dpslr::timing::types::MJDate;
 using dpslr::timing::types::MJDateTime;
 using dpslr::timing::types::Windows32Ticks;
-using dpslr::timing::types::J2000;
+using dpslr::timing::types::J2DateTime;
 using dpslr::timing::types::DayFraction;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::RJDateTime;
@@ -548,13 +548,6 @@ LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJD
 LIBDPSLR_EXPORT long double timePointToJ2000Datetime(const HRTimePointStd &tp);
 
 
-
-/**
- * @brief Converts a TimePoint to Reduced Julian Datetime
- * @param tp, TimePoint to convert.
- * @return A floating point value representing Reduced Julian Datetime in days. Precission up to ns.
- */
-LIBDPSLR_EXPORT long double timePointToReducedJulianDatetime(const HRTimePointStd &tp);
 
 /**
  * @brief Converts a high-resolution time point to a reduced Julian datetime.

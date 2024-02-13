@@ -274,8 +274,8 @@ bool PredictorSLR::setCPF(const CPF& cpf)
     // Computation of rotation matrices.
     // Rotations: rot_long around longitude, rot_lat around pi/2-latitude, rot_long_pi around pi
     math::euclid3DRotMat(3, s_lon, rot_long);
-    math::euclid3DRotMat(2, static_cast<long double>(pi/2) - s_lat, rot_lat);
-    math::euclid3DRotMat(3, static_cast<long double>(pi), rot_long_pi);
+    math::euclid3DRotMat(2, static_cast<long double>(kPi/2) - s_lat, rot_lat);
+    math::euclid3DRotMat(3, static_cast<long double>(kPi), rot_long_pi);
     this->rotm_topo_local_ *= rot_long * rot_lat * rot_long_pi;
 
     // All ok.

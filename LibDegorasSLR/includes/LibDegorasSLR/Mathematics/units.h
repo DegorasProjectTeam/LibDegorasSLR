@@ -82,13 +82,13 @@ constexpr long double kLightNsToMm = 299.792458L;
 template <typename T>
 T degToRad(T degree)
 {
-    return (degree*(math::pi/180.0));
+    return (degree*(math::kPi/180.0));
 }
 
 template <typename T>
 T radToDegree(T radian)
 {
-    return (radian*(180.0/math::pi));
+    return (radian*(180.0/math::kPi));
 }
 
 // =====================================================================================================================
@@ -113,12 +113,12 @@ public:
         {
             if (unit == Unit::RADIANS)
             {
-                this->angle_ *= math::pi / 180.0;
+                this->angle_ *= math::kPi / 180.0;
                 this->unit_ = unit;
             }
             else if (unit == Unit::DEGREES)
             {
-                this->angle_ *= 180.0 / math::pi;
+                this->angle_ *= 180.0 / math::kPi;
                 this->unit_ = unit;
             }
         }
@@ -134,11 +134,11 @@ public:
         {
             if (unit == Unit::RADIANS)
             {
-                result = this->angle_ * math::pi / 180.0L;
+                result = this->angle_ * math::kPi / 180.0L;
             }
             else if (unit == Unit::DEGREES)
             {
-                result = this->angle_ * 180.0L / math::pi;
+                result = this->angle_ * 180.0L / math::kPi;
             }
         }
         return result;

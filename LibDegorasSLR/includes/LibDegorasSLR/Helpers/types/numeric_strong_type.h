@@ -120,6 +120,36 @@ public:
         return *this;
     }
 
+    // Prefix increment operator
+    NumericStrongType& operator++()
+    {
+        ++this->value;
+        return *this;
+    }
+
+    // Postfix increment operator
+    NumericStrongType operator++(int)
+    {
+        NumericStrongType tmp(*this);
+        operator++();
+        return tmp;
+    }
+
+    // Prefix decrement operator
+    NumericStrongType& operator--()
+    {
+        --this->value;
+        return *this;
+    }
+
+    // Postfix decrement operator
+    NumericStrongType operator--(int)
+    {
+        NumericStrongType tmp(*this);
+        operator--();
+        return tmp;
+    }
+
     // Conversion back to the underlying type.
     operator T() const { return this->value; }
 

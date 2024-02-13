@@ -64,6 +64,10 @@ namespace timing{
 namespace types{
 // =====================================================================================================================
 
+// =====================================================================================================================
+using helpers::types::NumericStrongType;
+// =====================================================================================================================
+
 // CONVENIENT TYPES
 //======================================================================================================================
 
@@ -89,32 +93,31 @@ using UsStd = std::chrono::microseconds;
 using NsStd = std::chrono::nanoseconds;
 
 /// Alias for Windows Ticks.
-using Windows32Ticks = unsigned long long;
+using Windows32Ticks = NumericStrongType<unsigned long long, struct Windows32TicksTag>;
 
 /// Alias for J2000 time.
-using J2000 = long double;
+using J2DateTime = NumericStrongType<long double, struct J2000DateTimeTag>;
 
 /// Alias for Modified Julian Date in days.
-using MJDate = long long;
+using MJDate = NumericStrongType<long long, struct MJDateTag>;
 
 /// Alias for Julian Date in days.
-using JDate = long long;
+using JDate = NumericStrongType<long long, struct JDateTag>;
 
 /// Alias for Modified Julian Datetime in days with decimals.
-using MJDateTime = long double;
+using MJDateTime = NumericStrongType<long double, struct MJDateTimeTag>;
 
 /// Alias for Reduced Julian Datetime in days with decimals.
-using RJDateTime = long double;
+using RJDateTime = NumericStrongType<long double, struct RJDateTimeTag>;
 
 /// Alias for Julian Datetime in days with decimals.
-using JDateTime = long double;
+using JDateTime = NumericStrongType<long double, struct JDateTimeTag>;
 
 /// Alias for second of day with decimals (ns precision).
-using SoD = helpers::types::NumericStrongType<long double, struct SoDTag>;
+using SoD = NumericStrongType<long double, struct SoDTag>;
 
 /// Alias for fraction of day with decimals (ns precision in the sense of fraction of the day).
-//using DayFraction = long double;
-using DayFraction = helpers::types::NumericStrongType<long double, struct DayFractionTag>;
+using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
 
 /**
  * Enum class for specifying the time resolution in string representations.

@@ -64,7 +64,6 @@ using dpslr::geo::meteo::WtrVapPressModel;
 using dpslr::timing::MJDate;
 using dpslr::timing::SoD;
 using dpslr::timing::MJDateTime;
-using dpslr::timing::J2000;
 // =====================================================================================================================
 
 // CONSTANTS
