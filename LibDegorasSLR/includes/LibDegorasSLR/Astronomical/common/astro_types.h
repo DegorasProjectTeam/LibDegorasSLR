@@ -36,7 +36,6 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <vector>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -45,6 +44,23 @@ namespace dpslr{
 namespace astro{
 namespace common{
 // =====================================================================================================================
+
+struct RA
+{
+    RA(int hour, int min, double sec);
+    RA(double ra);
+    RA(const RA&) = default;
+    RA(RA&&) = default;
+    RA& operator=(const RA&) = default;
+    RA& operator=(RA&&) = default;
+
+    operator double ();
+
+    int hour;
+    int min;
+    double sec;
+    double ra;
+};
 
 
 }}} // END NAMESPACES
