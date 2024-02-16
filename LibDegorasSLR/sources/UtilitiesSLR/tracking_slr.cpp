@@ -491,7 +491,9 @@ bool TrackingSLR::checkTracking()
                 sun_sector.az_exit = it->tracking_position->az;
                 sun_sector.el_exit = it->tracking_position->el;
                 sun_sector.mjdt_exit = it->mjdt;
-                this->setSunSectorRotationDirection(sun_sector, sun_sector_start, it);
+                // If sector has no valid rotation direction, mark tracking as not valid, since sun cannot be avoided.
+                if (!this->setSunSectorRotationDirection(sun_sector, sun_sector_start, it))
+                    return false;
                 this->checkSunSectorPositions(sun_sector, sun_sector_start, it);
                 this->track_info_.sun_sectors.push_back(std::move(sun_sector));
                 sun_sector = {};
@@ -528,12 +530,37 @@ bool TrackingSLR::checkTracking()
 bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
                                   const SunPosition &sun_pos) const
 {
-    long double diff_az = pos.az - sun_pos.azimuth;
-    long double diff_el = pos.el - sun_pos.elevation;
-    return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->track_info_.sun_avoid_angle;
+
+    if (sun_pos.elevation < -this->track_info_.sun_avoid_angle)
+    {
+        // If sun security sector is below horizon, return false
+        return false;
+    }
+    else if (sun_pos.elevation > - this->track_info_.sun_avoid_angle && sun_pos.elevation < 0.L)
+    {
+        // If sun is below horizon, but the security sector is above, calculate distance as cartesian points.
+        long double diff_az = pos.az - sun_pos.azimuth;
+        // If azimuth difference is greater than 180, then take the shorter way
+        if (diff_az > 180.L)
+            diff_az = 360.L - diff_az;
+        long double diff_el = pos.el - sun_pos.elevation;
+        return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->track_info_.sun_avoid_angle;
+    }
+    else
+    {
+        // If sun is above the horizon, calculate the distance between polar coordinates.
+        long double zenith = 90.L - pos.el;
+        long double zenith_sun = 90.L - pos.el;
+        long double diff_angles = (pos.az - sun_pos.azimuth) * math::kPi / 180.L;
+
+        return zenith * zenith + zenith_sun * zenith_sun - 2.L*zenith*zenith_sun*std::cos(diff_angles) <
+               this->track_info_.sun_avoid_angle;
+    }
+
+
 }
 
-void TrackingSLR::setSunSectorRotationDirection(
+bool TrackingSLR::setSunSectorRotationDirection(
     SunSector &sector, TrackingPredictions::const_iterator sun_start, TrackingPredictions::const_iterator sun_end)
 {
 
@@ -590,6 +617,10 @@ void TrackingSLR::setSunSectorRotationDirection(
 
     }
 
+    // If no way is valid, then tracking is not valid. If one of the ways is not valid, use the other.
+    // If both ways are valid, choose the shorter one.
+    if (!valid_cw && !valid_ccw)
+        return false;
     if (!valid_cw)
         sector.cw = false;
     else if (!valid_ccw)
@@ -619,7 +650,7 @@ void TrackingSLR::setSunSectorRotationDirection(
         sector.cw = cw_angle < ccw_angle;
     }
 
-    // TODO: what happens if the two ways are not valid?
+    return true;
 
 }
 

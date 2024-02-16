@@ -330,7 +330,7 @@ private:
                          const SunPosition &sun_pos) const;
 
     /// Helper to set the rotation direction of a sun sector.
-    void setSunSectorRotationDirection(
+    bool setSunSectorRotationDirection(
         SunSector &sector, TrackingPredictions::const_iterator sun_start, TrackingPredictions::const_iterator sun_end);
 
     /// Helper to check positions whithin a sun sector to see if it is possible to avoid sun
