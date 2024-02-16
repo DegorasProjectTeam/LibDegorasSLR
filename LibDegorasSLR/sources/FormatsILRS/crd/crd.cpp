@@ -42,7 +42,8 @@
 #include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
 #include <LibDegorasSLR/Timing/time_utils.h>
 #include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
-#include <LibDegorasSLR/Helpers/Helpers>
+#include <LibDegorasSLR/Helpers/file_helpers.h>
+#include <LibDegorasSLR/Helpers/string_helpers.h>
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -228,7 +229,7 @@ CRD::ReadFileError CRD::openCRDFile(const std::string &crd_filepath, CRD::OpenOp
     this->clearCRD();
 
     // Open the file using our custom input file stream.
-    helpers::files::InputFileStream crd_stream(crd_filepath);
+    helpers::files::DegorasInputFileStream crd_stream(crd_filepath);
 
     // Check if the stream is open.
     if(!crd_stream.is_open())
@@ -429,7 +430,7 @@ CRD::ReadFileError CRD::openCRDFile(const std::string &crd_filepath, CRD::OpenOp
         std::vector<std::string> tokens;
         crd_stream.getline(line);
         ConsolidatedRecord rec;
-        rec.line_number = crd_stream.getLineNumber();
+        rec.line_number = crd_stream.getCurrentLineNumber();
         rec.consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
         if(!line.empty())
         {
@@ -527,7 +528,7 @@ CRD::WriteFileError CRD::writeCRDFile(const std::string& crd_filepath, CRDData::
     return CRD::WriteFileError::NOT_ERROR;
 }
 
-CRD::ReadRecordResult CRD::readRecord(helpers::files::InputFileStream& stream, ConsolidatedRecord &rec)
+CRD::ReadRecordResult CRD::readRecord(helpers::files::DegorasInputFileStream& stream, ConsolidatedRecord &rec)
 {
     // Clear the record.
     rec.clearAll();
@@ -548,7 +549,7 @@ CRD::ReadRecordResult CRD::readRecord(helpers::files::InputFileStream& stream, C
     while(!record_finished && stream.getline(line))
     {
         // Always store the line number.
-        rec.line_number = stream.getLineNumber();
+        rec.line_number = stream.getCurrentLineNumber();
         rec.consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
 
         // Check if the line is empty.
@@ -595,7 +596,7 @@ CRD::ReadRecordResult CRD::readRecord(helpers::files::InputFileStream& stream, C
                 {
                     rec.consolidated_type = ConsolidatedFileType::CRD_TYPE;
                     rec.tokens = tokens;
-                    rec.line_number = stream.getLineNumber();
+                    rec.line_number = stream.getCurrentLineNumber();
                     rec.generic_record_type = static_cast<int>(CRDRecordsType::CFG_RECORD);
                     record_finished = true;
                 }
@@ -603,7 +604,7 @@ CRD::ReadRecordResult CRD::readRecord(helpers::files::InputFileStream& stream, C
                 {
                     rec.consolidated_type = ConsolidatedFileType::CRD_TYPE;
                     rec.tokens = tokens;
-                    rec.line_number = stream.getLineNumber();
+                    rec.line_number = stream.getCurrentLineNumber();
                     rec.generic_record_type = static_cast<int>(CRDRecordsType::DATA_RECORD);
                     record_finished = true;
                 }

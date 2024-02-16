@@ -10,7 +10,7 @@
 # CONFIGURATION
 
 # Set the installation example path.
-set(GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH ${MODULES_GLOBAL_INSTALL_BIN_PATH}/examples   )
+set(GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH ${MODULES_GLOBAL_INSTALL_BIN_PATH}/examples)
 
 
 # Add all the basic unit tests.

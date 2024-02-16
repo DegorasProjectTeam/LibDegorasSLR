@@ -44,10 +44,6 @@
 // =====================================================================================================================
 #include <string>
 #include <fstream>
-#include <vector>
-#include <algorithm>
-#include <sstream>
-#include <iterator>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
@@ -62,30 +58,33 @@ namespace helpers{
 namespace files{
 // =====================================================================================================================
 
-std::string getCurrentDir()
+bool createDirectory(const std::string &path)
 {
-    char buff[FILENAME_MAX];
-    GetCurrentDir( buff, FILENAME_MAX );
-    std::string current_working_dir(buff);
-    return current_working_dir;
+    std::string command;
+#ifdef _WIN32
+    command = "mkdir \"" + path + "\"";
+#else
+    command = "mkdir -p \"" + path + "\"";
+#endif
+    if (system(command.c_str()) == 0)
+        return true;
+    else
+        return false;
 }
 
-InputFileStream::InputFileStream(const std::string& path):
-    std::ifstream(path),
-    line_number(0){}
-
-std::istream& InputFileStream::getline(std::string& line)
+bool directoryExists(const std::string &path)
 {
-    this->line_number++;
-    return std::getline(*this, line);
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    return (info.st_mode & S_IFDIR) != 0;
 }
 
-bool InputFileStream::isEmpty() {return this->peek() == std::ifstream::traits_type::eof();}
-
-unsigned int InputFileStream::getLineNumber() const {return this->line_number;}
-
-InputFileStream::~InputFileStream()
-{}
+bool fileExists(const std::string &path)
+{
+    struct stat info;
+    return stat(path.c_str(), &info) == 0;
+}
 
 std::string getFileName(const std::string &filepath)
 {
@@ -100,6 +99,55 @@ std::string getFileName(const std::string &filepath)
     // If no separator is found, return the entire input path as the filename.
     return filepath;
 }
+
+std::string getCurrentDir()
+{
+    char buff[FILENAME_MAX];
+    GetCurrentDir( buff, FILENAME_MAX );
+    std::string current_working_dir(buff);
+    for (size_t i = 0; i < current_working_dir.size(); ++i)
+        if (current_working_dir[i] == '\\')
+            current_working_dir[i] = '/';
+    return current_working_dir;
+}
+
+
+
+
+DegorasInputFileStream::DegorasInputFileStream(const std::string& path):
+    std::ifstream(path),
+    current_line_number_(0)
+{
+    // Open the file.
+    if (fileExists(path))
+    {
+        this->file_path_ = path;
+        this->file_name_ = files::getFileName(path);
+    }
+}
+
+std::istream& DegorasInputFileStream::getline(std::string& line)
+{
+    this->current_line_number_++;
+    return std::getline(*this, line);
+}
+
+unsigned DegorasInputFileStream::getCurrentLineNumber() const {return this->current_line_number_;}
+
+const std::string& DegorasInputFileStream::getFilePath() const {return this->file_path_;}
+
+bool DegorasInputFileStream::isEmpty()
+{
+    // Return the result.
+    return (this->peek() == std::ifstream::traits_type::eof());
+}
+
+DegorasInputFileStream::~DegorasInputFileStream()
+{
+    if(this->is_open())
+        this->close();
+}
+
 
 }}} // END NAMESPACES
 // =====================================================================================================================

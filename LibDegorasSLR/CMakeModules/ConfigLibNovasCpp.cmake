@@ -10,6 +10,9 @@ MACRO(macro_configure_libnovascpp_default version version_mode extra_search_path
     # Log.
     message(STATUS "Configuring LibNovasCpp...")
 
+    # Setup the find package config.
+    set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+
     # Configure extra things if neccesary.
     # ...
 

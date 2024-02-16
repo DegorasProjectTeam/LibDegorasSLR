@@ -1,5 +1,5 @@
 # **********************************************************************************************************************
-#    LibDegorasSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                                                              *
+#    LibDegorasSLR (Degoras Project SLR Library): A libre base library for SLR related developments.
 #
 #    Copyright (C) 2023 Degoras Project Team
 #                       < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >
@@ -49,7 +49,7 @@ macro_cmakemodules_init()
 
 # Base project configuration.
 set(LIB_NAME LibDegorasSLR)
-set(LIB_VER 1.9.0)
+set(LIB_VER 1.9.1)
 set(LIB_BUILD_MODE Debug)
 set(LIB_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../${LIB_NAME}_product_v${LIB_VER})
 set(LIB_LANGUAGES CXX C)
@@ -139,9 +139,9 @@ macro_default_library_installation("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${ext_li
 # CONFIGURE THE SUBPROJECTS
 
 # Testing subproject.
-#add_subdirectory(testing)
+add_subdirectory(testing)
 
 # Example subproject.
 #add_subdirectory(examples)
 
-# ----------------------------------------------------------------------------------------------------------------------
+# **********************************************************************************************************************

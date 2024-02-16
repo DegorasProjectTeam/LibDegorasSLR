@@ -38,6 +38,7 @@
 // =====================================================================================================================
 #include <string>
 #include <fstream>
+#include <sys/stat.h>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
@@ -55,24 +56,38 @@ namespace files{
 // Directories related helper functions.
 // ---------------------------------------------------------------------------------------------------------------------
 
+LIBDPSLR_EXPORT bool createDirectory(const std::string& path);
+
+LIBDPSLR_EXPORT bool directoryExists(const std::string& path);
+
+LIBDPSLR_EXPORT bool fileExists(const std::string &path);
+
 LIBDPSLR_EXPORT std::string getCurrentDir();
 
 LIBDPSLR_EXPORT std::string getFileName(const std::string& filepath);
 
 // Helper class for counting file line numbres of a file.
-class LIBDPSLR_EXPORT InputFileStream : public std::ifstream
+class LIBDPSLR_EXPORT DegorasInputFileStream : public std::ifstream
 {
 public:
 
-    InputFileStream(const std::string& path);
-    std::istream& getline(std::string& line);
-    bool isEmpty();
-    unsigned getLineNumber() const;
+    DegorasInputFileStream(const std::string& path);
 
-    virtual ~InputFileStream() override;
+    std::istream& getline(std::string& line);
+
+    // Observer methods
+    unsigned getCurrentLineNumber() const;
+
+    const std::string& getFilePath() const;
+    bool isEmpty();
+
+    virtual ~DegorasInputFileStream() override;
 
 private:
-    unsigned line_number;
+
+    std::string file_path_;
+    std::string file_name_;
+    unsigned current_line_number_;
 };
 
 

@@ -42,7 +42,7 @@
 #include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
 #include <LibDegorasSLR/Timing/time_utils.h>
 #include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
-#include <LibDegorasSLR/Helpers/Helpers>
+#include <LibDegorasSLR/Helpers/file_helpers.h>>
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -241,7 +241,7 @@ CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::Op
     bool read_finished = false;
 
     // Open the file using our custom input file stream.
-    helpers::files::InputFileStream cpf_stream(cpf_filepath);
+    helpers::files::DegorasInputFileStream cpf_stream(cpf_filepath);
 
     // Clear the CPF.
     this->clearCPF();
@@ -394,7 +394,7 @@ CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::Op
         std::vector<std::string> tokens;
         cpf_stream.getline(line);
         ConsolidatedRecord rec;
-        rec.line_number = cpf_stream.getLineNumber();
+        rec.line_number = cpf_stream.getCurrentLineNumber();
         rec.consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
         if(!line.empty())
         {
@@ -480,7 +480,7 @@ CPF::WriteFileErrorEnum CPF::writeCPFFile(const std::string &cpf_filepath, bool 
     return CPF::WriteFileErrorEnum::NOT_ERROR;
 }
 
-CPF::ReadRecordResultEnum CPF::readRecord(helpers::files::InputFileStream& stream, ConsolidatedRecord& rec)
+CPF::ReadRecordResultEnum CPF::readRecord(helpers::files::DegorasInputFileStream& stream, ConsolidatedRecord& rec)
 {
     // Clear the record.
     rec.clearAll();
@@ -503,7 +503,7 @@ CPF::ReadRecordResultEnum CPF::readRecord(helpers::files::InputFileStream& strea
     while(!record_finished && stream.getline(line))
     {
         // Always store the line number.
-        rec.line_number = stream.getLineNumber();
+        rec.line_number = stream.getCurrentLineNumber();
         rec.consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
 
         // Check if the line is empty.
@@ -550,7 +550,7 @@ CPF::ReadRecordResultEnum CPF::readRecord(helpers::files::InputFileStream& strea
                 {
                     rec.consolidated_type = ConsolidatedFileType::CPF_TYPE;
                     rec.tokens = tokens;
-                    rec.line_number = stream.getLineNumber();
+                    rec.line_number = stream.getCurrentLineNumber();
                     rec.generic_record_type = static_cast<int>(CPFRecordsType::DATA_RECORD);
                     record_finished = true;
                 }

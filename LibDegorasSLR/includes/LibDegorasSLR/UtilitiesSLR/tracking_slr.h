@@ -52,13 +52,13 @@ namespace dpslr{
 namespace utils{
 // =====================================================================================================================
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 using dpslr::timing::types::HRTimePointStd;
 using dpslr::timing::types::MJDate;
 using dpslr::timing::types::SoD;
 using astro::SunPosition;
 using astro::PredictorSun;
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 // No se procesa la elevacion maxima porque es trivial, a diferencia de un cambio de trayectoria completo como
 // puede ser el resultado de una posible interferencia del Sol. La elevación minima simplemente se utiliza para

@@ -35,27 +35,33 @@
 // =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/libdegorasslr_init.h"
 #include "LibDegorasSLR/UtilitiesSLR/tracking_slr.h"
 #include "LibDegorasSLR/Timing/time_constants.h"
 #include "LibDegorasSLR/Mathematics/math_constants.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace utils{
+// =====================================================================================================================
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 using namespace dpslr::timing::types;
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 TrackingSLR::TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
                          unsigned min_elev_deg, unsigned time_delta_ms, bool sun_avoid, unsigned sun_avoid_angle) :
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
+    // Excepciones si angle > 30
+    // Excepcion si min_el + angle > 90
+
+    dpslr::DegorasInit::checkMandatoryInit();
     this->track_info_.mjd_start = mjd_start;
     this->track_info_.sod_start = sod_start;
     this->track_info_.mjd_end = mjd_end;
@@ -77,6 +83,7 @@ TrackingSLR::TrackingSLR(PredictorSLR&& predictor, const timing::types::HRTimePo
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation())
 {
+    dpslr::DegorasInit::checkMandatoryInit();
     this->track_info_.min_elev = min_elev_deg;
     this->track_info_.time_delta = time_delta_ms / 1000.L;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;

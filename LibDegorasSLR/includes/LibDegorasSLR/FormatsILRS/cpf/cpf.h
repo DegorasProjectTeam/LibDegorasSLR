@@ -345,7 +345,7 @@ private:
 
     // Private methods for reading records.
     // Return false if error.
-    ReadRecordResultEnum readRecord(helpers::files::InputFileStream&, common::ConsolidatedRecord&);
+    ReadRecordResultEnum readRecord(helpers::files::DegorasInputFileStream&, common::ConsolidatedRecord&);
 
     // Empty.
     bool empty_;

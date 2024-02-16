@@ -557,7 +557,7 @@ private:
 
     // Private methods for reading records.
     // Return false if error.
-    ReadRecordResult readRecord(helpers::files::InputFileStream&, common::ConsolidatedRecord&);
+    ReadRecordResult readRecord(helpers::files::DegorasInputFileStream&, common::ConsolidatedRecord&);
 
     // Empty.
     bool empty_;
