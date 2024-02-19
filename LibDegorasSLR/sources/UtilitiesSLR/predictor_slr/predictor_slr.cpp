@@ -37,17 +37,15 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/UtilitiesSLR/predictor_slr.h>
-#include <LibDegorasSLR/Timing/types/time_types.h>
-#include <LibDegorasSLR/Mathematics/units.h>
-#include <LibDegorasSLR/Mathematics/math.h>
-#include <LibDegorasSLR/Mathematics/containers/vector3d.h>
-#include <LibDegorasSLR/Mathematics/common/operators.h>
-#include <LibDegorasSLR/Statistics/fitting.h>
-#include <LibDegorasSLR/Statistics/common/statistics_types.h>
-#include <LibDegorasSLR/Astronomical/common/astro_constants.h>
-#include <LibDegorasSLR/Geophysics/tropo.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
+#include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
+#include "LibDegorasSLR/Mathematics/units.h"
+#include "LibDegorasSLR/Mathematics/math.h"
+#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
+#include "LibDegorasSLR/Statistics/fitting.h"
+#include "LibDegorasSLR/Statistics/common/statistics_types.h"
+#include "LibDegorasSLR/Astronomical/common/astro_constants.h"
+#include "LibDegorasSLR/Geophysics/tropo.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -79,65 +77,6 @@ const std::array<std::string, 10> PredictorSLR::PredictorErrorStr =
     "No position records",
     "Other error"
 };
-
-std::string PredictorSLR::InstantRange::toJsonStr() const
-{
-    // Result
-    std::ostringstream oss;
-
-    // Generate the data.
-    oss << "{";
-    oss << "\"mjd\":" << this->mjd << ",";
-    oss << "\"sod\":" << this->sod << ",";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
-    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
-    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
-    oss << "\"geo_pos\":" << this->geo_pos.toJson();
-    oss << "}";
-
-    // Return the JSON str.
-    return oss.str();
-}
-
-std::string PredictorSLR::InstantData::toJsonStr() const
-{
-    // Result
-    std::ostringstream oss;
-
-    // Generate the data.
-    oss << "{";
-    oss << "\"mjd\":" << this->mjd << ",";
-    oss << "\"sod\":" << this->sod << ",";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
-    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
-    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
-    oss << "\"geo_pos\":" << this->geo_pos.toJson() << ",";
-    oss << "\"geo_vel\":" << this->geo_vel.toJson() << ",";
-    oss << "\"az\":" << numberToStr(this->az, 7, 4) << ",";
-    oss << "\"el\":" << numberToStr(this->el, 7, 4);
-    oss << "}";
-
-    // Return the JSON str.
-    return oss.str();
-}
-
-std::string PredictorSLR::InboundData::toJsonStr() const
-{
-    // Result
-    std::ostringstream oss;
-
-    // Generate the data.
-    oss << "{";
-    oss << "\"mjd\":" << this->mjd << ",";
-    oss << "\"sod\":" << this->sod << ",";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
-    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
-    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12);
-    oss << "}";
-
-    // Return the JSON str.
-    return oss.str();
-}
 
 std::string PredictorSLR::SLRPrediction::toJsonStr() const
 {
@@ -539,7 +478,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // TODO VELOCITY VECTOR.
 
     // Prepare the data.
-    result.instant_data.emplace(result.instant_range);
+    result.instant_data.emplace(std::move(result.instant_range));
 
     // Topocentric instant station to object vector in local system (using the rotation matrix).
     rotatedm_topo_s_o_instant.pushBackRow(topo_s_o_instant.toVector());
@@ -848,9 +787,6 @@ PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(stats::common:
     }
     return cpf_error;
 }
-
-PredictorSLR::InstantData::InstantData(InstantRange instant_range) : InstantRange(std::move(instant_range))
-{}
 
 }} // END NAMESPACES
 // =====================================================================================================================

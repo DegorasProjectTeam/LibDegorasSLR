@@ -59,7 +59,7 @@ dpslr::astro::PredictorSun::PredictorSun(const geo::types::GeodeticPoint<long do
     this->obs_alt_ = obs_geod.alt;
 }
 
-SunPosition PredictorSun::fastPredict(const J2DateTime &j2000, bool refraction) const
+PredictorSun::SunPrediction PredictorSun::fastPredict(const J2DateTime &j2000, bool refraction) const
 {
     // Local sidereal time.
     long double sidereal = 4.894961213L + 6.300388099L * j2000 + this->obs_lon_;
@@ -102,16 +102,18 @@ SunPosition PredictorSun::fastPredict(const J2DateTime &j2000, bool refraction) 
     }
 
     // Final data.
-    SunPosition position;
-    position.azimuth = azimuth;
-    position.elevation = elevation;
+    PredictorSun::SunPrediction prediction;
+    prediction.position.az = azimuth;
+    prediction.position.el = elevation;
+    prediction.j2dt = j2000;
 
     // Retur the final position.
-    return position;
+    return prediction;
 }
 
-SunPositions PredictorSun::fastPredict(const J2DateTime &j2000_start, const J2DateTime &j2000_end,
-                                       unsigned step_ms, bool refraction) const
+PredictorSun::SunPredictions PredictorSun::fastPredict(
+                                    const J2DateTime &j2000_start, const J2DateTime &j2000_end,
+                                    unsigned step_ms, bool refraction) const
 {
     // Container and auxiliar.
     std::vector<J2DateTime> interp_times;
@@ -130,7 +132,7 @@ SunPositions PredictorSun::fastPredict(const J2DateTime &j2000_start, const J2Da
     }
 
     // Results container.
-    SunPositions results(interp_times.size());
+    SunPredictions results(interp_times.size());
 
     // Parallel calculation.
     #pragma omp parallel for

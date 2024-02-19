@@ -247,7 +247,7 @@ int main()
     for (const auto &prediction : results)
     {
         file_pos << prediction.tracking_position->az << "," << prediction.tracking_position->el << std::endl;
-        file_pos_sun << prediction.sun_pos->azimuth << "," << prediction.sun_pos->elevation << std::endl;
+        file_pos_sun << prediction.sun_pos->az << "," << prediction.sun_pos->el << std::endl;
     }
 
     file_pos.close();

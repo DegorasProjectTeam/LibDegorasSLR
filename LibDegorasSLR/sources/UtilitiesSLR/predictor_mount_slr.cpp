@@ -59,12 +59,23 @@ using namespace dpslr::timing::types;
 PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
                          unsigned min_elev_deg, unsigned time_delta_ms, bool sun_avoid, unsigned sun_avoid_angle) :
     predictor_(std::move(predictor)),
-    sun_predictor_(this->predictor_.getGeodeticLocation())
+    sun_predictor_(this->predictor_.getGeodeticLocation()),
+    track_info_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
 {
-    // Excepciones si angle > 30
-    // Excepcion si min_el + angle > 90
+    // Check too high values for the sun avoid angle, so the algorithm can fail.
+    if(sun_avoid_angle >= 30)
+        throw std::invalid_argument("[LibDegorasSLR,UtilitiesSLR,PredictorMountSLR] Sun avoid angle too high: "
+                                        + std::to_string(sun_avoid_angle));
 
+    // Check too high values for the minimum elevation, so the algorithm can fail.
+    if(min_elev_deg >= 70)
+        throw std::invalid_argument("[LibDegorasSLR,UtilitiesSLR,PredictorMountSLR] Min elevation too high: "
+                                    + std::to_string(min_elev_deg));
+
+    // Check Degoras initialization.
     dpslr::DegorasInit::checkMandatoryInit();
+
+    // Store the data.
     this->track_info_.mjd_start = mjd_start;
     this->track_info_.sod_start = sod_start;
     this->track_info_.mjd_end = mjd_end;
@@ -75,7 +86,11 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start,
     this->track_info_.avoid_sun = sun_avoid;
     this->track_info_.sun_collision_at_start = false;
     this->track_info_.sun_collision_at_end = false;
+
+    // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
     this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
+
+    // Analyze the tracking.
     this->analyzeTracking();
 
 }
@@ -85,9 +100,23 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const timing::typ
                          bool sun_avoid, unsigned sun_avoid_angle) :
 
     predictor_(std::move(predictor)),
-    sun_predictor_(this->predictor_.getGeodeticLocation())
+    sun_predictor_(this->predictor_.getGeodeticLocation()),
+    track_info_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
 {
+    // Check too high values for the sun avoid angle, so the algorithm can fail.
+    if(sun_avoid_angle >= 30)
+        throw std::invalid_argument("[LibDegorasSLR,UtilitiesSLR,PredictorMountSLR] Sun avoid angle too high: "
+                                    + std::to_string(sun_avoid_angle));
+
+    // Check too high values for the minimum elevation, so the algorithm can fail.
+    if(min_elev_deg >= 70)
+        throw std::invalid_argument("[LibDegorasSLR,UtilitiesSLR,PredictorMountSLR] Min elevation too high: "
+                                    + std::to_string(min_elev_deg));
+
+    // Check Degoras initialization.
     dpslr::DegorasInit::checkMandatoryInit();
+
+    // Store the data.
     this->track_info_.min_elev = min_elev_deg;
     this->track_info_.time_delta = time_delta_ms / 1000.L;
     this->track_info_.sun_avoid_angle = sun_avoid_angle;
@@ -96,7 +125,11 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const timing::typ
     this->track_info_.sun_collision_at_end = false;
     timing::timePointToModifiedJulianDate(tp_start, this->track_info_.mjd_start, this->track_info_.sod_start);
     timing::timePointToModifiedJulianDate(tp_end, this->track_info_.mjd_end, this->track_info_.sod_end);
+
+    // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
     this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
+
+    // Analyze the tracking.
     this->analyzeTracking();
 }
 
@@ -129,12 +162,12 @@ void PredictorMountSLR::getTrackingEnd(MJDate &mjd, SoD &sod) const
 
 PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingBegin() const
 {
-    return this->track_info_.valid_pass ? this->tracking_begin_ : this->track_info_.positions.cend();
+    return this->track_info_.valid_pass ? this->tracking_begin_ : this->track_info_.predictions.cend();
 }
 
 PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingEnd() const
 {
-    return this->track_info_.valid_pass ? this->tracking_end_ : this->track_info_.positions.cend();
+    return this->track_info_.valid_pass ? this->tracking_end_ : this->track_info_.predictions.cend();
 }
 
 bool PredictorMountSLR::getSunAvoidApplied() const
@@ -162,7 +195,7 @@ bool PredictorMountSLR::isSunAtEnd() const
 
 unsigned PredictorMountSLR::getSunAvoidAngle() const
 {
-    return this->track_info_.sun_avoid_angle;
+    return static_cast<unsigned>(this->track_info_.sun_avoid_angle);
 }
 
 PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
@@ -192,7 +225,7 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod
 
     // Calculates the Sun position.
     long double j2000 = dpslr::timing::mjdToJ2000Datetime(mjd, sod);
-    SunPosition sun_pos = this->sun_predictor_.fastPredict(j2000, false);
+    SunPosition sun_pos = this->sun_predictor_.fastPredict(j2000, false).position;
 
     // Calculates the space object position.
     PredictorSLR::SLRPrediction prediction_result;
@@ -236,8 +269,8 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod
 
 
         // Calculate the final tracking position and differences.
-        tracking_position.az = sun_pos.azimuth + this->track_info_.sun_avoid_angle * std::cos(angle_avoid);
-        tracking_position.el = sun_pos.elevation + this->track_info_.sun_avoid_angle * std::sin(angle_avoid);
+        tracking_position.az = sun_pos.az + this->track_info_.sun_avoid_angle * std::cos(angle_avoid);
+        tracking_position.el = sun_pos.el + this->track_info_.sun_avoid_angle * std::sin(angle_avoid);
         tracking_position.diff_az = prediction_result.instant_data->az - tracking_position.az;
         tracking_position.diff_el = prediction_result.instant_data->el - tracking_position.el;
         tracking_result.tracking_position = std::move(tracking_position);
@@ -272,7 +305,7 @@ void PredictorMountSLR::analyzeTracking()
     // Results container and auxiliar.
     unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta*1000);
     PredictorSLR::SLRPredictions results_slr;
-    astro::SunPositions results_sun;
+    astro::PredictorSun::SunPredictions results_sun;
 
     // Parallel calculation of all SLR positions.
     results_slr = this->predictor_.predict(this->track_info_.mjd_start, this->track_info_.sod_start,
@@ -301,9 +334,9 @@ void PredictorMountSLR::analyzeTracking()
         tr.mjdt = results_slr[i].instant_data->mjdt;
         tr.prediction_result = results_slr[i];
         tr.tracking_position = MountPosition{results_slr[i].instant_data->az, results_slr[i].instant_data->el, 0, 0};
-        tr.sun_pos = results_sun[i];
+        tr.sun_pos = results_sun[i].position;
 
-        this->track_info_.positions.push_back(std::move(tr));
+        this->track_info_.predictions.push_back(std::move(tr));
         tr = {};
     }
 
@@ -316,13 +349,13 @@ void PredictorMountSLR::analyzeTracking()
 
 bool PredictorMountSLR::checkTrackingStart()
 {
-    auto start = this->track_info_.positions.begin();
+    auto start = this->track_info_.predictions.begin();
 
     if (this->track_info_.avoid_sun)
     {
         // If sun avoid is activated check if tracking starts inside a sun sector. If that is the case, move the
         // tracking start to the end of the sun sector if possible
-        while (start != this->track_info_.positions.end() &&
+        while (start != this->track_info_.predictions.end() &&
                this->insideSunSector(*start->prediction_result->instant_data, *start->sun_pos))
         {
             // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
@@ -339,10 +372,10 @@ bool PredictorMountSLR::checkTrackingStart()
         }
 
         // If the whole tracking is within sun sector, then it is invalid.
-        if (start == this->track_info_.positions.end())
+        if (start == this->track_info_.predictions.end())
             return false;
 
-        if (start != this->track_info_.positions.begin())
+        if (start != this->track_info_.predictions.begin())
         {
             // If start has been moved, store new start
             this->track_info_.sun_collision_at_start = true;
@@ -383,13 +416,13 @@ bool PredictorMountSLR::checkTrackingStart()
 bool PredictorMountSLR::checkTrackingEnd()
 {
 
-    auto last = this->track_info_.positions.rbegin();
+    auto last = this->track_info_.predictions.rbegin();
 
     if (this->track_info_.avoid_sun)
     {
         // If sun avoid is activated check if tracking ends inside a sun sector. If that is the case, move the
         // tracking end to the start of the sun sector if possible
-        while (last != this->track_info_.positions.rend() &&
+        while (last != this->track_info_.predictions.rend() &&
                this->insideSunSector(*last->prediction_result->instant_data, *last->sun_pos))
         {
             // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
@@ -407,10 +440,10 @@ bool PredictorMountSLR::checkTrackingEnd()
 
         // If the whole tracking is at sun, then it is invalid. This should be impossible, since it should have been
         // detected at checkTrackingStart.
-        if (last == this->track_info_.positions.rend())
+        if (last == this->track_info_.predictions.rend())
             return false;
 
-        if (last != this->track_info_.positions.rbegin())
+        if (last != this->track_info_.predictions.rbegin())
         {
             // If end has been moved, store new end
             this->track_info_.sun_collision_at_end = true;
@@ -452,10 +485,10 @@ bool PredictorMountSLR::checkTracking()
     MountSLRPrediction tr;
     bool in_sun_sector = false;
     bool sun_collision = false;
-    SunSector sun_sector;
+    SunCollisionSector sun_sector;
     MJDate max_elev_mjd = 0;
     SoD max_elev_sod = 0;
-    double max_elev = -1.;
+    long double max_elev = -1.0L;
     MountSLRPredictions::iterator sun_sector_start;
 
     // Check the tracking.
@@ -525,7 +558,7 @@ bool PredictorMountSLR::checkTracking()
     if (in_sun_sector)
     {
         timing::MjdtToMjdAndSecs(sun_sector.mjdt_entry, this->track_info_.mjd_end, this->track_info_.sod_end);
-        for (auto it = sun_sector_start + 1; it !=this->track_info_.positions.end(); it++)
+        for (auto it = sun_sector_start + 1; it !=this->track_info_.predictions.end(); it++)
             it->status = PositionStatus::OUT_OF_TRACK;
         this->tracking_end_ = sun_sector_start;
         this->track_info_.sun_collision_at_end = true;
@@ -538,23 +571,23 @@ bool PredictorMountSLR::checkTracking()
     return true;
 }
 
-bool PredictorMountSLR::insideSunSector(const PredictorSLR::InstantData &pos,
+bool PredictorMountSLR::insideSunSector(const InstantData &pos,
                                   const SunPosition &sun_pos) const
 {
 
-    if (sun_pos.elevation < -this->track_info_.sun_avoid_angle)
+    if (sun_pos.el < -this->track_info_.sun_avoid_angle)
     {
         // If sun security sector is below horizon, return false
         return false;
     }
-    else if (sun_pos.elevation > - this->track_info_.sun_avoid_angle && sun_pos.elevation < 0.L)
+    else if (sun_pos.el > - this->track_info_.sun_avoid_angle && sun_pos.el < 0.L)
     {
         // If sun is below horizon, but the security sector is above, calculate distance as cartesian points.
-        long double diff_az = pos.az - sun_pos.azimuth;
+        long double diff_az = pos.az - sun_pos.az;
         // If azimuth difference is greater than 180, then take the shorter way
         if (diff_az > 180.L)
             diff_az = 360.L - diff_az;
-        long double diff_el = pos.el - sun_pos.elevation;
+        long double diff_el = pos.el - sun_pos.el;
         return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->track_info_.sun_avoid_angle;
     }
     else
@@ -565,11 +598,11 @@ bool PredictorMountSLR::insideSunSector(const PredictorSLR::InstantData &pos,
         // to goniometric (0 is at east increases ccw)
 
         long double zenith = 90.L - pos.el;
-        long double zenith_sun = 90.L - sun_pos.elevation;
+        long double zenith_sun = 90.L - sun_pos.el;
         long double az_gon = 360 - (pos.az - 90.L);
         if (az_gon >= 360.L)
             az_gon -= 360.L;
-        long double sun_az_gon = 360 - (sun_pos.azimuth - 90.L);
+        long double sun_az_gon = 360 - (sun_pos.az - 90.L);
         if (sun_az_gon >= 360.L)
             sun_az_gon -= 360.L;
 
@@ -583,7 +616,7 @@ bool PredictorMountSLR::insideSunSector(const PredictorSLR::InstantData &pos,
 }
 
 bool PredictorMountSLR::setSunSectorRotationDirection(
-    SunSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end)
+    SunCollisionSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end)
 {
 
     MJDateTime mjdt = sector.mjdt_entry + this->track_info_.time_delta /
@@ -602,11 +635,11 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
     {
         long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 
-        long double entry_angle = std::atan2(sector.el_entry - it->sun_pos->elevation,
-                                             sector.az_entry - it->sun_pos->azimuth);
+        long double entry_angle = std::atan2(sector.el_entry - it->sun_pos->el,
+                                             sector.az_entry - it->sun_pos->az);
 
-        long double exit_angle = std::atan2(sector.el_exit - it->sun_pos->elevation,
-                                            sector.az_exit - it->sun_pos->azimuth);
+        long double exit_angle = std::atan2(sector.el_exit - it->sun_pos->el,
+                                            sector.az_exit - it->sun_pos->az);
 
         long double cw_angle;
         long double ccw_angle;
@@ -627,8 +660,8 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
                 ccw_angle -= 2 * math::kPi;
         }
 
-        long double elev_cw = it->sun_pos->elevation + this->track_info_.sun_avoid_angle * std::sin(cw_angle);
-        long double elev_ccw = it->sun_pos->elevation + this->track_info_.sun_avoid_angle * std::sin(ccw_angle);
+        long double elev_cw = it->sun_pos->el + this->track_info_.sun_avoid_angle * std::sin(cw_angle);
+        long double elev_ccw = it->sun_pos->el + this->track_info_.sun_avoid_angle * std::sin(ccw_angle);
 
 
         if (elev_cw > 90.L || elev_cw < this->track_info_.min_elev)
@@ -649,11 +682,11 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
         sector.cw = true;
     else
     {
-        long double entry_angle = std::atan2(sector.el_entry - sun_start->sun_pos->elevation,
-                                             sector.az_entry - sun_start->sun_pos->azimuth);
+        long double entry_angle = std::atan2(sector.el_entry - sun_start->sun_pos->el,
+                                             sector.az_entry - sun_start->sun_pos->az);
 
-        long double exit_angle = std::atan2(sector.el_exit - sun_end->sun_pos->elevation,
-                                            sector.az_exit - sun_end->sun_pos->azimuth);
+        long double exit_angle = std::atan2(sector.el_exit - sun_end->sun_pos->el,
+                                            sector.az_exit - sun_end->sun_pos->az);
 
         long double cw_angle;
         long double ccw_angle;
@@ -677,30 +710,30 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
 }
 
 void PredictorMountSLR::checkSunSectorPositions(
-    const SunSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end)
+    const SunCollisionSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end)
 {
     // Check positions within sun sector. First and last are excluded, since they are outside sun sector
     for (auto it = sun_start + 1; it != sun_end; it++)
     {
         long double angle_avoid = this->calcSunAvoidTrajectory(it->mjdt, sector, *it->sun_pos);
-        it->tracking_position->az = it->sun_pos->azimuth + this->track_info_.sun_avoid_angle * std::cos(angle_avoid);
-        it->tracking_position->el = it->sun_pos->elevation + this->track_info_.sun_avoid_angle * std::sin(angle_avoid);
+        it->tracking_position->az = it->sun_pos->az + this->track_info_.sun_avoid_angle * std::cos(angle_avoid);
+        it->tracking_position->el = it->sun_pos->el + this->track_info_.sun_avoid_angle * std::sin(angle_avoid);
         it->tracking_position->diff_az = it->prediction_result->instant_data->az - it->tracking_position->az;
         it->tracking_position->diff_el = it->prediction_result->instant_data->el - it->tracking_position->el;
         it->status = PositionStatus::AVOIDING_SUN;
     }
 }
 
-long double PredictorMountSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector,
+long double PredictorMountSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const SunCollisionSector &sector,
                                                 SunPosition &sun_pos)
 {
     long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 
-    long double entry_angle = std::atan2(sector.el_entry - sun_pos.elevation,
-                                         sector.az_entry - sun_pos.azimuth);
+    long double entry_angle = std::atan2(sector.el_entry - sun_pos.el,
+                                         sector.az_entry - sun_pos.az);
 
-    long double exit_angle = std::atan2(sector.el_exit - sun_pos.elevation,
-                                        sector.az_exit - sun_pos.azimuth);
+    long double exit_angle = std::atan2(sector.el_exit - sun_pos.el,
+                                        sector.az_exit - sun_pos.az);
 
     long double angle;
 
@@ -732,6 +765,29 @@ long double PredictorMountSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const Sun
 
     return angle;
 }
+
+PredictorMountSLR::MountTrackSLR::MountTrackSLR(const CPF &cpf, const PredictorSLR &predictor_slr,
+                                                const PredictorSun &predictor_sun) :
+    mjd_start(0),
+    sod_start(0),
+    mjd_end(0),
+    sod_end(0),
+    mjd_max_elev(0),
+    sod_max_elev(0),
+    start_elev(0),
+    end_elev(0),
+    max_elev(0),
+    min_elev(0),
+    valid_pass(false),
+    avoid_sun(false),
+    sun_collision_at_start(false),
+    sun_collision_at_end(false),
+    time_delta(0),
+    sun_avoid_angle(0),
+    cpf(cpf),
+    predictor_slr(predictor_slr),
+    predictor_sun(predictor_sun)
+{}
 
 
 }} // END NAMESPACES

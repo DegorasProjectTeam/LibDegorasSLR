@@ -58,6 +58,9 @@ namespace astro{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using dpslr::timing::types::J2DateTime;
+using dpslr::timing::types::MJDate;
+using dpslr::timing::types::SoD;
+using dpslr::timing::types::MJDateTime;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -72,6 +75,24 @@ class LIBDPSLR_EXPORT PredictorSun
 {
 
 public:
+
+    struct SunPrediction
+    {
+        // Default constructor.
+        SunPrediction() = default;
+
+        // Datetime members.
+        MJDate mjd;              ///< Modified Julian Date in days.
+        SoD sod;                 ///< Second of day in that Modified Julian Date.
+        MJDateTime mjdt;         ///< Modified Julian DateTime (day & fraction).
+        J2DateTime j2dt;         ///< J2000 DateTime (day & fraction).
+
+        // Sun position.
+        SunPosition position;    ///< Predicted Sun position.
+    };
+
+    /// Alias for a vector of SunPrediction.
+    using SunPredictions = std::vector<SunPrediction>;
 
     /**
      * @brief Constructs a PredictorSun object with the given observer's geodetic coordinates.
@@ -88,12 +109,12 @@ public:
      *
      * @param j2000 The Julian Date (J2000) of the prediction.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted SunPosition.
+     * @return The predicted SunPrediction.
      *
      * @note The calculation algorithm was extracted from: 'Book: Sun Position: Astronomical Algorithm
      * in 9 Common Programming Languages'.
      */
-    SunPosition fastPredict(const J2DateTime& j2000, bool refraction = false) const;
+    SunPrediction fastPredict(const J2DateTime& j2000, bool refraction = false) const;
 
     /**
      * @brief Predicts Sun positions within a time range with a specified time step using a fast algorithm.
@@ -106,15 +127,15 @@ public:
      * @param j2000_end The end Julian Date (J2000) of the prediction range.
      * @param step_ms The time step in milliseconds between predictions.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return A vector of SunPosition objects representing predicted sun positions at each step.
+     * @return A vector of SunPrediction objects representing predicted sun positions at each step.
      *
      * @throws std::invalid_argument If the interval is invalid.
      *
      * @note The calculation algorithm was extracted from: 'Book: Sun Position: Astronomical Algorithm
      * in 9 Common Programming Languages'.
      */
-    SunPositions fastPredict(const J2DateTime& j2000_start, const J2DateTime& j2000_end,
-                             unsigned step_ms, bool refraction = false) const;
+    SunPredictions fastPredict(const J2DateTime& j2000_start, const J2DateTime& j2000_end,
+                               unsigned step_ms, bool refraction = false) const;
 
 private:
 

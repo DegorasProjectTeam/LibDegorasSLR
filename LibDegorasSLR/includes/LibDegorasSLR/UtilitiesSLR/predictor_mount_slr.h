@@ -41,7 +41,7 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictor_slr.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
 #include "LibDegorasSLR/Astronomical/sun_utils/predictor_sun.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
@@ -119,9 +119,10 @@ public:
     };
 
     /**
-     * @brief The SunSector struct contains data of a sector where this tracking passes through the sun security sector.
+     * @brief The SunCollisionSector struct contains data of a sector where this space object tracking
+     * passes through the sun security sector.
      */
-    struct SunSector
+    struct SunCollisionSector
     {
         long double az_entry;       ///< Azimuth of sun sector entry point.
         long double az_exit;        ///< Azimuth of sun sector exit point.
@@ -129,8 +130,11 @@ public:
         long double el_exit;        ///< Elevation of sun sector exit point.
         MJDateTime mjdt_entry;      ///< MJ datetime of sun sector entry point.
         MJDateTime mjdt_exit;       ///< MJ datetime of sun sector exit point.
-        bool cw;                    ///< Rotation direction of the sun avoidance manoeuvre.
+        bool cw;                    ///< Rotation direction of the avoidance manoeuvre (true = cw, false = ccw).
     };
+
+    ///< Alias for vector of SunCollisionSector.
+    using SunCollisionSectors = std::vector<SunCollisionSector>;
 
     /**
      * @brief Represents the azimuth and elevation position that the tracking mount must use.
@@ -183,6 +187,9 @@ public:
 
     struct MountTrackSLR
     {
+        // Constructor.
+        MountTrackSLR(const CPF& cpf, const PredictorSLR& predictor_slr, const PredictorSun& predictor_sun);
+
         // TODO: velocities
 
         // Date and times.
@@ -194,23 +201,29 @@ public:
         SoD sod_max_elev;
 
         // Elevations.
-        double start_elev;         ///< Pass start elevation (degrees).
-        double end_elev;            ///< Pass end elevation (degrees).
-        double max_elev;           ///< Pass maximum elevation (degrees).
-        double min_elev;           ///< Pass minimum elevation (degrees).
+        long double start_elev;     ///< Pass start elevation (degrees).
+        long double end_elev;       ///< Pass end elevation (degrees).
+        long double max_elev;       ///< Pass maximum elevation (degrees).
+        long double min_elev;       ///< Pass minimum elevation (degrees).
 
-        bool valid_pass;
-        bool avoid_sun;
+        // Flags.
+        bool valid_pass;              ///< Flag indicating if the pass is valid.
+        bool avoid_sun;               ///< Flag indicating if the track is configured for avoid the Sun.
+        bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
+        bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
 
-        long double time_delta;    ///< Time delta fo calculations in seconds.
-        double sun_avoid_angle;    ///< Degrees.
+        // Others.
+        long double time_delta;       ///< Time delta fo calculations in seconds.
+        long double sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
 
-        bool sun_collision_at_start;
-        bool sun_collision_at_end;
+        // Result containers.
+        SunCollisionSectors sun_sectors;    ///< Sun sectors in the track for the required time interval.
+        MountSLRPredictions predictions;    ///< Predicted data for the required time interval.
 
-        std::vector<SunSector> sun_sectors;
-
-        MountSLRPredictions positions;
+        // CPF and predictors.
+        const CPF& cpf;
+        const PredictorSLR& predictor_slr;
+        const PredictorSun& predictor_sun;
     };
 
 
@@ -331,18 +344,17 @@ private:
     bool checkTracking();
 
     /// Helper to check if the predicted position is inside a sun sector.
-    bool insideSunSector(const PredictorSLR::InstantData& pos,
-                         const SunPosition &sun_pos) const;
+    bool insideSunSector(const InstantData& pos, const SunPosition &sun_pos) const;
 
     /// Helper to set the rotation direction of a sun sector.
     bool setSunSectorRotationDirection(
-        SunSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end);
+        SunCollisionSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end);
 
     /// Helper to check positions whithin a sun sector to see if it is possible to avoid sun
     void checkSunSectorPositions(
-        const SunSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end);
+        const SunCollisionSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end);
 
-    long double calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector, SunPosition &sun_pos);
+    long double calcSunAvoidTrajectory(MJDateTime mjdt, const SunCollisionSector &sector, SunPosition &sun_pos);
 
     // Private members.
     PredictorSLR predictor_;               ///< SLR predictor.

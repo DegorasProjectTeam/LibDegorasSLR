@@ -1,15 +1,11 @@
 /***********************************************************************************************************************
- *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
+ *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
  *                                                                                                                     *
- *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
- *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
- *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
- *                                                                                                                     *
- *   Copyright (C) 2024 Degoras Project Team                                                                           *
+ *   Copyright (C) 2023 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDegorasSLR.                                                                               *
+ *   This file is part of LibDPSLR.                                                                                    *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -27,57 +23,94 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file sun_position.h
- * @brief
+ * @file cpf_interpolator.cpp
  * @author Degoras Project Team.
+ * @brief This file contains the implementation of the class CPFInterpolator.
  * @copyright EUPL License
- * @version
+ * @version 2306.1
 ***********************************************************************************************************************/
 
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
-
 // C++ INCLUDES
-// =====================================================================================================================
-// =====================================================================================================================
-
-// LIBDEGORASSLR INCLUDES
-// =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
+//======================================================================================================================
+#include <sstream>
 // =====================================================================================================================
 
-// DPSLR NAMESPACES
+// LIBDPSLR INCLUDES
 // =====================================================================================================================
+#include <LibDegorasSLR/UtilitiesSLR/predictor_slr/prediction_data_slr.h>
+#include <LibDegorasSLR/Helpers/string_helpers.h>
+// =====================================================================================================================
+
+// LIBDEGORASSLR NAMESPACES
+// =====================================================================================================================namespace dpslr{
 namespace dpslr{
-namespace astro{
+namespace utils{
 // =====================================================================================================================
 
-// =====================================================================================================================
-using dpslr::timing::types::J2DateTime;
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace helpers::strings;
+// ---------------------------------------------------------------------------------------------------------------------
 
-/// @brief Represents the position of the Sun.
-struct LIBDPSLR_EXPORT SunPosition
+std::string InstantRange::toJsonStr() const
 {
-    // Constructors.
-    SunPosition() = default;
-    SunPosition(const SunPosition&) = default;
-    SunPosition(SunPosition&&) = default;
+    // Result
+    std::ostringstream oss;
 
-    // Operators.
-    SunPosition& operator=(const SunPosition&) = default;
-    SunPosition& operator=(SunPosition&&) = default;
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjd\":" << this->mjd << ",";
+    oss << "\"sod\":" << this->sod << ",";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
+    oss << "\"geo_pos\":" << this->geo_pos.toJson();
+    oss << "}";
 
-    // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
-    // TODO Add the times.
-    long double az;
-    long double el;
-};
+    // Return the JSON str.
+    return oss.str();
+}
 
-/// Alias for a vector of SunPosition.
-using SunPositions = std::vector<SunPosition>;
+std::string InstantData::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
 
-}} // END NAMESPACES.
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjd\":" << this->mjd << ",";
+    oss << "\"sod\":" << this->sod << ",";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
+    oss << "\"geo_pos\":" << this->geo_pos.toJson() << ",";
+    oss << "\"geo_vel\":" << this->geo_vel.toJson() << ",";
+    oss << "\"az\":" << numberToStr(this->az, 7, 4) << ",";
+    oss << "\"el\":" << numberToStr(this->el, 7, 4);
+    oss << "}";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
+std::string InboundData::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
+
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjd\":" << this->mjd << ",";
+    oss << "\"sod\":" << this->sod << ",";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12);
+    oss << "}";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
+InstantData::InstantData(InstantRange &&instant_range) : InstantRange(std::move(instant_range)){}
+
+}} // END NAMESPACES
 // =====================================================================================================================
