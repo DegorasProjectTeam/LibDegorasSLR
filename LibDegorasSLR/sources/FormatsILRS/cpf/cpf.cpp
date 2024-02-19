@@ -42,7 +42,7 @@
 #include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
 #include <LibDegorasSLR/Timing/time_utils.h>
 #include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
-#include <LibDegorasSLR/Helpers/file_helpers.h>>
+#include <LibDegorasSLR/Helpers/file_helpers.h>
 // =====================================================================================================================
 
 // =====================================================================================================================

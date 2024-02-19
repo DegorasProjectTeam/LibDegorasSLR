@@ -74,6 +74,7 @@ TrackingSLR::TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_sta
     this->track_info_.sun_collision_at_end = false;
     this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
     this->analyzeTracking();
+
 }
 
 TrackingSLR::TrackingSLR(PredictorSLR&& predictor, const timing::types::HRTimePointStd &tp_start,
@@ -556,11 +557,22 @@ bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
     else
     {
         // If sun is above the horizon, calculate the distance between polar coordinates.
-        long double zenith = 90.L - pos.el;
-        long double zenith_sun = 90.L - pos.el;
-        long double diff_angles = (pos.az - sun_pos.azimuth) * math::kPi / 180.L;
+        // We have to convert elevation to zenith angle, since the 0 must be at zenith.
+        // We also have to convert angle from north to east direction (0 at north, increases cw)
+        // to goniometric (0 is at east increases ccw)
 
-        return zenith * zenith + zenith_sun * zenith_sun - 2.L*zenith*zenith_sun*std::cos(diff_angles) <
+        long double zenith = 90.L - pos.el;
+        long double zenith_sun = 90.L - sun_pos.elevation;
+        long double az_gon = 360 - (pos.az - 90.L);
+        if (az_gon >= 360.L)
+            az_gon -= 360.L;
+        long double sun_az_gon = 360 - (sun_pos.azimuth - 90.L);
+        if (sun_az_gon >= 360.L)
+            sun_az_gon -= 360.L;
+
+        long double diff_angles = (az_gon - sun_az_gon) * math::kPi / 180.L;
+
+        return std::sqrt(zenith * zenith + zenith_sun * zenith_sun - 2.L*zenith*zenith_sun*std::cos(diff_angles)) <
                this->track_info_.sun_avoid_angle;
     }
 
