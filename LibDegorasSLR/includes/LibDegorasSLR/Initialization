@@ -1,1 +1,1 @@
-#include "LibDegorasSLR/libdegorasslr_init.h"
+#include <LibDegorasSLR/libdegorasslr_init.h>

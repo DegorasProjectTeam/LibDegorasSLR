@@ -110,13 +110,13 @@ using MJDateTime = NumericStrongType<long double, struct MJDateTimeTag>;
 /// Alias for Reduced Julian Datetime in days with decimals.
 using RJDateTime = NumericStrongType<long double, struct RJDateTimeTag>;
 
-/// Alias for Julian Datetime in days with decimals.
+/// Alias for Julian Datetime in days with fraction of the day (milliseconds precision).
 using JDateTime = NumericStrongType<long double, struct JDateTimeTag>;
 
-/// Alias for second of day with decimals (ns precision).
+/// Alias for second of day with decimals (always < 86400, picoseconds precision).
 using SoD = NumericStrongType<long double, struct SoDTag>;
 
-/// Alias for fraction of day with decimals (ns precision in the sense of fraction of the day).
+/// Alias for fraction of day with decimals (always < 0, nanoseconds precision in the sense of fraction of the day).
 using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
 
 /**

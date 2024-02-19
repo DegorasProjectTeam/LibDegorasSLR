@@ -193,6 +193,10 @@ public:
         // TODO: velocities
 
         // Date and times.
+
+        // CREAR ESTRUCTURA INTERMEDIA PARA ALMACENAR INFO DEL TRACK Y DEL PASE
+        // REPETIR ESTO PARA TRACK VS PASS
+        // TODO Check times.
         MJDate mjd_start;
         SoD sod_start;
         MJDate mjd_end;
@@ -201,10 +205,16 @@ public:
         SoD sod_max_elev;
 
         // Elevations.
-        long double start_elev;     ///< Pass start elevation (degrees).
-        long double end_elev;       ///< Pass end elevation (degrees).
-        long double max_elev;       ///< Pass maximum elevation (degrees).
-        long double min_elev;       ///< Pass minimum elevation (degrees).
+        // TODO Diferenciar entre pase y start.
+        // PONER LAS DEL TRACK NO LAS DEL PASE.
+        long double start_elev;     ///< Track start elevation (degrees).
+        long double end_elev;       ///< Track end elevation.
+        long double max_elev;       ///< TODO
+        long double min_elev;       ///< Track minimum elevation (degrees).
+
+        // ======================================================================
+
+        // AÑADIR LAS DEL PASE? Y como para que quede bien.
 
         // Flags.
         bool valid_pass;              ///< Flag indicating if the pass is valid.
@@ -213,8 +223,8 @@ public:
         bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
 
         // Others.
-        long double time_delta;       ///< Time delta fo calculations in seconds.
-        long double sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
+        unsigned time_delta;        ///< Time delta fo calculations in milliseconds.
+        unsigned sun_avoid_angle;   ///< Avoid angle for Sun collisions in degrees.
 
         // Result containers.
         SunCollisionSectors sun_sectors;    ///< Sun sectors in the track for the required time interval.
@@ -254,13 +264,16 @@ public:
     unsigned getMinElev() const;
 
     /**
-     * @brief If this traking is valid, you can get the tracking start with this function.
+     * @brief If this traking is valid, you can get the tracking start with this function. This start time
+     * could be different from the start time of the space object pass.
      * @param mjd, the MJ date in days for the tracking start.
      * @param sod, the second of day for the tracking start.
      */
     void getTrackingStart(MJDate &mjd, SoD& sod) const;
+
     /**
-     * @brief If this tracking is valid, you can get the tracking end with this function.
+     * @brief If this tracking is valid, you can get the tracking end with this function. This end time
+     * could be different from the end time of the space object pass.
      * @param mjd, the MJ date in days for the tracking end.
      * @param sod, the second of day for the tracking end.
      */

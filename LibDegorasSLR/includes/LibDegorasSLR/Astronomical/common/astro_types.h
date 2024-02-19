@@ -36,16 +36,39 @@
 
 // C++ INCLUDES
 //======================================================================================================================
+#include <vector>
+// =====================================================================================================================
+
+// LIBDEGORASSLR INCLUDES
+// =====================================================================================================================
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
-namespace common{
+namespace types{
 // =====================================================================================================================
 
-struct RA
+// ---------------------------------------------------------------------------------------------------------------------
+using dpslr::timing::types::J2DateTime;
+using dpslr::timing::types::MJDate;
+using dpslr::timing::types::SoD;
+using dpslr::timing::types::MJDateTime;
+// ---------------------------------------------------------------------------------------------------------------------
+
+struct PredictionBase
+{
+    // DateTime members.
+    //DegorasTime
+
+    virtual ~PredictionBase(){}
+};
+
+
+struct LIBDPSLR_EXPORT RA
 {
     RA(int hour, int min, double sec);
     RA(double ra);
@@ -61,6 +84,41 @@ struct RA
     double sec;
     double ra;
 };
+
+struct LIBDPSLR_EXPORT AltAzPosition
+{
+    AltAzPosition();
+
+    AltAzPosition(long double az, long double el);
+
+
+    AltAzPosition(const AltAzPosition& pos) = default;
+    AltAzPosition(AltAzPosition&& pos) = default;
+
+    AltAzPosition& operator =(const AltAzPosition& pos) = default;
+    AltAzPosition& operator=(AltAzPosition&&) = default;
+
+    //size_t serialize(zmqutils::utils::BinarySerializer& serializer) const final;
+
+    //void deserialize(zmqutils::utils::BinarySerializer& serializer) final;
+
+    //size_t serializedSize() const final;
+
+    ~AltAzPosition();
+
+    long double az;
+    long double el;
+};
+
+/// Alias for altaz corrections.
+using AltAzCorrection = AltAzPosition;
+
+/// Alias for a vector of AltAzPosition.
+using AltAzPositions = std::vector<AltAzPosition>;
+
+/// Alias for a vector of AltAzCorrection.
+using AltAzCorrections = std::vector<AltAzCorrection>;
+
 
 
 }}} // END NAMESPACES

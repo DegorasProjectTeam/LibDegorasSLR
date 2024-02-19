@@ -665,16 +665,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
 
 
-PredictorSLR::PredictionError PredictorSLR::predict(MJDateTime mjdt, SLRPrediction& result) const
-{
-    // Time conversions.
-    MJDate mjd;
-    SoD sod;
-    timing::MjdtToMjdAndSecs(mjdt, mjd, sod);
 
-    // Call with the datetime value splitted in the day and second in that day.
-    return this->predict(mjd, sod, result);
-}
 
 void PredictorSLR::getTimeWindow(MJDate &mjd_start, SoD &sod_start, MJDate &mjd_end, SoD &sod_end) const
 {

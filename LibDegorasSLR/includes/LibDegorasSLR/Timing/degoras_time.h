@@ -56,29 +56,77 @@ namespace dpslr{
 namespace timing{
 // =====================================================================================================================
 
-
-class LIBDPSLR_EXPORT DegorasTime : public HRTimePointStd
+// The internal time point have nanoseconds precision. The internal storaged time, have picoseconds precisions.
+// Dependiendo de que función llames, podrás obtener el tiempo con una precisión u otra.
+class LIBDPSLR_EXPORT DegorasTime
 {
 
 public:
 
-    LIBDPSLR_EXPORT DegorasTime(const HRTimePointStd& tp) :
-        HRTimePointStd(tp)
-    {}
+    // Ns precision
+    LIBDPSLR_EXPORT DegorasTime(const HRTimePointStd& tp)
+    {
+        // TODO
+    }
 
-    LIBDPSLR_EXPORT DegorasTime(const std::chrono::nanoseconds& ns) :
-        HRTimePointStd(ns)
-    {}
+    // Ns precision.
+    LIBDPSLR_EXPORT DegorasTime(const std::chrono::nanoseconds& ns)
+    {
+        // TODO
+    }
 
+    // Ns precision.
+    LIBDPSLR_EXPORT DegorasTime(const DegorasTime& dego_time)
+    {
+        this->mjd_ = dego_time.modifiedJulianDate();
+        this->sod_ = dego_time.secondsOfDay();
+        // TODO tp
+    }
+
+    // Ps precision
+    LIBDPSLR_EXPORT static DegorasTime fromModifiedJulianDate(const MJDate& date, const SoD& seconds = 0.0L)
+    {
+
+    }
+
+    // Ns
     LIBDPSLR_EXPORT static DegorasTime fromSecsSinceUnixEpoch(long long secs)
     {
         return(HRClock::from_time_t(secs));
     }
 
+    // Ns
     LIBDPSLR_EXPORT static DegorasTime fromWin32Ticks(Windows32Ticks ticks)
     {
         return DegorasTime(timing::win32TicksToTimePoint(ticks));
     }
+
+    MJDate modifiedJulianDate() const
+    {
+        return this->mjd_;
+    }
+
+    void modifiedJulianDate(MJDate& date, SoD& sod) const
+    {
+        date = this->mjd_;
+        sod = this->sod_;
+    }
+
+    const SoD& secondsOfDay() const
+    {
+        return this->sod_;
+    }
+
+    const HRTimePointStd& highResolutionTimePointSTD() const
+    {
+        //return timing::modif
+    }
+
+private:
+
+    MJDate mjd_;              ///< Modified julian date in days.
+    SoD sod_;                 ///< Second of day in that MJD (ps precission -> 12 decimals).
+
 };
 
 
