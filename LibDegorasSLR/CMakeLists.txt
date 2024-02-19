@@ -142,6 +142,6 @@ macro_default_library_installation("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${ext_li
 add_subdirectory(testing)
 
 # Example subproject.
-#add_subdirectory(examples)
+add_subdirectory(examples)
 
 # **********************************************************************************************************************

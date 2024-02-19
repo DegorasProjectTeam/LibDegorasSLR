@@ -1,12 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -38,7 +41,7 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_init.h"
-#include "LibDegorasSLR/UtilitiesSLR/tracking_slr.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictor_mount_slr.h"
 #include "LibDegorasSLR/Timing/time_constants.h"
 #include "LibDegorasSLR/Mathematics/math_constants.h"
 // =====================================================================================================================
@@ -53,7 +56,7 @@ namespace utils{
 using namespace dpslr::timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-TrackingSLR::TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
+PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
                          unsigned min_elev_deg, unsigned time_delta_ms, bool sun_avoid, unsigned sun_avoid_angle) :
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation())
@@ -77,7 +80,7 @@ TrackingSLR::TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_sta
 
 }
 
-TrackingSLR::TrackingSLR(PredictorSLR&& predictor, const timing::types::HRTimePointStd &tp_start,
+PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const timing::types::HRTimePointStd &tp_start,
                          const timing::types::HRTimePointStd &tp_end, unsigned min_elev_deg, unsigned time_delta_ms,
                          bool sun_avoid, unsigned sun_avoid_angle) :
 
@@ -97,49 +100,49 @@ TrackingSLR::TrackingSLR(PredictorSLR&& predictor, const timing::types::HRTimePo
     this->analyzeTracking();
 }
 
-bool TrackingSLR::isValid() const
+bool PredictorMountSLR::isValid() const
 {
     return this->track_info_.valid_pass;
 }
 
-const TrackingSLR::TrackSLR &TrackingSLR::getTrackingInfo() const
+const PredictorMountSLR::MountTrackSLR &PredictorMountSLR::getTrackingInfo() const
 {
     return this->track_info_;
 }
 
-unsigned TrackingSLR::getMinElev() const
+unsigned PredictorMountSLR::getMinElev() const
 {
     return static_cast<unsigned>(std::round(this->track_info_.min_elev));
 }
 
-void TrackingSLR::getTrackingStart(MJDate &mjd, SoD &sod) const
+void PredictorMountSLR::getTrackingStart(MJDate &mjd, SoD &sod) const
 {
     mjd = this->track_info_.mjd_start;
     sod = this->track_info_.sod_start;
 }
 
-void TrackingSLR::getTrackingEnd(MJDate &mjd, SoD &sod) const
+void PredictorMountSLR::getTrackingEnd(MJDate &mjd, SoD &sod) const
 {
     mjd = this->track_info_.mjd_end;
     sod = this->track_info_.sod_end;
 }
 
-TrackingSLR::TrackingPredictions::const_iterator TrackingSLR::getTrackingBegin() const
+PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingBegin() const
 {
     return this->track_info_.valid_pass ? this->tracking_begin_ : this->track_info_.positions.cend();
 }
 
-TrackingSLR::TrackingPredictions::const_iterator TrackingSLR::getTrackingEnd() const
+PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingEnd() const
 {
     return this->track_info_.valid_pass ? this->tracking_end_ : this->track_info_.positions.cend();
 }
 
-bool TrackingSLR::getSunAvoidApplied() const
+bool PredictorMountSLR::getSunAvoidApplied() const
 {
     return this->track_info_.avoid_sun;
 }
 
-bool TrackingSLR::isSunOverlapping() const
+bool PredictorMountSLR::isSunOverlapping() const
 {
     // If sun avoid is enabled, check if there is a sun security sector in the middle of the pass, or if the start or
     // end of the pass were modified due to the sun.
@@ -147,23 +150,23 @@ bool TrackingSLR::isSunOverlapping() const
                                            this->track_info_.sun_collision_at_start || this->track_info_.sun_collision_at_end) ;
 }
 
-bool TrackingSLR::isSunAtStart() const
+bool PredictorMountSLR::isSunAtStart() const
 {
     return this->track_info_.avoid_sun && this->track_info_.sun_collision_at_start;
 }
 
-bool TrackingSLR::isSunAtEnd() const
+bool PredictorMountSLR::isSunAtEnd() const
 {
     return this->track_info_.avoid_sun && this->track_info_.sun_collision_at_end;
 }
 
-unsigned TrackingSLR::getSunAvoidAngle() const
+unsigned PredictorMountSLR::getSunAvoidAngle() const
 {
     return this->track_info_.sun_avoid_angle;
 }
 
-TrackingSLR::PositionStatus TrackingSLR::predict(const timing::HRTimePointStd& tp_time,
-                                                                 TrackingPrediction &tracking_result)
+PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
+                                                 MountSLRPrediction &tracking_result)
 {
     MJDate mjd;
     SoD sod;
@@ -171,8 +174,8 @@ TrackingSLR::PositionStatus TrackingSLR::predict(const timing::HRTimePointStd& t
     return predict(mjd, sod, tracking_result);
 }
 
-TrackingSLR::PositionStatus TrackingSLR::predict(MJDate mjd, SoD sod,
-                                                                 TrackingPrediction &tracking_result)
+PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod,
+                                                 MountSLRPrediction &tracking_result)
 {
     // Update the times.
     tracking_result.mjd = mjd;
@@ -208,7 +211,7 @@ TrackingSLR::PositionStatus TrackingSLR::predict(MJDate mjd, SoD sod,
     }
 
     // Final position.
-    TrackingPosition tracking_position;
+    MountPosition tracking_position;
 
     // If sun avoidance is applied and position for requested time is inside a sun security sector, map the point
     // to its corresponding point in the sun security sector circumference.
@@ -264,7 +267,7 @@ TrackingSLR::PositionStatus TrackingSLR::predict(MJDate mjd, SoD sod,
     }
 }
 
-void TrackingSLR::analyzeTracking()
+void PredictorMountSLR::analyzeTracking()
 {
     // Results container and auxiliar.
     unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta*1000);
@@ -288,8 +291,8 @@ void TrackingSLR::analyzeTracking()
     // calculated.
     results_sun = this->sun_predictor_.fastPredict(
         j2000_start, j2000_end + this->track_info_.time_delta / timing::kSecsPerDay, step_ms);
-
-    TrackingPrediction tr;
+    
+    MountSLRPrediction tr;
 
     for (std::size_t i = 0; i < results_slr.size(); i++)
     {
@@ -297,7 +300,7 @@ void TrackingSLR::analyzeTracking()
         tr.sod = results_slr[i].instant_data->sod;
         tr.mjdt = results_slr[i].instant_data->mjdt;
         tr.prediction_result = results_slr[i];
-        tr.tracking_position = TrackingPosition{results_slr[i].instant_data->az, results_slr[i].instant_data->el, 0, 0};
+        tr.tracking_position = MountPosition{results_slr[i].instant_data->az, results_slr[i].instant_data->el, 0, 0};
         tr.sun_pos = results_sun[i];
 
         this->track_info_.positions.push_back(std::move(tr));
@@ -311,7 +314,7 @@ void TrackingSLR::analyzeTracking()
                                    this->checkTracking();
 }
 
-bool TrackingSLR::checkTrackingStart()
+bool PredictorMountSLR::checkTrackingStart()
 {
     auto start = this->track_info_.positions.begin();
 
@@ -377,7 +380,7 @@ bool TrackingSLR::checkTrackingStart()
     return true;
 }
 
-bool TrackingSLR::checkTrackingEnd()
+bool PredictorMountSLR::checkTrackingEnd()
 {
 
     auto last = this->track_info_.positions.rbegin();
@@ -444,16 +447,16 @@ bool TrackingSLR::checkTrackingEnd()
     return true;
 }
 
-bool TrackingSLR::checkTracking()
+bool PredictorMountSLR::checkTracking()
 {
-    TrackingPrediction tr;
+    MountSLRPrediction tr;
     bool in_sun_sector = false;
     bool sun_collision = false;
     SunSector sun_sector;
     MJDate max_elev_mjd = 0;
     SoD max_elev_sod = 0;
     double max_elev = -1.;
-    TrackingPredictions::iterator sun_sector_start;
+    MountSLRPredictions::iterator sun_sector_start;
 
     // Check the tracking.
     for (auto it = this->tracking_begin_ + 1; it != this->tracking_end_ - 1; it++)
@@ -535,7 +538,7 @@ bool TrackingSLR::checkTracking()
     return true;
 }
 
-bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
+bool PredictorMountSLR::insideSunSector(const PredictorSLR::InstantData &pos,
                                   const SunPosition &sun_pos) const
 {
 
@@ -579,8 +582,8 @@ bool TrackingSLR::insideSunSector(const PredictorSLR::InstantData &pos,
 
 }
 
-bool TrackingSLR::setSunSectorRotationDirection(
-    SunSector &sector, TrackingPredictions::const_iterator sun_start, TrackingPredictions::const_iterator sun_end)
+bool PredictorMountSLR::setSunSectorRotationDirection(
+    SunSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end)
 {
 
     MJDateTime mjdt = sector.mjdt_entry + this->track_info_.time_delta /
@@ -673,8 +676,8 @@ bool TrackingSLR::setSunSectorRotationDirection(
 
 }
 
-void TrackingSLR::checkSunSectorPositions(
-    const SunSector &sector, TrackingPredictions::iterator sun_start, TrackingPredictions::iterator sun_end)
+void PredictorMountSLR::checkSunSectorPositions(
+    const SunSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end)
 {
     // Check positions within sun sector. First and last are excluded, since they are outside sun sector
     for (auto it = sun_start + 1; it != sun_end; it++)
@@ -688,7 +691,7 @@ void TrackingSLR::checkSunSectorPositions(
     }
 }
 
-long double TrackingSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector,
+long double PredictorMountSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector,
                                                 SunPosition &sun_pos)
 {
     long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);

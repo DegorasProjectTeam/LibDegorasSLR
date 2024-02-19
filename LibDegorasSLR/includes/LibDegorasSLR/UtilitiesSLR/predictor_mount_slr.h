@@ -38,11 +38,11 @@
 #pragma once
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictor_slr.h"
-#include "LibDegorasSLR/Astronomical/predictor_sun.h"
+#include "LibDegorasSLR/Astronomical/sun_utils/predictor_sun.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
 
@@ -84,6 +84,8 @@ using astro::PredictorSun;
 // El intervalo se encuentra dentro del CPF (predictor). Validar predictor respecto a intervalos.
 // Comprobar que existe un pase (la elevacion es en todo momento > minimo).
 //
+// TODO Se podrian añadir en un futuro limites mecánicos para que el sistema ajuste automáticamente velocidades,
+// alturas, etc.
 
 /**
  * @brief The TrackingSLR class implements an abstraction for a SLR tracking.
@@ -96,7 +98,7 @@ using astro::PredictorSun;
  * tracking by this class. Before using the tracking you should check whether the tracking is valid or not.
  *
  */
-class LIBDPSLR_EXPORT TrackingSLR
+class LIBDPSLR_EXPORT PredictorMountSLR
 {
 public:
 
@@ -108,10 +110,10 @@ public:
      */
     enum PositionStatus
     {
-        OUTSIDE_SUN,        ///< The final tracking position is outside the sun.
-        INSIDE_SUN,         ///< The final tracking position is in the Sun and is configured for not avoiding.
-        AVOIDING_SUN,       ///< The final tracking position is avoiding sun security sector.
-        CANT_AVOID_SUN,     ///< Final position can't be calculated, since it cannot avoid sun security sector.
+        OUTSIDE_SUN,        ///< The final mount position is outside the sun.
+        INSIDE_SUN,         ///< The final mount position is in the Sun and is configured for not avoiding.
+        AVOIDING_SUN,       ///< The final mount position is avoiding sun security sector.
+        CANT_AVOID_SUN,     ///< Final mount position can't be calculated, since it cannot avoid sun security sector.
         OUT_OF_TRACK,       ///< The time provided for prediction is outside of tracking.
         PREDICTION_ERROR    ///< The object position can't be calculated, there was a SLR prediction error.
     };
@@ -138,7 +140,7 @@ public:
      * track position. The necessity to deviate from the predicted path to avoid direct line-of-sight with the Sun or
      * other obstructions can result in these differences.
      */
-    struct TrackingPosition
+    struct MountPosition
     {
         long double az;      ///< Azimuth for the tracking mount in degrees.
         long double el;      ///< Elevation for the tracking mount in degrees.
@@ -160,7 +162,7 @@ public:
      * - If `status` is `PREDICTION_ERROR` or `CANT_AVOID_SUN`, both `prediction_result` and `sun_pos` are provided to
      *   detail the prediction outcome and solar interference, respectively.
      */
-    struct TrackingPrediction
+    struct MountSLRPrediction
     {
         // Datetime members.
         MJDate mjd;              ///< Modified Julian Date in days.
@@ -169,7 +171,7 @@ public:
 
         // Result members.
         Optional<PredictorSLR::SLRPrediction> prediction_result;  ///< SLR prediction result.
-        Optional<TrackingPosition> tracking_position;             ///< Tracking position.
+        Optional<MountPosition> tracking_position;             ///< Tracking position.
         Optional<SunPosition> sun_pos;       ///< Sun position.
 
         // Status.
@@ -177,11 +179,13 @@ public:
     };
 
     ///< Alias for Tracking results vector.
-    using TrackingPredictions = std::vector<TrackingPrediction>;
+    using MountSLRPredictions = std::vector<MountSLRPrediction>;
 
-    struct TrackSLR
+    struct MountTrackSLR
     {
         // TODO: velocities
+
+        // Date and times.
         MJDate mjd_start;
         SoD sod_start;
         MJDate mjd_end;
@@ -189,15 +193,16 @@ public:
         MJDate mjd_max_elev;
         SoD sod_max_elev;
 
-        double start_elev;
-        double end_elev;
-        double max_elev;
+        // Elevations.
+        double start_elev;         ///< Pass start elevation (degrees).
+        double end_elev;            ///< Pass end elevation (degrees).
+        double max_elev;           ///< Pass maximum elevation (degrees).
+        double min_elev;           ///< Pass minimum elevation (degrees).
 
         bool valid_pass;
         bool avoid_sun;
 
         long double time_delta;    ///< Time delta fo calculations in seconds.
-        double min_elev;           ///< Degrees.
         double sun_avoid_angle;    ///< Degrees.
 
         bool sun_collision_at_start;
@@ -205,15 +210,15 @@ public:
 
         std::vector<SunSector> sun_sectors;
 
-        TrackingPredictions positions;
+        MountSLRPredictions positions;
     };
 
 
-    TrackingSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
+    PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
                 unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
                 unsigned sun_avoid_angle = 15);
 
-    TrackingSLR(PredictorSLR&& predictor, const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
+    PredictorMountSLR(PredictorSLR&& predictor, const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
                 unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
                 unsigned sun_avoid_angle = 15);
 
@@ -227,7 +232,7 @@ public:
      * @brief This function returns the tracking info available.
      * @return the tracking info.
      */
-    const TrackSLR& getTrackingInfo() const;
+    const MountTrackSLR& getTrackingInfo() const;
 
     /**
      * @brief This function returns the minimum elevation of this tracking in degrees.
@@ -252,13 +257,13 @@ public:
      * @brief This function returns an interator to the first valid position in tracking.
      * @return an interator to the first valid position in tracking, if tracking is valid. Otherwise end iterator.
      */
-    TrackingPredictions::const_iterator getTrackingBegin() const;
+    MountSLRPredictions::const_iterator getTrackingBegin() const;
 
     /**
      * @brief This function returns an interator to the last valid position in tracking.
      * @return an interator to the last valid position in tracking, if tracking is valid. Otherwise end iterator.
      */
-    TrackingPredictions::const_iterator getTrackingEnd() const;
+    MountSLRPredictions::const_iterator getTrackingEnd() const;
 
     /**
      * @brief This function returns if sun avoidance is applied.
@@ -298,7 +303,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(const timing::HRTimePointStd& tp_time, TrackingPrediction &tracking_result);
+    PositionStatus predict(const timing::HRTimePointStd& tp_time, MountSLRPrediction &tracking_result);
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -307,7 +312,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(MJDate mjd, SoD sod, TrackingPrediction &tracking_result);
+    PositionStatus predict(MJDate mjd, SoD sod, MountSLRPrediction &tracking_result);
 
 private:
 
@@ -331,21 +336,21 @@ private:
 
     /// Helper to set the rotation direction of a sun sector.
     bool setSunSectorRotationDirection(
-        SunSector &sector, TrackingPredictions::const_iterator sun_start, TrackingPredictions::const_iterator sun_end);
+        SunSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end);
 
     /// Helper to check positions whithin a sun sector to see if it is possible to avoid sun
     void checkSunSectorPositions(
-        const SunSector &sector, TrackingPredictions::iterator sun_start, TrackingPredictions::iterator sun_end);
+        const SunSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end);
 
     long double calcSunAvoidTrajectory(MJDateTime mjdt, const SunSector &sector, SunPosition &sun_pos);
 
     // Private members.
     PredictorSLR predictor_;               ///< SLR predictor.
     astro::PredictorSun sun_predictor_;    ///< Sun predictor.
-    TrackSLR track_info_;                  ///< Track information.
+    MountTrackSLR track_info_;                  ///< Track information.
 
-    TrackingPredictions::iterator tracking_begin_;
-    TrackingPredictions::iterator tracking_end_;
+    MountSLRPredictions::iterator tracking_begin_;
+    MountSLRPredictions::iterator tracking_end_;
 };
 
 }} // END NAMESPACES

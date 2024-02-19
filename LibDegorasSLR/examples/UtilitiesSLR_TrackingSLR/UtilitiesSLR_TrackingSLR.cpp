@@ -32,7 +32,6 @@
 // =====================================================================================================================
 #include <iostream>
 #include <string>
-#include <stdexcept>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
@@ -50,7 +49,7 @@ using dpslr::ilrs::cpf::CPF;
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPoint;
 using dpslr::utils::PredictorSLR;
-using dpslr::utils::TrackingSLR;
+using dpslr::utils::PredictorMountSLR;
 using dpslr::timing::MJDate;
 using dpslr::timing::SoD;
 using dpslr::math::units::Angle;
@@ -160,7 +159,7 @@ int main()
     }
 
     // Configure the SLR tracking passing the predictor, the start and end dates and minimum elevation (optional).
-    TrackingSLR tracking(std::move(predictor), mjd_start, sod_start, mjd_end, sod_end,
+    PredictorMountSLR tracking(std::move(predictor), mjd_start, sod_start, mjd_end, sod_end,
                          min_el, step_ms, avoid_sun, sun_avoid_angle);
 
     if (!tracking.isValid())
@@ -197,7 +196,7 @@ int main()
     // predictions from start to end with a step of 0.5 s.
     MJDate mjd = mjd_start;
     SoD sod = sod_start;
-    TrackingSLR::TrackingPredictions results;
+    PredictorMountSLR::MountSLRPredictions results;
 
     while (mjd < mjd_end || sod < sod_end)
     {
@@ -206,18 +205,18 @@ int main()
         results.push_back({});
         auto status = tracking.predict(mjd, sod, results.back());
 
-        if (status == TrackingSLR::INSIDE_SUN)
+        if (status == PredictorMountSLR::INSIDE_SUN)
         {
             // In this case the position predicted is valid, but it is going through a sun security sector.
             // This case is only possible if sun avoid algorithm is disabled.
             // BEWARE. If the mount points directly to this position it could be dangerous.
         }
-        else if (status == TrackingSLR::OUTSIDE_SUN)
+        else if (status == PredictorMountSLR::OUTSIDE_SUN)
         {
             // In this case the position predicted is valid and it is going outside a sun security sector. This is the
             // normal case.
         }
-        else if (status == TrackingSLR::AVOIDING_SUN)
+        else if (status == PredictorMountSLR::AVOIDING_SUN)
         {
             // In this case the position predicted is valid and it is going through an alternative way to avoid a sun
             // security sector. While the tracking returns this status, the tracking_position member in result

@@ -164,7 +164,10 @@ public:
     Distance(T dist = T(), Unit unit = Unit::METRES, double ratio = 1.0) :
         dist_(dist), unit_(unit), ratio_(ratio) {}
 
-    inline constexpr operator T() const {return dist_ * ratio_;}
+    inline constexpr operator T() const
+    {
+        return static_cast<T>(static_cast<long double>(dist_) * static_cast<long double>(ratio_));
+    }
 
     inline double getRatio() const {return this->ratio_;}
 

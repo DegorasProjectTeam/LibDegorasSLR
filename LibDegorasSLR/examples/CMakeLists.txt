@@ -12,16 +12,10 @@
 # Set the installation example path.
 set(GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH ${MODULES_GLOBAL_INSTALL_BIN_PATH}/examples)
 
-
-# Add all the basic unit tests.
-macro_setup_lib_basic_examples("${CMAKE_CURRENT_SOURCE_DIR}"
-                                 "${GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH}")
-
 # ----------------------------------------------------------------------------------------------------------------------
+# COMPLEX EXAMPLES
 
-# ----------------------------------------------------------------------------------------------------------------------
-# 
-
-# Add the tests in the subdirectories.
+# Add the examples in the subdirectories.
 macro_add_subdirs("${CMAKE_CURRENT_SOURCE_DIR}")
+
 # ----------------------------------------------------------------------------------------------------------------------
