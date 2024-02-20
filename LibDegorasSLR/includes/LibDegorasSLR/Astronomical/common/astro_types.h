@@ -43,6 +43,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
+#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -57,7 +58,12 @@ using dpslr::timing::types::J2DateTime;
 using dpslr::timing::types::MJDate;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::MJDateTime;
+using dpslr::helpers::types::NumericStrongType;
 // ---------------------------------------------------------------------------------------------------------------------
+
+/// Alias for
+using Degrees = NumericStrongType<long long, struct DegreesTag>;
+
 
 struct PredictionBase
 {
@@ -89,7 +95,7 @@ struct LIBDPSLR_EXPORT AltAzPosition
 {
     AltAzPosition();
 
-    AltAzPosition(long double az, long double el);
+    AltAzPosition(Degrees az, Degrees el);
 
 
     AltAzPosition(const AltAzPosition& pos) = default;
@@ -106,8 +112,8 @@ struct LIBDPSLR_EXPORT AltAzPosition
 
     ~AltAzPosition();
 
-    long double az;
-    long double el;
+    Degrees az;
+    Degrees el;
 };
 
 /// Alias for altaz corrections.

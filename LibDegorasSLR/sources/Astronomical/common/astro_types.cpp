@@ -19,7 +19,7 @@ AltAzPosition::AltAzPosition():
     el(0.0L)
 {}
 
-AltAzPosition::AltAzPosition(long double az, long double el):
+AltAzPosition::AltAzPosition(Degrees az, Degrees el):
     az(az),
     el(el)
 {

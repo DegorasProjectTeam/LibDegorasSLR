@@ -118,6 +118,12 @@ public:
         PREDICTION_ERROR    ///< The object position can't be calculated, there was a SLR prediction error.
     };
 
+    enum class RotationDirection
+    {
+        CLOCKWISE,
+        COUNTERCLOCKWISE
+    };
+
     /**
      * @brief The SunCollisionSector struct contains data of a sector where this space object tracking
      * passes through the sun security sector.
@@ -130,7 +136,7 @@ public:
         long double el_exit;        ///< Elevation of sun sector exit point.
         MJDateTime mjdt_entry;      ///< MJ datetime of sun sector entry point.
         MJDateTime mjdt_exit;       ///< MJ datetime of sun sector exit point.
-        bool cw;                    ///< Rotation direction of the avoidance manoeuvre (true = cw, false = ccw).
+        RotationDirection cw;       ///< Rotation direction of the avoidance manoeuvre (true = cw, false = ccw).
     };
 
     /// Alias for vector of SunCollisionSector.
@@ -185,6 +191,7 @@ public:
     /// Alias for Tracking results vector.
     using MountSLRPredictions = std::vector<MountSLRPrediction>;
 
+
     struct MountTrackSLR
     {
         // Constructor.
@@ -194,9 +201,7 @@ public:
 
         // Date and times.
 
-        // CREAR ESTRUCTURA INTERMEDIA PARA ALMACENAR INFO DEL TRACK Y DEL PASE
-        // REPETIR ESTO PARA TRACK VS PASS
-        // TODO Check times.
+        // CREAR ESTRUCTURA INTERMEDIA PARA ALMACENAR INFO DEL TRACK
         MJDate mjd_start;
         SoD sod_start;
         MJDate mjd_end;
@@ -237,7 +242,7 @@ public:
         const PredictorSun& predictor_sun;
     };
 
-
+    // TODO Use the maximum elevations.
     PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
                 unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
                 unsigned sun_avoid_angle = 15);
@@ -329,6 +334,8 @@ public:
      * @param tp_time The time point datetime.
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
+     *
+     * @warning Nanoseconds resolution for the prediction.
      */
     PositionStatus predict(const timing::HRTimePointStd& tp_time, MountSLRPrediction &tracking_result);
 

@@ -681,9 +681,9 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
     if (!valid_cw && !valid_ccw)
         return false;
     if (!valid_cw)
-        sector.cw = false;
+        sector.cw = RotationDirection::COUNTERCLOCKWISE;
     else if (!valid_ccw)
-        sector.cw = true;
+        sector.cw = RotationDirection::CLOCKWISE;
     else
     {
         long double entry_angle = std::atan2(sector.el_entry - sun_start->sun_pos->el,
@@ -706,11 +706,11 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
             ccw_angle = 2 * math::kPi - entry_angle + exit_angle;
         }
 
-        sector.cw = cw_angle < ccw_angle;
+        sector.cw = (cw_angle < ccw_angle) ? PredictorMountSLR::RotationDirection::CLOCKWISE :
+                        PredictorMountSLR::RotationDirection::COUNTERCLOCKWISE;
     }
 
     return true;
-
 }
 
 void PredictorMountSLR::checkSunSectorPositions(
@@ -743,7 +743,7 @@ long double PredictorMountSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const Sun
 
     if (exit_angle > entry_angle)
     {
-        if (sector.cw)
+        if (sector.cw == RotationDirection::CLOCKWISE)
         {
             angle = entry_angle - time_perc * (2 * math::kPi - exit_angle + entry_angle);
             if (angle < 0.L)
@@ -755,7 +755,7 @@ long double PredictorMountSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const Sun
     }
     else
     {
-        if (sector.cw)
+        if (sector.cw == RotationDirection::CLOCKWISE)
         {
             angle = entry_angle - time_perc * (entry_angle - exit_angle);
         }
