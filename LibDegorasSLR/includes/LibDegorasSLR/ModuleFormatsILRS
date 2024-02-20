@@ -1,0 +1,9 @@
+#include <LibDegorasSLR/FormatsILRS/common/consolidated_types.h>
+#include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
+#include <LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h>
+#include <LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h>
+#include <LibDegorasSLR/FormatsILRS/cpf/cpf.h>
+#include <LibDegorasSLR/FormatsILRS/crd/records/crd_data.h>
+#include <LibDegorasSLR/FormatsILRS/crd/records/crd_header.h>
+#include <LibDegorasSLR/FormatsILRS/crd/records/crd_configuration.h>
+#include <LibDegorasSLR/FormatsILRS/crd/crd.h>

@@ -232,7 +232,7 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod
 
     // Store the info.
     tracking_result.prediction_result = prediction_result;
-    tracking_result.sun_pos = sun_pos;
+    tracking_result.sun_position = sun_pos;
 
     // Check for errors.
     if (pred_error != PredictorSLR::PredictionError::NO_ERROR &&
@@ -334,7 +334,7 @@ void PredictorMountSLR::analyzeTracking()
         tr.mjdt = results_slr[i].instant_data->mjdt;
         tr.prediction_result = results_slr[i];
         tr.tracking_position = MountPosition{results_slr[i].instant_data->az, results_slr[i].instant_data->el, 0, 0};
-        tr.sun_pos = results_sun[i].position;
+        tr.sun_position = results_sun[i].position;
 
         this->mount_track_.predictions.push_back(std::move(tr));
         tr = {};
@@ -360,7 +360,7 @@ bool PredictorMountSLR::checkTrackingStart()
         // If sun avoid is activated check if tracking starts inside a sun sector. If that is the case, move the
         // tracking start to the end of the sun sector if possible
         while (start != this->mount_track_.predictions.end() &&
-               this->insideSunSector(*start->prediction_result->instant_data, *start->sun_pos))
+               this->insideSunSector(*start->prediction_result->instant_data, *start->sun_position))
         {
             // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
             // as invalid.
@@ -400,7 +400,7 @@ bool PredictorMountSLR::checkTrackingStart()
 
         // If sun avoid is disabled, check whether position is inside or outside sun security sector
         // without changing start
-        if (this->insideSunSector(*start->prediction_result->instant_data, *start->sun_pos))
+        if (this->insideSunSector(*start->prediction_result->instant_data, *start->sun_position))
         {
             this->mount_track_.sun_collision_at_start = true;
             start->status = PositionStatus::INSIDE_SUN;
@@ -428,7 +428,7 @@ bool PredictorMountSLR::checkTrackingEnd()
         // If sun avoid is activated check if tracking ends inside a sun sector. If that is the case, move the
         // tracking end to the start of the sun sector if possible
         while (last != this->mount_track_.predictions.rend() &&
-               this->insideSunSector(*last->prediction_result->instant_data, *last->sun_pos))
+               this->insideSunSector(*last->prediction_result->instant_data, *last->sun_position))
         {
             // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
             // as invalid.
@@ -468,7 +468,7 @@ bool PredictorMountSLR::checkTrackingEnd()
 
         // If sun avoid is disabled, check whether position is inside or outside sun security sector
         // without changing end
-        if (this->insideSunSector(*last->prediction_result->instant_data, *last->sun_pos))
+        if (this->insideSunSector(*last->prediction_result->instant_data, *last->sun_position))
         {
             last->status = PositionStatus::INSIDE_SUN;
         }
@@ -506,7 +506,7 @@ bool PredictorMountSLR::checkTracking()
             return false;
 
         // Check if this position is inside sun security sector
-        sun_collision = this->insideSunSector(*it->prediction_result->instant_data, *it->sun_pos);
+        sun_collision = this->insideSunSector(*it->prediction_result->instant_data, *it->sun_position);
 
         // Store whether position is inside or outside sun. Later, if sun avoid algorithm is applied, those positions
         // which are inside sun will be checked to see if it is possible or not to avoid sun.
@@ -639,11 +639,11 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
     {
         long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 
-        long double entry_angle = std::atan2(sector.el_entry - it->sun_pos->el,
-                                             sector.az_entry - it->sun_pos->az);
+        long double entry_angle = std::atan2(sector.el_entry - it->sun_position->el,
+                                             sector.az_entry - it->sun_position->az);
 
-        long double exit_angle = std::atan2(sector.el_exit - it->sun_pos->el,
-                                            sector.az_exit - it->sun_pos->az);
+        long double exit_angle = std::atan2(sector.el_exit - it->sun_position->el,
+                                            sector.az_exit - it->sun_position->az);
 
         long double cw_angle;
         long double ccw_angle;
@@ -664,8 +664,8 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
                 ccw_angle -= 2 * math::kPi;
         }
 
-        long double elev_cw = it->sun_pos->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(cw_angle);
-        long double elev_ccw = it->sun_pos->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(ccw_angle);
+        long double elev_cw = it->sun_position->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(cw_angle);
+        long double elev_ccw = it->sun_position->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(ccw_angle);
 
 
         if (elev_cw > 90.L || elev_cw < this->mount_track_.cfg_min_elev)
@@ -686,11 +686,11 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
         sector.cw = RotationDirection::CLOCKWISE;
     else
     {
-        long double entry_angle = std::atan2(sector.el_entry - sun_start->sun_pos->el,
-                                             sector.az_entry - sun_start->sun_pos->az);
+        long double entry_angle = std::atan2(sector.el_entry - sun_start->sun_position->el,
+                                             sector.az_entry - sun_start->sun_position->az);
 
-        long double exit_angle = std::atan2(sector.el_exit - sun_end->sun_pos->el,
-                                            sector.az_exit - sun_end->sun_pos->az);
+        long double exit_angle = std::atan2(sector.el_exit - sun_end->sun_position->el,
+                                            sector.az_exit - sun_end->sun_position->az);
 
         long double cw_angle;
         long double ccw_angle;
@@ -719,9 +719,9 @@ void PredictorMountSLR::checkSunSectorPositions(
     // Check positions within sun sector. First and last are excluded, since they are outside sun sector
     for (auto it = sun_start + 1; it != sun_end; it++)
     {
-        long double angle_avoid = this->calcSunAvoidTrajectory(it->mjdt, sector, *it->sun_pos);
-        it->tracking_position->az = it->sun_pos->az + this->mount_track_.cfg_sun_avoid_angle * std::cos(angle_avoid);
-        it->tracking_position->el = it->sun_pos->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(angle_avoid);
+        long double angle_avoid = this->calcSunAvoidTrajectory(it->mjdt, sector, *it->sun_position);
+        it->tracking_position->az = it->sun_position->az + this->mount_track_.cfg_sun_avoid_angle * std::cos(angle_avoid);
+        it->tracking_position->el = it->sun_position->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(angle_avoid);
         it->tracking_position->diff_az = it->prediction_result->instant_data->az - it->tracking_position->az;
         it->tracking_position->diff_el = it->prediction_result->instant_data->el - it->tracking_position->el;
         it->status = PositionStatus::AVOIDING_SUN;

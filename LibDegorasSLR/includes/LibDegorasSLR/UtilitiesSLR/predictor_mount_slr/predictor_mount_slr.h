@@ -180,9 +180,9 @@ public:
         MJDateTime mjdt;         ///< Modified Julian DateTime (day & fraction).
 
         // Result members.
-        Optional<PredictorSLR::SLRPrediction> prediction_result;  ///< SLR prediction result.
-        Optional<MountPosition> tracking_position;             ///< Tracking position.
-        Optional<SunPosition> sun_pos;       ///< Sun position.
+        Optional<PredictorSLR::SLRPrediction> prediction_result;  ///< SLR prediction result with the pass position.
+        Optional<MountPosition> tracking_position;                ///< Tracking position.
+        Optional<SunPosition> sun_position;                       ///< Sun position.
 
         // Status.
         PositionStatus status;  ///< The current postion status.

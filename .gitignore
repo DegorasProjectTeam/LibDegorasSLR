@@ -2,6 +2,9 @@
 *build*/
 *product*/
 
+# Python
+*.idea
+
 # User config
 CMakeLists.txt.user
 
