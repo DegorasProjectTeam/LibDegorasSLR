@@ -13,11 +13,11 @@ def read_positions(filename):
 if __name__ == "__main__":
 
     # Output folder.
-    output_dir = "outputs"
+    output_dir = "../outputs"
 
     # Read positions from files
-    sun_positions = read_positions(output_dir + '/' + 'Jason3_Sun_Mid_sun.dat')
-    tracking_positions = read_positions(output_dir + '/' + 'Jason3_Sun_Mid_tracking.dat')
+    sun_positions = read_positions(output_dir + '/' + 'Lares_Sun_Beg_sun.dat')
+    tracking_positions = read_positions(output_dir + '/' + 'Lares_Sun_Beg_tracking.dat')
 
     # Convert azimuth and elevation to radians
     sun_azimuths = [np.radians(pos[0]) for pos in sun_positions]

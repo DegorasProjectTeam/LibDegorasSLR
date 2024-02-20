@@ -430,7 +430,6 @@ M_DEFINE_UNIT_TEST(timePointToJulianDatetime)
     auto example_3 = std::chrono::nanoseconds(1707386592000123000);
 
     // Setup test cases
-    // Setup test cases
     std::vector<std::pair<timing::HRTimePointStd, JDateTime>> test_cases =
         {
             // Pair of time since epoch and expected Julian Datetime
@@ -526,17 +525,19 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate_fract)
     // Do the checks.
     for (const auto& [input, output_jdate, output_frac, string] : test_cases)
     {
+        // Containers.
         DayFraction fraction;
         JDate jd;
+        // Conversion and reverse conversion.
         timePointToJulianDate(input, jd, fraction);
 
 
         std::string out_str = timePointToIso8601(input, TimeResolution::NANOSECONDS);
 
-        std::cout<<out_str<<std::endl;
 
         // Nanoseconds preccision (in day fraction sense, approx 17 decimals).
         M_EXPECTED_EQ(jd, output_jdate)
+        M_EXPECTED_EQ(out_str, string)
         M_EXPECTED_EQ_F(fraction, output_frac, 0.00000000000000001L)
     }
 }

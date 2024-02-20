@@ -82,5 +82,8 @@ struct LIBDPSLR_EXPORT GeocentricPoint
     math::Vector3D<T> toVector3D() const {return math::Vector3D<T>(x,y,z);}
 };
 
+/// Alias for long double GeocentricPoint specialization.
+using GeocentricPointLD = GeocentricPoint<long double>;
+
 }}} // END NAMESPACES.
 // =====================================================================================================================

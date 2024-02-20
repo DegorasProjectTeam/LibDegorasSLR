@@ -12,6 +12,7 @@ MACRO(macro_setup_launcher launcher_name lib_opt lib_deb)
 
     # Log.
     message(STATUS "Setup executable: ${launcher_name}")
+    message(STATUS "  Build folder: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
     # Link the current dirs.
     if (WIN32)

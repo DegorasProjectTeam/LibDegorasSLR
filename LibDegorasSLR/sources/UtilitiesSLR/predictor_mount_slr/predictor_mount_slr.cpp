@@ -60,7 +60,7 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start,
                          unsigned min_elev_deg, unsigned time_delta_ms, bool sun_avoid, unsigned sun_avoid_angle) :
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation()),
-    track_info_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
+    mount_track_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
 {
     // Check too high values for the sun avoid angle, so the algorithm can fail.
     if(sun_avoid_angle >= 30)
@@ -76,16 +76,16 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start,
     dpslr::DegorasInit::checkMandatoryInit();
 
     // Store the data.
-    this->track_info_.mjd_start = mjd_start;
-    this->track_info_.sod_start = sod_start;
-    this->track_info_.mjd_end = mjd_end;
-    this->track_info_.sod_end = sod_end;
-    this->track_info_.min_elev = min_elev_deg;
-    this->track_info_.time_delta = time_delta_ms / 1000.L;
-    this->track_info_.sun_avoid_angle = sun_avoid_angle;
-    this->track_info_.avoid_sun = sun_avoid;
-    this->track_info_.sun_collision_at_start = false;
-    this->track_info_.sun_collision_at_end = false;
+    this->mount_track_.mjd_start = mjd_start;
+    this->mount_track_.sod_start = sod_start;
+    this->mount_track_.mjd_end = mjd_end;
+    this->mount_track_.sod_end = sod_end;
+    this->mount_track_.cfg_min_elev = min_elev_deg;
+    this->mount_track_.cfg_time_delta = time_delta_ms;
+    this->mount_track_.cfg_sun_avoid_angle = sun_avoid_angle;
+    this->mount_track_.cfg_sun_avoid = sun_avoid;
+    this->mount_track_.sun_collision_at_start = false;
+    this->mount_track_.sun_collision_at_end = false;
 
     // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
     this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
@@ -101,7 +101,7 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const timing::typ
 
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation()),
-    track_info_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
+    mount_track_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
 {
     // Check too high values for the sun avoid angle, so the algorithm can fail.
     if(sun_avoid_angle >= 30)
@@ -117,14 +117,14 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const timing::typ
     dpslr::DegorasInit::checkMandatoryInit();
 
     // Store the data.
-    this->track_info_.min_elev = min_elev_deg;
-    this->track_info_.time_delta = time_delta_ms / 1000.L;
-    this->track_info_.sun_avoid_angle = sun_avoid_angle;
-    this->track_info_.avoid_sun = sun_avoid;
-    this->track_info_.sun_collision_at_start = false;
-    this->track_info_.sun_collision_at_end = false;
-    timing::timePointToModifiedJulianDate(tp_start, this->track_info_.mjd_start, this->track_info_.sod_start);
-    timing::timePointToModifiedJulianDate(tp_end, this->track_info_.mjd_end, this->track_info_.sod_end);
+    this->mount_track_.cfg_min_elev = min_elev_deg;
+    this->mount_track_.cfg_time_delta = time_delta_ms;
+    this->mount_track_.cfg_sun_avoid_angle = sun_avoid_angle;
+    this->mount_track_.cfg_sun_avoid = sun_avoid;
+    this->mount_track_.sun_collision_at_start = false;
+    this->mount_track_.sun_collision_at_end = false;
+    timing::timePointToModifiedJulianDate(tp_start, this->mount_track_.mjd_start, this->mount_track_.sod_start);
+    timing::timePointToModifiedJulianDate(tp_end, this->mount_track_.mjd_end, this->mount_track_.sod_end);
 
     // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
     this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
@@ -135,67 +135,66 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const timing::typ
 
 bool PredictorMountSLR::isValid() const
 {
-    return this->track_info_.valid_pass;
+    return this->mount_track_.valid_pass;
 }
 
-const PredictorMountSLR::MountTrackSLR &PredictorMountSLR::getTrackingInfo() const
+const PredictorMountSLR::MountTrackSLR& PredictorMountSLR::getMountTrack() const
 {
-    return this->track_info_;
+    return this->mount_track_;
 }
 
 unsigned PredictorMountSLR::getMinElev() const
 {
-    return static_cast<unsigned>(std::round(this->track_info_.min_elev));
+    return static_cast<unsigned>(std::round(this->mount_track_.cfg_min_elev));
 }
 
 void PredictorMountSLR::getTrackingStart(MJDate &mjd, SoD &sod) const
 {
-    mjd = this->track_info_.mjd_start;
-    sod = this->track_info_.sod_start;
+    mjd = this->mount_track_.mjd_start;
+    sod = this->mount_track_.sod_start;
 }
 
 void PredictorMountSLR::getTrackingEnd(MJDate &mjd, SoD &sod) const
 {
-    mjd = this->track_info_.mjd_end;
-    sod = this->track_info_.sod_end;
+    mjd = this->mount_track_.mjd_end;
+    sod = this->mount_track_.sod_end;
 }
 
 PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingBegin() const
 {
-    return this->track_info_.valid_pass ? this->tracking_begin_ : this->track_info_.predictions.cend();
+    return this->mount_track_.valid_pass ? this->tracking_begin_ : this->mount_track_.predictions.cend();
 }
 
 PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingEnd() const
 {
-    return this->track_info_.valid_pass ? this->tracking_end_ : this->track_info_.predictions.cend();
+    return this->mount_track_.valid_pass ? this->tracking_end_ : this->mount_track_.predictions.cend();
 }
 
 bool PredictorMountSLR::getSunAvoidApplied() const
 {
-    return this->track_info_.avoid_sun;
+    return this->mount_track_.cfg_sun_avoid;
 }
 
 bool PredictorMountSLR::isSunOverlapping() const
 {
-    // If sun avoid is enabled, check if there is a sun security sector in the middle of the pass, or if the start or
-    // end of the pass were modified due to the sun.
-    return this->track_info_.avoid_sun && (!this->track_info_.sun_sectors.empty() ||
-                                           this->track_info_.sun_collision_at_start || this->track_info_.sun_collision_at_end) ;
+    return (!this->mount_track_.sun_sectors.empty() ||
+            this->mount_track_.sun_collision_at_start ||
+            this->mount_track_.sun_collision_at_end) ;
 }
 
 bool PredictorMountSLR::isSunAtStart() const
 {
-    return this->track_info_.avoid_sun && this->track_info_.sun_collision_at_start;
+    return this->mount_track_.sun_collision_at_start;
 }
 
 bool PredictorMountSLR::isSunAtEnd() const
 {
-    return this->track_info_.avoid_sun && this->track_info_.sun_collision_at_end;
+    return this->mount_track_.sun_collision_at_end;
 }
 
 unsigned PredictorMountSLR::getSunAvoidAngle() const
 {
-    return static_cast<unsigned>(this->track_info_.sun_avoid_angle);
+    return static_cast<unsigned>(this->mount_track_.cfg_sun_avoid_angle);
 }
 
 PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
@@ -216,8 +215,8 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod
     tracking_result.mjdt = timing::modifiedJulianDateToModifiedJulianDatetime(mjd, sod);
 
     // Check if requested position is inside valid tracking time. Otherwise return out of tracking error.
-    if (!dpslr::timing::mjdInsideTimeWindow(mjd, sod, this->track_info_.mjd_start, this->track_info_.sod_start,
-                                            this->track_info_.mjd_end, this->track_info_.sod_end))
+    if (!dpslr::timing::mjdInsideTimeWindow(mjd, sod, this->mount_track_.mjd_start, this->mount_track_.sod_start,
+                                            this->mount_track_.mjd_end, this->mount_track_.sod_end))
     {
         tracking_result.status =  PositionStatus::OUT_OF_TRACK;
         return PositionStatus::OUT_OF_TRACK;
@@ -249,17 +248,17 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod
     // If sun avoidance is applied and position for requested time is inside a sun security sector, map the point
     // to its corresponding point in the sun security sector circumference.
     // Otherwise, return calculated position.
-    if (this->track_info_.avoid_sun && this->insideSunSector(*prediction_result.instant_data, sun_pos))
+    if (this->mount_track_.cfg_sun_avoid && this->insideSunSector(*prediction_result.instant_data, sun_pos))
     {
         MJDateTime mjdt = dpslr::timing::modifiedJulianDateToModifiedJulianDatetime(mjd, sod);
 
-        auto sector_it = std::find_if(this->track_info_.sun_sectors.begin(),
-                                      this->track_info_.sun_sectors.end(), [mjdt](const auto& sector)
+        auto sector_it = std::find_if(this->mount_track_.sun_sectors.begin(),
+                                      this->mount_track_.sun_sectors.end(), [mjdt](const auto& sector)
                                       {
                                           return mjdt >= sector.mjdt_entry && mjdt <= sector.mjdt_exit;
                                       });
 
-        if (sector_it == this->track_info_.sun_sectors.end())
+        if (sector_it == this->mount_track_.sun_sectors.end())
         {
             tracking_result.status =  PositionStatus::CANT_AVOID_SUN;
             return PositionStatus::CANT_AVOID_SUN;
@@ -269,8 +268,8 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod
 
 
         // Calculate the final tracking position and differences.
-        tracking_position.az = sun_pos.az + this->track_info_.sun_avoid_angle * std::cos(angle_avoid);
-        tracking_position.el = sun_pos.el + this->track_info_.sun_avoid_angle * std::sin(angle_avoid);
+        tracking_position.az = sun_pos.az + this->mount_track_.cfg_sun_avoid_angle * std::cos(angle_avoid);
+        tracking_position.el = sun_pos.el + this->mount_track_.cfg_sun_avoid_angle * std::sin(angle_avoid);
         tracking_position.diff_az = prediction_result.instant_data->az - tracking_position.az;
         tracking_position.diff_el = prediction_result.instant_data->el - tracking_position.el;
         tracking_result.tracking_position = std::move(tracking_position);
@@ -303,30 +302,31 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod
 void PredictorMountSLR::analyzeTracking()
 {
     // Results container and auxiliar.
-    unsigned step_ms = static_cast<unsigned>(this->track_info_.time_delta*1000);
+    unsigned step_ms = this->mount_track_.cfg_time_delta;
     PredictorSLR::SLRPredictions results_slr;
     astro::PredictorSun::SunPredictions results_sun;
 
     // Parallel calculation of all SLR positions.
-    results_slr = this->predictor_.predict(this->track_info_.mjd_start, this->track_info_.sod_start,
-                                           this->track_info_.mjd_end, this->track_info_.sod_end, step_ms);
+    results_slr = this->predictor_.predict(this->mount_track_.mjd_start, this->mount_track_.sod_start,
+                                           this->mount_track_.mjd_end, this->mount_track_.sod_end, step_ms);
 
     // Store the validation and check.
-    this->track_info_.valid_pass = !results_slr.empty();
-    if(!this->track_info_.valid_pass)
+    this->mount_track_.valid_pass = !results_slr.empty();
+    if(!this->mount_track_.valid_pass)
         return;
 
     // Time transformations.
-    J2DateTime j2000_start = timing::mjdToJ2000Datetime(this->track_info_.mjd_start, this->track_info_.sod_start);
-    J2DateTime j2000_end = timing::mjdToJ2000Datetime(this->track_info_.mjd_end, this->track_info_.sod_end);
+    J2DateTime j2000_start = timing::mjdToJ2000Datetime(this->mount_track_.mjd_start, this->mount_track_.sod_start);
+    J2DateTime j2000_end = timing::mjdToJ2000Datetime(this->mount_track_.mjd_end, this->mount_track_.sod_end);
 
     // Parallel calculation of all Sun positions. Adds time delta to end date to ensure there is enough sun positions
     // calculated.
     results_sun = this->sun_predictor_.fastPredict(
-        j2000_start, j2000_end + this->track_info_.time_delta / timing::kSecsPerDay, step_ms);
+        j2000_start, j2000_end + this->mount_track_.cfg_time_delta / timing::kSecsPerDay, step_ms);
     
     MountSLRPrediction tr;
 
+    // TODO paralelizar?
     for (std::size_t i = 0; i < results_slr.size(); i++)
     {
         tr.mjd = results_slr[i].instant_data->mjd;
@@ -336,32 +336,36 @@ void PredictorMountSLR::analyzeTracking()
         tr.tracking_position = MountPosition{results_slr[i].instant_data->az, results_slr[i].instant_data->el, 0, 0};
         tr.sun_pos = results_sun[i].position;
 
-        this->track_info_.predictions.push_back(std::move(tr));
+        this->mount_track_.predictions.push_back(std::move(tr));
         tr = {};
     }
 
-    // Now, after positions have been calculated, check them
+    // Now, after positions have been calculated, check each situation.
+    this->mount_track_.valid_pass =  this->checkTrackingStart() &&
+                                    this->checkTrackingEnd() &&
+                                    this->checkTracking();
 
-    this->track_info_.valid_pass =  this->checkTrackingStart() &&
-                                   this->checkTrackingEnd() &&
-                                   this->checkTracking();
+    // Finally store if a collision exits.
+    this->mount_track_.sun_collision = this->mount_track_.sun_sectors.empty() ||
+                                       this->mount_track_.sun_collision_at_start ||
+                                       this->mount_track_.sun_collision_at_end;
 }
 
 bool PredictorMountSLR::checkTrackingStart()
 {
-    auto start = this->track_info_.predictions.begin();
+    auto start = this->mount_track_.predictions.begin();
 
-    if (this->track_info_.avoid_sun)
+    if (this->mount_track_.cfg_sun_avoid)
     {
         // If sun avoid is activated check if tracking starts inside a sun sector. If that is the case, move the
         // tracking start to the end of the sun sector if possible
-        while (start != this->track_info_.predictions.end() &&
+        while (start != this->mount_track_.predictions.end() &&
                this->insideSunSector(*start->prediction_result->instant_data, *start->sun_pos))
         {
             // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
             // as invalid.
             if (start->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
-                start->tracking_position->el < this->track_info_.min_elev)
+                start->tracking_position->el < this->mount_track_.cfg_min_elev)
                 return false;
 
             // Set current start out of track
@@ -372,15 +376,15 @@ bool PredictorMountSLR::checkTrackingStart()
         }
 
         // If the whole tracking is within sun sector, then it is invalid.
-        if (start == this->track_info_.predictions.end())
+        if (start == this->mount_track_.predictions.end())
             return false;
 
-        if (start != this->track_info_.predictions.begin())
+        if (start != this->mount_track_.predictions.begin())
         {
             // If start has been moved, store new start
-            this->track_info_.sun_collision_at_start = true;
-            this->track_info_.mjd_start = start->mjd;
-            this->track_info_.sod_start = start->sod;
+            this->mount_track_.sun_collision_at_start = true;
+            this->mount_track_.mjd_start = start->mjd;
+            this->mount_track_.sod_start = start->sod;
         }
 
         start->status = PositionStatus::OUTSIDE_SUN;
@@ -391,13 +395,14 @@ bool PredictorMountSLR::checkTrackingStart()
         // If there was an error with prediction at start, or its elevation is below minimum, then the tracking
         // is not valid.
         if (start->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
-            start->tracking_position->el < this->track_info_.min_elev)
+            start->tracking_position->el < this->mount_track_.cfg_min_elev)
             return false;
 
         // If sun avoid is disabled, check whether position is inside or outside sun security sector
         // without changing start
         if (this->insideSunSector(*start->prediction_result->instant_data, *start->sun_pos))
         {
+            this->mount_track_.sun_collision_at_start = true;
             start->status = PositionStatus::INSIDE_SUN;
         }
         else
@@ -406,7 +411,7 @@ bool PredictorMountSLR::checkTrackingStart()
         }
     }
 
-    this->track_info_.start_elev = start->tracking_position->el;
+    this->mount_track_.start_elev = start->tracking_position->el;
 
     this->tracking_begin_ = start;
 
@@ -416,19 +421,19 @@ bool PredictorMountSLR::checkTrackingStart()
 bool PredictorMountSLR::checkTrackingEnd()
 {
 
-    auto last = this->track_info_.predictions.rbegin();
+    auto last = this->mount_track_.predictions.rbegin();
 
-    if (this->track_info_.avoid_sun)
+    if (this->mount_track_.cfg_sun_avoid)
     {
         // If sun avoid is activated check if tracking ends inside a sun sector. If that is the case, move the
         // tracking end to the start of the sun sector if possible
-        while (last != this->track_info_.predictions.rend() &&
+        while (last != this->mount_track_.predictions.rend() &&
                this->insideSunSector(*last->prediction_result->instant_data, *last->sun_pos))
         {
             // If there is an error or the sun sector covers the whole tracking, then return false, to mark this pass
             // as invalid.
             if (last->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
-                last->tracking_position->el < this->track_info_.min_elev)
+                last->tracking_position->el < this->mount_track_.cfg_min_elev)
                 return false;
 
             // Set current end as out of track
@@ -440,15 +445,15 @@ bool PredictorMountSLR::checkTrackingEnd()
 
         // If the whole tracking is at sun, then it is invalid. This should be impossible, since it should have been
         // detected at checkTrackingStart.
-        if (last == this->track_info_.predictions.rend())
+        if (last == this->mount_track_.predictions.rend())
             return false;
 
-        if (last != this->track_info_.predictions.rbegin())
+        if (last != this->mount_track_.predictions.rbegin())
         {
             // If end has been moved, store new end
-            this->track_info_.sun_collision_at_end = true;
-            this->track_info_.mjd_end = last->mjd;
-            this->track_info_.sod_end = last->sod;
+            this->mount_track_.sun_collision_at_end = true;
+            this->mount_track_.mjd_end = last->mjd;
+            this->mount_track_.sod_end = last->sod;
         }
 
         last->status = PositionStatus::OUTSIDE_SUN;
@@ -458,7 +463,7 @@ bool PredictorMountSLR::checkTrackingEnd()
         // If there was an error with prediction at end, or its elevation is below minimum, then the tracking
         // is not valid.
         if (last->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
-            last->tracking_position->el < this->track_info_.min_elev)
+            last->tracking_position->el < this->mount_track_.cfg_min_elev)
             return false;
 
         // If sun avoid is disabled, check whether position is inside or outside sun security sector
@@ -473,7 +478,7 @@ bool PredictorMountSLR::checkTrackingEnd()
         }
     }
 
-    this->track_info_.end_elev = last->tracking_position->el;
+    this->mount_track_.end_elev = last->tracking_position->el;
 
     this->tracking_end_ = (last + 1).base();
 
@@ -497,7 +502,7 @@ bool PredictorMountSLR::checkTracking()
 
         // If position cannot be predicted for this time, or elevation is below minimum, then tracking is not valid.
         if (it->prediction_result->error != PredictorSLR::PredictionError::NO_ERROR ||
-            it->tracking_position->el < this->track_info_.min_elev)
+            it->tracking_position->el < this->mount_track_.cfg_min_elev)
             return false;
 
         // Check if this position is inside sun security sector
@@ -508,7 +513,7 @@ bool PredictorMountSLR::checkTracking()
         it->status = sun_collision ? PositionStatus::INSIDE_SUN : PositionStatus::OUTSIDE_SUN;
 
 
-        if (this->track_info_.avoid_sun)
+        if (this->mount_track_.cfg_sun_avoid)
         {
             // If sun avoid is applied we have to store the data for each sector  where the tracking goes through a sun security sector.
             // This data will be used for calculating an alternative trajetctory at those sectors.
@@ -539,7 +544,7 @@ bool PredictorMountSLR::checkTracking()
                 if (!this->setSunSectorRotationDirection(sun_sector, sun_sector_start, it))
                     return false;
                 this->checkSunSectorPositions(sun_sector, sun_sector_start, it);
-                this->track_info_.sun_sectors.push_back(std::move(sun_sector));
+                this->mount_track_.sun_sectors.push_back(std::move(sun_sector));
                 sun_sector = {};
             }
         }
@@ -557,16 +562,16 @@ bool PredictorMountSLR::checkTracking()
     // starting the sector. This case should be almost impossible.
     if (in_sun_sector)
     {
-        timing::MjdtToMjdAndSecs(sun_sector.mjdt_entry, this->track_info_.mjd_end, this->track_info_.sod_end);
-        for (auto it = sun_sector_start + 1; it !=this->track_info_.predictions.end(); it++)
+        timing::MjdtToMjdAndSecs(sun_sector.mjdt_entry, this->mount_track_.mjd_end, this->mount_track_.sod_end);
+        for (auto it = sun_sector_start + 1; it !=this->mount_track_.predictions.end(); it++)
             it->status = PositionStatus::OUT_OF_TRACK;
         this->tracking_end_ = sun_sector_start;
-        this->track_info_.sun_collision_at_end = true;
+        this->mount_track_.sun_collision_at_end = true;
     }
 
-    this->track_info_.max_elev = max_elev;
-    this->track_info_.mjd_max_elev = max_elev_mjd;
-    this->track_info_.sod_max_elev = max_elev_sod;
+    this->mount_track_.max_elev = max_elev;
+    this->mount_track_.mjd_max_elev = max_elev_mjd;
+    this->mount_track_.sod_max_elev = max_elev_sod;
 
     return true;
 }
@@ -575,12 +580,12 @@ bool PredictorMountSLR::insideSunSector(const InstantData &pos,
                                   const SunPosition &sun_pos) const
 {
 
-    if (sun_pos.el < -this->track_info_.sun_avoid_angle)
+    if (sun_pos.el < -this->mount_track_.cfg_sun_avoid_angle)
     {
         // If sun security sector is below horizon, return false
         return false;
     }
-    else if (sun_pos.el > - this->track_info_.sun_avoid_angle && sun_pos.el < 0.L)
+    else if (sun_pos.el > - this->mount_track_.cfg_sun_avoid_angle && sun_pos.el < 0.L)
     {
         // If sun is below horizon, but the security sector is above, calculate distance as cartesian points.
         long double diff_az = pos.az - sun_pos.az;
@@ -588,7 +593,7 @@ bool PredictorMountSLR::insideSunSector(const InstantData &pos,
         if (diff_az > 180.L)
             diff_az = 360.L - diff_az;
         long double diff_el = pos.el - sun_pos.el;
-        return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->track_info_.sun_avoid_angle;
+        return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->mount_track_.cfg_sun_avoid_angle;
     }
     else
     {
@@ -609,7 +614,7 @@ bool PredictorMountSLR::insideSunSector(const InstantData &pos,
         long double diff_angles = (az_gon - sun_az_gon) * math::kPi / 180.L;
 
         return std::sqrt(zenith * zenith + zenith_sun * zenith_sun - 2.L*zenith*zenith_sun*std::cos(diff_angles)) <
-               this->track_info_.sun_avoid_angle;
+               this->mount_track_.cfg_sun_avoid_angle;
     }
 
 
@@ -618,9 +623,8 @@ bool PredictorMountSLR::insideSunSector(const InstantData &pos,
 bool PredictorMountSLR::setSunSectorRotationDirection(
     SunCollisionSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end)
 {
-
-    MJDateTime mjdt = sector.mjdt_entry + this->track_info_.time_delta /
-                                              static_cast<long double>(timing::kSecsPerDay);
+    long double sec_delta = this->mount_track_.cfg_time_delta/1000.0L;
+    MJDateTime mjdt = sector.mjdt_entry + sec_delta / static_cast<long double>(timing::kSecsPerDay);
     bool valid_cw = true;
     bool valid_ccw = true;
 
@@ -660,14 +664,14 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
                 ccw_angle -= 2 * math::kPi;
         }
 
-        long double elev_cw = it->sun_pos->el + this->track_info_.sun_avoid_angle * std::sin(cw_angle);
-        long double elev_ccw = it->sun_pos->el + this->track_info_.sun_avoid_angle * std::sin(ccw_angle);
+        long double elev_cw = it->sun_pos->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(cw_angle);
+        long double elev_ccw = it->sun_pos->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(ccw_angle);
 
 
-        if (elev_cw > 90.L || elev_cw < this->track_info_.min_elev)
+        if (elev_cw > 90.L || elev_cw < this->mount_track_.cfg_min_elev)
             valid_cw = false;
 
-        if (elev_ccw > 90.L || elev_ccw < this->track_info_.min_elev)
+        if (elev_ccw > 90.L || elev_ccw < this->mount_track_.cfg_min_elev)
             valid_ccw = false;
 
     }
@@ -716,8 +720,8 @@ void PredictorMountSLR::checkSunSectorPositions(
     for (auto it = sun_start + 1; it != sun_end; it++)
     {
         long double angle_avoid = this->calcSunAvoidTrajectory(it->mjdt, sector, *it->sun_pos);
-        it->tracking_position->az = it->sun_pos->az + this->track_info_.sun_avoid_angle * std::cos(angle_avoid);
-        it->tracking_position->el = it->sun_pos->el + this->track_info_.sun_avoid_angle * std::sin(angle_avoid);
+        it->tracking_position->az = it->sun_pos->az + this->mount_track_.cfg_sun_avoid_angle * std::cos(angle_avoid);
+        it->tracking_position->el = it->sun_pos->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(angle_avoid);
         it->tracking_position->diff_az = it->prediction_result->instant_data->az - it->tracking_position->az;
         it->tracking_position->diff_el = it->prediction_result->instant_data->el - it->tracking_position->el;
         it->status = PositionStatus::AVOIDING_SUN;
@@ -777,13 +781,14 @@ PredictorMountSLR::MountTrackSLR::MountTrackSLR(const CPF &cpf, const PredictorS
     start_elev(0),
     end_elev(0),
     max_elev(0),
-    min_elev(0),
     valid_pass(false),
-    avoid_sun(false),
+    sun_collision(false),
     sun_collision_at_start(false),
     sun_collision_at_end(false),
-    time_delta(0),
-    sun_avoid_angle(0),
+    cfg_sun_avoid(false),
+    cfg_time_delta(0),
+    cfg_sun_avoid_angle(0),
+    cfg_min_elev(0),
     cpf(cpf),
     predictor_slr(predictor_slr),
     predictor_sun(predictor_sun)

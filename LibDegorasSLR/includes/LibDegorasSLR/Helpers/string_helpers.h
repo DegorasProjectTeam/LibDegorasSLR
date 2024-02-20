@@ -51,8 +51,6 @@ namespace helpers{
 namespace strings{
 // =====================================================================================================================
 
-LIBDPSLR_EXPORT std::string hola();
-
 // Transform a string to upper case.
 LIBDPSLR_EXPORT std::string toUpper(const std::string& str);
 

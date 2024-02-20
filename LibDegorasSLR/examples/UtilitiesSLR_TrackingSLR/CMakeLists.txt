@@ -13,7 +13,7 @@
 set(EXAMPLE_NAME UtilitiesSLR_TrackingSLR)
 set(EXAMPLE_DIR ${CMAKE_SOURCE_DIR}/examples/${EXAMPLE_NAME})
 set(EXAMPLE_SOURCES ${EXAMPLE_DIR}/UtilitiesSLR_TrackingSLR.cpp)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH}/${EXAMPLE_NAME}/)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Examples/${EXAMPLE_NAME}")
 
 # Setup the launcher.
 macro_setup_launcher("${EXAMPLE_NAME}"
@@ -22,9 +22,9 @@ macro_setup_launcher("${EXAMPLE_NAME}"
                      "${EXAMPLE_SOURCES}")
 
 # Add to the build step the necessary input files for the example.
-add_custom_command(TARGET ${EXAMPLE_NAME} PRE_BUILD
+add_custom_command(TARGET "${EXAMPLE_NAME}" PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
-                   "${EXAMPLE_DIR}/inputs/" $<TARGET_FILE_DIR:${EXAMPLE_NAME}>"/inputs")
+                   ${EXAMPLE_DIR}"/inputs/" $<TARGET_FILE_DIR:${EXAMPLE_NAME}>"/inputs")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE COMPILERS

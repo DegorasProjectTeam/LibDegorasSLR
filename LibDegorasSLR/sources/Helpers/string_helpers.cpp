@@ -135,8 +135,5 @@ std::string fillStr(const std::string& fillChar, size_t width)
     return result;
 }
 
-std::string hola()
-{return "hola";}
-
 }}}// END NAMESPACES.
 // =====================================================================================================================

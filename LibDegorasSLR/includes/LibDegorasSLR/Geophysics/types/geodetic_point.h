@@ -87,5 +87,8 @@ struct LIBDPSLR_EXPORT GeodeticPoint
     inline constexpr Container store() const {return Container{lat, lon, alt};}
 };
 
+/// Alias for long double GeodeticPoint specialization.
+using GeodeticPointLD = GeodeticPoint<long double>;
+
 }}} // END NAMESPACES.
 // =====================================================================================================================

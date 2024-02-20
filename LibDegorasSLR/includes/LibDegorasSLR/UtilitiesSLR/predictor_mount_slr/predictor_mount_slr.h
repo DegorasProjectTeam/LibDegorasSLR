@@ -108,7 +108,7 @@ public:
      * This enumeration defines the status of a tracking position with respect to the Sun's position and the predictor.
      * It is used to quickly identify the tracking scenario and take appropriate action based on the status.
      */
-    enum PositionStatus
+    enum class PositionStatus
     {
         OUTSIDE_SUN,        ///< The final mount position is outside the sun.
         INSIDE_SUN,         ///< The final mount position is in the Sun and is configured for not avoiding.
@@ -133,7 +133,7 @@ public:
         bool cw;                    ///< Rotation direction of the avoidance manoeuvre (true = cw, false = ccw).
     };
 
-    ///< Alias for vector of SunCollisionSector.
+    /// Alias for vector of SunCollisionSector.
     using SunCollisionSectors = std::vector<SunCollisionSector>;
 
     /**
@@ -182,7 +182,7 @@ public:
         PositionStatus status;  ///< The current postion status.
     };
 
-    ///< Alias for Tracking results vector.
+    /// Alias for Tracking results vector.
     using MountSLRPredictions = std::vector<MountSLRPrediction>;
 
     struct MountTrackSLR
@@ -210,7 +210,6 @@ public:
         long double start_elev;     ///< Track start elevation (degrees).
         long double end_elev;       ///< Track end elevation.
         long double max_elev;       ///< TODO
-        long double min_elev;       ///< Track minimum elevation (degrees).
 
         // ======================================================================
 
@@ -218,13 +217,15 @@ public:
 
         // Flags.
         bool valid_pass;              ///< Flag indicating if the pass is valid.
-        bool avoid_sun;               ///< Flag indicating if the track is configured for avoid the Sun.
+        bool sun_collision;           ///< Flag indicating if the pass has a collision with the Sun.
         bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
         bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
 
-        // Others.
-        unsigned time_delta;        ///< Time delta fo calculations in milliseconds.
-        unsigned sun_avoid_angle;   ///< Avoid angle for Sun collisions in degrees.
+        // Configurations.
+        bool cfg_sun_avoid;            ///< Flag indicating if the track is configured for avoid the Sun.
+        unsigned cfg_time_delta;       ///< Time delta fo calculations in milliseconds.
+        unsigned cfg_sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
+        unsigned cfg_min_elev;         ///< Configured minimum elevation (degrees).
 
         // Result containers.
         SunCollisionSectors sun_sectors;    ///< Sun sectors in the track for the required time interval.
@@ -255,7 +256,7 @@ public:
      * @brief This function returns the tracking info available.
      * @return the tracking info.
      */
-    const MountTrackSLR& getTrackingInfo() const;
+    const MountTrackSLR& getMountTrack() const;
 
     /**
      * @brief This function returns the minimum elevation of this tracking in degrees.
@@ -372,7 +373,7 @@ private:
     // Private members.
     PredictorSLR predictor_;               ///< SLR predictor.
     astro::PredictorSun sun_predictor_;    ///< Sun predictor.
-    MountTrackSLR track_info_;                  ///< Track information.
+    MountTrackSLR mount_track_;            ///< Mount track analyzed data.
 
     MountSLRPredictions::iterator tracking_begin_;
     MountSLRPredictions::iterator tracking_end_;
