@@ -174,6 +174,8 @@ public:
      */
     struct MountSLRPrediction
     {
+        MountSLRPrediction() = default;
+
         // Datetime members.
         MJDate mjd;              ///< Modified Julian Date in days.
         SoD sod;                 ///< Second of day in that Modified Julian Date.

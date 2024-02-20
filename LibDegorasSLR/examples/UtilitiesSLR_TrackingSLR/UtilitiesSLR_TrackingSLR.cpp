@@ -93,9 +93,9 @@ int main()
     long double z = 3769892.958L;
 
     // TrackingSLR configuration.
-    unsigned step_ms = 100;             // Milliseconds.
+    unsigned step_ms = 1000;            // Milliseconds.
     unsigned min_el = 8;                // Degrees.
-    unsigned sun_avoid_angle = 10;      // Degrees.
+    unsigned sun_avoid_angle = 15;      // Degrees.
     bool avoid_sun = true;              // Enable or disable the sun avoidance.
 
     // Configure the CPF folder and example file.
@@ -106,11 +106,11 @@ int main()
     // Examples vector with their configurations.
     std::vector<ExampleData> examples =
     {
-        // Example 1: Lares with Sun at beginning.
+        // Example 0: Lares with Sun at beginning.
         {"Lares_SunBeg", "38077_cpf_240128_02901.sgf", 60340, 56726.0L, 60340, 57756.0L},
-        // Example 2: Jason 3 with Sun in the middle.
+        // Example 1: Jason 3 with Sun in the middle.
         {"Jason3_SunMid", "41240_cpf_240128_02801.hts", 60340, 42140.0L, 60340, 43150.0L},
-        // Example 3: Explorer 27 with Sun in the end.
+        // Example 2: Explorer 27 with Sun in the end.
         {"Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", 60340, 30687.0L, 60340, 31467.0L}
     };
 
@@ -221,29 +221,45 @@ int main()
     // Show the data.
     std::cout<<data.str();
 
+    // --
     // Store the analyzed track data into a CSV file (only part of the data for easy usage).
     // --
     // Create the file and header.
     std::ofstream file_analyzed_track(output_dir + "/" + example_alias + "_track.csv", std::ios_base::out);
     file_analyzed_track << data.str();
     file_analyzed_track << "mjd;sod;pass_az;pass_el;track_az;track_el;sun_az;sun_el";
-    // --
-    // Store the data. At this point, all the the position data must be valid. If the predictor had
-    // failed or the data entered did not match a pass, the tracking would not be valid directly.
+    //
+    // Iterate the predictions. At this point, all the the real satellite position data must be valid. If the
+    // predictor had failed or the data entered did not match a pass, the tracking would not be valid directly.
     for(const auto& pred : mount_track.predictions)
     {
+        // Auxiliar container for track data.
+        std::string track_az = "";
+        std::string track_el = "";
+        //
+        // At this point, you only must check if the prediction is outside track. This is becaouse, for example,
+        // the beginning of the real satellite pass may coincide with the Sun sector, so at those points there
+        // would be no data from the mount's track, only the real pass.
+        if(pred.status != PredictorMountSLR::PositionStatus::OUT_OF_TRACK)
+        {
+            track_az = numberToStr(pred.tracking_position->az,7, 4);
+            track_el = numberToStr(pred.tracking_position->el,7, 4);
+        }
+        //
+        // Store the data.
         file_analyzed_track <<'\n';
         file_analyzed_track << std::to_string(pred.mjd) <<";" << std::to_string(pred.sod) <<";";
         file_analyzed_track << numberToStr(pred.prediction_result->instant_data->az,7, 4) <<";";
         file_analyzed_track << numberToStr(pred.prediction_result->instant_data->el,7, 4) <<";";
-        file_analyzed_track << numberToStr(pred.tracking_position->az,7, 4) <<";";
-        file_analyzed_track << numberToStr(pred.tracking_position->el,7, 4) <<";";
+        file_analyzed_track << track_az <<";";
+        file_analyzed_track << track_el <<";";
         file_analyzed_track << numberToStr(pred.sun_position->az,7, 4) <<";";
         file_analyzed_track << numberToStr(pred.sun_position->el,7, 4);
     }
-    // --
+    //
     // Close the file.
     file_analyzed_track.close();
+    // --
 
     // -------------------- NOW LET'S START CALCULATING PREDICTIONS ----------------------------------------------------
 
