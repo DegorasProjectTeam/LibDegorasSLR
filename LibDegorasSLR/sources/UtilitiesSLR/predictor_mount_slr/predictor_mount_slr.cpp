@@ -86,20 +86,6 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start,
     // Check Degoras initialization.
     dpslr::DegorasInit::checkMandatoryInit();
 
-    // Store the data.
-    this->mount_track_.mjd_start = mjd_start;
-    this->mount_track_.sod_start = sod_start;
-    this->mount_track_.mjd_end = mjd_end;
-    this->mount_track_.sod_end = sod_end;
-    this->mount_track_.cfg_min_elev = min_elev_deg;
-    this->mount_track_.cfg_time_delta = time_delta_ms;
-    this->mount_track_.cfg_sun_avoid_angle = sun_avoid_angle;
-    this->mount_track_.cfg_sun_avoid = sun_avoid;
-    this->mount_track_.sun_collision = false;
-    this->mount_track_.sun_collision_at_start = false;
-    this->mount_track_.sun_collision_at_end = false;
-
-
     // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
     this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
 
@@ -116,30 +102,6 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const HRTimePoint
     mount_track_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
 {
 
-    // Check too high values for the minimum elevation, so the algorithm can fail.
-    if(min_elev_deg >= 70)
-        throw std::invalid_argument("[LibDegorasSLR,UtilitiesSLR,PredictorMountSLR] Min elevation too high: "
-                                    + std::to_string(min_elev_deg));
-
-    // Check Degoras initialization.
-    dpslr::DegorasInit::checkMandatoryInit();
-
-    // Store the data.
-    this->mount_track_.cfg_min_elev = min_elev_deg;
-    this->mount_track_.cfg_time_delta = time_delta_ms;
-    this->mount_track_.cfg_sun_avoid_angle = sun_avoid_angle;
-    this->mount_track_.cfg_sun_avoid = sun_avoid;
-    this->mount_track_.sun_collision = false;
-    this->mount_track_.sun_collision_at_start = false;
-    this->mount_track_.sun_collision_at_end = false;
-    timing::timePointToModifiedJulianDate(tp_start, this->mount_track_.mjd_start, this->mount_track_.sod_start);
-    timing::timePointToModifiedJulianDate(tp_end, this->mount_track_.mjd_end, this->mount_track_.sod_end);
-
-    // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
-    this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
-
-    // Analyze the tracking.
-    this->analyzeTracking();
 }
 
 bool PredictorMountSLR::isValid() const
