@@ -46,6 +46,7 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Astronomical/common/astro_types.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
 // =====================================================================================================================
@@ -64,6 +65,8 @@ namespace astro{
 namespace novas{
 // =====================================================================================================================
 
+
+//LIBDPSLR_EXPORT types::AltAzPosition getStarAltAzPosition(const types::Star &star, );
 
 LIBDPSLR_EXPORT on_surface makeOnSurface(const GeodeticPoint<double>& geod, const MeteoData& meteo);
 

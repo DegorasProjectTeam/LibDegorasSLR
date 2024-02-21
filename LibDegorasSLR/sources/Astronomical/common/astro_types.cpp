@@ -1,6 +1,7 @@
 
 // C++ INCLUDES
 //======================================================================================================================
+#include <cmath>
 // =====================================================================================================================
 
 // PROJECT INCLUDES
@@ -24,6 +25,68 @@ AltAzPosition::AltAzPosition(Degrees az, Degrees el):
     el(el)
 {
     // TODO NORMALIZE AZ EL
+}
+
+RA::RA(int hour, int min, double sec) :
+    hour(hour),
+    min(min),
+    sec(sec)
+{
+    this->ra = hour + min / 60. + sec / 3600.;
+}
+
+RA::RA(double ra) :
+    ra(ra)
+{
+    double integer, fract;
+    fract = std::modf(ra, &integer);
+
+    this->hour = static_cast<int>(integer);
+
+    this->sec = std::modf(fract * 60, &integer) * 60;
+
+    this->min = static_cast<int>(integer);
+}
+
+RA::operator double()
+{
+    return this->ra;
+}
+
+bool RA::checkRA(int h, int min, double sec)
+{
+    return h >= 0 && h <= 23 && min >= 0 && min <= 59 && sec >= 0. && sec < 60.;
+}
+
+Dec::Dec(int deg, int min, double sec):
+    deg(deg),
+    min(min),
+    sec(sec)
+{
+    this->dec = deg + min / 60. + sec / 3600.;
+}
+
+Dec::Dec(double dec) :
+    dec(dec)
+{
+    double integer, fract;
+    fract = std::modf(dec, &integer);
+
+    this->deg = static_cast<int>(integer);
+
+    this->sec = std::modf(fract * 60, &integer) * 60;
+
+    this->min = static_cast<int>(integer);
+}
+
+Dec::operator double()
+{
+    return this->dec;
+}
+
+bool Dec::checkDec(int deg, int min, double sec)
+{
+    return deg > -90 && deg < 90 && min >= 0 && min <= 59 && sec >= 0. && sec < 60.;
 }
 
 

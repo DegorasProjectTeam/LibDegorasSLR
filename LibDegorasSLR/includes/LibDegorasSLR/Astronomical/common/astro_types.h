@@ -82,10 +82,44 @@ struct LIBDPSLR_EXPORT RA
 
     operator double ();
 
+    static bool checkRA(int h, int min, double sec);
+
     int hour;
     int min;
     double sec;
     double ra;
+};
+
+struct LIBDPSLR_EXPORT Dec
+{
+    Dec(int deg, int min, double sec);
+    Dec(double dec);
+    Dec(const Dec&) = default;
+    Dec(Dec&&) = default;
+    Dec& operator=(const Dec&) = default;
+    Dec& operator=(Dec&&) = default;
+
+    operator double ();
+
+    static bool checkDec(int deg, int min, double sec);
+
+    int deg;
+    int min;
+    double sec;
+    double dec;
+};
+
+struct LIBDPSLR_EXPORT Star
+{
+    RA ra;
+    Dec dec;
+    std::string star_name;
+    std::string catalog_name;
+    int id;
+    double pm_ra;
+    double pm_dec;
+    double parallax;
+    double rad_vel;
 };
 
 struct LIBDPSLR_EXPORT AltAzPosition

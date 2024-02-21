@@ -614,7 +614,7 @@ bool PredictorMountSLR::checkTracking()
     return true;
 }
 
-bool PredictorMountSLR::insideSunSector(const InstantData& pos, const SunPosition& sun_pos) const
+bool PredictorMountSLR::insideSunSector(const InstantData &pos, const SunPosition &sun_pos) const
 {
     // Store the avoid angle.
     long double avoid_angle = static_cast<long double>(this->mount_track_.cfg_sun_avoid_angle);
@@ -641,21 +641,20 @@ bool PredictorMountSLR::insideSunSector(const InstantData& pos, const SunPositio
         // We also have to convert angle from north to east direction (0 at north, increases cw)
         // to goniometric (0 is at east increases ccw)
 
-        long double zenith = 90.L - pos.el;
-        long double zenith_sun = 90.L - sun_pos.el;
-        long double az_gon = 360 - (pos.az - 90.L);
-        if (az_gon >= 360.L)
-            az_gon -= 360.L;
-        long double sun_az_gon = 360 - (sun_pos.az - 90.L);
-        if (sun_az_gon >= 360.L)
-            sun_az_gon -= 360.L;
+    using std::sin;
+    using std::cos;
 
-        long double diff_angles = (az_gon - sun_az_gon) * math::kPi / 180.L;
+    long double az_rad = pos.az * math::kPi / 180;
+    long double el_rad = pos.el * math::kPi / 180;
+    long double az_sun_rad = sun_pos.az * math::kPi / 180;
+    long double el_sun_rad = sun_pos.el * math::kPi / 180;
 
         return std::sqrt(zenith * zenith + zenith_sun * zenith_sun - 2.L*zenith*zenith_sun*std::cos(diff_angles)) <
                avoid_angle;
     }
+    long double d = sin(el_rad) * sin(el_sun_rad) + cos(el_rad) * cos(el_sun_rad) * cos(az_rad - az_sun_rad);
 
+    return std::acos(d) < this->track_info_.sun_avoid_angle;
 
 }
 
