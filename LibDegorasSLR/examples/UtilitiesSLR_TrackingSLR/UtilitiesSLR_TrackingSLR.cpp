@@ -32,6 +32,7 @@
 // =====================================================================================================================
 #include <iostream>
 #include <string>
+#include <cstdlib>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
@@ -98,16 +99,17 @@ int main()
     Meters z = 3769892.958L;
 
     // TrackingSLR configuration.
-    MillisecondsU step_ms = 100;
-    DegreesU min_el = 15;
-    DegreesU max_el = 80;
-    DegreesU sun_avoid_angle = 15;
-    bool avoid_sun = true;
+    MillisecondsU step = 100;        // Steps into which the algorithm will divide the pass for analysis.
+    DegreesU min_el = 15;            // Minimum acceptable elevation for the mount.
+    DegreesU max_el = 80;            // Maximum acceptable elevation for the mount.
+    DegreesU sun_avoid_angle = 15;   // Sun avoidance angle to make Sun the security sectors.
+    bool avoid_sun = true;           // Flag for enable or disable the Sun avoidance utility.
 
-    // Configure the CPF folder and example file.
-    std::string current_dir = dpslr::helpers::files::getCurrentDir();
-    std::string input_dir(current_dir+"/inputs");
-    std::string output_dir(current_dir+"/outputs");
+    // Selectors.
+    size_t example_selector = 0;    // Select the example to process.
+    bool plot_data = true;          // Flag for enable the data plotting using a Python3 helper script.
+
+    // -------------------- EXAMPLE PREPARATION ------------------------------------------------------------------------
 
     // Examples vector with their configurations.
     std::vector<ExampleData> examples =
@@ -122,8 +124,14 @@ int main()
             {"Jason3_Sun_Mid", "41240_cpf_240128_02801.hts", 60340, 35250, 60340, 36060},
         };
 
-    // Example selector.
-    size_t example_selector = 2;
+    // Configure the CPF input folder.
+    std::string current_dir = dpslr::helpers::files::getCurrentDir();
+    std::string input_dir(current_dir+"/inputs");
+    std::string output_dir(current_dir+"/outputs");
+
+    // Configure the python script executable.
+    std::string python_plot_exec(current_dir+"/python_scripts/Plots_UtilitiesSLR_TrackingSLR.py");
+    std::string python_cmd = "python \"" + python_plot_exec + "\" ";
 
     // Store the example data.
     std::string cpf_path = input_dir + "/" + examples[example_selector].cpf_name;
@@ -132,6 +140,7 @@ int main()
     MJDate mjd_end = examples[example_selector].mjd_end;
     SoD sod_end = examples[example_selector].sod_end;
     std::string example_alias = examples[example_selector].example_alias;
+    std::string track_csv_filename = example_alias + "_track.csv";
 
     // Check the input file.
     if(!dpslr::helpers::files::fileExists(cpf_path))
@@ -173,7 +182,7 @@ int main()
     // Configure the SLR predictor_mount. The class will process the pass automatically and will
     // generate a preview mount track in the steps indicated by step_ms.
     PredictorMountSLR predictor_mount(std::move(predictor_slr), mjd_start, sod_start, mjd_end, sod_end,
-                                      step_ms, min_el, max_el , sun_avoid_angle, avoid_sun);
+                                      step, min_el, max_el , sun_avoid_angle, avoid_sun);
 
     // Check if the tracking is valid.
     if (!predictor_mount.isValid())
@@ -237,7 +246,7 @@ int main()
     // Store the analyzed track data into a CSV file (only part of the data for easy usage).
     // --
     // Create the file and header.
-    std::ofstream file_analyzed_track(output_dir + "/" + example_alias + "_track.csv", std::ios_base::out);
+    std::ofstream file_analyzed_track(output_dir + "/" + track_csv_filename, std::ios_base::out);
     file_analyzed_track << data.str();
     file_analyzed_track << "mjd;sod;pass_az;pass_el;track_az;track_el;sun_az;sun_el";
     //
@@ -272,6 +281,12 @@ int main()
     // Close the file.
     file_analyzed_track.close();
     // --
+
+    if(plot_data)
+    {
+        python_cmd += (output_dir + "/" + track_csv_filename);
+        int result = system(python_cmd.c_str());
+    }
 
     // -------------------- NOW LET'S START CALCULATING PREDICTIONS ----------------------------------------------------
 

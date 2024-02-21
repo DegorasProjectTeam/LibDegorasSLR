@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Circle, Wedge
 
@@ -42,8 +43,15 @@ if __name__ == "__main__":
     selector = 2
     plot_all = True
 
+    if len(sys.argv) > 1:
+        # Use the first argument as the filename
+        filename = sys.argv[1]
+    else:
+        # Use a default file from the list if no argument is provided
+        filename = output_dir + '/' + files[selector]
+
     # Read positions from files
-    pass_positions, track_positions, sun_positions = read_positions(output_dir + '/' + files[selector])
+    pass_positions, track_positions, sun_positions = read_positions(filename)
 
     # Extract data
     pass_azimuths = [np.radians(pos[0]) for pos in pass_positions]
