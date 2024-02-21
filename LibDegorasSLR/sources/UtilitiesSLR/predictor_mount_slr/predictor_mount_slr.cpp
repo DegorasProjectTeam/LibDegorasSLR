@@ -86,6 +86,18 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start,
     // Check Degoras initialization.
     dpslr::DegorasInit::checkMandatoryInit();
 
+    // Store the data.
+    this->mount_track_.mjd_start = mjd_start;
+    this->mount_track_.sod_start = sod_start;
+    this->mount_track_.mjd_end = mjd_end;
+    this->mount_track_.sod_end = sod_end;
+    this->mount_track_.cfg_min_elev = min_elev_deg;
+    this->mount_track_.cfg_time_delta = time_delta_ms;
+    this->mount_track_.cfg_sun_avoid_angle = sun_avoid_angle;
+    this->mount_track_.cfg_sun_avoid = sun_avoid;
+    this->mount_track_.sun_collision = false;
+    this->mount_track_.sun_collision_at_start = false;
+    this->mount_track_.sun_collision_at_end = false;
 
 
     // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
@@ -104,6 +116,30 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const HRTimePoint
     mount_track_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
 {
 
+    // Check too high values for the minimum elevation, so the algorithm can fail.
+    if(min_elev_deg >= 70)
+        throw std::invalid_argument("[LibDegorasSLR,UtilitiesSLR,PredictorMountSLR] Min elevation too high: "
+                                    + std::to_string(min_elev_deg));
+
+    // Check Degoras initialization.
+    dpslr::DegorasInit::checkMandatoryInit();
+
+    // Store the data.
+    this->mount_track_.cfg_min_elev = min_elev_deg;
+    this->mount_track_.cfg_time_delta = time_delta_ms;
+    this->mount_track_.cfg_sun_avoid_angle = sun_avoid_angle;
+    this->mount_track_.cfg_sun_avoid = sun_avoid;
+    this->mount_track_.sun_collision = false;
+    this->mount_track_.sun_collision_at_start = false;
+    this->mount_track_.sun_collision_at_end = false;
+    timing::timePointToModifiedJulianDate(tp_start, this->mount_track_.mjd_start, this->mount_track_.sod_start);
+    timing::timePointToModifiedJulianDate(tp_end, this->mount_track_.mjd_end, this->mount_track_.sod_end);
+
+    // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
+    this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
+
+    // Analyze the tracking.
+    this->analyzeTracking();
 }
 
 bool PredictorMountSLR::isValid() const
@@ -150,9 +186,7 @@ bool PredictorMountSLR::getSunAvoidApplied() const
 
 bool PredictorMountSLR::isSunOverlapping() const
 {
-    return (!this->mount_track_.sun_sectors.empty() ||
-            this->mount_track_.sun_collision_at_start ||
-            this->mount_track_.sun_collision_at_end) ;
+    return this->mount_track_.sun_collision;
 }
 
 bool PredictorMountSLR::isSunAtStart() const
@@ -242,10 +276,22 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod
 
         // Calculate the final tracking position and differences.
         tracking_position.az = sun_pos.az + this->mount_track_.cfg_sun_avoid_angle * std::cos(angle_avoid);
+        if (tracking_position.az < 0.L)
+            tracking_position.az += 360.L;
         tracking_position.el = sun_pos.el + this->mount_track_.cfg_sun_avoid_angle * std::sin(angle_avoid);
         tracking_position.diff_az = prediction_result.instant_data->az - tracking_position.az;
         tracking_position.diff_el = prediction_result.instant_data->el - tracking_position.el;
         tracking_result.tracking_position = std::move(tracking_position);
+
+        // utils::InstantData id;
+        // id.az = tracking_position.az;
+        // id.el = tracking_position.el;
+        // if (this->insideSunSector(id,sun_pos))
+        // {
+        //     tracking_result.status =  PositionStatus::CANT_AVOID_SUN;
+        //     return PositionStatus::CANT_AVOID_SUN;
+        // }
+
 
         // Return the status.
         tracking_result.status =  PositionStatus::AVOIDING_SUN;
@@ -346,9 +392,9 @@ void PredictorMountSLR::analyzeTracking()
     //                                 this->checkTracking();
 
     // Finally store if a collision exits.
-    //this->mount_track_.sun_collision = this->mount_track_.sun_sectors.empty() ||
-    //                                   this->mount_track_.sun_collision_at_start ||
-    //                                   this->mount_track_.sun_collision_at_end;
+    // this->mount_track_.sun_collision = !this->mount_track_.sun_sectors.empty() ||
+    //                                    this->mount_track_.sun_collision_at_start ||
+    //                                    this->mount_track_.sun_collision_at_end;
 }
 
 bool PredictorMountSLR::checkTrackingStart()
@@ -616,54 +662,20 @@ bool PredictorMountSLR::checkTracking()
 
 bool PredictorMountSLR::insideSunSector(const InstantData &pos, const SunPosition &sun_pos) const
 {
-    // Store the avoid angle.
-    long double avoid_angle = static_cast<long double>(this->mount_track_.cfg_sun_avoid_angle);
 
-    if (sun_pos.el < -avoid_angle)
-    {
-        // If sun security sector is below horizon, return false
-        return false;
-    }
-    else if (sun_pos.el > -avoid_angle && sun_pos.el < 0.L)
-    {
-        // If sun is below horizon, but the security sector is above, calculate distance as cartesian points.
-        long double diff_az = pos.az - sun_pos.az;
-        // If azimuth difference is greater than 180, then take the shorter way
-        if (diff_az > 180.L)
-            diff_az = 360.L - diff_az;
-        long double diff_el = pos.el - sun_pos.el;
-        return std::sqrt(diff_az * diff_az + diff_el * diff_el) < avoid_angle;
-    }
-    else
-    {
-        // If sun is above the horizon, calculate the distance between polar coordinates.
-        // We have to convert elevation to zenith angle, since the 0 must be at zenith.
-        // We also have to convert angle from north to east direction (0 at north, increases cw)
-        // to goniometric (0 is at east increases ccw)
+    long double diff_az = pos.az - sun_pos.az;
+    // If azimuth difference is greater than 180, then take the shorter way
+    if (diff_az > 180.L)
+        diff_az = 360.L - diff_az;
+    long double diff_el = pos.el - sun_pos.el;
+    return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->mount_track_.cfg_sun_avoid_angle;
 
-    using std::sin;
-    using std::cos;
-
-    long double az_rad = pos.az * math::kPi / 180;
-    long double el_rad = pos.el * math::kPi / 180;
-    long double az_sun_rad = sun_pos.az * math::kPi / 180;
-    long double el_sun_rad = sun_pos.el * math::kPi / 180;
-
-        return std::sqrt(zenith * zenith + zenith_sun * zenith_sun - 2.L*zenith*zenith_sun*std::cos(diff_angles)) <
-               avoid_angle;
-    }
-    long double d = sin(el_rad) * sin(el_sun_rad) + cos(el_rad) * cos(el_sun_rad) * cos(az_rad - az_sun_rad);
-
-    return std::acos(d) < this->track_info_.sun_avoid_angle;
 
 }
 
 bool PredictorMountSLR::setSunSectorRotationDirection(
     SunCollisionSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end)
 {
-    long double sec_delta = static_cast<long double>(this->mount_track_.cfg_time_delta)/1000.0L;
-    long double avoid_angle = static_cast<long double>(this->mount_track_.cfg_sun_avoid_angle);
-    MJDateTime mjdt = sector.mjdt_entry + sec_delta / static_cast<long double>(timing::kSecsPerDay);
     bool valid_cw = true;
     bool valid_ccw = true;
 
@@ -674,40 +686,69 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
     // between the minimum and 90 degrees. If the clockwise trajectory around the sun security sector is not valid,
     // then we have to choose the counterclockwise trajectory and viceversa.
     // If both trajectories are valid, we will choose the shorter one.
+
     for (auto it = sun_start; it <= sun_end; it++)
     {
-        long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
+        long double time_perc = (it->mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 
-        long double entry_angle = std::atan2(sector.el_entry - it->sun_position->el,
-                                             sector.az_entry - it->sun_position->az);
+        long double diff_az_entry = sector.az_entry - it->sun_position->az;
+        if (diff_az_entry > 180.L)
+        {
+            diff_az_entry = -(360.L - diff_az_entry);
+        }
+        else if (diff_az_entry < -180.L)
+        {
+            diff_az_entry = 360.L + diff_az_entry;
+        }
 
-        long double exit_angle = std::atan2(sector.el_exit - it->sun_position->el,
-                                            sector.az_exit - it->sun_position->az);
+        long double diff_az_exit = sector.az_exit - it->sun_position->az;
+        if (diff_az_exit > 180.L)
+        {
+            diff_az_exit = -(360.L - diff_az_exit);
+        }
+        else if (diff_az_exit < -180.L)
+        {
+            diff_az_exit = 360.L + diff_az_exit;
+        }
+        long double entry_angle = std::atan2(sector.el_entry - it->sun_position->el, diff_az_entry);
 
+        long double exit_angle = std::atan2(sector.el_exit - it->sun_position->el, diff_az_exit);
+
+        // Normalize angle between 0, 2pi
+        if (entry_angle < 0)
+            entry_angle += 2*math::kPi;
+
+        if (exit_angle < 0)
+            exit_angle += 2*math::kPi;
+
+        // Get clockwise and counterclockwise angular distance between entry and exit angles
         long double cw_angle;
         long double ccw_angle;
+        long double angle = exit_angle - entry_angle;
 
-        if (exit_angle > entry_angle)
+        if (angle > 0.L)
         {
-
-            ccw_angle = entry_angle + time_perc * (exit_angle - entry_angle);
-            cw_angle = entry_angle - time_perc * (2 * math::kPi - exit_angle + entry_angle);
-            if (cw_angle < 0.L)
-                cw_angle += 2 * math::kPi;
+            // If substract is positive, the angle is clockwise.
+            cw_angle = angle;
+            ccw_angle = -(2*math::kPi - cw_angle);
         }
         else
         {
-            cw_angle = entry_angle - time_perc * (entry_angle - exit_angle);
-            ccw_angle = entry_angle + time_perc * (2 * dpslr::math::kPi - entry_angle + exit_angle);
-            if (ccw_angle >= 2 * math::kPi)
-                ccw_angle -= 2 * math::kPi;
+            // If substract is negative, the angle is counterclockwise.
+            ccw_angle = angle;
+            cw_angle = (2*math::kPi + ccw_angle);
         }
 
+        // Calculate avoid trajectory angle for this timestamp using time as a percentage of the angle.
+        cw_angle = entry_angle + time_perc * cw_angle;
+        ccw_angle = entry_angle + time_perc * ccw_angle;
 
-        long double elev_cw = it->sun_position->el + avoid_angle * std::sin(cw_angle);
-        long double elev_ccw = it->sun_position->el + avoid_angle * std::sin(ccw_angle);
+        long double elev_cw = it->sun_position->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(cw_angle);
+        long double elev_ccw = it->sun_position->el + this->mount_track_.cfg_sun_avoid_angle * std::sin(ccw_angle);
 
 
+        // Check if elevation is required to be below minimum or above 90 in each way. If that is the case,
+        // that way will not be valid and the other must be used.
         if (elev_cw > 90.L || elev_cw < this->mount_track_.cfg_min_elev)
             valid_cw = false;
 
@@ -726,28 +767,58 @@ bool PredictorMountSLR::setSunSectorRotationDirection(
         sector.cw = RotationDirection::CLOCKWISE;
     else
     {
-        long double entry_angle = std::atan2(sector.el_entry - sun_start->sun_position->el,
-                                             sector.az_entry - sun_start->sun_position->az);
+        // Calculate angle between start and end to see which is shorter.
+        long double diff_az_entry = sector.az_entry - sun_start->sun_position->az;
+        if (diff_az_entry > 180.L)
+        {
+            diff_az_entry = -(360.L - diff_az_entry);
+        }
+        else if (diff_az_entry < -180.L)
+        {
+            diff_az_entry = 360.L + diff_az_entry;
+        }
 
-        long double exit_angle = std::atan2(sector.el_exit - sun_end->sun_position->el,
-                                            sector.az_exit - sun_end->sun_position->az);
+        long double diff_az_exit = sector.az_exit - sun_end->sun_position->az;
+        if (diff_az_exit > 180.L)
+        {
+            diff_az_exit = -(360.L - diff_az_exit);
+        }
+        else if (diff_az_exit < -180.L)
+        {
+            diff_az_exit = 360.L + diff_az_exit;
+        }
+        long double entry_angle = std::atan2(sector.el_entry - sun_start->sun_position->el, diff_az_entry);
 
+        long double exit_angle = std::atan2(sector.el_exit - sun_end->sun_position->el, diff_az_exit);
+
+        // Normalize angle between 0, 2pi
+        if (entry_angle < 0)
+            entry_angle += 2*math::kPi;
+
+        if (exit_angle < 0)
+            exit_angle += 2*math::kPi;
+
+        // Get clockwise and counterclockwise angular distance between entry and exit angles
         long double cw_angle;
         long double ccw_angle;
+        long double angle = exit_angle - entry_angle;
 
-        if (exit_angle > entry_angle)
+        if (angle > 0.L)
         {
-            ccw_angle = exit_angle - entry_angle;
-            cw_angle = 2 * math::kPi - exit_angle + entry_angle;
+            // If substract is positive, the angle is clockwise.
+            cw_angle = angle;
+            ccw_angle = -(2*math::kPi - cw_angle);
         }
         else
         {
-            cw_angle = entry_angle - exit_angle;
-            ccw_angle = 2 * math::kPi - entry_angle + exit_angle;
+            // If substract is negative, the angle is counterclockwise.
+            ccw_angle = angle;
+            cw_angle = (2*math::kPi + ccw_angle);
         }
 
-        sector.cw = (cw_angle < ccw_angle) ? PredictorMountSLR::RotationDirection::CLOCKWISE :
-                        PredictorMountSLR::RotationDirection::COUNTERCLOCKWISE;
+        sector.cw = std::abs(cw_angle) < std::abs(ccw_angle) ?
+                        RotationDirection::CLOCKWISE : RotationDirection::COUNTERCLOCKWISE;
+
     }
 
     return true;
@@ -771,45 +842,59 @@ void PredictorMountSLR::checkSunSectorPositions(
 }
 
 long double PredictorMountSLR::calcSunAvoidTrajectory(MJDateTime mjdt, const SunCollisionSector &sector,
-                                                SunPosition &sun_pos)
+                                                      SunPosition &sun_pos)
 {
     long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 
-    long double entry_angle = std::atan2(sector.el_entry - sun_pos.el,
-                                         sector.az_entry - sun_pos.az);
-
-    long double exit_angle = std::atan2(sector.el_exit - sun_pos.el,
-                                        sector.az_exit - sun_pos.az);
-
-    long double angle;
-
-    if (exit_angle > entry_angle)
+    long double diff_az_entry = sector.az_entry - sun_pos.az;
+    // Normalize in range -180, 180
+    // TODO: this does not work if azimuths are not normalized between 0, 360
+    if (diff_az_entry > 180.L)
     {
-        if (sector.cw == RotationDirection::CLOCKWISE)
-        {
-            angle = entry_angle - time_perc * (2 * math::kPi - exit_angle + entry_angle);
-            if (angle < 0.L)
-                angle += 2 * math::kPi;
-        }
-        else
-            angle = entry_angle + time_perc * (exit_angle - entry_angle);
+        diff_az_entry = -(360.L - diff_az_entry);
+    }
+    else if (diff_az_entry < -180.L)
+    {
+        diff_az_entry = 360.L + diff_az_entry;
+    }
 
+    long double diff_az_exit = sector.az_exit - sun_pos.az;
+    // Normalize in range -180, 180
+    // TODO: this does not work if azimuths are not normalized between 0, 360
+    if (diff_az_exit > 180.L)
+    {
+        diff_az_exit = -(360.L - diff_az_exit);
+    }
+    else if (diff_az_exit < -180.L)
+    {
+        diff_az_exit = 360.L + diff_az_exit;
+    }
+
+    long double entry_angle = std::atan2(sector.el_entry - sun_pos.el, diff_az_entry);
+
+    long double exit_angle = std::atan2(sector.el_exit - sun_pos.el, diff_az_exit);
+
+    if (entry_angle < 0)
+        entry_angle += 2*math::kPi;
+
+    if (exit_angle < 0)
+        exit_angle += 2*math::kPi;
+
+
+    long double angle = exit_angle - entry_angle;
+
+    if (angle > 0.L)
+    {
+        if (sector.cw == RotationDirection::COUNTERCLOCKWISE)
+            angle = -(2*math::kPi - angle);
     }
     else
     {
         if (sector.cw == RotationDirection::CLOCKWISE)
-        {
-            angle = entry_angle - time_perc * (entry_angle - exit_angle);
-        }
-        else
-        {
-            angle = entry_angle + time_perc * (2 * math::kPi - entry_angle + exit_angle);
-            if (angle >= 2 * math::kPi)
-                angle -= 2 * math::kPi;
-        }
+            angle = (2*math::kPi + angle);
     }
 
-    return angle;
+    return entry_angle + angle * time_perc;
 }
 
 PredictorMountSLR::MountTrackSLR::MountTrackSLR(const CPF &cpf, const PredictorSLR &predictor_slr,

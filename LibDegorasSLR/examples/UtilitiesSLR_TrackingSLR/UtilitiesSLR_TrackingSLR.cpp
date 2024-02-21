@@ -111,14 +111,16 @@ int main()
 
     // Examples vector with their configurations.
     std::vector<ExampleData> examples =
-    {
-        // Example 0: Lares with Sun at beginning.
-        {"Lares_SunBeg", "38077_cpf_240128_02901.sgf", 60340, 56726.0L, 60340, 57756.0L},
-        // Example 1: Jason 3 with Sun in the middle.
-        {"Jason3_SunMid", "41240_cpf_240128_02801.hts", 60340, 42140.0L, 60340, 43150.0L},
-        // Example 2: Explorer 27 with Sun in the end.
-        {"Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", 60340, 30687.0L, 60340, 31467.0L}
-    };
+        {
+            // Example 1: Lares with Sun at beginning.
+            {"Lares_Sun_Beg", "38077_cpf_240128_02901.sgf", 60340, 56726, 60340, 57756},
+            // Example 2: Jason 3 with Sun in the middle. Trespasses North cw.
+            {"Jason3_Sun_Mid", "41240_cpf_240128_02801.hts", 60340, 42140, 60340, 43150},
+            // Example 3: Explorer 27 with Sun in the end.
+            {"Explorer27_Sun_End", "1328_cpf_240128_02901.sgf", 60340, 30687, 60340, 31467},
+            // Example 4: Jason 3 with no sun. Trespasses North ccw.
+            {"Jason3_Sun_Mid", "41240_cpf_240128_02801.hts", 60340, 35250, 60340, 36060},
+        };
 
     // Example selector.
     size_t example_selector = 2;
@@ -350,6 +352,9 @@ int main()
     // We will also store the sun position at each tracking position.
     std::ofstream file_pos(output_dir + "/" + example_alias + "_tracking.dat", std::ios_base::out);
     std::ofstream file_pos_sun(output_dir + "/" + example_alias + "_sun.dat", std::ios_base::out);
+
+    // std::ofstream file_pos(output_dir + "/" + "tracking.txt", std::ios_base::out);
+    // std::ofstream file_pos_sun(output_dir + "/" + "pos_sun.txt", std::ios_base::out);
 
     for (const auto &prediction : results)
     {
