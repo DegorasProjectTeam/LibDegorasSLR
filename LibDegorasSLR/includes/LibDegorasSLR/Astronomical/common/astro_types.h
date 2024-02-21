@@ -43,10 +43,10 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
-#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
+#include "LibDegorasSLR/Mathematics/units.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
@@ -58,11 +58,8 @@ using dpslr::timing::types::J2DateTime;
 using dpslr::timing::types::MJDate;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::MJDateTime;
-using dpslr::helpers::types::NumericStrongType;
+using dpslr::math::units::Degrees;
 // ---------------------------------------------------------------------------------------------------------------------
-
-/// Alias for
-using Degrees = NumericStrongType<long long, struct DegreesTag>;
 
 
 struct PredictionBase

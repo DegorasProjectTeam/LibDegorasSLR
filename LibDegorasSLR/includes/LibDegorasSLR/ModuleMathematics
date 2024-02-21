@@ -1,0 +1,8 @@
+#include <LibDegorasSLR/Mathematics/common/math_types.h>
+#include <LibDegorasSLR/Mathematics/common/operators.h>
+#include <LibDegorasSLR/Mathematics/math.h>
+#include <LibDegorasSLR/Mathematics/math_constants.h>
+#include <LibDegorasSLR/Mathematics/units.h>
+#include <LibDegorasSLR/Mathematics/containers/interval.h>
+#include <LibDegorasSLR/Mathematics/containers/matrix.h>
+#include <LibDegorasSLR/Mathematics/containers/vector3d.h>

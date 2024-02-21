@@ -44,6 +44,7 @@
 #include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
 #include "LibDegorasSLR/Astronomical/sun_utils/predictor_sun.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Mathematics/units.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -53,11 +54,15 @@ namespace utils{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using dpslr::timing::types::HRTimePointStd;
-using dpslr::timing::types::MJDate;
-using dpslr::timing::types::SoD;
+using timing::types::HRTimePointStd;
+using timing::types::MJDate;
+using timing::types::SoD;
 using astro::SunPosition;
 using astro::PredictorSun;
+using math::units::DegreesU;
+using math::units::Degrees;
+using math::units::MillisecondsU;
+using math::units::Meters;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // No se procesa la elevacion maxima porque es trivial, a diferencia de un cambio de trayectoria completo como
@@ -193,6 +198,18 @@ public:
     /// Alias for Tracking results vector.
     using MountSLRPredictions = std::vector<MountSLRPrediction>;
 
+    struct MountTrackConfig
+    {
+        MJDate mjd_start;
+        SoD sod_start;
+        MJDate mjd_end;
+        SoD sod_end;
+        bool cfg_sun_avoid;            ///< Flag indicating if the track is configured for avoid the Sun.
+        unsigned cfg_time_delta;       ///< Time delta fo calculations in milliseconds.
+        unsigned cfg_sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
+        unsigned cfg_min_elev;         ///< Configured minimum elevation (degrees).
+        unsigned cfg_max_elev;         ///< Configured maximum elevation (degrees).
+    };
 
     struct MountTrackSLR
     {
@@ -204,8 +221,8 @@ public:
         // Date and times.
 
         // CREAR ESTRUCTURA INTERMEDIA PARA ALMACENAR INFO DEL TRACK
-        MJDate mjd_start;
-        SoD sod_start;
+        MJDate cfg_mjd_start;
+        SoD cfg_sod_start;
         MJDate mjd_end;
         SoD sod_end;
         MJDate mjd_max_elev;
@@ -224,34 +241,40 @@ public:
 
         // Flags.
         bool valid_pass;              ///< Flag indicating if the pass is valid.
+        bool sun_deviation;           ///< Flag indicating if the track was deviated from pass due to Sun.
         bool sun_collision;           ///< Flag indicating if the pass has a collision with the Sun.
         bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
         bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
+        // TODO
+        bool trim_at_start;           ///< Flag indicating if the pass was trimmed due to elevation or Sun at start.
+        bool trim_at_end;             ///< Flag indicating if the pass was trimmed due to elevation or Sun at end.
+        bool el_deviation;            ///< Flag indicating if the track was deviated from pass due to max elevation.
 
         // Configurations.
         bool cfg_sun_avoid;            ///< Flag indicating if the track is configured for avoid the Sun.
-        unsigned cfg_time_delta;       ///< Time delta fo calculations in milliseconds.
-        unsigned cfg_sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
-        unsigned cfg_min_elev;         ///< Configured minimum elevation (degrees).
+        MillisecondsU cfg_time_delta;  ///< Time delta fo calculations in milliseconds.
+        DegreesU cfg_sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
+        DegreesU cfg_min_elev;         ///< Configured minimum elevation (degrees).
+        DegreesU cfg_max_elev;         ///< Configured maximum elevation (degrees).
 
         // Result containers.
         SunCollisionSectors sun_sectors;    ///< Sun sectors in the track for the required time interval.
         MountSLRPredictions predictions;    ///< Predicted data for the required time interval.
 
         // CPF and predictors.
-        const CPF& cpf;
-        const PredictorSLR& predictor_slr;
-        const PredictorSun& predictor_sun;
+        const CPF& cpf;                       ///< CPF used by the internal PredictorSLR.
+        const PredictorSLR& predictor_slr;    ///< Internal PredictorSLR predictor.
+        const PredictorSun& predictor_sun;    ///< Internal Sun predictor.
     };
 
     // TODO Use the maximum elevations.
     PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
-                unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
-                unsigned sun_avoid_angle = 15);
+                      MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
+                      DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
     PredictorMountSLR(PredictorSLR&& predictor, const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
-                unsigned min_elev_deg = 10, unsigned time_delta_ms = 1000, bool sun_avoid = true,
-                unsigned sun_avoid_angle = 15);
+                      MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
+                      DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
@@ -269,7 +292,7 @@ public:
      * @brief This function returns the minimum elevation of this tracking in degrees.
      * @return the minimum elevation of the tracking in degrees.
      */
-    unsigned getMinElev() const;
+    unsigned getCfgMinElev() const;
 
     /**
      * @brief If this traking is valid, you can get the tracking start with this function. This start time

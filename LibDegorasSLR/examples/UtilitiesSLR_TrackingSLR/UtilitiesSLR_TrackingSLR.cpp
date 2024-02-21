@@ -41,6 +41,7 @@
 #include <LibDegorasSLR/ModuleUtilitiesSLR>
 #include <LibDegorasSLR/ModuleFormatsILRS>
 #include <LibDegorasSLR/ModuleTiming>
+#include <LibDegorasSLR/ModuleMathematics>
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -55,6 +56,10 @@ using dpslr::timing::MJDate;
 using dpslr::timing::SoD;
 using dpslr::math::units::Angle;
 using dpslr::helpers::strings::numberToStr;
+using dpslr::math::units::DegreesU;
+using dpslr::math::units::Degrees;
+using dpslr::math::units::MillisecondsU;
+using dpslr::math::units::Meters;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Auxiliar structs.
@@ -83,20 +88,21 @@ int main()
     // -------------------- EXAMPLE CONFIGURATION ----------------------------------------------------------------------
 
     // SFEL station geodetic coordinates.
-    long double latitude = 36.46525556L;    // Degrees.
-    long double longitude = 353.79469440L;  // Degrees > 0.
-    long double alt = 98.177L;              // Meters.
+    Degrees latitude = 36.46525556L;
+    Degrees longitude = 353.79469440L;  // Always > 0.
+    Meters alt = 98.177L;
 
     // SFEL station geocentric coordinates (meters).
-    long double x = 5105473.885L;           // Meters.
-    long double y = -555110.526L;
-    long double z = 3769892.958L;
+    Meters x = 5105473.885L;
+    Meters y = -555110.526L;
+    Meters z = 3769892.958L;
 
     // TrackingSLR configuration.
-    unsigned step_ms = 1000;            // Milliseconds.
-    unsigned min_el = 8;                // Degrees.
-    unsigned sun_avoid_angle = 15;      // Degrees.
-    bool avoid_sun = true;              // Enable or disable the sun avoidance.
+    MillisecondsU step_ms = 100;
+    DegreesU min_el = 15;
+    DegreesU max_el = 80;
+    DegreesU sun_avoid_angle = 15;
+    bool avoid_sun = true;
 
     // Configure the CPF folder and example file.
     std::string current_dir = dpslr::helpers::files::getCurrentDir();
@@ -115,7 +121,7 @@ int main()
     };
 
     // Example selector.
-    size_t example_selector = 0;
+    size_t example_selector = 2;
 
     // Store the example data.
     std::string cpf_path = input_dir + "/" + examples[example_selector].cpf_name;
@@ -165,7 +171,7 @@ int main()
     // Configure the SLR predictor_mount. The class will process the pass automatically and will
     // generate a preview mount track in the steps indicated by step_ms.
     PredictorMountSLR predictor_mount(std::move(predictor_slr), mjd_start, sod_start, mjd_end, sod_end,
-                                      min_el, step_ms, avoid_sun, sun_avoid_angle);
+                                      step_ms, min_el, max_el , sun_avoid_angle, avoid_sun);
 
     // Check if the tracking is valid.
     if (!predictor_mount.isValid())
@@ -213,9 +219,13 @@ int main()
     data<<"= Outputs:" << std::endl;
     data<<lines.str();
     //std::cout<<"= Track interval: " << mount_track. << std::endl;
+    data<<"= Trim at start: " << (mount_track.trim_at_start ? "true" : "false") << std::endl;
+    data<<"= Trim at end:   " << (mount_track.trim_at_end ? "true" : "false") << std::endl;
     data<<"= Sun collision: " << (mount_track.sun_collision ? "true" : "false") << std::endl;
     data<<"= Sun at start:  " << (mount_track.sun_collision_at_start ? "true" : "false") << std::endl;
     data<<"= Sun at end:    " << (mount_track.sun_collision_at_end ? "true" : "false") << std::endl;
+    data<<"= Sun deviation: " << (mount_track.sun_deviation ? "true" : "false") << std::endl;
+    data<<"= El deviation: " << (mount_track.el_deviation ? "true" : "false") << std::endl;
     //TODO Etc
     data<<border.str();
     // Show the data.

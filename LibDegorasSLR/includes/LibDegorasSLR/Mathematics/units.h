@@ -37,25 +37,27 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <string>
-#include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Mathematics/common/math_types.h"
 #include "LibDegorasSLR/Mathematics/math_constants.h"
+#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace math{
 namespace units{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using dpslr::helpers::types::NumericStrongType;
+// ---------------------------------------------------------------------------------------------------------------------
+
 // BASIC CONSTANTS
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 constexpr long double kSecToPs = 1e12L;
 constexpr long double kPsToSec = 1e-12L;
 constexpr long double kSecToNs = 1e9L;
@@ -63,10 +65,10 @@ constexpr long double kNsToSec = 1e-9L;
 constexpr long double kSecToUs = 1e6L;
 constexpr long double kSecToMs = 1e3L;
 constexpr long double kNmToUm = 0.001L;
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 // LIGHT TIME TO DISTANCE CONSTANTS
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 constexpr long double kLightPsToM  = 0.000299792458L;
 constexpr long double kLightPsToDm = 0.00299792458L;
 constexpr long double kLightPsToCm = 0.0299792458L;
@@ -75,7 +77,29 @@ constexpr long double kLightNsToM  = 0.299792458L;
 constexpr long double kLightNsToDm = 2.99792458L;
 constexpr long double kLightNsToCm = 29.9792458L;
 constexpr long double kLightNsToMm = 299.792458L;
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
+
+// ALIASES FOR STRONG TYPE UNITS
+// TODO: In future, use the SmartUnits currently under development.
+// ---------------------------------------------------------------------------------------------------------------------
+
+/// Alias for strong type long double representing degrees.
+using Degrees = NumericStrongType<long double, struct DegreesTag>;
+
+/// Alias for strong type unsigned representing degrees.
+using DegreesU = NumericStrongType<unsigned, struct DegreesUTag>;
+
+/// Alias for strong type long double representing milliseconds.
+using Milliseconds = NumericStrongType<long double, struct MillisecondsTag>;
+
+/// Alias for strong type unsigned representing milliseconds.
+using MillisecondsU = NumericStrongType<unsigned, struct MillisecondsUTag>;
+
+/// Alias for strong type long double representing meters.
+using Meters = NumericStrongType<long double, struct MetersTag>;
+
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 // ========== FUNCTIONS ================================================================================================
 

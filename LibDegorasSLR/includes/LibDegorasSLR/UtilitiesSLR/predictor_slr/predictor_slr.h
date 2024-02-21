@@ -322,59 +322,9 @@ public:
      */
     PredictionError predict(MJDate mjd, SoD second, SLRPrediction& result) const;
 
-    // TODO
-    // AmelasTime
-    // TimePoint -> low ns resolution.
-
     // En este caso se debe comprobar los resultados mirando el vector. Estará vacío en caso de error critico.
     // Explicar la computacion paralela.
-    SLRPredictions predict(MJDate mjd_start, SoD sod_start,
-                              MJDate mjd_end, SoD sod_end,
-                              unsigned step_ms) const
-    {
-        // Container and auxiliar.
-        std::vector<std::pair<MJDate, SoD>> interp_times;
-        MJDate mjd_current = mjd_start;
-        SoD sod_current = sod_start;
-        long double step_sec = step_ms/1000.0L;
-
-        // Check interval.
-        if(!this->isReady() || !isInsideTimeWindow(mjd_start, sod_start, mjd_end, sod_end))
-            return PredictorSLR::SLRPredictions();
-
-        // Calculates all the interpolation time.
-        // Parallel calculation of all times.
-
-
-        // Calculates all the interpolation times.
-        while(mjd_current < mjd_end ||sod_current <= sod_end)
-        {
-            interp_times.push_back({mjd_current, sod_current});
-            sod_current += step_sec;
-            if (sod_current >= 86400.0L)
-            {
-                mjd_current++;
-                sod_current -= 86400.0L;
-            }
-        }
-
-        // Results container.
-        PredictorSLR::SLRPredictions results(interp_times.size());
-
-        // TODO QUITAR
-        // Configure OMP.
-        omp_set_num_threads(omp_get_max_threads());
-
-        // Parallel calculation.
-        #pragma omp parallel for
-        for(size_t i = 0; i<interp_times.size(); i++)
-        {
-            this->predict(interp_times[i].first, interp_times[i].second, results[i]);
-        }
-
-        // Return the container.
-        return results;
-    }
+    SLRPredictions predict(MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end, unsigned step_ms) const;
 
 
 
