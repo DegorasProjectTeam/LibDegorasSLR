@@ -73,14 +73,16 @@ struct PredictionBase
 
 struct LIBDPSLR_EXPORT RA
 {
+    RA() = default;
     RA(int hour, int min, double sec);
     RA(double ra);
+
     RA(const RA&) = default;
     RA(RA&&) = default;
     RA& operator=(const RA&) = default;
     RA& operator=(RA&&) = default;
 
-    operator double ();
+    operator double () const;
 
     static bool checkRA(int h, int min, double sec);
 
@@ -92,14 +94,16 @@ struct LIBDPSLR_EXPORT RA
 
 struct LIBDPSLR_EXPORT Dec
 {
+    Dec() = default;
     Dec(int deg, int min, double sec);
     Dec(double dec);
+
     Dec(const Dec&) = default;
     Dec(Dec&&) = default;
     Dec& operator=(const Dec&) = default;
     Dec& operator=(Dec&&) = default;
 
-    operator double ();
+    operator double () const;
 
     static bool checkDec(int deg, int min, double sec);
 
@@ -111,10 +115,17 @@ struct LIBDPSLR_EXPORT Dec
 
 struct LIBDPSLR_EXPORT Star
 {
+    Star() = default;
+    Star(const Star&) = default;
+    Star(Star&&) = default;
+    Star& operator =(const Star&) = default;
+    Star& operator =(Star&&) = default;
+
     RA ra;
     Dec dec;
     std::string star_name;
     std::string catalog_name;
+    int catalog_num;
     int id;
     double pm_ra;
     double pm_dec;
@@ -135,13 +146,13 @@ struct LIBDPSLR_EXPORT AltAzPosition
     AltAzPosition& operator =(const AltAzPosition& pos) = default;
     AltAzPosition& operator=(AltAzPosition&&) = default;
 
+    ~AltAzPosition() = default;
+
     //size_t serialize(zmqutils::utils::BinarySerializer& serializer) const final;
 
     //void deserialize(zmqutils::utils::BinarySerializer& serializer) final;
 
     //size_t serializedSize() const final;
-
-    ~AltAzPosition();
 
     Degrees az;
     Degrees el;

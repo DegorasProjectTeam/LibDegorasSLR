@@ -49,13 +49,16 @@
 #include "LibDegorasSLR/Astronomical/common/astro_types.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
+#include "LibDegorasSLR/Geophysics/types/surface_location.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
 
 // NAMESPACES
 // =====================================================================================================================
 using novas::make_on_surface;
+using novas::make_cat_entry;
 using novas::on_surface;
-using namespace dpslr::geo::types;
+using novas::cat_entry;
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -66,9 +69,26 @@ namespace novas{
 // =====================================================================================================================
 
 
-//LIBDPSLR_EXPORT types::AltAzPosition getStarAltAzPosition(const types::Star &star, );
+LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
+                                         const geo::types::SurfaceLocation<double> &loc,
+                                         const timing::types::HRTimePointStd &tp,
+                                         types::AltAzPosition &pos,
+                                         int leap_secs = 0,
+                                         double ut1_utc_diff = 0);
 
-LIBDPSLR_EXPORT on_surface makeOnSurface(const GeodeticPoint<double>& geod, const MeteoData& meteo);
+LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
+                                         const geo::types::SurfaceLocation<double> &loc,
+                                         const timing::types::JDateTime &jdt,
+                                         types::AltAzPosition &pos,
+                                         int leap_secs = 0,
+                                         double ut1_utc_diff = 0);
+
+LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::SurfaceLocation<double> &loc);
+
+LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::GeodeticPoint<double>& geod,
+                                         const geo::types::MeteoData& meteo);
+
+LIBDPSLR_EXPORT int makeCatEntry(const astro::types::Star &star, cat_entry &entry);
 
 // TODO make cat entry de novas recibiendo una estructura "start" de libdegorasslr (TODO)
 

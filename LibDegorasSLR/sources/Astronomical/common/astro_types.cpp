@@ -48,7 +48,7 @@ RA::RA(double ra) :
     this->min = static_cast<int>(integer);
 }
 
-RA::operator double()
+RA::operator double() const
 {
     return this->ra;
 }
@@ -79,7 +79,7 @@ Dec::Dec(double dec) :
     this->min = static_cast<int>(integer);
 }
 
-Dec::operator double()
+Dec::operator double() const
 {
     return this->dec;
 }

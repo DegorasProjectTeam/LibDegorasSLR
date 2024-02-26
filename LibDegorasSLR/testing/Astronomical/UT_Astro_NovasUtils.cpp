@@ -32,17 +32,19 @@
 
 // LIBNOVASCPP INCLUDES
 // =====================================================================================================================
-//#include <LibNovasCpp/novascpp.h>
+#include <LibNovasCpp/novascpp.h>
 // =====================================================================================================================
 
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include <LibDegorasSLR/Testing/UnitTest>
+#include "LibDegorasSLR/Testing/UnitTest"
 #include "LibDegorasSLR/Astronomical/novas_utils.h"
-
+#include "LibDegorasSLR/Astronomical/common/astro_types.h"
 // =====================================================================================================================
+
+#include <iostream>
 
 // NAMESPACES
 // ---------------------------------------------------------------------------------------------------------------------
@@ -52,6 +54,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 M_DECLARE_UNIT_TEST(novas_make_on_surface)
 M_DECLARE_UNIT_TEST(novas_makeOnSurface)
+M_DECLARE_UNIT_TEST(novas_getStarAltAzPosition)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -101,6 +104,57 @@ M_DEFINE_UNIT_TEST(novas_makeOnSurface)
     M_EXPECTED_EQ(pressure, geo_loc.pressure)
 }
 
+M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
+{
+    using dpslr::astro::types::Star;
+    using dpslr::geo::types::MeteoData;
+    using dpslr::astro::novas::getStarAltAzPosition;
+    using Geodetic = dpslr::geo::types::GeodeticPoint<double>;
+    using Geocentric = dpslr::geo::types::GeocentricPoint<double>;
+    using Angle = dpslr::math::units::Angle<double>;
+    using Surface = dpslr::geo::types::SurfaceLocation<double>;
+    using dpslr::timing::types::JDateTime;
+    using dpslr::astro::types::AltAzPosition;
+
+    using novas::julian_date;
+
+    Star star;
+    star.star_name = "Vega";
+    star.catalog_name = "FK5";
+    star.catalog_num = 699;
+    star.ra = 18.615648986;
+    star.dec = 38.78368896;
+    star.pm_ra = 200.94;
+    star.pm_dec = 287.78;
+    star.parallax = 130.23;
+    star.rad_vel = 20.0;
+
+    MeteoData md;
+    md.pressure = 1024.1;
+    md.temperature = 25.8;
+
+    Geodetic geod(36.465257734376407939, -6.20530535896, 98.2496715541929, Angle::Unit::DEGREES);
+    Geocentric geoc; // Don't mind
+
+    Surface surf{md, geod, geoc};
+
+    JDateTime jdt = julian_date(2023, 10, 18, 22) + (static_cast<double>(15)/1440.0) + (30.5 / 86400.0);
+    AltAzPosition pos;
+
+    int error = getStarAltAzPosition(star, surf, jdt, pos, 37, 0.013616);
+
+    if (error)
+    {
+        M_FORCE_FAIL()
+    }
+    else
+    {
+        M_EXPECTED_EQ(static_cast<int>(pos.az), 297)
+        M_EXPECTED_EQ(static_cast<int>(pos.el), 32)
+    }
+
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 // UNIT TESTS EXECUTION
@@ -116,6 +170,8 @@ M_FORCE_SHOW_RESULTS(true)
 M_REGISTER_UNIT_TEST(Astronomical-Novas, LibNovasCPP, novas_make_on_surface)
 
 M_REGISTER_UNIT_TEST(Astronomical-Novas, NovasUtils, novas_makeOnSurface)
+
+M_REGISTER_UNIT_TEST(Astronomical-Novas, NovasUtils, novas_getStarAltAzPosition)
 
 // Run unit tests.
 M_RUN_UNIT_TESTS()
