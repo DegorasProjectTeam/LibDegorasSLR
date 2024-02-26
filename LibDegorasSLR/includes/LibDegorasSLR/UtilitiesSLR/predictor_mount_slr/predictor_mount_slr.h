@@ -45,6 +45,7 @@
 #include "LibDegorasSLR/Astronomical/sun_utils/predictor_sun.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
 #include "LibDegorasSLR/Mathematics/units.h"
+#include "LibDegorasSLR/Astronomical/common/astro_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -59,6 +60,8 @@ using timing::types::MJDate;
 using timing::types::SoD;
 using astro::SunPosition;
 using astro::PredictorSun;
+using astro::types::AltAzPosition;
+using astro::types::AltAzPositions;
 using math::units::DegreesU;
 using math::units::Degrees;
 using math::units::MillisecondsU;
@@ -130,18 +133,21 @@ public:
     };
 
     /**
-     * @brief The SunCollisionSector struct contains data of a sector where this space object tracking
-     * passes through the sun security sector.
+     * @brief The SunCollisionSector struct contains data of a sector where the space object real pass
+     * crosses a Sun security sector.
      */
     struct SunCollisionSector
     {
-        long double az_entry;       ///< Azimuth of sun sector entry point.
-        long double az_exit;        ///< Azimuth of sun sector exit point.
-        long double el_entry;       ///< Elevation of sun sector entry point.
-        long double el_exit;        ///< Elevation of sun sector exit point.
-        MJDateTime mjdt_entry;      ///< MJ datetime of sun sector entry point.
-        MJDateTime mjdt_exit;       ///< MJ datetime of sun sector exit point.
-        RotationDirection cw;       ///< Rotation direction of the avoidance manoeuvre (true = cw, false = ccw).
+        // Meter las coordenadas del sol
+        // Actualizar rotation al limitar la elevacion.
+        // Actualizar todo cuando se limita la elevacion.
+
+        AltAzPositions altaz_sun_coords;  ///< Altazimuth coordinates of the Sun during the collision time in degrees.
+        AltAzPosition altaz_entry;        ///< Sun sector altazimuth entry point coordinate in degrees.
+        AltAzPosition altaz_exit;         ///< Sun sector altazimuth exit point coordinate in degrees.
+        MJDateTime mjdt_entry;            ///< MJ datetime of sun sector entry point.
+        MJDateTime mjdt_exit;             ///< MJ datetime of sun sector exit point.
+        RotationDirection cw;             ///< Rotation direction of the avoidance manoeuvre.
     };
 
     /// Alias for vector of SunCollisionSector.
@@ -157,10 +163,21 @@ public:
      */
     struct MountPosition
     {
-        long double az;      ///< Azimuth for the tracking mount in degrees.
-        long double el;      ///< Elevation for the tracking mount in degrees.
-        long double diff_az; ///< Azimuth difference between space object prediction position and tracking position.
-        long double diff_el; ///< Elevation difference between space object prediction position and tracking position.
+        MountPosition(const AltAzPosition& pos) :
+            altaz_coord(pos),
+            diff_az(0.0L),
+            diff_el(0.0L)
+        {}
+
+        MountPosition() :
+            altaz_coord(AltAzPosition()),
+            diff_az(0.0L),
+            diff_el(0.0L)
+        {}
+
+        AltAzPosition altaz_coord;  ///< Altazimuth coordinate for the tracking mount in degrees.
+        Degrees diff_az; ///< Azimuth difference between space object prediction position and tracking position.
+        Degrees diff_el; ///< Elevation difference between space object prediction position and tracking position.
     };
 
     /**
@@ -181,15 +198,17 @@ public:
     {
         MountSLRPrediction() = default;
 
+        // utilizar el nuevo datetime.
+
         // Datetime members.
         MJDate mjd;              ///< Modified Julian Date in days.
         SoD sod;                 ///< Second of day in that Modified Julian Date.
         MJDateTime mjdt;         ///< Modified Julian DateTime (day & fraction).
 
         // Result members.
-        Optional<PredictorSLR::SLRPrediction> prediction_result;  ///< SLR prediction result with the pass position.
-        Optional<MountPosition> tracking_position;                ///< Tracking position.
-        Optional<SunPosition> sun_position;                       ///< Sun position.
+        Optional<PredictorSLR::SLRPrediction> slr_pred;  ///< Optional SLR prediction with the object pass position.
+        Optional<PredictorSun::SunPrediction> sun_pred;  ///< Optional Sun position container.
+        Optional<MountPosition> mount_pos;               ///< Optional tracking moun position container.
 
         // Status.
         PositionStatus status;  ///< The current postion status.
@@ -198,17 +217,82 @@ public:
     /// Alias for Tracking results vector.
     using MountSLRPredictions = std::vector<MountSLRPrediction>;
 
-    struct MountTrackConfig
+    /// TODO add max el and az speeds.
+    // ESTA ES LA CONFIGURACION QUE LE HAS PASADO AL SISTEMA
+    struct PredictorMountSLRConfig
     {
+        // DIVIDIR EN DOS
+        //MountTrackAnalyzerConfig??? -> time_delta, angle, elevations, sun_avoid, speeds.
+        // Realmente el analizador solo necesita lo anterior + vector de tiempos + vector de posiciones.
+        // Que estaria bien que pusieran un MountTrackGenerator que generele los anteriores vectores.
+
+        // En caso de que en desplazamientos absolutos o relativos, si la montura empieza en un sector de Sol, esta
+        // ya sería una posicion con estado de CANT_AVOID_SUN (la montura no puede teletransportarse). Concretamente,
+        // en la montura AMELAS de SFEL por ejemplo, esto produciria un estado de error que el observador debe
+        // solucionar manualmente, pues es una situación que nunca debería haber ocurrido.
+
+        //Esta tendria la MountTrackAnalyzerConfig
+        // Datos de tiempo
+
+        // Basic data.
         MJDate mjd_start;
         SoD sod_start;
         MJDate mjd_end;
         SoD sod_end;
-        bool cfg_sun_avoid;            ///< Flag indicating if the track is configured for avoid the Sun.
-        unsigned cfg_time_delta;       ///< Time delta fo calculations in milliseconds.
-        unsigned cfg_sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
-        unsigned cfg_min_elev;         ///< Configured minimum elevation (degrees).
-        unsigned cfg_max_elev;         ///< Configured maximum elevation (degrees).
+        MillisecondsU time_delta;  ///< Time delta fo calculations in milliseconds.
+        DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
+        DegreesU min_elev;         ///< Configured minimum elevation (degrees).
+        DegreesU max_elev;         ///< Configured maximum elevation (degrees).
+        bool sun_avoid;            ///< Flag indicating if the track is configured for avoid the Sun.
+    };
+
+    // ESTA ES LA INFORMACION BASICA DEL TRACK YA ANALIZADO
+    struct TrackInfo
+    {
+        TrackInfo() :
+            valid_pass(false),
+            sun_deviation(false),
+            sun_collision(false),
+            sun_collision_at_middle(false),
+            sun_collision_at_start(false),
+            sun_collision_at_end(false),
+            trim_at_start(false),
+            trim_at_end(false),
+            el_deviation(false)
+        {}
+
+        // Time data.
+        MJDate mjd_start;
+        SoD sod_start;
+        MJDate mjd_end;
+        SoD sod_end;
+
+        // Position data.
+        AltAzPosition start_coord;    ///< Track start altazimuth coordinates.
+        AltAzPosition end_coord;      ///< Track end altazimuth  coordinates.
+        Degrees max_el;               ///< Track maximum elevation in degrees.
+
+        // Flags.
+        bool valid_pass;              ///< Flag indicating if the pass is valid.
+
+        // PA LA OTRA CLASE
+        bool sun_deviation;           ///< Flag indicating if the track was deviated from pass due to Sun.
+        bool sun_collision;           ///< Flag indicating if the pass has a collision with the Sun.
+        bool sun_collision_at_middle; ///< Flag indicating if the pass has a collision at middle with the Sun.
+        bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
+        bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
+        bool trim_at_start;           ///< Flag indicating if the pass was trimmed due to elevation or Sun at start.
+        bool trim_at_end;             ///< Flag indicating if the pass was trimmed due to elevation or Sun at end.
+        bool el_deviation;            ///< Flag indicating if the track was deviated from pass due to max elevation.
+    };
+
+    // TODO MOVE TO PASS GENERATOR
+    struct PassInfo
+    {
+        // Eleve max
+        // CW
+        // Azi start
+        //
     };
 
     struct MountTrackSLR
@@ -216,58 +300,24 @@ public:
         // Constructor.
         MountTrackSLR(const CPF& cpf, const PredictorSLR& predictor_slr, const PredictorSun& predictor_sun);
 
-        // TODO: velocities
+        // Containers
+        PredictorMountSLRConfig config;    ///< Contains the PredictorMountSLR user configuration.
+        TrackInfo track_info;              ///< Contains the analyzed tracking information.
+        //TODO PassInfo
 
-        // Date and times.
-
-        // CREAR ESTRUCTURA INTERMEDIA PARA ALMACENAR INFO DEL TRACK
-        MJDate cfg_mjd_start;
-        SoD cfg_sod_start;
-        MJDate mjd_end;
-        SoD sod_end;
-        MJDate mjd_max_elev;
-        SoD sod_max_elev;
-
-        // Elevations.
-        // TODO Diferenciar entre pase y start.
-        // PONER LAS DEL TRACK NO LAS DEL PASE.
-        long double start_elev;     ///< Track start elevation (degrees).
-        long double end_elev;       ///< Track end elevation.
-        long double max_elev;       ///< TODO
-
-        // ======================================================================
-
-        // AÑADIR LAS DEL PASE? Y como para que quede bien.
-
-        // Flags.
-        bool valid_pass;              ///< Flag indicating if the pass is valid.
-        bool sun_deviation;           ///< Flag indicating if the track was deviated from pass due to Sun.
-        bool sun_collision;           ///< Flag indicating if the pass has a collision with the Sun.
-        bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
-        bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
-        // TODO
-        bool trim_at_start;           ///< Flag indicating if the pass was trimmed due to elevation or Sun at start.
-        bool trim_at_end;             ///< Flag indicating if the pass was trimmed due to elevation or Sun at end.
-        bool el_deviation;            ///< Flag indicating if the track was deviated from pass due to max elevation.
-
-        // Configurations.
-        bool cfg_sun_avoid;            ///< Flag indicating if the track is configured for avoid the Sun.
-        MillisecondsU cfg_time_delta;  ///< Time delta fo calculations in milliseconds.
-        DegreesU cfg_sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
-        DegreesU cfg_min_elev;         ///< Configured minimum elevation (degrees).
-        DegreesU cfg_max_elev;         ///< Configured maximum elevation (degrees).
-
-        // Result containers.
         SunCollisionSectors sun_sectors;    ///< Sun sectors in the track for the required time interval.
         MountSLRPredictions predictions;    ///< Predicted data for the required time interval.
 
-        // CPF and predictors.
+        // Predictors and CPF.
         const CPF& cpf;                       ///< CPF used by the internal PredictorSLR.
         const PredictorSLR& predictor_slr;    ///< Internal PredictorSLR predictor.
         const PredictorSun& predictor_sun;    ///< Internal Sun predictor.
     };
 
     // TODO Use the maximum elevations.
+
+    // Predictor tendria que recibir PredictorSLR, PredictorSun (virtual), TrackAnalizerConfig, MJDatetime start y end.
+
     PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
@@ -287,12 +337,6 @@ public:
      * @return the tracking info.
      */
     const MountTrackSLR& getMountTrack() const;
-
-    /**
-     * @brief This function returns the minimum elevation of this tracking in degrees.
-     * @return the minimum elevation of the tracking in degrees.
-     */
-    unsigned getCfgMinElev() const;
 
     /**
      * @brief If this traking is valid, you can get the tracking start with this function. This start time
@@ -348,13 +392,6 @@ public:
     bool isSunAtEnd() const;
 
     /**
-     * @brief This function returns the radius of the sun security sector applied to sun avoidance manouvre.
-     *        This function should not be called if sun avoidance is not applied.
-     * @return the radius of the sun security sector
-     */
-    unsigned getSunAvoidAngle() const;
-
-    /**
      * @brief This function returns the object's position at a given time.
      * @param tp_time The time point datetime.
      * @param tracking_result, the returned TrackingResult struct.
@@ -381,16 +418,16 @@ private:
     void analyzeTracking();
 
     /// Helper to check the tracking start.
-    bool checkTrackingStart();
+    bool analyzeTrackingStart();
 
     /// Helper to check the tracking end.
-    bool checkTrackingEnd();
+    bool analyzeTrackingEnd();
 
     /// Helper to check the tracking.
-    bool checkTracking();
+    bool analyzeTrackingMiddle();
 
     /// Helper to check if the predicted position is inside a sun sector.
-    bool insideSunSector(const InstantData& pos, const SunPosition &sun_pos) const;
+    bool insideSunSector(const AltAzPosition& pass_pos, const AltAzPosition& sun_pos) const;
 
     /// Helper to set the rotation direction of a sun sector.
     bool setSunSectorRotationDirection(
@@ -400,7 +437,8 @@ private:
     void checkSunSectorPositions(
         const SunCollisionSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end);
 
-    long double calcSunAvoidTrajectory(MJDateTime mjdt, const SunCollisionSector &sector, SunPosition &sun_pos);
+    long double calcSunAvoidTrajectory(const MJDateTime& mjdt, const SunCollisionSector &sector,
+                                       const AltAzPosition &sun_pos);
 
     // Private members.
     PredictorSLR predictor_;               ///< SLR predictor.

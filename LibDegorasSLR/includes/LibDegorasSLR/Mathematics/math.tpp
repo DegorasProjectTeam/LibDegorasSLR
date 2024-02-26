@@ -49,13 +49,7 @@ namespace dpslr {
 namespace math_private  {
 // =====================================================================================================================
 
-template <typename T>
-std::enable_if_t<std::is_floating_point<T>::value, int>
-compareFloating(T a, T b, T epsilon)
-{
-    T aux = a - b;
-    return std::abs(aux) < epsilon ? 0 : std::signbit(aux) ? -1 : 1;
-}
+
 
 template<typename T>
 double truncToDouble(T x, unsigned int prec, unsigned int dec_places)

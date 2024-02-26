@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -23,32 +27,27 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file file_helpers.cpp
- * @brief This file contains the implementation of several helper tools related with files and directories.
+ * @file filedir_helpers.h
+ * @brief This file contains several helper tools related with files and directories.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
-#if  defined(WINDOWS) ||  defined(_MSC_VER)
-#include <direct.h>
-#define GetCurrentDir _getcwd
-#else
-#include <unistd.h>
-#define GetCurrentDir getcwd
-#endif
+#pragma once
 // =====================================================================================================================
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <algorithm>
 #include <string>
 #include <fstream>
+#include <sys/stat.h>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Helpers/file_helpers.h>
+#include "LibDegorasSLR/libdegorasslr_global.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -58,95 +57,70 @@ namespace helpers{
 namespace files{
 // =====================================================================================================================
 
-bool createDirectory(const std::string &path)
+// Directories and files related helper functions.
+// ---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief Converts a Windows-style path to a Unix-style and can also remove the drive letter from the beginning.
+ * @param windows_path The Windows-style path to be converted.
+ * @param rm_drive_letter If true, removes the drive letter from the path (if exists). Defaults to false.
+ * @return std::string The converted Unix-style path.
+ */
+LIBDPSLR_EXPORT std::string windowsPathToUnix(const std::string& windows_path, bool rm_drive_letter = false);
+
+/**
+ * @brief Converts a Unix-style path to a Windows-style. It allows the addition of a drive letter to be prepended.
+ * @param unix_path The Unix-style path to be converted.
+ * @param drive_letter The drive letter to be prepended (if empty, no letter is added).
+ * @return std::string The converted Windows-style path.
+ */
+LIBDPSLR_EXPORT std::string unixPathToWindows(const std::string& unix_path, const std::string& drive_letter = "");
+
+/**
+ * @brief Normalizes a filesystem path by removing trailing slashes or backslashes from the path. The normalization
+ * makes the path suitable for further manipulation or concatenation with filenames or subdirectory names.
+ * @param path The filesystem path to be normalized.
+ * @return std::string A copy of the input path, modified to remove any trailing directory separators.
+ */
+
+LIBDPSLR_EXPORT std::string normalizePath(const std::string& path);
+
+
+
+LIBDPSLR_EXPORT bool createDirectory(const std::string& path);
+
+LIBDPSLR_EXPORT bool directoryExists(const std::string& path);
+
+LIBDPSLR_EXPORT bool fileExists(const std::string &path);
+
+LIBDPSLR_EXPORT std::string getCurrentDir();
+
+LIBDPSLR_EXPORT std::string getFileName(const std::string& filepath);
+
+// Helper class for counting file line numbres of a file.
+class LIBDPSLR_EXPORT DegorasInputFileStream : public std::ifstream
 {
-    std::string command;
-#ifdef _WIN32
-    command = "mkdir \"" + path + "\"";
-#else
-    command = "mkdir -p \"" + path + "\"";
-#endif
-    if (system(command.c_str()) == 0)
-        return true;
-    else
-        return false;
-}
+public:
 
-bool directoryExists(const std::string &path)
-{
-    struct stat info;
-    if (stat(path.c_str(), &info) != 0)
-        return false;
-    return (info.st_mode & S_IFDIR) != 0;
-}
+    DegorasInputFileStream(const std::string& path);
 
-bool fileExists(const std::string &path)
-{
-    struct stat info;
-    return stat(path.c_str(), &info) == 0;
-}
+    std::istream& getline(std::string& line);
 
-std::string getFileName(const std::string &filepath)
-{
-    // Find the last occurrence of directory separator character.
-    size_t l_sep = filepath.find_last_of("/\\");
+    // Observer methods
+    unsigned getCurrentLineNumber() const;
 
-    if (l_sep != std::string::npos) {
-        // Extract and return the substring after the separator.
-        return filepath.substr(l_sep + 1);
-    }
+    const std::string& getFilePath() const;
+    bool isEmpty();
 
-    // If no separator is found, return the entire input path as the filename.
-    return filepath;
-}
+    virtual ~DegorasInputFileStream() override;
 
-std::string getCurrentDir()
-{
-    char buff[FILENAME_MAX];
-    GetCurrentDir( buff, FILENAME_MAX );
-    std::string current_working_dir(buff);
-    for (size_t i = 0; i < current_working_dir.size(); ++i)
-        if (current_working_dir[i] == '\\')
-            current_working_dir[i] = '/';
-    return current_working_dir;
-}
+private:
 
+    std::string file_path_;
+    std::string file_name_;
+    unsigned current_line_number_;
+};
 
-
-
-DegorasInputFileStream::DegorasInputFileStream(const std::string& path):
-    std::ifstream(path),
-    current_line_number_(0)
-{
-    // Open the file.
-    if (fileExists(path))
-    {
-        this->file_path_ = path;
-        this->file_name_ = files::getFileName(path);
-    }
-}
-
-std::istream& DegorasInputFileStream::getline(std::string& line)
-{
-    this->current_line_number_++;
-    return std::getline(*this, line);
-}
-
-unsigned DegorasInputFileStream::getCurrentLineNumber() const {return this->current_line_number_;}
-
-const std::string& DegorasInputFileStream::getFilePath() const {return this->file_path_;}
-
-bool DegorasInputFileStream::isEmpty()
-{
-    // Return the result.
-    return (this->peek() == std::ifstream::traits_type::eof());
-}
-
-DegorasInputFileStream::~DegorasInputFileStream()
-{
-    if(this->is_open())
-        this->close();
-}
 
 
 }}} // END NAMESPACES

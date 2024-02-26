@@ -27,57 +27,178 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file sun_position.h
+ * @file time_types.cpp
  * @brief
- * @author Degoras Project Team.
+ * @author Degoras Project Team
  * @copyright EUPL License
 ***********************************************************************************************************************/
 
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
-
 // C++ INCLUDES
 // =====================================================================================================================
+#include <omp.h>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
-#include "LibDegorasSLR/Astronomical/common/astro_types.h"
+#include "LibDegorasSLR/Timing/types/j2000_date_time.h"
+#include "LibDegorasSLR/Mathematics/math.h"
+#include "LibDegorasSLR/Timing/time_constants.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
+namespace timing{
+namespace types{
 // =====================================================================================================================
 
-// =====================================================================================================================
-using types::AltAzPosition;
-using math::Vector3DL;
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
+using helpers::types::NumericStrongType;
+using math::units::Seconds;
+// ---------------------------------------------------------------------------------------------------------------------
 
-/// @brief Represents the position of the Sun.
-struct LIBDPSLR_EXPORT SunPosition
+J2000DateTime::J2000DateTime() :
+    j2d_(J2000Date()),
+    fract_(DayFraction()),
+    sod_(SoD())
+{}
+
+J2000Date J2000DateTime::j2d() const
 {
-    // Constructors.
-    SunPosition() = default;
-    SunPosition(const SunPosition&) = default;
-    SunPosition(SunPosition&&) = default;
+    return this->j2d_;
+}
 
-    // Operators.
-    SunPosition& operator=(const SunPosition&) = default;
-    SunPosition& operator=(SunPosition&&) = default;
+DayFraction J2000DateTime::fract() const
+{
+    return this->fract_;
+}
 
-    // Position data.
-    AltAzPosition altaz_coord;  ///< Sun altazimuth coordinates referenced to an observer on Earth in degrees.
-    Vector3DL geo_pos;          ///< Sun geocentric position in meters.
-};
+SoD J2000DateTime::sod() const
+{
+    return this->sod_;
+}
 
-/// Alias for a vector of SunPosition.
-using SunPositions = std::vector<SunPosition>;
+long double J2000DateTime::j2dt() const
+{
+    return static_cast<long double>(this->j2d_) + this->fract_;
+}
 
-}} // END NAMESPACES.
+void J2000DateTime::increment(const Seconds &seconds)
+{
+    sod_ += seconds;
+    normalize();
+}
+
+void J2000DateTime::decrement(const SoD &seconds)
+{
+    sod_ -= seconds;
+    normalize();
+}
+
+J2000DateTime::J2000DateTime(const J2000Date &date, const SoD &sod) :
+    j2d_(date),
+    sod_(sod)
+{
+    // Normalize.
+    this->normalize();
+}
+
+std::vector<J2000DateTime> J2000DateTime::linspaceStep(const J2000DateTime &start, const J2000DateTime &end,
+                                                       const Seconds &step)
+{
+    std::vector<J2000DateTime> result;
+
+    if (math::compareFloating(step, Seconds()) <= 0)
+        return result;
+
+    size_t num = static_cast<size_t>(std::ceil((end - start) / step));
+
+    result.resize(num);
+
+    #pragma omp parallel for
+    for (size_t i = 0; i < num; i++)
+    {
+        J2000DateTime value = start + step * static_cast<long double>(i);
+        result[i] = value;
+    }
+
+    return result;
+}
+
+bool J2000DateTime::operator==(const J2000DateTime &other) const
+{
+    return this->j2d_ == other.j2d() && math::compareFloating(this->sod_, other.sod()) == 0;
+}
+
+bool J2000DateTime::operator<(const J2000DateTime& other) const
+{
+    return (this->j2d() < other.j2d()) ||
+           (this->j2d() == other.j2d() && math::compareFloating(this->sod(), other.sod()) < 0);
+}
+
+bool J2000DateTime::operator<=(const J2000DateTime &other) const
+{
+    return (this->j2d() < other.j2d()) ||
+           (this->j2d() == other.j2d() && math::compareFloating(this->sod(), other.sod()) <= 0);
+}
+
+bool J2000DateTime::operator>(const J2000DateTime &other) const
+{
+    return (this->j2d() > other.j2d()) ||
+           (this->j2d() == other.j2d() && math::compareFloating(this->sod(), other.sod()) > 0);
+}
+
+bool J2000DateTime::operator>=(const J2000DateTime &other) const
+{
+    return (this->j2d() > other.j2d()) ||
+           (this->j2d() == other.j2d() && math::compareFloating(this->sod(), other.sod()) >= 0);
+}
+
+J2000DateTime J2000DateTime::operator+(const Seconds &seconds) const
+{
+    J2000DateTime result = *this;
+    result.sod_ += seconds;
+    result.normalize();
+    return result;
+}
+
+void J2000DateTime::normalize()
+{
+    // Normalize the second of day input (decrement).
+    while(math::compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) < 0)
+    {
+        this->sod_ += timing::kSecsPerDayL;
+        this->j2d_--;
+    }
+
+    // Normalize the second of day input (increment).
+    while(math::compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) >= 0)
+    {
+        this->sod_ -= timing::kSecsPerDayL;
+        this->j2d_++;
+    }
+
+    // Calculate the fractional part of the day
+    this->fract_ = this->sod_ / timing::kSecsPerDayL;
+}
+
+// =====================================================================================================================
+
+Seconds operator-(const J2000DateTime &a, const J2000DateTime &b)
+{
+    Seconds result;
+    result = (a.j2d()-b.j2d()) * Seconds(timing::kSecsPerDayL) + (a.sod() - b.sod());
+    return result;
+}
+
+Seconds operator+(const J2000DateTime &a, const J2000DateTime &b)
+{
+    Seconds result;
+    result = (a.j2d()+b.j2d()) * Seconds(timing::kSecsPerDayL) + (a.sod() + b.sod());
+    return result;
+}
+
+// =====================================================================================================================
+
+}}} // END NAMESPACES.
 // =====================================================================================================================

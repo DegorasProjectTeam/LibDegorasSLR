@@ -27,57 +27,181 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file sun_position.h
- * @brief
- * @author Degoras Project Team.
+ * @file filedir_helpers.cpp
+ * @brief This file contains the implementation of several helper tools related with files and directories.
+ * @author Degoras Project Team
  * @copyright EUPL License
+ * @version 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
-#pragma once
+#if  defined(WINDOWS) ||  defined(_MSC_VER)
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
 // =====================================================================================================================
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <string>
+#include <fstream>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
-#include "LibDegorasSLR/Astronomical/common/astro_types.h"
+#include "LibDegorasSLR/Helpers/filedir_helpers.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
+namespace helpers{
+namespace files{
 // =====================================================================================================================
 
-// =====================================================================================================================
-using types::AltAzPosition;
-using math::Vector3DL;
-// =====================================================================================================================
-
-/// @brief Represents the position of the Sun.
-struct LIBDPSLR_EXPORT SunPosition
+std::string windowsPathToUnix(const std::string &windows_path, bool rm_drive_letter)
 {
-    // Constructors.
-    SunPosition() = default;
-    SunPosition(const SunPosition&) = default;
-    SunPosition(SunPosition&&) = default;
+    std::string unix_path = windows_path;
+    std::replace(unix_path.begin(), unix_path.end(), '\\', '/');
+    if(rm_drive_letter)
+    {
+        size_t colon_pos = unix_path.find(':');
+        if (colon_pos != std::string::npos)
+            unix_path = unix_path.substr(colon_pos + 1);
+    }
+    return unix_path;
+}
 
-    // Operators.
-    SunPosition& operator=(const SunPosition&) = default;
-    SunPosition& operator=(SunPosition&&) = default;
+std::string unixPathToWindows(const std::string &unix_path, const std::string &drive_letter)
+{
+    std::string windows_path = unix_path;
+    std::replace(windows_path.begin(), windows_path.end(), '/', '\\');
+    if (!drive_letter.empty() && windows_path[0] == '\\')
+        windows_path = drive_letter + ":" + windows_path;
+    return windows_path;
+}
 
-    // Position data.
-    AltAzPosition altaz_coord;  ///< Sun altazimuth coordinates referenced to an observer on Earth in degrees.
-    Vector3DL geo_pos;          ///< Sun geocentric position in meters.
-};
+std::string normalizePath(const std::string &path)
+{
+    // Ensure the path finish withoud '/' or '\\'.
+    std::string formated = path;
+    if (!formated.empty())
+    {
+        while (formated.back() == '/' || formated.back() == '\\')
+            formated.pop_back();
+    }
+    return formated;
+}
 
-/// Alias for a vector of SunPosition.
-using SunPositions = std::vector<SunPosition>;
 
-}} // END NAMESPACES.
+
+
+bool createDirectory(const std::string &path)
+{
+    std::string command;
+#ifdef _WIN32
+    command = "mkdir \"" + path + "\"";
+#else
+    command = "mkdir -p \"" + path + "\"";
+#endif
+    if (system(command.c_str()) == 0)
+        return true;
+    else
+        return false;
+}
+
+
+
+
+
+
+
+
+
+bool directoryExists(const std::string &path)
+{
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    return (info.st_mode & S_IFDIR) != 0;
+}
+
+bool fileExists(const std::string &path)
+{
+    struct stat info;
+    return stat(path.c_str(), &info) == 0;
+}
+
+std::string getFileName(const std::string &filepath)
+{
+    // Find the last occurrence of directory separator character.
+    size_t l_sep = filepath.find_last_of("/\\");
+
+    if (l_sep != std::string::npos) {
+        // Extract and return the substring after the separator.
+        return filepath.substr(l_sep + 1);
+    }
+
+    // If no separator is found, return the entire input path as the filename.
+    return filepath;
+}
+
+std::string getCurrentDir()
+{
+    char buff[FILENAME_MAX];
+    GetCurrentDir( buff, FILENAME_MAX );
+    std::string current_working_dir(buff);
+    for (size_t i = 0; i < current_working_dir.size(); ++i)
+        if (current_working_dir[i] == '\\')
+            current_working_dir[i] = '/';
+    return current_working_dir;
+}
+
+
+
+
+DegorasInputFileStream::DegorasInputFileStream(const std::string& path):
+    std::ifstream(path),
+    current_line_number_(0)
+{
+    // Open the file.
+    if (fileExists(path))
+    {
+        this->file_path_ = path;
+        this->file_name_ = files::getFileName(path);
+    }
+}
+
+std::istream& DegorasInputFileStream::getline(std::string& line)
+{
+    this->current_line_number_++;
+    return std::getline(*this, line);
+}
+
+unsigned DegorasInputFileStream::getCurrentLineNumber() const {return this->current_line_number_;}
+
+const std::string& DegorasInputFileStream::getFilePath() const {return this->file_path_;}
+
+bool DegorasInputFileStream::isEmpty()
+{
+    // Return the result.
+    return (this->peek() == std::ifstream::traits_type::eof());
+}
+
+DegorasInputFileStream::~DegorasInputFileStream()
+{
+    if(this->is_open())
+        this->close();
+}
+
+
+
+
+
+
+
+}}} // END NAMESPACES
 // =====================================================================================================================

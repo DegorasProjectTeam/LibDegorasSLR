@@ -31,7 +31,6 @@
  * @brief This file contains several timing definitions.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2402.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -95,14 +94,14 @@ using NsStd = std::chrono::nanoseconds;
 /// Alias for Windows Ticks.
 using Windows32Ticks = NumericStrongType<unsigned long long, struct Windows32TicksTag>;
 
-/// Alias for J2000 time.
-using J2DateTime = NumericStrongType<long double, struct J2000DateTimeTag>;
-
 /// Alias for Modified Julian Date in days.
 using MJDate = NumericStrongType<long long, struct MJDateTag>;
 
 /// Alias for Julian Date in days.
 using JDate = NumericStrongType<long long, struct JDateTag>;
+
+/// Alias for J2000 Date in days.
+using J2000Date = NumericStrongType<long long, struct J2000DateTag>;
 
 /// Alias for Modified Julian Datetime in days with decimals.
 using MJDateTime = NumericStrongType<long double, struct MJDateTimeTag>;

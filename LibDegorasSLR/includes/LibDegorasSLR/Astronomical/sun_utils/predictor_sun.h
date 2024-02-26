@@ -46,8 +46,9 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
 #include "LibDegorasSLR/Astronomical/sun_utils/sun_position.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/j2000_date_time.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -57,10 +58,13 @@ namespace astro{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using dpslr::timing::types::J2DateTime;
-using dpslr::timing::types::MJDate;
-using dpslr::timing::types::SoD;
-using dpslr::timing::types::MJDateTime;
+using timing::types::J2000DateTime;
+using timing::types::MJDate;
+using timing::types::SoD;
+using timing::types::MJDateTime;
+using geo::types::GeodeticPoint;
+using math::units::MillisecondsU;
+using math::Vector3DL;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -81,14 +85,13 @@ public:
         // Default constructor.
         SunPrediction() = default;
 
-        // Datetime members.
-        MJDate mjd;              ///< Modified Julian Date in days.
-        SoD sod;                 ///< Second of day in that Modified Julian Date.
-        MJDateTime mjdt;         ///< Modified Julian DateTime (day & fraction).
-        J2DateTime j2dt;         ///< J2000 DateTime (day & fraction).
+        // Containers.
+        J2000DateTime j2dt;         ///< J2000 datetime used to generate the Sun prediction data.
+        AltAzPosition altaz_coord;  ///< Sun predicted altazimuth coordinates referenced to an observer in degrees.
+        Vector3DL geo_pos;          ///< Sun predicted geocentric position in meters.
 
-        // Sun position.
-        SunPosition position;    ///< Predicted Sun position.
+        // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
+
     };
 
     /// Alias for a vector of SunPrediction.
@@ -98,44 +101,41 @@ public:
      * @brief Constructs a PredictorSun object with the given observer's geodetic coordinates.
      * @param obs_geod The geodetic coordinates of the observer.
      */
-    PredictorSun(const geo::types::GeodeticPoint<long double>& obs_geod);
+    PredictorSun(const GeodeticPoint<long double>& obs_geod);
 
     /**
      * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
      *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts
-     * the Sun position with a 0.01 degree accuracy up to 2099. It can perform also a simple
-     * atmospheric refraction correction.
+     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts the Sun position
+     * with a 0.01 degree accuracy up to 2099. It can perform also a simple atmospheric refraction correction. The
+     * time precision, internally, is decreased to milliseconds (for this type of prediction it is enough).
      *
-     * @param j2000 The Julian Date (J2000) of the prediction.
+     * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
      * @return The predicted SunPrediction.
      *
-     * @note The calculation algorithm was extracted from: 'Book: Sun Position: Astronomical Algorithm
-     * in 9 Common Programming Languages'.
+     * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
      */
-    SunPrediction fastPredict(const J2DateTime& j2000, bool refraction = false) const;
+    SunPrediction fastPredict(const J2000DateTime& j2000, bool refraction = false) const;
 
     /**
      * @brief Predicts Sun positions within a time range with a specified time step using a fast algorithm.
      *
      * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts in parallel
      * all Sun position within a time range with a specified time step, with a 0.01 degree accuracy up to 2099.
-     * It can perform also a simple atmospheric refraction correction.
+     * It can perform also a simple atmospheric refraction correction. The time precision, internally, is decreased to
+     * milliseconds (for this type of prediction it is enough).
      *
-     * @param j2000_start The start Julian Date (J2000) of the prediction range.
-     * @param j2000_end The end Julian Date (J2000) of the prediction range.
-     * @param step_ms The time step in milliseconds between predictions.
+     * @param j2000_start The J2000 start datetime of the prediction range.
+     * @param j2000_end The J2000 end datetime of the prediction range.
+     * @param step The time step in milliseconds between predictions.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
      * @return A vector of SunPrediction objects representing predicted sun positions at each step.
      *
      * @throws std::invalid_argument If the interval is invalid.
-     *
-     * @note The calculation algorithm was extracted from: 'Book: Sun Position: Astronomical Algorithm
-     * in 9 Common Programming Languages'.
      */
-    SunPredictions fastPredict(const J2DateTime& j2000_start, const J2DateTime& j2000_end,
-                               unsigned step_ms, bool refraction = false) const;
+    SunPredictions fastPredict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
+                               MillisecondsU step, bool refraction = false) const;
 
 private:
 

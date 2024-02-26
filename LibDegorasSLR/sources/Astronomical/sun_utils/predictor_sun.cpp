@@ -51,6 +51,10 @@ namespace dpslr{
 namespace astro{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace timing::types;
+// ---------------------------------------------------------------------------------------------------------------------
+
 dpslr::astro::PredictorSun::PredictorSun(const geo::types::GeodeticPoint<long double> &obs_geod)
 {
     // Convert latitude and longitude to radians.
@@ -59,21 +63,24 @@ dpslr::astro::PredictorSun::PredictorSun(const geo::types::GeodeticPoint<long do
     this->obs_alt_ = obs_geod.alt;
 }
 
-PredictorSun::SunPrediction PredictorSun::fastPredict(const J2DateTime &j2000, bool refraction) const
+PredictorSun::SunPrediction PredictorSun::fastPredict(const J2000DateTime& j2000, bool refraction) const
 {
+    // Store de J2000 datetime.
+    long double j2000_dt = j2000.j2dt();
+
     // Local sidereal time.
-    long double sidereal = 4.894961213L + 6.300388099L * j2000 + this->obs_lon_;
+    long double sidereal = 4.894961213L + 6.300388099L * j2000_dt + this->obs_lon_;
 
     // Mean longitude and anomaly of the sun.
-    long double mean_long = j2000 * 1.720279239e-2L + 4.894967873L;
-    long double mean_anom = j2000 * 1.720197034e-2L + 6.240040768L;
+    long double mean_long = j2000_dt * 1.720279239e-2L + 4.894967873L;
+    long double mean_anom = j2000_dt * 1.720197034e-2L + 6.240040768L;
 
     // Ecliptic longitude of the sun.
     long double eclip_long = mean_long + 3.342305518e-2L * std::sin(mean_anom)
                              + 3.490658504e-4L * std::sin(2 * mean_anom);
 
     // Obliquity of the ecliptic
-    long double obliquity = 0.4090877234L - 6.981317008e-9L * j2000;
+    long double obliquity = 0.4090877234L - 6.981317008e-9L * j2000_dt;
 
     // Right ascension of the sun and declination.
     long double rasc = std::atan2(std::cos(obliquity) * std::sin(eclip_long), std::cos(eclip_long));
@@ -103,33 +110,32 @@ PredictorSun::SunPrediction PredictorSun::fastPredict(const J2DateTime &j2000, b
 
     // Final data.
     PredictorSun::SunPrediction prediction;
-    prediction.position.az = azimuth;
-    prediction.position.el = elevation;
+    prediction.altaz_coord.az = azimuth;
+    prediction.altaz_coord.el = elevation;
     prediction.j2dt = j2000;
+
+    // FORCE FOR DEBUG.
+    prediction.altaz_coord.az = 225;
+    prediction.altaz_coord.el = 70;
 
     // Retur the final position.
     return prediction;
 }
 
 PredictorSun::SunPredictions PredictorSun::fastPredict(
-                                    const J2DateTime &j2000_start, const J2DateTime &j2000_end,
-                                    unsigned step_ms, bool refraction) const
+                                    const J2000DateTime &j2000_start, const J2000DateTime &j2000_end,
+                                    MillisecondsU step_ms, bool refraction) const
 {
     // Container and auxiliar.
-    std::vector<J2DateTime> interp_times;
-    J2DateTime j2000_current = j2000_start;
-    long double step_days = step_ms/86400000.0L;
+    J2000DateTimes interp_times;
+    Seconds step_sec = static_cast<long double>(step_ms) * math::units::kMsToSec;
 
     // Check for valid time interval.
-    if(!(j2000_start < j2000_end))
+    if(!(j2000_start <= j2000_end))
         throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
 
     // Calculates all the interpolation times.
-    while(j2000_current <= j2000_end)
-    {
-        interp_times.push_back(j2000_current);
-        j2000_current += step_days;
-    }
+    interp_times = J2000DateTime::linspaceStep(j2000_start, j2000_end, step_sec);
 
     // Results container.
     SunPredictions results(interp_times.size());

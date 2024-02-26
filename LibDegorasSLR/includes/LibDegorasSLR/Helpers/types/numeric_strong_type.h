@@ -31,7 +31,6 @@
  * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -62,13 +61,16 @@ class NumericStrongType
 {
     static_assert(std::is_arithmetic_v<T>,
                   "[LibDegorasBase,Helpers,NumericStrongType] Can only be used with numeric types.");
-    T value;
+    T value_;
 
 public:
 
-    NumericStrongType() = default;
+    NumericStrongType()
+    {
+        this->value_ = static_cast<T>(0);
+    }
 
-    NumericStrongType(T const& value) : value(value) {}
+    NumericStrongType(T const& value) : value_(value) {}
 
     NumericStrongType(const NumericStrongType&) = default;
 
@@ -78,7 +80,7 @@ public:
     {
         if (this != &other)
         {
-            this->value = other.value;
+            this->value_ = other.value_;
         }
         return *this;
     }
@@ -87,7 +89,7 @@ public:
     {
         if (this != &other)
         {
-            this->value = std::move(other.value);
+            this->value_ = std::move(other.value_);
         }
         return *this;
     }
@@ -95,35 +97,35 @@ public:
     // Overloading += operator
     NumericStrongType& operator+=(const T& rhs)
     {
-        this->value += rhs;
+        this->value_ += rhs;
         return *this;
     }
 
     // Overloading -= operator
     NumericStrongType& operator-=(const T& rhs)
     {
-        this->value -= rhs;
+        this->value_ -= rhs;
         return *this;
     }
 
     // Overloading += operator for NumericStrongType
     NumericStrongType& operator+=(const NumericStrongType& rhs)
     {
-        this->value += rhs.value;
+        this->value_ += rhs.value_;
         return *this;
     }
 
     // Overloading -= operator for NumericStrongType
     NumericStrongType& operator-=(const NumericStrongType& rhs)
     {
-        this->value -= rhs.value;
+        this->value_ -= rhs.value_;
         return *this;
     }
 
     // Prefix increment operator
     NumericStrongType& operator++()
     {
-        ++this->value;
+        ++this->value_;
         return *this;
     }
 
@@ -138,7 +140,7 @@ public:
     // Prefix decrement operator
     NumericStrongType& operator--()
     {
-        --this->value;
+        --this->value_;
         return *this;
     }
 
@@ -151,10 +153,10 @@ public:
     }
 
     // Conversion back to the underlying type.
-    operator T() const { return this->value; }
+    operator T() const { return this->value_; }
 
-    // Getter for the value.
-    T get() const { return this->value; }
+    // Getter for the value_.
+    T get() const { return this->value_; }
 };
 
 // Type traits.

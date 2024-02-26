@@ -67,8 +67,13 @@ constexpr long double kJ2000ToJulian = 2451545.0L;
 constexpr long double kPosixEpochToJulian = 2440587.5L;
 constexpr long double kJulianToPosixEpoch = -2440587.5L;
 constexpr long long kNsPerSecond = 1000000000LL;
-constexpr long long kSecsPerDay = 86400LL;
-constexpr long long kSecsPerHalfDay = 43200LL;
+//
+constexpr long long kSecsPerDayLL = 86400LL;
+constexpr long double kSecsPerDayL = 86400.0L;
+//
+constexpr long long kSecsPerHalfDayLL = 43200LL;
+constexpr long double kSecsPerHalfDayL = 43200.0L;
+//
 constexpr long long kNsPerDay = 86400000000000LL;
 constexpr long long kNsPerHalfDay = 43200000000000LL;
 constexpr long long kNsPerWin32Tick = 100ULL;

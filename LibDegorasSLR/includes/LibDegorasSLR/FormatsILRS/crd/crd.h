@@ -286,7 +286,7 @@
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_configuration.h"
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_data.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
-#include "LibDegorasSLR/Helpers/file_helpers.h"
+#include "LibDegorasSLR/Helpers/filedir_helpers.h"
 // =====================================================================================================================
 
 // C++ INCLUDES

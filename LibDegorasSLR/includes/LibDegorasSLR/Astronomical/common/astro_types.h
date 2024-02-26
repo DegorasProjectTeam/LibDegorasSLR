@@ -54,7 +54,6 @@ namespace types{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using dpslr::timing::types::J2DateTime;
 using dpslr::timing::types::MJDate;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::MJDateTime;
@@ -62,13 +61,6 @@ using dpslr::math::units::Degrees;
 // ---------------------------------------------------------------------------------------------------------------------
 
 
-struct PredictionBase
-{
-    // DateTime members.
-    //DegorasTime
-
-    virtual ~PredictionBase(){}
-};
 
 
 struct LIBDPSLR_EXPORT RA
@@ -137,7 +129,7 @@ struct LIBDPSLR_EXPORT AltAzPosition
 {
     AltAzPosition();
 
-    AltAzPosition(Degrees az, Degrees el);
+    AltAzPosition(const Degrees& az, const Degrees& el);
 
 
     AltAzPosition(const AltAzPosition& pos) = default;
@@ -154,6 +146,8 @@ struct LIBDPSLR_EXPORT AltAzPosition
 
     //size_t serializedSize() const final;
 
+    ~AltAzPosition()
+    {}
     Degrees az;
     Degrees el;
 };

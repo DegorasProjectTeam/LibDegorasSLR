@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -27,26 +31,41 @@
  * @brief This file contains the declarations of the mathematical functions.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
 ***********************************************************************************************************************/
 
+// =====================================================================================================================
 #pragma once
-
-// ========== INTERNAL INCLUDES ========================================================================================
-#include "LibDegorasSLR/Mathematics/common/math_types.h"
-#include "LibDegorasSLR/Mathematics/math.tpp"
 // =====================================================================================================================
 
+// C++ INCLUDES
+// =====================================================================================================================
+#include <cmath>
+#include <omp.h>
+// =====================================================================================================================
 
-// ========== DPSLR NAMESPACES =========================================================================================
+// LIBDEGORASSLR INCLUDES
+// =====================================================================================================================
+#include "LibDegorasSLR/Mathematics/common/math_types.h"
+#include "LibDegorasSLR/Mathematics/math.tpp"
+#include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
+// =====================================================================================================================
+
+// DPSLR NAMESPACES
+// =====================================================================================================================
 namespace dpslr {
 namespace math {
 // =====================================================================================================================
 
 template<typename T>
-T pow2(T x)
+T pow2(const T& x)
 {
     return x*x;
+}
+
+template<typename T>
+T pow3(const T& x)
+{
+    return x*x*x;
 }
 
 /**
@@ -119,10 +138,42 @@ common::EuclideanDivResult<T> euclidDivLL(T a, T b)
  * @return 1 if a > b, 0 if a == b, -1 a < b.
  */
 template <typename T>
-std::enable_if_t<std::is_floating_point<T>::value, int>
+std::enable_if_t<
+    std::is_floating_point<T>::value ||
+    (helpers::types::is_numeric_strong_type<T>::value &&
+        helpers::types::is_strong_float<T>::value),
+    int>
 compareFloating(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
 {
-    return dpslr::math_private::compareFloating(a, b, epsilon);
+    T aux = a - b;
+    return std::abs(aux) < epsilon ? 0 : std::signbit(aux) ? -1 : 1;
+}
+
+template <typename T>
+std::enable_if_t<
+    std::is_floating_point<T>::value ||
+    (helpers::types::is_numeric_strong_type<T>::value &&
+        helpers::types::is_strong_float<T>::value),
+    std::vector<T>>
+linspaceStep(const T& start, const T& end, const T& step)
+{
+    std::vector<T> result;
+
+    if (step == 0)
+        return result;
+
+    // Calculate the number of values based on the step size
+    size_t num = static_cast<size_t>(std::ceil((end - start) / step)) + 1;
+
+    result.resize(num);
+
+    #pragma omp parallel for
+    for (size_t i = 0; i < num; ++i)
+    {
+        result[i] = start + step * static_cast<T>(i);
+    }
+
+    return result;
 }
 
 /**

@@ -56,11 +56,11 @@ using dpslr::utils::PredictorMountSLR;
 using dpslr::timing::MJDate;
 using dpslr::timing::SoD;
 using dpslr::math::units::Angle;
-using dpslr::helpers::strings::numberToStr;
 using dpslr::math::units::DegreesU;
 using dpslr::math::units::Degrees;
 using dpslr::math::units::MillisecondsU;
 using dpslr::math::units::Meters;
+using dpslr::helpers::strings::numberToStr;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Auxiliar structs.
@@ -99,14 +99,14 @@ int main()
     Meters z = 3769892.958L;
 
     // TrackingSLR configuration.
-    MillisecondsU step = 100;        // Steps into which the algorithm will divide the pass for analysis.
-    DegreesU min_el = 15;            // Minimum acceptable elevation for the mount.
-    DegreesU max_el = 80;            // Maximum acceptable elevation for the mount.
-    DegreesU sun_avoid_angle = 15;   // Sun avoidance angle to make Sun the security sectors.
-    bool avoid_sun = true;           // Flag for enable or disable the Sun avoidance utility.
+    MillisecondsU step = 500;         // Steps into which the algorithm will divide the pass for analysis.
+    DegreesU min_el = 15;             // Minimum acceptable elevation for the mount.
+    DegreesU max_el = 90;             // Maximum acceptable elevation for the mount.
+    DegreesU sun_avoid_angle = 15;    // Sun avoidance angle to make Sun the security sectors.
+    bool avoid_sun = true;            // Flag for enable or disable the Sun avoidance utility.
 
     // Selectors.
-    size_t example_selector = 0;    // Select the example to process.
+    size_t example_selector = 1;    // Select the example to process.
     bool plot_data = true;          // Flag for enable the data plotting using a Python3 helper script.
 
     // -------------------- EXAMPLE PREPARATION ------------------------------------------------------------------------
@@ -114,14 +114,14 @@ int main()
     // Examples vector with their configurations.
     std::vector<ExampleData> examples =
         {
-            // Example 1: Lares with Sun at beginning.
-            {"Lares_Sun_Beg", "38077_cpf_240128_02901.sgf", 60340, 56726, 60340, 57756},
-            // Example 2: Jason 3 with Sun in the middle. Trespasses North cw.
-            {"Jason3_Sun_Mid", "41240_cpf_240128_02801.hts", 60340, 42140, 60340, 43150},
-            // Example 3: Explorer 27 with Sun in the end.
-            {"Explorer27_Sun_End", "1328_cpf_240128_02901.sgf", 60340, 30687, 60340, 31467},
-            // Example 4: Jason 3 with no sun. Trespasses North ccw.
-            {"Jason3_Sun_Mid", "41240_cpf_240128_02801.hts", 60340, 35250, 60340, 36060},
+            // Example 0: Lares with Sun at beginning.
+            {"Lares_SunBeg", "38077_cpf_240128_02901.sgf", 60340, 56726, 60340, 57756},
+            // Example 1: Jason 3 with Sun in the middle. Trespasses North cw.
+            {"Jason3_SunMid", "41240_cpf_240128_02801.hts", 60340, 42140, 60340, 43150},
+            // Example 2: Explorer 27 with Sun in the end.
+            {"Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", 60340, 30687, 60340, 31467},
+            // Example 3: Jason 3 with no sun. Trespasses North ccw.
+            {"Jason3_NoSun", "41240_cpf_240128_02801.hts", 60340, 35250, 60340, 36060},
         };
 
     // Configure the CPF input folder.
@@ -205,13 +205,11 @@ int main()
 
     // Log the pass and tracking information (illustrative example). You can read the specific
     // documentation to learn what you can do with each class and struct.
-    std::stringstream border;
-    std::stringstream lines;
-    std::stringstream data;
-    border.fill('=');
-    lines.fill('-');
+    std::stringstream border, lines, data;
     border.width(80);
     lines.width(80);
+    border.fill('=');
+    lines.fill('-');
     border << "\n";
     lines << "\n";
     data<<border.str();
@@ -222,21 +220,21 @@ int main()
     data<<"= File:        " << mount_track.cpf.getSourceFilename() << std::endl;
     data<<"= Object:      " << mount_track.cpf.getHeader().basicInfo1Header()->target_name << std::endl;
     //std::cout<<"= Pass interval: " << mount_track. << std::endl;
-    data<<"= Avoid Sun:   " << (mount_track.cfg_sun_avoid ? "true" : "false") << std::endl;
-    data<<"= Avoid angle: " << mount_track.cfg_sun_avoid_angle << std::endl;
-    data<<"= Delta:       " << mount_track.cfg_time_delta << std::endl;
-    data<<"= Min el:      " << mount_track.cfg_min_elev << std::endl;
+    data<<"= Avoid Sun:   " << (mount_track.config.sun_avoid ? "true" : "false") << std::endl;
+    data<<"= Avoid angle: " << mount_track.config.sun_avoid_angle << std::endl;
+    data<<"= Delta:       " << mount_track.config.time_delta << std::endl;
+    data<<"= Min el:      " << mount_track.config.min_elev << std::endl;
     data<<border.str();
     data<<"= Outputs:" << std::endl;
     data<<lines.str();
     //std::cout<<"= Track interval: " << mount_track. << std::endl;
-    data<<"= Trim at start: " << (mount_track.trim_at_start ? "true" : "false") << std::endl;
-    data<<"= Trim at end:   " << (mount_track.trim_at_end ? "true" : "false") << std::endl;
-    data<<"= Sun collision: " << (mount_track.sun_collision ? "true" : "false") << std::endl;
-    data<<"= Sun at start:  " << (mount_track.sun_collision_at_start ? "true" : "false") << std::endl;
-    data<<"= Sun at end:    " << (mount_track.sun_collision_at_end ? "true" : "false") << std::endl;
-    data<<"= Sun deviation: " << (mount_track.sun_deviation ? "true" : "false") << std::endl;
-    data<<"= El deviation: " << (mount_track.el_deviation ? "true" : "false") << std::endl;
+    data<<"= Trim at start: " << (mount_track.track_info.trim_at_start ? "true" : "false") << std::endl;
+    data<<"= Trim at end:   " << (mount_track.track_info.trim_at_end ? "true" : "false") << std::endl;
+    data<<"= Sun collision: " << (mount_track.track_info.sun_collision ? "true" : "false") << std::endl;
+    data<<"= Sun at start:  " << (mount_track.track_info.sun_collision_at_start ? "true" : "false") << std::endl;
+    data<<"= Sun at end:    " << (mount_track.track_info.sun_collision_at_end ? "true" : "false") << std::endl;
+    data<<"= Sun deviation: " << (mount_track.track_info.sun_deviation ? "true" : "false") << std::endl;
+    data<<"= El deviation: " << (mount_track.track_info.el_deviation ? "true" : "false") << std::endl;
     //TODO Etc
     data<<border.str();
     // Show the data.
@@ -263,19 +261,19 @@ int main()
         // would be no data from the mount's track, only the real pass.
         if(pred.status != PredictorMountSLR::PositionStatus::OUT_OF_TRACK)
         {
-            track_az = numberToStr(pred.tracking_position->az,7, 4);
-            track_el = numberToStr(pred.tracking_position->el,7, 4);
+            track_az = numberToStr(pred.mount_pos->altaz_coord.az,7, 4);
+            track_el = numberToStr(pred.mount_pos->altaz_coord.el,7, 4);
         }
         //
         // Store the data.
         file_analyzed_track <<'\n';
         file_analyzed_track << std::to_string(pred.mjd) <<";" << std::to_string(pred.sod) <<";";
-        file_analyzed_track << numberToStr(pred.prediction_result->instant_data->az,7, 4) <<";";
-        file_analyzed_track << numberToStr(pred.prediction_result->instant_data->el,7, 4) <<";";
+        file_analyzed_track << numberToStr(pred.slr_pred->instant_data->az, 7, 4) <<";";
+        file_analyzed_track << numberToStr(pred.slr_pred->instant_data->el, 7, 4) <<";";
         file_analyzed_track << track_az <<";";
         file_analyzed_track << track_el <<";";
-        file_analyzed_track << numberToStr(pred.sun_position->az,7, 4) <<";";
-        file_analyzed_track << numberToStr(pred.sun_position->el,7, 4);
+        file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
+        file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
     }
     //
     // Close the file.
@@ -284,34 +282,16 @@ int main()
 
     if(plot_data)
     {
+        std::cout<<"Plotting analyzed data using Python helpers..."<<std::endl;
         python_cmd += (output_dir + "/" + track_csv_filename);
-        int result = system(python_cmd.c_str());
+        if(system(python_cmd.c_str()))
+            std::cout<<"Plotting failed!!"<<std::endl;
     }
 
     // -------------------- NOW LET'S START CALCULATING PREDICTIONS ----------------------------------------------------
 
-
-
-    if (predictor_mount.isSunOverlapping())
-    {
-        std::cout << "Sun overlapping." << std::endl;
-
-        if (predictor_mount.isSunAtStart())
-        {
-            std::cout << "Sun overlapping at the beginning." << std::endl;
-            // Get the new tracking start date
-            predictor_mount.getTrackingStart(mjd_start, sod_start);
-        }
-
-        if (predictor_mount.isSunAtEnd())
-        {
-            std::cout << "Sun overlapping at the end." << std::endl;
-            // Get the new tracking end date.
-            predictor_mount.getTrackingEnd(mjd_end, sod_end);
-        }
-    }
-
-
+    predictor_mount.getTrackingStart(mjd_start, sod_start);
+    predictor_mount.getTrackingEnd(mjd_end, sod_end);
 
     // Real time.
 
@@ -373,8 +353,8 @@ int main()
 
     for (const auto &prediction : results)
     {
-        file_pos << prediction.tracking_position->az << "," << prediction.tracking_position->el << std::endl;
-        file_pos_sun << prediction.sun_position->az << "," << prediction.sun_position->el << std::endl;
+        file_pos << prediction.mount_pos->altaz_coord.az << "," << prediction.mount_pos->altaz_coord.el << std::endl;
+        file_pos_sun << prediction.sun_pred->altaz_coord.az << "," << prediction.sun_pred->altaz_coord.el << std::endl;
     }
 
     file_pos.close();

@@ -58,12 +58,18 @@ using dpslr::helpers::types::NumericStrongType;
 
 // BASIC CONSTANTS
 // ---------------------------------------------------------------------------------------------------------------------
-constexpr long double kSecToPs = 1e12L;
-constexpr long double kPsToSec = 1e-12L;
-constexpr long double kSecToNs = 1e9L;
-constexpr long double kNsToSec = 1e-9L;
-constexpr long double kSecToUs = 1e6L;
-constexpr long double kSecToMs = 1e3L;
+constexpr long double kSecToPs = 1e12L;   ///< Seconds to picoseconds conversion factor.
+constexpr long double kPsToSec = 1e-12L;  ///< Picoseconds to seconds conversion factor.
+//
+constexpr long double kSecToNs = 1e9L;    ///< Seconds to nanoseconds conversion factor.
+constexpr long double kNsToSec = 1e-9L;   ///< Nanoseconds to seconds conversion factor.
+//
+constexpr long double kSecToUs = 1e6L;    ///< Seconds to microseconds conversion factor
+constexpr long double kUsToSec = 1e-6L;   ///< Microseconds to seconds conversion factor.
+//
+constexpr long double kSecToMs = 1e3L;    ///< Seconds to milliseconds conversion factor.
+constexpr long double kMsToSec = 1e-3L;   ///< Milliseconds to seconds conversion factor.
+//
 constexpr long double kNmToUm = 0.001L;
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -88,6 +94,12 @@ using Degrees = NumericStrongType<long double, struct DegreesTag>;
 
 /// Alias for strong type unsigned representing degrees.
 using DegreesU = NumericStrongType<unsigned, struct DegreesUTag>;
+
+/// Alias for strong type long double representing seconds.
+using Seconds = NumericStrongType<long double, struct SecondsTag>;
+
+/// Alias for strong type unsigned representing seconds.
+using SecondsU = NumericStrongType<unsigned, struct SecondsUTag>;
 
 /// Alias for strong type long double representing milliseconds.
 using Milliseconds = NumericStrongType<long double, struct MillisecondsTag>;

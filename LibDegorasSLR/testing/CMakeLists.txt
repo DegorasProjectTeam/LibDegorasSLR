@@ -17,22 +17,11 @@ set(IGNORED_PATHS
     "AlgorithmsSLR/UnitTest_PredictorSLR/*"
     "AlgorithmsSLR/ComplexTest_GeneratePasses/*")
 
-# Add all the basic unit tests.
-macro_setup_lib_basic_unit_tests("${CMAKE_CURRENT_SOURCE_DIR}"
-                                 "${GLOBAL_LIBDPSLR_TESTS_INSTALL_PATH}"
-                                 "${IGNORED_PATHS}")
-
 # ----------------------------------------------------------------------------------------------------------------------
-# COMPLEX TESTS
+# ADD THE MODULES (SIMPLE AND COMPLEX TESTS)
 
-# Log.
-message(STATUS "Setup library complex tests...")
-
-# Ignore paths for complex unit test:
-set(IGNORED_PATHS
-    "AlgorithmsSLR/UnitTest_PredictorSLR/*")
-
-# Add the tests in the subdirectories.
-macro_add_subdirs_recursive("${CMAKE_CURRENT_SOURCE_DIR}" "${IGNORED_PATHS}")
+# Add all the Modules.
+add_subdirectory(Helpers)
+add_subdirectory(Timing)
 
 # **********************************************************************************************************************

@@ -27,9 +27,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file sun_position.h
+ * @file j2000_date_time.h
  * @brief
- * @author Degoras Project Team.
+ * @author Degoras Project Team
  * @copyright EUPL License
 ***********************************************************************************************************************/
 
@@ -39,45 +39,126 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <omp.h>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
-#include "LibDegorasSLR/Astronomical/common/astro_types.h"
+#include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Mathematics/units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
+namespace timing{
+namespace types{
 // =====================================================================================================================
 
-// =====================================================================================================================
-using types::AltAzPosition;
-using math::Vector3DL;
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
+using helpers::types::NumericStrongType;
+using math::units::Seconds;
+// ---------------------------------------------------------------------------------------------------------------------
 
-/// @brief Represents the position of the Sun.
-struct LIBDPSLR_EXPORT SunPosition
+/**
+ * @brief Struct for handle J2000 datetimes epochs (date and fraction).
+ *
+ * The J2000 epoch is a standard astronomical reference epoch used in the field of astronomy and celestial mechanics.
+ * It represents the start of the year 2000 in the Gregorian calendar system and is commonly used as a reference point
+ * for astronomical calculations.
+ *
+ * This struct stores J2000 datetime epochs (date, fraction and number of seconds in that day). The use of the day
+ * value (´j2d´) and the number of seconds in that day (`sod`) in a separated way will provide a time resolution of
+ * picoseconds. The use of the day value (´j2d´) and the decimal fractional part of the day (´fract´) in a separated
+ * way will provide a time resolution of nanoseconds (in the sense of fraction of the day). The use of the full
+ * datetime value (day and fraction) directly will provide a time resolution of milliseconds.
+ */
+struct J2000DateTime
 {
-    // Constructors.
-    SunPosition() = default;
-    SunPosition(const SunPosition&) = default;
-    SunPosition(SunPosition&&) = default;
 
-    // Operators.
-    SunPosition& operator=(const SunPosition&) = default;
-    SunPosition& operator=(SunPosition&&) = default;
+public:
 
-    // Position data.
-    AltAzPosition altaz_coord;  ///< Sun altazimuth coordinates referenced to an observer on Earth in degrees.
-    Vector3DL geo_pos;          ///< Sun geocentric position in meters.
+    /**
+     * @brief Default constructor for J2000DateTime. Initializes the object with default values (all to zero).
+     */
+    J2000DateTime();
+
+    /**
+     * @brief Constructor with J2000Date and Second Of Day parameters.
+     * @param date J2000Date object representing the date.
+     * @param sod Number of seconds in that day.
+     */
+    J2000DateTime(const J2000Date& date, const SoD& sod);
+
+    J2000DateTime(const J2000DateTime& other) = default;
+
+    J2000DateTime(J2000DateTime&& other) = default;
+
+    J2000Date j2d() const;
+
+    DayFraction fract() const;
+
+    SoD sod() const;
+
+    /**
+     * @brief Function to get the J2000 date and fractional part together as a long double.
+     * @return J2000 date and fractional part combined, reduced to milliseconds precision.
+     * @warning This function reduces the precision of the time up to milliseconds in the sense of day fraction).
+     */
+    long double j2dt() const;
+
+    // Function to increment time by seconds
+    void increment(const Seconds& seconds);
+
+    // Function to decrement time by seconds
+    void decrement(const SoD& seconds);
+
+    J2000DateTime& operator=(const J2000DateTime&) = default;
+
+    J2000DateTime& operator=(J2000DateTime&&) = default;
+
+    bool operator==(const J2000DateTime& other) const;
+
+    bool operator<(const J2000DateTime& other) const;
+
+    bool operator<=(const J2000DateTime& other) const;
+
+    bool operator>(const J2000DateTime& other) const;
+
+    bool operator>=(const J2000DateTime& other) const;
+
+    J2000DateTime operator+(const Seconds& seconds) const;
+
+    static std::vector<J2000DateTime> linspaceStep(const J2000DateTime& start,
+                                                   const J2000DateTime& end, const Seconds& step);
+
+private:
+
+    // TODO Check for negative days (exception).
+
+    void normalize();
+
+    J2000Date j2d_;      ///< J2000 Date in days (J2000 = JD 2451545.0).
+    DayFraction fract_;  ///< Decimal fraction of that day (up to nanoseconds resolution in the sense of day fraction).
+    SoD sod_;            ///< Number of seconds in that day (up to picoseconds resolution).
 };
 
-/// Alias for a vector of SunPosition.
-using SunPositions = std::vector<SunPosition>;
+// External operators.
+// ---------------------------------------------------------------------------------------------------------------------
 
-}} // END NAMESPACES.
+Seconds operator-(const J2000DateTime& a, const J2000DateTime& b);
+
+Seconds operator+(const J2000DateTime &a, const J2000DateTime &b);
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Aliases.
+// ---------------------------------------------------------------------------------------------------------------------
+using J2000DateTimes = std::vector<J2000DateTime>;
+// ---------------------------------------------------------------------------------------------------------------------
+
+//======================================================================================================================
+
+}}} // END NAMESPACES.
 // =====================================================================================================================

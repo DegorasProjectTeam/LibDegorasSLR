@@ -48,6 +48,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/j2000_date_time.h"
 // =====================================================================================================================
 
 // DEFINITIONS
@@ -65,20 +66,27 @@ namespace dpslr{
 namespace timing{
 // =====================================================================================================================
 
-// =====================================================================================================================
-using dpslr::timing::types::HRClock;
-using dpslr::timing::types::HRTimePointStd;
-using dpslr::timing::types::TimeResolution;
+// ---------------------------------------------------------------------------------------------------------------------
+using timing::types::HRClock;
+using timing::types::HRTimePointStd;
+using timing::types::TimeResolution;
+using timing::types::Windows32Ticks;
+
+
+using timing::types::JDate;
+using timing::types::MJDate;
+using timing::types::J2000Date;
+using timing::types::J2000DateTime;
+
+using timing::types::DayFraction;
+using timing::types::SoD;
+
+
 using dpslr::timing::types::JDateTime;
-using dpslr::timing::types::JDate;
-using dpslr::timing::types::MJDate;
 using dpslr::timing::types::MJDateTime;
-using dpslr::timing::types::Windows32Ticks;
-using dpslr::timing::types::J2DateTime;
-using dpslr::timing::types::DayFraction;
-using dpslr::timing::types::SoD;
 using dpslr::timing::types::RJDateTime;
-// =====================================================================================================================
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 // HELPER FUNCTIONS
 //======================================================================================================================
@@ -411,15 +419,8 @@ LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDatetimeToTimePoint(MJDateTime mjdt
 
 
 
-/**
- * @brief Convert a MJD with second of day to a J2000 datetime
- * @param mjd     The Modified Julian Date in days.
- * @param seconds The number of seconds with decimals.
- * @return The J2000 Datetime in days.
- * @warning Using this function can make your timestamp inaccurate. Use only to
- *          work with times where nanoseconds are not important.
- */
-LIBDPSLR_EXPORT long double mjdToJ2000Datetime(MJDate mjd, SoD seconds);
+
+LIBDPSLR_EXPORT J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDate& mjd, const SoD& sod = SoD());
 
 /**
  * @brief Convert a modified julian datetime to a J2000 datetime

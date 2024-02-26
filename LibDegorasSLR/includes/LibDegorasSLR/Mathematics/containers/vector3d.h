@@ -361,11 +361,11 @@ public:
         return os;
     }
 
-
 private:
     std::array<T, 3> data_;
 };
 
+using Vector3DL = Vector3D<long double>;
 
 }} // END NAMESPACES.
 // =====================================================================================================================

@@ -40,7 +40,11 @@ add_custom_command(TARGET "${EXAMPLE_NAME}" PRE_BUILD
 
 # Configure the compilers.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -m64 -O3 -pthread -fopenmp")
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0 -fopenmp")
+    else()
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -m64 -O3 -pthread -fopenmp")
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     #target_compile_options(${LIB_NAME} PUBLIC)
     message(FATAL_ERROR "Compiler not supported by default.")

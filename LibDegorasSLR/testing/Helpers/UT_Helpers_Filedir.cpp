@@ -46,6 +46,7 @@ using namespace dpslr::helpers::types;
 // ---------------------------------------------------------------------------------------------------------------------
 M_DECLARE_UNIT_TEST(NumericStrongType_traits)
 M_DECLARE_UNIT_TEST(NumericStrongType_basics)
+//
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -158,7 +159,6 @@ M_DEFINE_UNIT_TEST(NumericStrongType_traits)
     std::cout<<std::numeric_limits<decltype(custom_longdouble)>::epsilon()<<std::endl;
     */
 }
-
 
 M_DEFINE_UNIT_TEST(NumericStrongType_basics)
 {

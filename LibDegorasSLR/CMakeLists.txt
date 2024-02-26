@@ -112,7 +112,11 @@ macro_link_libnovascpp_default(${LIB_NAME})
 
 # Configure the compilers.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -m64 -O3 -pthread -fopenmp")
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0 -fopenmp")
+    else()
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -m64 -O3 -pthread -fopenmp")
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     #target_compile_options(${LIB_NAME} PUBLIC)
     message(FATAL_ERROR "Compiler not supported by default.")
@@ -122,8 +126,8 @@ endif()
 
 # In mingw better do static linking of the libgcc, libwinpthread and libstd.
 if (MINGW)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static -lpthread")
-    target_link_libraries(${LIB_NAME} PRIVATE -static-libgcc -static-libstdc++ -static -lpthread)
+    #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static -lpthread")
+    #target_link_libraries(${LIB_NAME} PRIVATE -static-libgcc -static-libstdc++ -static -lpthread)
 endif()
 
 # ----------------------------------------------------------------------------------------------------------------------
