@@ -70,6 +70,7 @@ constexpr long long kNsPerSecond = 1000000000LL;
 //
 constexpr long long kSecsPerDayLL = 86400LL;
 constexpr long double kSecsPerDayL = 86400.0L;
+constexpr double kSecsPerDay = 86400.0;
 //
 constexpr long long kSecsPerHalfDayLL = 43200LL;
 constexpr long double kSecsPerHalfDayL = 43200.0L;

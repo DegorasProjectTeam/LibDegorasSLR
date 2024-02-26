@@ -144,10 +144,8 @@ struct LIBDPSLR_EXPORT AltAzPosition
 
     //void deserialize(zmqutils::utils::BinarySerializer& serializer) final;
 
-    //size_t serializedSize() const final;
+    //size_t serializedSize() const final
 
-    ~AltAzPosition()
-    {}
     Degrees az;
     Degrees el;
 };

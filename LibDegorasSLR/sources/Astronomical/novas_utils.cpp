@@ -63,11 +63,11 @@ LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
     }
 
     // Calculate timestamps
+    double leap_secs_d = static_cast<double>(leap_secs);
     double jd_utc = jdt;
-    double jd_tt = jd_utc + (static_cast<double>(leap_secs) + 32.184) /
-                                static_cast<double>(timing::kSecsPerDay);             // TT = UTC + incrementAT + 32.184
-    double jd_ut1 = jd_utc + ut1_utc_diff / static_cast<double>(timing::kSecsPerDay);
-    double delta_t = 32.184 + leap_secs - ut1_utc_diff;                               // TT - UT1 in seconds.
+    double jd_tt = jd_utc + (leap_secs_d + 32.184) / timing::kSecsPerDay;  // TT = UTC + incrementAT + 32.184
+    double jd_ut1 = jd_utc + ut1_utc_diff / timing::kSecsPerDay;
+    double delta_t = 32.184 + leap_secs_d - ut1_utc_diff;                               // TT - UT1 in seconds.
 
     // Variable declarations
     double ra_topo;                                                                   // Topocentric RA
