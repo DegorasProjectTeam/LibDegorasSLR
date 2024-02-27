@@ -7,7 +7,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Testing/unit_test_summary.h"
+#include "LibDegorasSLR/Testing/unit_test/unit_test_summary.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 

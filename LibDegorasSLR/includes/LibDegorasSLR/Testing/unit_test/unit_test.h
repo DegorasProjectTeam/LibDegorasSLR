@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -22,55 +26,66 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
-/** ********************************************************************************************************************
- * @file dpslr_filters.h
- * @author Degoras Project Team.
- * @brief This file contains the DPSLR project filters.
- * @copyright EUPL License
- * @version 2305.1
-***********************************************************************************************************************/
-
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
+#include <map>
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// LIBDEGORASSLR INCLUDES
+// =====================================================================================================================
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Testing/unit_test/unit_test_base.h"
+#include "LibDegorasSLR/Testing/unit_test/unit_test_summary.h"
+// =====================================================================================================================
+
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
+namespace testing{
 // =====================================================================================================================
 
-/*
- * @brief Determine what residuals are within a given prefilter window.
- *
- * Determine what residuals are within a given prefilter window. The window is generated using the upper and lower
- * limits as input parameters. All the input data must be coherent. If the residuals are given as distance, the
- * limits should be given as distance, and if the residuals are given as time, the limits should be given as time.
- * The generated acceptance interval will be closed at both ends. The return is a vector with the indexes of the
- * accepted residuals and it will be empty if there is a problem with the inputs.
- *
- * @param[in] resids, vector with the residuals that will be analyzed.
- * @param[in]  upper, the upper limit of the prefilter window.
- * @param[in]  lower, the lower limit of the prefilter window.
- * @return A vector with the indexes of the accepted residuals. It will be empty if there is an error.
- */
-LIBDPSLR_EXPORT
-    std::vector<std::size_t> windowPrefilter(const std::vector<long double> &resids, long double upper, long double lower);
+// ALIAS
+// ---------------------------------------------------------------------------------------------------------------------
+using UnitTestDict = std::multimap<std::string, std::pair<std::string, UnitTestBase*>>;
+// ---------------------------------------------------------------------------------------------------------------------
 
-LIBDPSLR_EXPORT
-    std::vector<std::size_t> windowPrefilter(const std::vector<double> &resids, double upper, double lower);
+class LIBDPSLR_EXPORT UnitTest
+{
 
-LIBDPSLR_EXPORT
-    std::vector<std::size_t> histPrefilterSLR(const std::vector<double> &times, const std::vector<double> &resids,
-                     double bs, double depth, unsigned min_ph, unsigned divisions);
+public:
 
-LIBDPSLR_EXPORT
-    std::vector<std::size_t> histPrefilterBinSLR(const std::vector<double>& resids_bin, double depth, unsigned min_ph);
+    // Deleting the copy constructor.
+    UnitTest(const UnitTest& obj) = delete;
 
-LIBDPSLR_EXPORT
-    std::vector<std::size_t> histPostfilterSLR(const std::vector<double> &times, const std::vector<double> &resids,
-                      double bs, double depth);
+    static UnitTest& instance();
+
+    void setSessionName(std::string&& session);
+
+    void registerTest(std::string&& module, std::string&& submodule, UnitTestBase* test);
+
+    bool runTests();
+
+    void clear();
+
+    void setForceShowResults(bool enable);
+
+private:
+
+    // Constructor.
+    UnitTest();
+
+    // Members.
+    UnitTestDict test_dict_;
+    UnitTestSummary summary_;
+    std::string session_;
+
+    // Configuration.
+    bool force_show_results_;
+};
+
+}} // END NAMESPACES.
+// =====================================================================================================================

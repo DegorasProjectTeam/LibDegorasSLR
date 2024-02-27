@@ -1,5 +1,5 @@
-#include <LibDegorasSLR/Testing/unit_test.h>
-#include <LibDegorasSLR/Testing/unit_test_base.h>
-#include <LibDegorasSLR/Testing/unit_test_log.h>
-#include <LibDegorasSLR/Testing/unit_test_macros.h>
-#include <LibDegorasSLR/Testing/unit_test_summary.h>
+#include <LibDegorasSLR/Testing/unit_test/unit_test.h>
+#include <LibDegorasSLR/Testing/unit_test/unit_test_base.h>
+#include <LibDegorasSLR/Testing/unit_test/unit_test_log.h>
+#include <LibDegorasSLR/Testing/unit_test/unit_test_summary.h>
+#include <LibDegorasSLR/Testing/unit_test/unit_test_macros.h>

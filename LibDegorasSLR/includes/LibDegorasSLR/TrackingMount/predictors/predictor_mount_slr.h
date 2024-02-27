@@ -46,16 +46,18 @@
 #include "LibDegorasSLR/Timing/types/time_types.h"
 #include "LibDegorasSLR/Mathematics/units.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace utils{
+namespace mount{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
 using timing::types::HRTimePointStd;
+using timing::types::MJDateTime;
 using timing::types::MJDate;
 using timing::types::SoD;
 using astro::PredictorSun;
@@ -65,6 +67,8 @@ using math::units::DegreesU;
 using math::units::Degrees;
 using math::units::MillisecondsU;
 using math::units::Meters;
+using utils::PredictorSLR;
+using ilrs::cpf::CPF;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // No se procesa la elevacion maxima porque es trivial, a diferencia de un cambio de trayectoria completo como

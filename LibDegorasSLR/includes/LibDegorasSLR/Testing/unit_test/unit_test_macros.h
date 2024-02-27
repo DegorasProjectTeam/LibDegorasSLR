@@ -30,74 +30,81 @@
 // =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Testing/unit_test_base.h"
-// =====================================================================================================================
-
-
-// DPSLR NAMESPACES
-// =====================================================================================================================
-namespace dpslr{
-namespace testing{
+#include <LibDegorasSLR/Testing/unit_test/unit_test.h>
 // =====================================================================================================================
 
+// MACROS
+// =====================================================================================================================
 
-UnitTestBase::UnitTestBase(const std::string &name):
-    test_name_(name),
-    result_(true),
-    force_stream_data_(false),
-    current_check_n_(0)
-{}
+#define M_START_UNIT_TEST_SESSION(SessionName)                    \
+int main(){                                                       \
+UnitTest::instance().clear();                                     \
+UnitTest::instance().setSessionName(std::string(SessionName));    \
 
-void UnitTestBase::runTest(){}
+#define M_FORCE_SHOW_RESULTS(enable)                              \
+UnitTest::instance().clear();                                     \
+    UnitTest::instance().setForceShowResults(enable);             \
 
-bool UnitTestBase::forceFail()
-{
-    this->updateCheckResults(false);
-    return false;
-}
+#define M_DECLARE_UNIT_TEST(TestName)                       \
+using dpslr::testing::UnitTestBase;                         \
+using dpslr::testing::UnitTest;                             \
+class Test_##TestName : public UnitTestBase                 \
+{                                                           \
+        Test_##TestName(): UnitTestBase(#TestName){}        \
+        public:                                             \
+        static Test_##TestName* instance()                  \
+    {                                                       \
+            static Test_##TestName test;                    \
+            return &test;                                   \
+    }                                                       \
+        void runTest() override;                            \
+};                                                          \
 
-bool UnitTestBase::forcePass()
-{
-    this->updateCheckResults(true);
-    return false;
-}
+#define M_DEFINE_UNIT_TEST(TestName) \
+void Test_##TestName::runTest() \
 
-bool UnitTestBase::expectTrue(bool result)
-{
-    std::cout<<"                           - Expecting true result"<<std::endl;
-    this->updateCheckResults(result);
-    return result;
-}
+#define M_REGISTER_UNIT_TEST(Module, Submodule, TestName) \
+    UnitTest::instance().registerTest(#Module, #Submodule, Test_##TestName::instance()); \
 
-bool UnitTestBase::expectFalse(bool result)
-{
-    std::cout<<"                           - Expecting false result"<<std::endl;
-    this->updateCheckResults(!result);
-    return !result;
-}
+#define M_RUN_UNIT_TESTS() \
+bool final_res = dpslr::testing::UnitTest::instance().runTests(); \
 
-bool UnitTestBase::expectEQ(const std::string &str1, const std::string &str2)
-{
-    bool result = (str1 == str2);
-    this->updateCheckResults(result, str1, str2);
-    return result;
-}
+#define M_FINISH_UNIT_TEST_SESSION() \
+return (final_res ? 0 : 1); } \
 
-bool UnitTestBase::expectEQ(const char *str1, const char *str2)
-{
-    bool result = (std::string(str1) == std::string(str2));
-    this->updateCheckResults(result, str1, str2);
-    return result;
-}
+#define M_CUSTOM_CHECK(func, ...) \
+this->result_ &= customCheck(func, __VA_ARGS__); \
 
-UnitTestBase::~UnitTestBase(){}
+#define M_EXPECTED_TRUE(arg1) \
+this->result_ &= expectTrue(arg1); \
 
-void UnitTestBase::setForceStreamData(bool enable)
-{
-    this->force_stream_data_ = enable;
-}
+#define M_EXPECTED_FALSE(arg1) \
+this->result_ &= expectFalse(arg1); \
 
-}} // END NAMESPACES.
+#define M_EXPECTED_EQ(arg1, arg2) \
+this->result_ &= expectEQ(arg1, arg2); \
+
+#define M_EXPECTED_EQ_F(arg1, arg2, eps) \
+this->result_ &= expectEQ(arg1, arg2, eps); \
+
+#define M_EXPECTED_NE_F(arg1, arg2, eps) \
+this->result_ &= expectNE(arg1, arg2, eps); \
+
+#define M_EXPECTED_EQ(arg1, arg2) \
+this->result_ &= expectEQ(arg1, arg2); \
+
+#define M_EXPECTED_NE(arg1, arg2) \
+this->result_ &= expectNE(arg1, arg2); \
+
+#define M_FORCE_FAIL() \
+this->result_ &= forceFail(); \
+
+#define M_FORCE_PASS() \
+this->result_ &= forcePass(); \
+
+#define M_SLEEP_US(arg1) \
+std::this_thread::sleep_for(std::chrono::microseconds(arg1)); \
+ \
 // =====================================================================================================================

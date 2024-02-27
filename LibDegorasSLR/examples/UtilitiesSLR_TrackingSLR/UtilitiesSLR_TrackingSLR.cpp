@@ -40,9 +40,9 @@
 #include <LibDegorasSLR/Initialization>
 #include <LibDegorasSLR/Modules/Helpers>
 #include <LibDegorasSLR/Modules/UtilitiesSLR>
+#include <LibDegorasSLR/Modules/TrackingMount>
 #include <LibDegorasSLR/Modules/FormatsILRS>
 #include <LibDegorasSLR/Modules/Timing>
-#include <LibDegorasSLR/Modules/Mathematics>
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ using dpslr::ilrs::cpf::CPF;
 using dpslr::geo::types::GeocentricPointL;
 using dpslr::geo::types::GeodeticPointL;
 using dpslr::utils::PredictorSLR;
-using dpslr::utils::PredictorMountSLR;
+using dpslr::mount::PredictorMountSLR;
 using dpslr::timing::MJDate;
 using dpslr::timing::SoD;
 using dpslr::math::units::Angle;

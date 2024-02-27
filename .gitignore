@@ -1,6 +1,7 @@
 # Folders.
 *build*/
 *product*/
+*todo*/
 
 # Python
 *.idea
