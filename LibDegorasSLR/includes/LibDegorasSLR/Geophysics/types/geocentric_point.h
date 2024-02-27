@@ -31,7 +31,6 @@
  * @author Degoras Project Team.
  * @brief
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -40,50 +39,57 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <type_traits>
 #include <array>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/units.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace geo{
 namespace types{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using math::types::Vector3D;
+using math::units::Meters;
+// ---------------------------------------------------------------------------------------------------------------------
+
 /**
- * GeocentricCoords is defined as <x,y,z> tuple
  */
-template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
 struct LIBDPSLR_EXPORT GeocentricPoint
 {
-    using DistType = dpslr::math::units::Distance<T>;
+    GeocentricPoint(const Meters& x = Meters(), const Meters& y = Meters(), const Meters& z = Meters()) :
+        x(x), y(y), z(z)
+    {}
 
-    DistType x;
-    DistType y;
-    DistType z;
+    GeocentricPoint(std::array<Meters,3> a) :
+        x(a[0]), y(a[1]), z(a[2])
+    {}
 
-    GeocentricPoint(T x = T(), T y = T(), T z = T(), typename DistType::Unit unit = DistType::Unit::METRES) :
-        x(x, unit), y(y, unit), z(z, unit) {}
+    GeocentricPoint(Vector3D<Meters> v) :
+        x(v.getX()), y(v.getY()), z(v.getZ())
+    {}
 
-    GeocentricPoint(std::array<T,3> a, typename DistType::Unit unit = DistType::Unit::METRES) :
-        x(a[0], unit), y(a[1], unit), z(a[2], unit) {}
+    Vector3D<Meters> toVector3D() const {return Vector3D<Meters>(x,y,z);}
 
-    template<typename Container = std::array<long double, 3>>
+    std::vector<Meters> toStdVector() const {return this->toVector3D().toVector();}
+
+    std::string toJsonStr() const {return this->toVector3D().toJsonStr();}
+
+    template<typename Container = std::array<Meters, 3>>
     inline constexpr Container store() const {return Container{x,y,z};}
 
-    math::types::Vector3D<T> toVector3D() const {return math::types::Vector3D<T>(x,y,z);}
+    Meters x;
+    Meters y;
+    Meters z;
 };
-
-/// Alias for long double GeocentricPoint specialization.
-using GeocentricPointL = GeocentricPoint<long double>;
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

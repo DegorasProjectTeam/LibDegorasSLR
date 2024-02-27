@@ -49,7 +49,7 @@
 // LibDegorasSLR types used in example.
 using dpslr::DegorasInit;
 using dpslr::ilrs::cpf::CPF;
-using dpslr::geo::types::GeocentricPointL;
+using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPointL;
 using dpslr::utils::PredictorSLR;
 using dpslr::mount::PredictorMountSLR;
@@ -156,7 +156,7 @@ int main()
     // -------------------- UTILITIES INSTANTIATION  -------------------------------------------------------------------
 
     // Store the local geocentric and geodetic coordinates.
-    GeocentricPointL stat_geocentric(x,y,z);
+    GeocentricPoint stat_geocentric(x,y,z);
     GeodeticPointL stat_geodetic(latitude, longitude, alt, Angle<long double>::Unit::DEGREES);
 
     // Open the CPF file (all data).
@@ -268,8 +268,8 @@ int main()
         // Store the data.
         file_analyzed_track <<'\n';
         file_analyzed_track << std::to_string(pred.mjd) <<";" << std::to_string(pred.sod) <<";";
-        file_analyzed_track << numberToStr(pred.slr_pred->instant_data->az, 7, 4) <<";";
-        file_analyzed_track << numberToStr(pred.slr_pred->instant_data->el, 7, 4) <<";";
+        file_analyzed_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.az, 7, 4) <<";";
+        file_analyzed_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.el, 7, 4) <<";";
         file_analyzed_track << track_az <<";";
         file_analyzed_track << track_el <<";";
         file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";

@@ -58,7 +58,7 @@ namespace types{
  * @warning When comparing floating-point values, precision issues may arise due to the inherent limitations
  *          of floating-point representation. Take care when comparing floating-point values.
  */
-template <class T = double>
+template <class T = long double>
 class LIBDPSLR_EXPORT Interval
 {
 public:

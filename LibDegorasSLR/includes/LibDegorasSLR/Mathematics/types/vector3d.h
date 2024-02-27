@@ -59,7 +59,7 @@ namespace types{
  * @brief Generic 3D vector class.
  * @tparam T The type of the vector components.
  */
-template <typename T>
+template <typename T = long double>
 class Vector3D
 {
 public:
@@ -217,7 +217,7 @@ public:
         return res;
     }
 
-    std::string toJson() const
+    std::string toJsonStr() const
     {
         // Result
         std::ostringstream oss;
@@ -365,8 +365,6 @@ public:
 private:
     std::array<T, 3> data_;
 };
-
-using Vector3DL = Vector3D<long double>;
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

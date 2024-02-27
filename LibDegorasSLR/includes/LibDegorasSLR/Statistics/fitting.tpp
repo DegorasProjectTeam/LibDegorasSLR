@@ -47,6 +47,7 @@
 #include "LibDegorasSLR/Statistics/measures.h"
 #include "LibDegorasSLR/Mathematics/types/matrix.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
+#include "LibDegorasSLR/Helpers/types/type_traits.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -63,11 +64,15 @@ using math::types::Vector3D;
 // ---------------------------------------------------------------------------------------------------------------------
 
 template <typename T, typename U>
-LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::types::Matrix<T>& Y,
-                                           unsigned int degree, T x_interp, std::vector<U>& y_interp)
+typename std::enable_if_t<
+    (std::is_floating_point_v<T> || helpers::types::is_strong_float<T>::value) &&
+    (std::is_floating_point_v<U> || helpers::types::is_strong_float<U>::value),
+    LagrangeError>
+lagrangeInterpol(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, const T& x_interp,
+                 std::vector<U>& y_interp)
 {
     // Variables.
-    unsigned int first_point;
+    unsigned first_point;
     int aux;
     LagrangeError error = LagrangeError::NOT_ERROR;
 
@@ -91,9 +96,9 @@ LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::types
             first_point = 0;
             error = LagrangeError::NOT_IN_THE_MIDDLE;
         }
-        else if (static_cast<unsigned int>(aux) + degree >= x.size())
+        else if (static_cast<unsigned>(aux) + degree >= x.size())
         {
-            first_point = static_cast<unsigned int>(x.size() - degree - 1);
+            first_point = static_cast<unsigned>(x.size() - degree - 1);
             error = LagrangeError::NOT_IN_THE_MIDDLE;
         }
         else
@@ -105,14 +110,14 @@ LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::types
         y_interp.insert(y_interp.begin(), Y.columnsSize(), 0);
 
         // Apply Lagrange polynomial interpolation to all variables in Y.
-        for (unsigned int i = first_point; i <= first_point + degree; i++)
+        for (unsigned i = first_point; i <= first_point + degree; i++)
         {
-            T pj=1.0;
-            for(unsigned int j = first_point; j <= first_point + degree; j++)
+            std::common_type_t<T,U> pj=1.0;
+            for(unsigned j = first_point; j <= first_point + degree; j++)
             {
                 if (j != i) pj*=(x_interp-x[j])/(x[i]-x[j]);
             }
-            for (unsigned int variable = 0; variable < Y.columnsSize(); variable++)
+            for (unsigned variable = 0; variable < Y.columnsSize(); variable++)
             {
                 y_interp[variable]+=Y[i][variable]*pj;
             }
@@ -128,12 +133,16 @@ LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::types
 }
 
 template <typename T, typename U>
-LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const Matrix<T>& Y, unsigned degree, T x_interp,
-                                    Vector3D<U>& y_interp)
+typename std::enable_if_t<
+    (std::is_floating_point_v<T> || helpers::types::is_strong_float<T>::value) &&
+    (std::is_floating_point_v<U> || helpers::types::is_strong_float<U>::value),
+    LagrangeError>
+lagrangeInterpol3DVec(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, const T& x_interp,
+                      Vector3D<U>& y_interp)
 {
     // Auxiliar containers.
     stats::types::LagrangeError lag_res;
-    std::vector<long double> res_y;
+    std::vector<U> res_y;
     // Call to lagrange.
     lag_res = lagrangeInterpol(x, Y, degree, x_interp, res_y);
     // Store the result.

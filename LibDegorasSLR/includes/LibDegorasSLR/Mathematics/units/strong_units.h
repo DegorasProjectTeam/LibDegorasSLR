@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -23,71 +27,66 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file meteo.h
+ * @file
+ * @brief
  * @author Degoras Project Team.
- * @brief This file contains the declaration of functions related with meteorological parameters.
  * @copyright EUPL License
- * @version 2305.1
+ * @todo Use the new units system in units_todo (for the future).
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
-// C++ INCLUDES
-//======================================================================================================================
+// LIBDEGORASSLR INCLUDES
+// =====================================================================================================================
+#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
-// =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-// =====================================================================================================================
-
-// LIBDPSLR NAMESPACES
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace geo{
-namespace meteo{
+namespace math{
+namespace units{
 // =====================================================================================================================
 
-// ENUMERATIONS
+// ---------------------------------------------------------------------------------------------------------------------
+using dpslr::helpers::types::NumericStrongType;
+// ---------------------------------------------------------------------------------------------------------------------
+
+// ALIASES FOR STRONG TYPE UNITS
+// ---------------------------------------------------------------------------------------------------------------------
+
+/// Alias for strong type long double representing degrees.
+using Degrees = NumericStrongType<long double, struct DegreesTag>;
+
+/// Alias for strong type unsigned representing degrees.
+using DegreesU = NumericStrongType<unsigned, struct DegreesUTag>;
+
+/// Alias for strong type long double representing seconds.
+using Seconds = NumericStrongType<long double, struct SecondsTag>;
+
+/// Alias for strong type unsigned representing seconds.
+using SecondsU = NumericStrongType<unsigned, struct SecondsUTag>;
+
+/// Alias for strong type long double representing milliseconds.
+using Milliseconds = NumericStrongType<long double, struct MillisecondsTag>;
+
+/// Alias for strong type unsigned representing milliseconds.
+using MillisecondsU = NumericStrongType<unsigned, struct MillisecondsUTag>;
+
+/// Alias for strong type long double representing picoseconds.
+using Picoseconds = NumericStrongType<long double, struct PicosecondsTag>;
+
+/// Alias for strong type unsigned representing picoseconds.
+using PicosecondsU = NumericStrongType<unsigned, struct PicosecondsUTag>;
+
+/// Alias for strong type long double representing meters.
+using Meters = NumericStrongType<long double, struct MetersTag>;
+
+/// Alias for strong type long double representing radians.
+using Radians = NumericStrongType<long double, struct RadiansTag>;
+
+}}} // END NAMESPACES
 // =====================================================================================================================
 
-/**
- * @enum WtrVapPressModel
- * @brief Represents the different models that can be used to calculate the water vapor pressure.
- * @see IERS TN 21, chap. 9. https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn21.html?nn=94912
- * @see IERS TN 32, chap. 9. https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn32.html?nn=94912
- */
-enum class WtrVapPressModel
-{
-    ORIGINAL_MM,         ///< Original formula. IERS TN 21, chap. 9.
-    GIACOMO_DAVIS        ///< Giacomo and Davis formula. IERS TN 32, chap. 9.
-};
-
-// =====================================================================================================================
-
-// FUNCTIONS
-// =====================================================================================================================
-
-/**
- * @brief Get the water vapor pressure using diferents models.
- *
- * This function calculates the water vapor pressure at the station site using differents models. You can use the
- * original formula used in Marini and Murray model (1973) (IERS TN 21, chap. 9) or the Giacomo and Davis model
- * (IERS TN 32, chap. 9).
- *
- * @param rh   Relative humidity at the laser site (percent eg, 50%).
- * @param temp Athmospheric temperature at the laser site (Kelvin).
- * @param pres Atmospheric pressure at the laser site (millibars).
- * @param wvpm Water vapor pressure model. See WtrVapPressModel for more details.
- * @return The water vapor pressure at the laser site (millibars).
- *
- * @see IERS TN 21, chap. 9. https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn21.html?nn=94912
- * @see IERS TN 32, chap. 9. https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn32.html?nn=94912
- * @see Giacomo, P., Equation for the dertermination of the density of moist air, Metrologia, V. 18, 1982
- */
- LIBDPSLR_EXPORT long double waterVaporPressure(long double rh, long double temp, long double pres, WtrVapPressModel mode);
-
-}}} // END NAMESPACES.
-// =====================================================================================================================

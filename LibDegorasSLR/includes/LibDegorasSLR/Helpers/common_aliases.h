@@ -58,7 +58,6 @@ namespace dpslr{
 template <class T> using Optional = std::experimental::optional<T>;
 #endif
 
-using OptionalL = Optional<long double>;
 using StringV = std::vector<std::string>;
 
 // =====================================================================================================================

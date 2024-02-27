@@ -63,7 +63,7 @@ struct LIBDPSLR_EXPORT SurfaceLocation
 {
     MeteoData meteo;
     GeodeticPoint<T> geodetic;
-    GeocentricPoint<T> geocentric;
+    GeocentricPoint geocentric;  ///<
 };
 
 }}} // END NAMESPACES.

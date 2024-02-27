@@ -28,10 +28,9 @@
 
 /** ********************************************************************************************************************
  * @file predictor_slr.h
- * @author Degoras Project Team.
+ * @author Degoras Project Team
  * @brief This file contains the definition of the PredictorSLR class.
  * @copyright EUPL License
- * @version 2306.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -60,23 +59,25 @@ namespace utils{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using dpslr::geo::types::GeocentricPoint;
-using dpslr::geo::types::GeodeticPoint;
-using dpslr::ilrs::cpf::CPF;
-using dpslr::math::types::Matrix;
-using dpslr::math::types::Vector3D;
-using dpslr::geo::meteo::WtrVapPressModel;
-using dpslr::timing::MJDate;
-using dpslr::timing::SoD;
-using dpslr::timing::MJDateTime;
+using geo::types::GeocentricPoint;
+using geo::types::GeodeticPoint;
+using ilrs::cpf::CPF;
+using math::types::Matrix;
+using math::types::Vector3D;
+using math::units::Degrees;
+using math::units::Picoseconds;
+using geo::meteo::WtrVapPressModel;
+using timing::MJDate;
+using timing::SoD;
+using timing::MJDateTime;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // CONSTANTS
 // =====================================================================================================================
-constexpr long double kVelTDelta = 0.5L;  /// Time delta (+-) for calculating the velocity vectors (seconds).
-constexpr long double kTMargin = 1L;      /// Margin to apply to the instant sod to check the CPF data interval.
-constexpr unsigned kPolLagDeg9 = 9U;      /// Fixed degree for the 9th polynomial lagrange interpolator.
-constexpr unsigned kPolLagDeg16 = 16U;    /// Fixed degree for the 16th polynomial lagrange interpolator.
+constexpr long double kVelTDelta = 0.5L;  ///< Time delta (+-) for calculating the velocity vectors (seconds).
+constexpr long double kTMargin = 1L;      ///< Margin to apply to the instant sod to check the CPF data interval.
+constexpr unsigned kPolLagDeg9 = 9U;      ///< Fixed degree for the 9th polynomial lagrange interpolator.
+constexpr unsigned kPolLagDeg16 = 16U;    ///< Fixed degree for the 16th polynomial lagrange interpolator.
 // =====================================================================================================================
 
 /**
@@ -87,7 +88,7 @@ constexpr unsigned kPolLagDeg16 = 16U;    /// Fixed degree for the 16th polynomi
  *  se utiliza el la posición -0.5 y +0.5 en tiempo.
  *
  * @warning The results of the interpolations made by this class can contain any corrections (such as the refraction
- * correction or for the center of mass correction). it is important to keep good track of where each of the fixes
+ * correction or for the center of mass correction). It is important to keep good track of where each of the fixes
  * are applied at the development level.
  *
  * @todo Predictor from TLE data instead CPF using SGP4 propagator. It would be useful for space debris, although we
@@ -193,15 +194,15 @@ public:
         Optional<InboundData> inbound_data;   ///< Result data for the arrival time (inbound vector).
 
         // Difference between receive and transmit direction at instant time.
-        Optional<double> diff_az;     ///< Azimuth difference between the outbound and instant vectors (4 decimals).
-        Optional<double> diff_el;     ///< Elevation difference between the outbound and instant vectors (4 decimals).
+        Optional<Degrees> diff_az;   ///< Azimuth difference between outbound and instant vectors (4 decimals).
+        Optional<Degrees> diff_el;   ///< Elevation difference between outbound and instant vectors (4 decimals).
 
         // Corrections applied.
-        Optional<double> objc_ecc_corr;    ///< Eccentricity correction at the satellite in meters (usually CoM).
-        Optional<double> grnd_ecc_corr;    ///< Eccentricity correction at the ground in meters (usually not used).
-        Optional<double> cali_del_corr;    ///< Station calibration delay correction in picoseconds (2 way).
-        Optional<double> corr_tropo;       ///< Tropospheric path delay correction in meters (1 way).
-        Optional<double> syst_rnd_corr;    ///< Other systematic and random error corrections.
+        Optional<Picoseconds> cali_del_corr; ///< Station calibration delay correction (picoseconds, 2 way).
+        Optional<Meters> objc_ecc_corr;      ///< Eccentricity correction at the object (meters, 1 way, usually CoM).
+        Optional<Meters> grnd_ecc_corr;      ///< Eccentricity correction at the ground (meters, usually not used).
+        Optional<Meters> corr_tropo;         ///< Tropospheric path delay correction (meters, 1 way).
+        Optional<Meters> syst_rnd_corr;      ///< Other systematic and random error corrections (meters, 1 way).
 
         // Error code.
         PredictionError error;  ///< Error that may have occurred.
@@ -221,9 +222,9 @@ public:
      * @param geod Geodetic ECEF position of the station (meters with mm preccision).
      * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
      */
-    PredictorSLR(const CPF& cpf, const GeodeticPoint<long double>& geod, const GeocentricPoint<long double>& geoc);
+    PredictorSLR(const CPF& cpf, const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
 
-    PredictorSLR(const GeodeticPoint<long double>& geod, const GeocentricPoint<long double>& geoc);
+    PredictorSLR(const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
 
     bool setCPF(const CPF& cpf);
 
@@ -235,7 +236,7 @@ public:
     /**
      * @brief Get the station location of this cpf interpolator as a GeocentricPoint.
      */
-    GeocentricPoint<long double> getGeocentricLocation() const;
+    GeocentricPoint getGeocentricLocation() const;
 
     const CPF& getCPF() const;
 
@@ -259,11 +260,11 @@ public:
 
 
     /// If this function is not called, the class will store the CoM correction of the CPF, if any.
-    void setObjEccentricityCorr(long double correction);
+    void setObjEccentricityCorr(Meters correction);
 
-    void setCaliDelayCorr(long double correction);
+    void setCaliDelayCorr(Picoseconds correction);
 
-    void setSystematicCorr(long double correction);
+    void setSystematicCorr(Meters correction);
 
     /**
      * @brief Sets the parameters for the tropospheric path delay correction.
@@ -339,13 +340,11 @@ public:
 
 
 
-
-
 private:
     
-    long double applyCorrections(long double& range, SLRPrediction& result, bool cali = false, long double el = 0) const;
+    Meters applyCorrections(Meters& range, SLRPrediction& result, bool cali = false, Degrees el = 0) const;
 
-    PredictionError callToInterpol(long double x, Vector3D<long double>& y, SLRPrediction& result) const;
+    PredictionError callToInterpol(const Seconds& x, Vector3D<Meters>& y, SLRPrediction& result) const;
 
     static PredictionError convertLagInterpError(stats::types::LagrangeError error);
 
@@ -355,11 +354,11 @@ private:
     PredictionMode prediction_mode_;
 
     // Correction related parameters.
-    long double objc_ecc_corr_;       ///< Eccentricity correction at the satellite in meters (usually center of mass).
-    long double grnd_ecc_corr_;       ///< Eccentricity correction at the ground in meters (usually not used).
-    long double cali_del_corr_;       ///< Station calibration delay correction (in picoseconds).
-    long double syst_rnd_corr_;       ///< Other systematic and random error corrections (in meters).
-    bool apply_corr_;                 ///< Flag for apply the corrections.
+    Meters objc_ecc_corr_;            // Eccentricity correction at the satellite in meters (usually center of mass).
+    Meters grnd_ecc_corr_;            // Eccentricity correction at the ground in meters (usually not used).
+    Meters syst_rnd_corr_;            // Other systematic and random error corrections (in meters).
+    Picoseconds cali_del_corr_;       // Station calibration delay correction (in picoseconds).
+    bool apply_corr_;                 // Flag for apply the corrections.
 
     // Tropospheric parameters.
     long double press_;
@@ -376,16 +375,15 @@ private:
     GeodeticPoint<long double> stat_geodetic_;
 
     // Station geocentric in metres
-    Vector3D<long double> stat_geocentric_;
+    GeocentricPoint stat_geocentric_;
 
 
     // Topocentric local rotation matrix.
-    math::types::Matrix<long double> rotm_topo_local_;
+    Matrix<long double> rotm_topo_local_;
 
-    std::vector<long double> pos_times_;               // Position data used at interpolation.
+    std::vector<Seconds> pos_times_;               // Position data used at interpolation.
 
-    Matrix<long double> pos_data_;
-
+    Matrix<Meters> pos_data_;
 
     CPF cpf_;
 };

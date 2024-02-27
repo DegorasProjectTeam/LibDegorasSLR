@@ -48,6 +48,7 @@
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Geophysics/meteo.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -57,15 +58,18 @@ namespace utils{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using dpslr::geo::types::GeocentricPoint;
-using dpslr::geo::types::GeodeticPoint;
-using dpslr::ilrs::cpf::CPF;
-using dpslr::math::types::Matrix;
-using dpslr::math::types::Vector3D;
-using dpslr::geo::meteo::WtrVapPressModel;
-using dpslr::timing::MJDate;
-using dpslr::timing::SoD;
-using dpslr::timing::MJDateTime;
+using geo::types::GeocentricPoint;
+using geo::types::GeodeticPoint;
+using ilrs::cpf::CPF;
+using geo::meteo::WtrVapPressModel;
+using timing::MJDate;
+using timing::SoD;
+using timing::MJDateTime;
+using math::types::Matrix;
+using math::types::Vector3D;
+using math::units::Meters;
+using math::units::Seconds;
+using astro::types::AltAzPos;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -114,12 +118,12 @@ struct LIBDPSLR_EXPORT InstantRange
     SoD sod;               ///< Second of day in that MJD (ps precission -> 12 decimals).
     MJDateTime mjdt;              ///< Modified julian datetime (day & fraction -> 12 decimals).
 
-    // Range (1 way) and time of flight (2 way).
-    long double range_1w;          ///< One way range in meters (mm precission -> 3 decimals).
-    long double tof_2w;            ///< Two way flight time in seconds (ps precission -> 12 decimals).
+    // Range and time of flight.
+    Meters range_1w;        ///< One way range in meters (mm precission -> 3 decimals).
+    Seconds tof_2w;         ///< Two way flight time in seconds (ps precission -> 12 decimals).
 
-    // Associated object geocentric vectors.
-    Vector3D<long double> geo_pos; ///< Object geocentric interpolated positions in meters.
+    // Associated vectors.
+    GeocentricPoint geo_pos; ///< Object geocentric interpolated positions in meters.
 
     /**
      * @brief Represents the InstantRange struct as a JSON-formatted string.
@@ -173,11 +177,11 @@ struct LIBDPSLR_EXPORT InstantData : public InstantRange
     InstantData& operator=(InstantData&&) = default;
 
     // Associated object geocentric vectors.
+    // TODO
     Vector3D<long double> geo_vel;   ///< Geocentric interpolated velocity in meters/second.
 
     // Azimuth and elevation for the instant vector.
-    long double az;                       ///< Local computed azimuth in degrees (4 decimals).
-    long double el;                       ///< Local computed elevation in degrees (4 decimals).
+    AltAzPos altaz_coord;       ///< Local computed altazimuth coordinates in degrees (4 decimals).
 
     /**
      * @brief Represents the InstantData struct as a JSON-formatted string.
@@ -249,8 +253,8 @@ struct LIBDPSLR_EXPORT InboundData
     MJDateTime mjdt;         ///< Modified julian datetime (day & fraction -> 12 decimals).
 
     // Range (1 way) and time of flight (2 way).
-    long double range_1w;          ///< One way range in meters (mm precission -> 3 decimals).
-    long double tof_2w;            ///< Two way flight time in seconds (ps precission -> 12 decimals).
+    Meters range_1w;          ///< One way range in meters (mm precission -> 3 decimals).
+    Seconds tof_2w;           ///< Two way flight time in seconds (ps precission -> 12 decimals).
 
     /**
      * @brief Represents the InboundData struct as a JSON-formatted string.

@@ -44,10 +44,10 @@ on_surface makeOnSurface(const geo::types::GeodeticPoint<double> &geod, const ge
     return geo_loc;
 }
 
-LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
+LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
                                          const geo::types::SurfaceLocation<double> &loc,
                                          const timing::types::JDateTime &jdt,
-                                         types::AltAzPosition &pos,
+                                         types::AltAzPos &pos,
                                          int leap_secs,
                                          double ut1_utc_diff)
 {
@@ -89,17 +89,17 @@ LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
         equ2hor(jd_ut1, delta_t, 1, x_pole, y_pole, &surface, ra_topo, dec_topo, 2,
                 &zd, &az, &ra_topo_ref, &dec_topo_ref);
         el = 90. - zd;
-        pos = types::AltAzPosition(az, el);
+        pos = types::AltAzPos(az, el);
     }
 
     return error;
 }
 
 
-int getStarAltAzPosition(const types::Star &star,
+int getStarAltAzPos(const types::Star &star,
                          const geo::types::SurfaceLocation<double> &loc,
                          const timing::types::HRTimePointStd &tp,
-                         types::AltAzPosition &pos,
+                         types::AltAzPos &pos,
                          int leap_secs,
                          double ut1_utc_diff)
 {
@@ -107,7 +107,7 @@ int getStarAltAzPosition(const types::Star &star,
     timing::types::DayFraction df;
     timing::timePointToJulianDate(tp, jd, df);
 
-    return getStarAltAzPosition(star, loc, jd + df, pos, leap_secs, ut1_utc_diff);
+    return getStarAltAzPos(star, loc, jd + df, pos, leap_secs, ut1_utc_diff);
 }
 
 int makeCatEntry(const types::Star &star, cat_entry &entry)

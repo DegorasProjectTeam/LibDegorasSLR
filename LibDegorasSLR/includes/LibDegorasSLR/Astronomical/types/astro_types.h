@@ -43,7 +43,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
-#include "LibDegorasSLR/Mathematics/units.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -123,20 +123,20 @@ struct LIBDPSLR_EXPORT Star
     double rad_vel;
 };
 
-struct LIBDPSLR_EXPORT AltAzPosition
+struct LIBDPSLR_EXPORT AltAzPos
 {
-    AltAzPosition();
+    AltAzPos();
 
-    AltAzPosition(const Degrees& az, const Degrees& el);
+    AltAzPos(const Degrees& az, const Degrees& el);
 
 
-    AltAzPosition(const AltAzPosition& pos) = default;
-    AltAzPosition(AltAzPosition&& pos) = default;
+    AltAzPos(const AltAzPos& pos) = default;
+    AltAzPos(AltAzPos&& pos) = default;
 
-    AltAzPosition& operator =(const AltAzPosition& pos) = default;
-    AltAzPosition& operator=(AltAzPosition&&) = default;
+    AltAzPos& operator =(const AltAzPos& pos) = default;
+    AltAzPos& operator=(AltAzPos&&) = default;
 
-    ~AltAzPosition() = default;
+    ~AltAzPos() = default;
 
     //size_t serialize(zmqutils::utils::BinarySerializer& serializer) const final;
 
@@ -144,18 +144,20 @@ struct LIBDPSLR_EXPORT AltAzPosition
 
     //size_t serializedSize() const final
 
-    Degrees az;
-    Degrees el;
+
+
+    Degrees az;     ///< Azimuth of the altazimuth coordinate in degrees.
+    Degrees el;     ///< Altitude (elevation) of the altazimuth coordinate in degrees.
 };
 
 /// Alias for altaz corrections.
-using AltAzCorrection = AltAzPosition;
+using AltAzCorrection = AltAzPos;
 
 /// Alias for a vector of AltAzPosition.
-using AltAzPositions = std::vector<AltAzPosition>;
+using AltAzPosV = std::vector<AltAzPos>;
 
 /// Alias for a vector of AltAzCorrection.
-using AltAzCorrections = std::vector<AltAzCorrection>;
+using AltAzCorrectionV = std::vector<AltAzCorrection>;
 
 
 

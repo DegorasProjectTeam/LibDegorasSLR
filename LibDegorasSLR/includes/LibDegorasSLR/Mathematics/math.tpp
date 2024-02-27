@@ -70,29 +70,10 @@ T normalizeVal(T x, T x_min, T x_max)
     return std::fmod(((std::fmod((x - x_min),(x_max - x_min)))+(x_max - x_min)), (x_max - x_min)) + x_min;
 }
 
-template <typename T>
-void euclid3DRotMat(int axis, T angle, dpslr::math::types::Matrix<T> &matrix)
+template <typename T, typename U>
+void euclid3DRotMat(unsigned axis, U angle, dpslr::math::types::Matrix<T> &matrix)
 {
-    double s, c;
-    unsigned int caxis = static_cast<unsigned int>(axis - 1);
-    matrix.fill(3,3,0);
-    s= std::sin(angle);
-    c= std::cos(angle);
-    matrix[0][0]=c;
-    matrix[1][1]=c;
-    matrix[2][2]=c;
-    matrix[0][1]=-s;
-    matrix[1][2]=-s;
-    matrix[2][0]=-s;
-    matrix[1][0]=s;
-    matrix[2][1]=s;
-    matrix[0][2]=s;
-    for (unsigned i=0; i<3; i++)
-    {
-      matrix[i][caxis] = 0.0;
-      matrix[caxis][i] = 0.0;
-    }
-    matrix[caxis][caxis]= 1.0;
+
 }
 
 }} // END NAMESPACES.

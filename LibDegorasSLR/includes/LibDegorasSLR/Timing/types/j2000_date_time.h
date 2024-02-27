@@ -46,7 +46,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
-#include "LibDegorasSLR/Mathematics/units.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES

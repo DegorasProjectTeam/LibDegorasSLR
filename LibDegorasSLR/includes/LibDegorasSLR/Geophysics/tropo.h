@@ -105,8 +105,9 @@ LIBDPSLR_EXPORT double refractionCorrection(double el, double pres, double temp)
  * @param wvpm Water vapor pressure model. See WtrVapPressModel for more details.
  * @return One way tropospheric path delay (meters).
  */
-LIBDPSLR_EXPORT double pathDelayMariniMurray(double pres, double temp, double rh, double el, double wl, double phi,
-                                             double ht, meteo::WtrVapPressModel wvpm);
+LIBDPSLR_EXPORT long double pathDelayMariniMurray(long double pres, long double temp, long double rh,
+                                                  long double el, long double wl, long double phi,
+                                             long double ht, meteo::WtrVapPressModel wvpm);
 
 }}} // END NAMESPACES
 // =====================================================================================================================

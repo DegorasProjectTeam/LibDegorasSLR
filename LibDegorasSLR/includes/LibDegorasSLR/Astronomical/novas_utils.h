@@ -72,14 +72,14 @@ namespace novas{
 LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
                                          const geo::types::SurfaceLocation<double> &loc,
                                          const timing::types::HRTimePointStd &tp,
-                                         types::AltAzPosition &pos,
+                                         types::AltAzPos &pos,
                                          int leap_secs = 0,
                                          double ut1_utc_diff = 0);
 
 LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
                                          const geo::types::SurfaceLocation<double> &loc,
                                          const timing::types::JDateTime &jdt,
-                                         types::AltAzPosition &pos,
+                                         types::AltAzPos &pos,
                                          int leap_secs = 0,
                                          double ut1_utc_diff = 0);
 

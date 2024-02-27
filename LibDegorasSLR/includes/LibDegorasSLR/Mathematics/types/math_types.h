@@ -51,8 +51,6 @@ namespace math{
 namespace types{
 // =====================================================================================================================
 
-// STRUCTS
-// =====================================================================================================================
 
 // Strcut for storing the euclidean division result.
 template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>

@@ -15,12 +15,12 @@ namespace dpslr{
 namespace astro{
 namespace types{
 
-AltAzPosition::AltAzPosition():
+AltAzPos::AltAzPos():
     az(0.0L),
     el(0.0L)
 {}
 
-AltAzPosition::AltAzPosition(const Degrees &az, const Degrees &el):
+AltAzPos::AltAzPos(const Degrees &az, const Degrees &el):
     az(az),
     el(el)
 {

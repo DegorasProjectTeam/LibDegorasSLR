@@ -47,25 +47,25 @@ namespace geo{
 namespace meteo{
 // =====================================================================================================================
 
-double waterVaporPressure(double rh, double temp, double pres, WtrVapPressModel mode)
+long double waterVaporPressure(long double rh, long double temp, long double pres, WtrVapPressModel mode)
 {
     // Water vapor pressure variable.
-    double e0 = 0;
+    long double e0 = 0;
 
     // Calculate the water vapor pressute using the original Marini and Murray formula.
     if(mode == WtrVapPressModel::ORIGINAL_MM)
-        e0 = rh * 6.11e-2 * std::pow(10.0, ((7.5 * (temp - 273.15)) / (237.3 + (temp - 273.15))));
+        e0 = rh * 6.11e-2L * std::pow(10.0, ((7.5L * (temp - 273.15L)) / (237.3L + (temp - 273.15L))));
 
     // Calculate the water vapor pressure using Giacomo and Davis formula.
     if(mode == WtrVapPressModel::GIACOMO_DAVIS)
     {
         // Calculate the saturation vapor pressure in mbar (Giacomo 1982 and Davis 1992).
-        double es = 0.01 * std::exp(
-                    1.2378847e-5*std::pow(temp,2) - 1.9121316e-2*temp + 33.93711047 - 6.3431645e3*std::pow(temp,-1));
+        long double es = 0.01L * std::exp(
+                    1.2378847e-5L*std::pow(temp,2) - 1.9121316e-2L*temp + 33.93711047L - 6.3431645e3L*std::pow(temp,-1));
         // Calculate the enhancement factor (Giacomo 1982)
-        double fw = 1.00062 + 3.14e-6 * pres + 5.6e-7 * std::pow(temp - 273.15, 2);
+        long double fw = 1.00062L + 3.14e-6L * pres + 5.6e-7L * std::pow(temp - 273.15L, 2);
         // Finally, calculate the water vapor pressure from a relative humidity measurement (%).
-        e0 = rh * 0.01 * fw * es;
+        e0 = rh * 0.01L * fw * es;
     }
 
     // Return the water vapor pressure.

@@ -58,7 +58,7 @@ namespace cpf{
 // =====================================================================================================================
 
 // =====================================================================================================================
-using math::types::Vector3DL;
+using math::types::Vector3D;
 // =====================================================================================================================
 
 // CPF DATA
@@ -111,7 +111,7 @@ public:
         timing::types::MJDate mjd;        ///< Modified Julian Date.
         timing::types::SoD sod;           ///< Second of day (UTC).
         int leap_second;                  ///< Leap second flag (0 or the value of new leap second).
-        Vector3DL position;   ///< Geocentric position in meters (x, y, z).
+        Vector3D<> position;   ///< Geocentric position in meters (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -129,7 +129,7 @@ public:
     {
         // Members.
         DirectionFlag dir_flag;              ///< Direction flag.
-        Vector3DL velocity;      ///< Geocentric velocity in m/s (x, y, z).
+        Vector3D<> velocity;      ///< Geocentric velocity in m/s (x, y, z).
 
         /**
          * @brief Generate the line for this record.

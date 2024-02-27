@@ -63,7 +63,7 @@ std::string InstantRange::toJsonStr() const
     oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
     oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
     oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
-    oss << "\"geo_pos\":" << this->geo_pos.toJson();
+    oss << "\"geo_pos\":" << this->geo_pos.toJsonStr();
     oss << "}";
 
     // Return the JSON str.
@@ -82,10 +82,10 @@ std::string InstantData::toJsonStr() const
     oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
     oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
     oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
-    oss << "\"geo_pos\":" << this->geo_pos.toJson() << ",";
-    oss << "\"geo_vel\":" << this->geo_vel.toJson() << ",";
-    oss << "\"az\":" << numberToStr(this->az, 7, 4) << ",";
-    oss << "\"el\":" << numberToStr(this->el, 7, 4);
+    oss << "\"geo_pos\":" << this->geo_pos.toJsonStr() << ",";
+    oss << "\"geo_vel\":" << this->geo_vel.toJsonStr() << ",";
+    oss << "\"az\":" << numberToStr(this->altaz_coord.az, 7, 4) << ",";
+    oss << "\"el\":" << numberToStr(this->altaz_coord.el, 7, 4);
     oss << "}";
 
     // Return the JSON str.

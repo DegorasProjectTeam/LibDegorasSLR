@@ -44,7 +44,7 @@
 #include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
-#include "LibDegorasSLR/Mathematics/units.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
 // =====================================================================================================================
@@ -61,8 +61,8 @@ using timing::types::MJDateTime;
 using timing::types::MJDate;
 using timing::types::SoD;
 using astro::PredictorSun;
-using astro::types::AltAzPosition;
-using astro::types::AltAzPositions;
+using astro::types::AltAzPos;
+using astro::types::AltAzPosV;
 using math::units::DegreesU;
 using math::units::Degrees;
 using math::units::MillisecondsU;
@@ -145,9 +145,9 @@ public:
         // Actualizar rotation al limitar la elevacion.
         // Actualizar todo cuando se limita la elevacion.
 
-        AltAzPositions altaz_sun_coords;  ///< Altazimuth coordinates of the Sun during the collision time in degrees.
-        AltAzPosition altaz_entry;        ///< Sun sector altazimuth entry point coordinate in degrees.
-        AltAzPosition altaz_exit;         ///< Sun sector altazimuth exit point coordinate in degrees.
+        AltAzPosV altaz_sun_coords;  ///< Altazimuth coordinates of the Sun during the collision time in degrees.
+        AltAzPos altaz_entry;        ///< Sun sector altazimuth entry point coordinate in degrees.
+        AltAzPos altaz_exit;         ///< Sun sector altazimuth exit point coordinate in degrees.
         MJDateTime mjdt_entry;            ///< MJ datetime of sun sector entry point.
         MJDateTime mjdt_exit;             ///< MJ datetime of sun sector exit point.
         RotationDirection cw;             ///< Rotation direction of the avoidance manoeuvre.
@@ -166,19 +166,19 @@ public:
      */
     struct MountPosition
     {
-        MountPosition(const AltAzPosition& pos) :
+        MountPosition(const AltAzPos& pos) :
             altaz_coord(pos),
             diff_az(0.0L),
             diff_el(0.0L)
         {}
 
         MountPosition() :
-            altaz_coord(AltAzPosition()),
+            altaz_coord(AltAzPos()),
             diff_az(0.0L),
             diff_el(0.0L)
         {}
 
-        AltAzPosition altaz_coord;  ///< Altazimuth coordinate for the tracking mount in degrees.
+        AltAzPos altaz_coord;  ///< Altazimuth coordinate for the tracking mount in degrees.
         Degrees diff_az; ///< Azimuth difference between space object prediction position and tracking position.
         Degrees diff_el; ///< Elevation difference between space object prediction position and tracking position.
     };
@@ -271,8 +271,8 @@ public:
         SoD sod_end;
 
         // Position data.
-        AltAzPosition start_coord;    ///< Track start altazimuth coordinates.
-        AltAzPosition end_coord;      ///< Track end altazimuth  coordinates.
+        AltAzPos start_coord;    ///< Track start altazimuth coordinates.
+        AltAzPos end_coord;      ///< Track end altazimuth  coordinates.
         Degrees max_el;               ///< Track maximum elevation in degrees.
 
         // Flags.
@@ -430,7 +430,7 @@ private:
     bool analyzeTrackingMiddle();
 
     /// Helper to check if the predicted position is inside a sun sector.
-    bool insideSunSector(const AltAzPosition& pass_pos, const AltAzPosition& sun_pos) const;
+    bool insideSunSector(const AltAzPos& pass_pos, const AltAzPos& sun_pos) const;
 
     /// Helper to set the rotation direction of a sun sector.
     bool setSunSectorRotationDirection(
@@ -441,7 +441,7 @@ private:
         const SunCollisionSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end);
 
     long double calcSunAvoidTrajectory(const MJDateTime& mjdt, const SunCollisionSector &sector,
-                                       const AltAzPosition &sun_pos);
+                                       const AltAzPos &sun_pos);
 
     // Private members.
     PredictorSLR predictor_;               ///< SLR predictor.

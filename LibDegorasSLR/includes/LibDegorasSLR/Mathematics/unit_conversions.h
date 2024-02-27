@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -23,12 +27,10 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file container_helpers.h
- * @brief This file contains several units related classes.
+ * @file
+ * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
- * @version 2305.1
- * @todo Delete this and use the new units system in units_todo (for the future).
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -85,30 +87,6 @@ constexpr long double kLightNsToCm = 29.9792458L;
 constexpr long double kLightNsToMm = 299.792458L;
 // ---------------------------------------------------------------------------------------------------------------------
 
-// ALIASES FOR STRONG TYPE UNITS
-// TODO: In future, use the SmartUnits currently under development.
-// ---------------------------------------------------------------------------------------------------------------------
-
-/// Alias for strong type long double representing degrees.
-using Degrees = NumericStrongType<long double, struct DegreesTag>;
-
-/// Alias for strong type unsigned representing degrees.
-using DegreesU = NumericStrongType<unsigned, struct DegreesUTag>;
-
-/// Alias for strong type long double representing seconds.
-using Seconds = NumericStrongType<long double, struct SecondsTag>;
-
-/// Alias for strong type unsigned representing seconds.
-using SecondsU = NumericStrongType<unsigned, struct SecondsUTag>;
-
-/// Alias for strong type long double representing milliseconds.
-using Milliseconds = NumericStrongType<long double, struct MillisecondsTag>;
-
-/// Alias for strong type unsigned representing milliseconds.
-using MillisecondsU = NumericStrongType<unsigned, struct MillisecondsUTag>;
-
-/// Alias for strong type long double representing meters.
-using Meters = NumericStrongType<long double, struct MetersTag>;
 
 
 // ---------------------------------------------------------------------------------------------------------------------

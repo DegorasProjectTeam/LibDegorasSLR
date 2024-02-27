@@ -65,8 +65,8 @@ using timing::types::SoD;
 using timing::types::MJDateTime;
 using geo::types::GeodeticPoint;
 using math::units::MillisecondsU;
-using math::types::Vector3DL;
-using astro::types::AltAzPosition;
+using math::types::Vector3D;
+using astro::types::AltAzPos;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -89,8 +89,8 @@ public:
 
         // Containers.
         J2000DateTime j2dt;         ///< J2000 datetime used to generate the Sun prediction data.
-        AltAzPosition altaz_coord;  ///< Sun predicted altazimuth coordinates referenced to an observer in degrees.
-        Vector3DL geo_pos;          ///< Sun predicted geocentric position in meters.
+        AltAzPos altaz_coord;  ///< Sun predicted altazimuth coordinates referenced to an observer in degrees.
+        Vector3D<> geo_pos;         ///< Sun predicted geocentric position in meters.
 
         // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
 

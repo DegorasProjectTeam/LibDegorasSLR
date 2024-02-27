@@ -37,8 +37,8 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Geophysics/tropo.h>
-#include <LibDegorasSLR/Mathematics/units.h>
+#include "LibDegorasSLR/Geophysics/tropo.h"
+#include "LibDegorasSLR/Mathematics/unit_conversions.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -48,22 +48,22 @@ namespace geo{
 namespace tropo{
 // =====================================================================================================================
 
-double pathDelayMariniMurray(double pres, double temp, double rh, double el, double wl, double phi,
-                             double ht, meteo::WtrVapPressModel wvpm)
+long double pathDelayMariniMurray(long double pres, long double temp, long double rh, long double el, long double wl,
+                                  long double phi, long double ht, meteo::WtrVapPressModel wvpm)
 {
     // Calculate the water vapor pressure.
-    double e0 = meteo::waterVaporPressure(rh, temp, pres, wvpm);
+    long double e0 = meteo::waterVaporPressure(rh, temp, pres, wvpm);
     // Calculate A, B and K.
-    double a = 0.2357e-2 * pres + 0.141e-3 * e0;
-    double k = 1.163 - 0.968e-2 * std::cos(2.0 * phi) - 0.104e-2 * temp + 0.1435e-4 * pres;
-    double b = 1.084e-8 * pres * temp * k + 4.734e-8 * (2.0 * std::pow(pres,2))/(temp * (3.0 - 1.0/k));
+    long double a = 0.2357e-2L * pres + 0.141e-3L * e0;
+    long double k = 1.163L - 0.968e-2L * std::cos(2.0L * phi) - 0.104e-2L * temp + 0.1435e-4L * pres;
+    long double b = 1.084e-8L * pres * temp * k + 4.734e-8L * (2.0L * std::pow(pres,2))/(temp * (3.0L - 1.0L/k));
     // Calculate the laser frequency parameter and the laser site function value.
-    double flam = 0.9650 + 0.0164 * std::pow(wl, -2) + 0.228e-3 * std::pow(wl, -4);
-    double fphih = 1.0 - 0.26e-2 * std::cos(2.0 * phi) - 0.31e-6 * ht;
+    long double flam = 0.9650L + 0.0164L * std::pow(wl, -2) + 0.228e-3L * std::pow(wl, -4);
+    long double fphih = 1.0L - 0.26e-2L * std::cos(2.0L * phi) - 0.31e-6L * ht;
     // Calculate the range correction.
-    double sine = std::sin(el);
-    double ab = a + b;
-    double ar = (flam / fphih) * (ab / (sine + (b / ab) / (sine + 0.01)));
+    long double sine = std::sin(el);
+    long double ab = a + b;
+    long double ar = (flam / fphih) * (ab / (sine + (b / ab) / (sine + 0.01L)));
     // Return one way the tropospheric path delay (meters).
     return ar;
 }

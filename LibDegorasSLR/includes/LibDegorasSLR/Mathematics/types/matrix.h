@@ -50,6 +50,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/libdegorasslr_init.h"
+#include "LibDegorasSLR/Helpers/types/type_traits.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -65,7 +66,7 @@ namespace types{
  * @brief A template class representing a mathematical matrix.
  * @tparam T The type of the elements in the matrix.
  */
-template <typename T>
+template <typename T = long double>
 class LIBDPSLR_EXPORT Matrix
 {
 public:
@@ -259,8 +260,6 @@ public:
 
     inline const std::vector<T>& operator[] (std::size_t row_index) const {return this->data_[row_index];}
 
-
-
     /**
      * @brief Retrieves a specific row of the matrix.
      * @param row_index The index of the row to retrieve.
@@ -392,6 +391,44 @@ public:
     }
 
     template<typename U>
+    typename std::enable_if_t<
+        (std::is_floating_point_v<T> && std::is_floating_point_v<U>) ||
+        (std::is_integral_v<T> && std::is_integral_v<U>) ||
+        (helpers::types::is_strong_integral<T>::value && std::is_integral_v<U>) ||
+        (helpers::types::is_strong_float<T>::value && std::is_floating_point_v<U>) ||
+        (std::is_integral_v<T> && helpers::types::is_strong_integral<U>::value) ||
+        (std::is_floating_point_v<T> && helpers::types::is_strong_float<U>::value),
+        Matrix<T>>
+    operator*(const Matrix<U>& B) const
+    {
+        // Check dimensions.
+        if (this->columnsSize() != B.rowSize())
+            return Matrix<T>();
+
+        // Transpose the rhs matrix for more efficient multiplication.
+        Matrix<U> B_transposed = B.transpose();
+
+        Matrix<T> result(this->rowSize(), B.columnsSize());
+
+        #pragma omp parallel for
+        for (std::size_t i = 0; i < this->rowSize(); ++i)
+        {
+            for (std::size_t j = 0; j < B_transposed.rowSize(); ++j)
+            {
+                long double sum = 0;
+                #pragma omp parallel for reduction(+:sum)
+                for (std::size_t k = 0; k < this->columnsSize(); ++k)
+                {
+                    sum += this->data_[i][k] * B_transposed.getElement(j,k);
+                }
+                result(i, j) = static_cast<T>(sum);
+            }
+        }
+
+        return result;
+    }
+
+    template<typename U>
     Matrix<T>& operator *=(const Matrix<U>& B)
     {
         *this = *this * B;
@@ -403,35 +440,6 @@ public:
     {
         *this = *this * scalar;
         return *this;
-    }
-
-    Matrix<T> operator*(const Matrix<T>& B) const
-    {
-        // Check dimensions.
-        if (this->columnsSize() != B.rowSize())
-            return Matrix<T>();
-
-        // Transpose the rhs matrix for more efficient multiplication.
-        Matrix<T> B_transposed = B.transpose();
-
-        Matrix<T> result(this->rowSize(), B.columnsSize());
-
-        #pragma omp parallel for
-        for (std::size_t i = 0; i < this->rowSize(); ++i)
-        {
-            for (std::size_t j = 0; j < B_transposed.rowSize(); ++j)
-            {
-                T sum = 0;
-                #pragma omp parallel for reduction(+:sum)
-                for (std::size_t k = 0; k < this->columnsSize(); ++k)
-                {
-                    sum += this->data_[i][k] * B_transposed.data_[j][k];
-                }
-                result(i, j) = sum;
-            }
-        }
-
-        return result;
     }
 
     std::pair<Matrix<long double>, std::vector<size_t>> decomposeLU() const
@@ -539,6 +547,7 @@ public:
 
         return x;
     }
+
     /**
      * @brief Calculates the inverse of a square matrix using Cholesky decomposition.
      * @note The matrix must be square and positive definite for the inverse to exist.

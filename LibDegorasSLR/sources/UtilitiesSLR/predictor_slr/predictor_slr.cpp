@@ -38,7 +38,6 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
-#include "LibDegorasSLR/Mathematics/units.h"
 #include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Statistics/fitting.h"
@@ -122,14 +121,14 @@ std::string PredictorSLR::SLRPrediction::toJsonStr() const
 }
 
 PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geod,
-                           const GeocentricPoint<long double> &geoc) :
-    interpol_function_(InterpolFunction::LAGRANGE_9),
+                           const GeocentricPoint &geoc) :
+    interpol_function_(InterpolFunction::LAGRANGE_16),
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     prediction_mode_(PredictionMode::OUTBOUND_VECTOR),
     objc_ecc_corr_(0.0L),
     grnd_ecc_corr_(0.0L),
-    cali_del_corr_(0.0L),
     syst_rnd_corr_(0.0L),
+    cali_del_corr_(0.0L),
     apply_corr_(false),
     press_(0.0L),
     temp_(0.0L),
@@ -152,14 +151,14 @@ PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geo
     this->setCPF(cpf);
 }
 
-PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const GeocentricPoint<long double> &geoc) :
-    interpol_function_(InterpolFunction::LAGRANGE_9),
+PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
+    interpol_function_(InterpolFunction::LAGRANGE_16),
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     prediction_mode_(PredictionMode::OUTBOUND_VECTOR),
     objc_ecc_corr_(0.0L),
     grnd_ecc_corr_(0.0L),
-    cali_del_corr_(0.0L),
     syst_rnd_corr_(0.0L),
+    cali_del_corr_(0.0L),
     apply_corr_(false),
     press_(0.0L),
     temp_(0.0L),
@@ -231,11 +230,11 @@ void PredictorSLR::setInterpolFunction(InterpolFunction func){this->interpol_fun
 
 void PredictorSLR::enableCorrections(bool enable){this->apply_corr_ = enable;}
 
-void PredictorSLR::setObjEccentricityCorr(long double correction){this->objc_ecc_corr_ = correction;}
+void PredictorSLR::setObjEccentricityCorr(Meters correction){this->objc_ecc_corr_ = correction;}
 
-void PredictorSLR::setCaliDelayCorr(long double correction){this->cali_del_corr_ =correction;}
+void PredictorSLR::setCaliDelayCorr(Picoseconds correction){this->cali_del_corr_ =correction;}
 
-void PredictorSLR::setSystematicCorr(long double correction){this->syst_rnd_corr_ = correction;}
+void PredictorSLR::setSystematicCorr(Meters correction){this->syst_rnd_corr_ = correction;}
 
 void PredictorSLR::setTropoCorrParams(long double press, long double temp, long double rh,
                                       long double wl, WtrVapPressModel wvpm)
@@ -259,9 +258,9 @@ void PredictorSLR::unsetTropoCorrParams()
 
 const GeodeticPoint<long double>& PredictorSLR::getGeodeticLocation() const{return this->stat_geodetic_;}
 
-GeocentricPoint<long double> PredictorSLR::getGeocentricLocation() const
+GeocentricPoint PredictorSLR::getGeocentricLocation() const
 {
-    return GeocentricPoint<long double>(this->stat_geocentric_.store());
+    return GeocentricPoint(this->stat_geocentric_.store());
 }
 
 bool PredictorSLR::isReady() const {return !this->pos_times_.empty(); }
@@ -275,11 +274,11 @@ PredictorSLR::PredictionError PredictorSLR::predict(MJDate mjd, SoD sod_instant,
  *
  * The algorithm is based on the RAZEL algorithm (the reverse of the SITE-TRACK algorithm, A. Vallado) and inspired
  * by the implementation by W. Gurtner (Astronomical Institute, University of Berne). While Hermite was previously
- * used, the algorithm now employs 9th-degree Lagrange. To enhance precision, the option to include various
+ * used, the algorithm now employs 9th-degree or 16th-degree Lagrange. To enhance precision, the option to include various
  * corrections in the calculations has been incorporated, following the extended ranging equation (G. Seeber).
  *
  *
- * LA idea que hay detras de este algoritmo es la siguiente.
+ * La idea que hay detras de este algoritmo es la siguiente.
  *
  * Hay varias formas de realziar el calculo.
  *
@@ -349,12 +348,11 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
  * Satellite Geodesy, Gunter Seeber 2nd Edition, capitulo 8.
  * Fundamentals of Astrodynamics and Applications, David. A. Vallado. 4th Edition. Capitulo 4.
  *
- * TODO Eccentricity correction on the ground.
  * TODO Multistatic mode.
  * TODO Check CPF reference frame.
  * TODO Check CPF com applied com.
  * TODO Check CPF v2 target dynamics = 1.
- * TODO Check leap seconds flaf.
+ * TODO Check leap seconds flag (maybe better in CPF and set the CPF as invalid).
  * TODO TLE source mode using SGP4 propagator.
  */
 
@@ -371,49 +369,48 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     //------------------------------------------------------------------------------------------------------------------
 
     // CONTAINERS AND VARIABLES.
+    // Remember that all units are long doubles, necessary to achieve adequate precision in calculations.
     //------------------------------------------------------------------------------------------------------------------
 
     // CPF interpolation result variables.
-    long double x_instant;                  // Relative interpolation time for the instant time (instant vector).
-    long double x_bounce;                   // Relative interpolation time for the bounce time (outbound vector).
-    long double x_arrival;                  // Relative interpolation time for the arrival time (inbound vector).
+    Seconds x_instant;      // Relative interpolation time for the instant time (instant vector).
+    Seconds x_bounce;       // Relative interpolation time for the bounce time (outbound vector).
+    Seconds x_arrival;      // Relative interpolation time for the arrival time (inbound vector).
 
     // Position vectors at different times.
-    Vector3D<long double> y_instant;    // Vector with the interpolated position at instant time.
-    Vector3D<long double> y_outbound;   // Vector with the interpolated position at bounce time.
-    Vector3D<long double> y_inbound;    // Vector with the interpolated position at arrival time.
+    Vector3D<Meters> y_instant;    // Vector with the interpolated position at instant time.
+    Vector3D<Meters> y_outbound;   // Vector with the interpolated position at bounce time.
+    Vector3D<Meters> y_inbound;    // Vector with the interpolated position at arrival time.
 
     // Rotating matrix for calculate the local topo vectors (SEZ).
-    Matrix<long double> rotatedm_topo_s_o_instant;
-    Matrix<long double> rotatedm_topo_s_o_outbound;
+    Matrix<Meters> rotatedm_topo_s_o_instant;
+    Matrix<Meters> rotatedm_topo_s_o_outbound;
 
     // Rotation and rotated matrices for the Earth rotation.
-    Matrix<long double> rotm_earth_rotation ;
-    Matrix<long double> rotatedm_earth;
+    Matrix<long double> rotm_earth_rotation;
+    Matrix<Meters> rotatedm_earth;
 
     // Topocentric-horizon vectors (SEZ).
-    Vector3D<long double> topo_s_o_instant;            // Topocentric station to object vector at instant time.
-    Vector3D<long double> topo_s_o_outbound;           // Topocentric station to object vector at bounce time.
-    Vector3D<long double> topo_s_o_local_instant;      // Local topocentric station to object vector at instant time.
-    Vector3D<long double> topo_s_o_local_outbound;     // Local topocentric station to object vector at bounce time.
+    Vector3D<Meters> topo_s_o_instant;            // Topocentric station to object vector at instant time.
+    Vector3D<Meters> topo_s_o_outbound;           // Topocentric station to object vector at bounce time.
+    Vector3D<Meters> topo_s_o_local_instant;      // Local topocentric station to object vector at instant time.
+    Vector3D<Meters> topo_s_o_local_outbound;     // Local topocentric station to object vector at bounce time.
 
 
     // Other prediction values.
-    long double range_1w_instant;      // Range value in meters for instant vector.
-    long double range_1w_outbound;     // Range value in meters for the outbound vector.
-    long double range_1w_average;      // Average range value in meters at bounce time.
+    Meters range_1w_instant;      // Range value for instant vector (meters, 1 way).
+    Meters range_1w_outbound;     // Range value for the outbound vector (meters, 1 way).
+    Meters range_1w_average;      // Average range value at bounce time (meters, 1 way).
 
-    long double el_instant, az_instant;    // Elevation and azimuth for the instant vector (degrees).
-    long double el_outbound, az_outbound;  // Elevation and azimuth for the outbound vector (degrees).
+    Degrees el_instant, az_instant;    // Elevation and azimuth for the instant vector (degrees).
+    Degrees el_outbound, az_outbound;  // Elevation and azimuth for the outbound vector (degrees).
 
     // Other auxiliar variables.
-    PredictionError error;      // Auxiliar error variable.
-    double diff_az, diff_el;    // Azimuth and elevation difference between the outbound and instant vectors
-    long double aux_range;      // Auxiliar range variable.
-
-    // TODO rename some variables and add comments.
-
-    long double  tof_1w, dsidt;
+    PredictionError error;     // Auxiliar error variable.
+    Degrees diff_az, diff_el;  // Azimuth and elevation difference between the outbound and instant vectors (degrees).
+    Meters prov_range_1w;      // Provisional range variable which will be updated during calculations (meters, 1 way).
+    Seconds aux_tof_1w;        // Auxiliar time of flight value (seconds, 1 way).
+    Radians earth_rot_angle;   // Earth rotation angle during flight time (radians).
 
 
     //------------------------------------------------------------------------------------------------------------------
@@ -445,17 +442,17 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         return error;
 
     // Form the topocentric position vector (station to object) at instant time.
-    topo_s_o_instant = y_instant - this->stat_geocentric_;
+    topo_s_o_instant = y_instant - this->stat_geocentric_.toVector3D();
 
     // Instant range from station to object at instant time.
     range_1w_instant = topo_s_o_instant.magnitude();
 
     // Update auxiliar range.
-    aux_range = range_1w_instant;
+    prov_range_1w = range_1w_instant;
 
     // Include part of the corrections. The station correction will be permanent.
     if(this->apply_corr_ )
-        aux_range = this->applyCorrections(range_1w_instant, result, true);
+        prov_range_1w = this->applyCorrections(range_1w_instant, result, true);
 
     // Store computed data up to this moment.
     // In the storage only, include the object eccentricity correction (CoM) and the systematic errors.
@@ -463,11 +460,11 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.instant_range.mjdt = mjd + sod_instant/kSecsSolDay;
     result.instant_range.sod = sod_instant;
     result.instant_range.geo_pos = y_instant;
-    result.instant_range.range_1w = aux_range;
+    result.instant_range.range_1w = prov_range_1w;
     result.instant_range.tof_2w = 2*result.instant_range.range_1w/kC;
 
-    // WARNING: At this point, <range_1w_instant> only include the system delay correction, but the <PredictionResult>
-    // result container include the eccentricity corrections and the systematic errors.
+    // WARNING: At this point, <range_1w_instant> only include the system delay correction, but in the result container
+    // <PredictionResult> the range include the eccentricity corrections and the systematic errors.
 
     // If the mode is only instant range, return here.
     if (this->prediction_mode_ == PredictionMode::ONLY_INSTANT_RANGE)
@@ -483,7 +480,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // Topocentric instant station to object vector in local system (using the rotation matrix).
     rotatedm_topo_s_o_instant.pushBackRow(topo_s_o_instant.toVector());
     rotatedm_topo_s_o_instant *= this->rotm_topo_local_;
-    topo_s_o_local_instant = Vector3D<long double>::fromVector(rotatedm_topo_s_o_instant.getRow(0));
+    topo_s_o_local_instant = Vector3D<Meters>::fromVector(rotatedm_topo_s_o_instant.getRow(0));
 
     // Compute azimuth for instant vector (degrees).
     el_instant = radToDegree(atanl(topo_s_o_local_instant[2] / sqrtl(
@@ -493,7 +490,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     az_instant= radToDegree(atan2l(-topo_s_o_local_instant[1], topo_s_o_local_instant[0]));
 
     // Check 90 degrees elevation case (pag 263 fundamental of astrodinamic and applications A. Vallado).
-    if(dpslr::math::compareFloating(el_instant, 90.0L) == 0)
+    if(math::compareFloating(el_instant, Degrees(90.0L)) == 0)
         el_instant -= 0.0001L;
 
     // Check the negative azimuth case.
@@ -502,12 +499,12 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
     // Include part of the corrections. The tropospheric correction will be permanent.
     if(this->apply_corr_ )
-        aux_range = this->applyCorrections(range_1w_instant, result, false, el_instant);
+        prov_range_1w = this->applyCorrections(range_1w_instant, result, false, el_instant);
 
     // Store computed data up to this moment.
-    result.instant_data.value().az = az_instant;
-    result.instant_data.value().el = el_instant;
-    result.instant_data.value().range_1w = aux_range;
+    result.instant_data.value().altaz_coord.az = az_instant;
+    result.instant_data.value().altaz_coord.el = el_instant;
+    result.instant_data.value().range_1w = prov_range_1w;
     result.instant_data.value().tof_2w = 2*result.instant_data.value().range_1w/kC;
 
     // If the mode is only instant vector, return here.
@@ -529,17 +526,17 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.outbound_data.emplace();
 
     // Calculate the time to reach the satellite.
-    tof_1w = range_1w_instant/kC;
+    aux_tof_1w = range_1w_instant/kC;
 
     // Prepare the matrix to rotate the ECEF coordinate system (with the rotation of the Earth).
-    rotatedm_earth.pushBackRow(this->stat_geocentric_.toVector());
+    rotatedm_earth.pushBackRow(this->stat_geocentric_.toStdVector());
 
     // Rotate the coordinate system for laser pulse two-way trip (2 iteration). Remember that this is
     // due to the fact that the light becomes detached from the reference system during its trip.
     for (unsigned i=0; i<2; i++)
     {
         // Calculate the bounce time.
-        x_bounce = x_instant + tof_1w;
+        x_bounce = x_instant + aux_tof_1w;
 
         // Interpolate geocentric position of the object at bounce time.
         error = this->callToInterpol(x_bounce, y_outbound, result);
@@ -549,17 +546,17 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
             return error;
 
         // Topocentric outbound vector
-        topo_s_o_outbound = y_outbound - Vector3D<long double>::fromVector(rotatedm_earth.getRow(0));
+        topo_s_o_outbound = y_outbound - Vector3D<Meters>::fromVector(rotatedm_earth.getRow(0));
 
         // Distance from station (instant time) to object (bounce time).
         range_1w_outbound = topo_s_o_outbound.magnitude();
 
         // Outbound flight time (sec)
-        tof_1w = range_1w_outbound/kC;
+        aux_tof_1w = range_1w_outbound/kC;
 
         // Rotate station during flight time (radians)
-        dsidt= kEarthRotSolDay * (tof_1w/kSecsSolDay);
-        dpslr::math::euclid3DRotMat(3, dsidt, rotm_earth_rotation);
+        earth_rot_angle = kEarthRotSolDay * (aux_tof_1w/kSecsSolDay);
+        math::euclid3DRotMat(3, earth_rot_angle, rotm_earth_rotation);
         rotatedm_earth *= rotm_earth_rotation;
     }
 
@@ -569,7 +566,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // Topocentric outbound station to object vector in local system (using the rotation matrix).
     rotatedm_topo_s_o_outbound.pushBackRow(topo_s_o_outbound.toVector());
     rotatedm_topo_s_o_outbound *= this->rotm_topo_local_;
-    topo_s_o_local_outbound = Vector3D<long double>::fromVector(rotatedm_topo_s_o_outbound.getRow(0));
+    topo_s_o_local_outbound = Vector3D<Meters>::fromVector(rotatedm_topo_s_o_outbound.getRow(0));
 
     // WARNING: The next azimuth and elevation are the laser beam pointing direction. We recommend using these
     // positions to command the tracking mount.
@@ -582,7 +579,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     az_outbound = radToDegree(atan2l(-topo_s_o_local_outbound[1], topo_s_o_local_outbound[0]));
 
     // Check 90 degrees elevation case (pag 263 fundamental of astrodinamic and applications A. Vallado).
-    if(compareFloating(el_outbound, 90.0L) == 0)
+    if(compareFloating(el_outbound, Degrees(90.0L)) == 0)
         el_outbound -= 0.0001L;
 
     // Check the negative azimuth case.
@@ -590,15 +587,15 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         az_outbound += 360.L;
 
     // Calculates the difference between the outbound and instant direction at instant time.
-    diff_az = static_cast<double>(2*(az_instant-az_outbound));
+    diff_az = 2*(az_instant-az_outbound);
     if (diff_az < -360)
         diff_az += 720;
     if (diff_az > +360)
         diff_az -= 720;
-    diff_el = static_cast<double>(2*(el_instant-el_outbound));
+    diff_el = 2*(el_instant-el_outbound);
 
     // Calculates the average distance from station to object at bounce time (good approximation).
-    range_1w_average = (y_outbound-this->stat_geocentric_).magnitude();
+    range_1w_average = (y_outbound-this->stat_geocentric_.toVector3D()).magnitude();
 
     // WARNING: The change of the elevation and azimuth are minimal, so isn't neccesary recalculate the tropospheric
     // path delay correction. In addition, in other ILRS algorithms such as the one for NP formation and analysis,
@@ -611,8 +608,8 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // Store computed data up to this moment.
     result.diff_az = diff_az;
     result.diff_el = diff_el;
-    result.outbound_data.value().az = az_outbound;
-    result.outbound_data.value().el = el_outbound;
+    result.outbound_data.value().altaz_coord.az = az_outbound;
+    result.outbound_data.value().altaz_coord.el = el_outbound;
     result.outbound_data.value().geo_pos = y_outbound;
     result.outbound_data.value().range_1w = range_1w_average;
     result.outbound_data.value().tof_2w = 2 * result.outbound_data->range_1w/kC;
@@ -644,8 +641,8 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
             else
                 tr=tb+tinb/86400.e0;
             //  Rotate station during inbound flight time (other direction)
-            dsidt=6.300388e0*(tinb/86400.e0);
-            ddreh(3,-dsidt,r3);
+            earth_rot_angle=6.300388e0*(tinb/86400.e0);
+            ddreh(3,-earth_rot_angle,r3);
             dmlmav(stageo,r3,starot);
             //  Topocentric inbound vector in geocentric system
             topinb[0]=objbnc[0]-starot[0];
@@ -714,61 +711,68 @@ void PredictorSLR::getTimeWindow(MJDate &mjd_start, SoD &sod_start, MJDate &mjd_
     }
 }
 
-long double PredictorSLR::applyCorrections(long double &range, SLRPrediction &result,
-                                           bool cali, long double el) const
+Meters PredictorSLR::applyCorrections(Meters& range, SLRPrediction& result, bool cali, Degrees el) const
 {
-    // Auxiliar variable.
-    long double aux_range = range;
+    // Auxiliar provisional range.
+    Meters provisional_range = range;
 
     // Include the half of the system delay to the range. This will be permanent for the rest of computations.
-    if(dpslr::math::compareFloating(this->cali_del_corr_, 0.0L) && cali)
+    if(math::compareFloating(this->cali_del_corr_, Picoseconds(0.0L)) && cali)
     {
         range += 0.5L*this->cali_del_corr_*kC*kPsToSec;
         result.cali_del_corr = this->cali_del_corr_;
-        aux_range = range;
+        provisional_range = range;
     }
 
     // Include the object eccentricity correction.
-    if(dpslr::math::compareFloating(this->objc_ecc_corr_, 0.0L))
+    if(math::compareFloating(this->objc_ecc_corr_, Meters(0.0L)))
     {
-        aux_range = aux_range - this->objc_ecc_corr_;
+        provisional_range = provisional_range - this->objc_ecc_corr_;
         result.objc_ecc_corr = this->objc_ecc_corr_;
     }
 
     // Include the ground eccentricity correction.
-    if(dpslr::math::compareFloating(this->grnd_ecc_corr_, 0.0L))
+    if(math::compareFloating(this->grnd_ecc_corr_, Meters(0.0L)))
     {
-        aux_range = aux_range + this->grnd_ecc_corr_;
+        provisional_range = provisional_range + this->grnd_ecc_corr_;
         result.grnd_ecc_corr = this->grnd_ecc_corr_;
     }
 
     // Include the systematic and random errors.
-    if(dpslr::math::compareFloating(this->syst_rnd_corr_, 0.0L))
+    if(math::compareFloating(this->syst_rnd_corr_, Meters(0.0L)))
     {
-        aux_range = aux_range + this->syst_rnd_corr_;
+        provisional_range = provisional_range + this->syst_rnd_corr_;
         result.syst_rnd_corr = this->syst_rnd_corr_;
     }
 
     // Compute and include the tropospheric path delay.
-    if(dpslr::math::compareFloating(el, 0.0L))
+    if(math::compareFloating(el, Degrees(0.0L)))
     {
-        // Get the elevation in radians.
-        long double el_instant_rad = math::units::degToRad(el);
+        if(this->tropo_model_ == PredictorSLR::TroposphericModel::MARINI_MURRAY)
+        {
+            // Get the elevation in radians.
+            long double el_instant_rad = math::units::degToRad(el);
 
-        // Calculate the tropospheric path delay (1 way).
-        range += geo::tropo::pathDelayMariniMurray(this->press_, this->temp_, this->rel_hum_, el_instant_rad,
-                                                   this->wl_, this->stat_geodetic_.lat, this->stat_geodetic_.alt,
-                                                   this->wtrvap_model_);
-        // Store the range.
-        aux_range = range;
+            // Calculate the tropospheric path delay (1 way).
+            range += geo::tropo::pathDelayMariniMurray(this->press_, this->temp_, this->rel_hum_, el_instant_rad,
+                                                       this->wl_, this->stat_geodetic_.lat, this->stat_geodetic_.alt,
+                                                       this->wtrvap_model_);
+            // Store the range.
+            provisional_range = range;
+        }
+        else
+        {
+            throw std::runtime_error(
+                "[LibDegorasSLR,UtilitiesSLR,PredictorSLR, predict] Tropospheric model not implemented.");
+        }
     }
 
     // Return the new range with the corrections.
-    return aux_range;
+    return provisional_range;
 }
 
 
-PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector3D<long double> &y,
+PredictorSLR::PredictionError PredictorSLR::callToInterpol(const Seconds& x, Vector3D<Meters> &y,
                                                            SLRPrediction &result) const
 {
     // Auxiliar error container.
@@ -787,7 +791,7 @@ PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector
         // Result of the interpolation.
         LagrangeError lag_res;
 
-        // Do the 9th degree interpolation.
+        // Do the lagrange interpolation.
         lag_res = stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, deg, x, y);
 
         // Convert the error code.
