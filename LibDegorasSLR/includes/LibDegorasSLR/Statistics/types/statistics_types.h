@@ -7,7 +7,7 @@
 // ========== DPSLR NAMESPACES =========================================================================================
 namespace dpslr{
 namespace stats{
-namespace common{
+namespace types{
 
 /// Histcount result for each bin: {count, left limit, right limit}
 template <typename C> using HistCountBin = std::tuple<unsigned, typename C::value_type, typename C::value_type>;

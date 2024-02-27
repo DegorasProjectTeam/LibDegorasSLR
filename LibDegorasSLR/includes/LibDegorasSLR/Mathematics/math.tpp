@@ -40,13 +40,13 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Mathematics/containers/matrix.h"
+#include "LibDegorasSLR/Mathematics/types/matrix.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // ========== DPSLR NAMESPACES =========================================================================================
 namespace dpslr {
-namespace math_private  {
+namespace math_private{
 // =====================================================================================================================
 
 
@@ -71,7 +71,7 @@ T normalizeVal(T x, T x_min, T x_max)
 }
 
 template <typename T>
-void euclid3DRotMat(int axis, T angle, dpslr::math::Matrix<T> &matrix)
+void euclid3DRotMat(int axis, T angle, dpslr::math::types::Matrix<T> &matrix)
 {
     double s, c;
     unsigned int caxis = static_cast<unsigned int>(axis - 1);

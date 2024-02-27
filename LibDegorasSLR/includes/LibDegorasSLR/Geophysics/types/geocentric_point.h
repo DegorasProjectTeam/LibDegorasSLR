@@ -48,7 +48,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Mathematics/units.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
+#include "LibDegorasSLR/Mathematics/types/vector3d.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -79,11 +79,11 @@ struct LIBDPSLR_EXPORT GeocentricPoint
     template<typename Container = std::array<long double, 3>>
     inline constexpr Container store() const {return Container{x,y,z};}
 
-    math::Vector3D<T> toVector3D() const {return math::Vector3D<T>(x,y,z);}
+    math::types::Vector3D<T> toVector3D() const {return math::types::Vector3D<T>(x,y,z);}
 };
 
 /// Alias for long double GeocentricPoint specialization.
-using GeocentricPointLD = GeocentricPoint<long double>;
+using GeocentricPointL = GeocentricPoint<long double>;
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

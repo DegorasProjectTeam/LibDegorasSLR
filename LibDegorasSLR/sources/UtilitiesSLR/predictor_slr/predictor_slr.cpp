@@ -40,10 +40,10 @@
 #include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
 #include "LibDegorasSLR/Mathematics/units.h"
 #include "LibDegorasSLR/Mathematics/math.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
+#include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Statistics/fitting.h"
-#include "LibDegorasSLR/Statistics/common/statistics_types.h"
-#include "LibDegorasSLR/Astronomical/common/astro_constants.h"
+#include "LibDegorasSLR/Statistics/types/statistics_types.h"
+#include "LibDegorasSLR/Astronomical/astro_constants.h"
 #include "LibDegorasSLR/Geophysics/tropo.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
@@ -55,13 +55,13 @@ namespace utils{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace ilrs::cpf;
+using namespace astro;
 using namespace helpers::strings;
-using namespace astro::cnst;
-using namespace math::common;
-using namespace math::units;
 using namespace math;
+using namespace math::units;
+using namespace math::types;
 using namespace stats;
+using namespace stats::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 const std::array<std::string, 10> PredictorSLR::PredictorErrorStr =
@@ -197,7 +197,7 @@ bool PredictorSLR::setCPF(const CPF& cpf)
     long double s_lat = this->stat_geodetic_.lat;
 
     // Rotation matrices.
-    math::Matrix<long double> rot_long, rot_lat, rot_long_pi;
+    Matrix<long double> rot_long, rot_lat, rot_long_pi;
 
     // Get position records and position times for interpolation calculations.
     for (const auto& pos_record : cpf.getData().positionRecords())
@@ -208,7 +208,7 @@ bool PredictorSLR::setCPF(const CPF& cpf)
     }
 
     // Prepare the identity matrix.
-    this->rotm_topo_local_ = math::Matrix<long double>::I(3);
+    this->rotm_topo_local_ = Matrix<long double>::I(3);
 
     // Computation of rotation matrices.
     // Rotations: rot_long around longitude, rot_lat around pi/2-latitude, rot_long_pi around pi
@@ -486,11 +486,11 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     topo_s_o_local_instant = Vector3D<long double>::fromVector(rotatedm_topo_s_o_instant.getRow(0));
 
     // Compute azimuth for instant vector (degrees).
-    el_instant = units::radToDegree(atanl(topo_s_o_local_instant[2] / sqrtl(
+    el_instant = radToDegree(atanl(topo_s_o_local_instant[2] / sqrtl(
                                     math::pow2(topo_s_o_local_instant[0]) + math::pow2(topo_s_o_local_instant[1]))));
 
     // Compute elevation for instant vector (degrees).
-    az_instant=units::radToDegree(atan2l(-topo_s_o_local_instant[1], topo_s_o_local_instant[0]));
+    az_instant= radToDegree(atan2l(-topo_s_o_local_instant[1], topo_s_o_local_instant[0]));
 
     // Check 90 degrees elevation case (pag 263 fundamental of astrodinamic and applications A. Vallado).
     if(dpslr::math::compareFloating(el_instant, 90.0L) == 0)
@@ -575,14 +575,14 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // positions to command the tracking mount.
 
     // Compute azimuth for outbound vector (laser beam pointing direction, degrees).
-    el_outbound = units::radToDegree(atanl(topo_s_o_local_outbound[2] / sqrtl(
+    el_outbound = radToDegree(atanl(topo_s_o_local_outbound[2] / sqrtl(
                                 math::pow2(topo_s_o_local_outbound[0]) + math::pow2(topo_s_o_local_outbound[1]))));
 
     // Compute elevation for outbound vector (degrees).
-    az_outbound = units::radToDegree(atan2l(-topo_s_o_local_outbound[1], topo_s_o_local_outbound[0]));
+    az_outbound = radToDegree(atan2l(-topo_s_o_local_outbound[1], topo_s_o_local_outbound[0]));
 
     // Check 90 degrees elevation case (pag 263 fundamental of astrodinamic and applications A. Vallado).
-    if(dpslr::math::compareFloating(el_outbound, 90.0L) == 0)
+    if(compareFloating(el_outbound, 90.0L) == 0)
         el_outbound -= 0.0001L;
 
     // Check the negative azimuth case.
@@ -785,7 +785,7 @@ PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector
             deg = kPolLagDeg16;
 
         // Result of the interpolation.
-        stats::common::LagrangeError lag_res;
+        LagrangeError lag_res;
 
         // Do the 9th degree interpolation.
         lag_res = stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, deg, x, y);
@@ -801,18 +801,18 @@ PredictorSLR::PredictionError PredictorSLR::callToInterpol(long double x, Vector
     return error;
 }
 
-PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(stats::common::LagrangeError error)
+PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(LagrangeError error)
 {
     PredictorSLR::PredictionError cpf_error;
     switch (error)
     {
-    case stats::common::LagrangeError::NOT_ERROR :
+    case LagrangeError::NOT_ERROR :
         cpf_error = PredictionError::NO_ERROR; break;
-    case stats::common::LagrangeError::NOT_IN_THE_MIDDLE :
+    case LagrangeError::NOT_IN_THE_MIDDLE :
         cpf_error = PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE; break;
-    case stats::common::LagrangeError::X_OUT_OF_BOUNDS :
+    case LagrangeError::X_OUT_OF_BOUNDS :
         cpf_error = PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS; break;
-    case stats::common::LagrangeError::DATA_SIZE_MISMATCH :
+    case LagrangeError::DATA_SIZE_MISMATCH :
         cpf_error = PredictionError::INTERPOLATION_DATA_SIZE_MISMATCH; break;
     }
     return cpf_error;

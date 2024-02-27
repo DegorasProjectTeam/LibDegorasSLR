@@ -51,14 +51,15 @@
 namespace dpslr{
 // =====================================================================================================================
 
-using StringV = std::vector<std::string>;
-
 /// Convenient optional (from std::experimental) type alias.
 #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
     template <class T> using Optional = std::optional<T>;
 #else
 template <class T> using Optional = std::experimental::optional<T>;
 #endif
+
+using OptionalL = Optional<long double>;
+using StringV = std::vector<std::string>;
 
 // =====================================================================================================================
 

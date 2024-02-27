@@ -23,11 +23,11 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file astro_constants.h
+ * @file astro_types.h
  * @author Degoras Project Team.
- * @brief This file contains several astronomical constants.
+ * @brief This file contains several astronomical definitions.
  * @copyright EUPL License
- * @version 2307.1
+ * @version 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -39,27 +39,125 @@
 #include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// LIBDEGORASSLR INCLUDES
+// =====================================================================================================================
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Mathematics/units.h"
+// =====================================================================================================================
+
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
-namespace cnst{
+namespace types{
 // =====================================================================================================================
 
-// CONSTANTS
-// =====================================================================================================================
-constexpr long long kSecsSolDay = 86400LL;                  ///< Seconds in a solar day.
-constexpr long double kSecsInSiderealDay = 86164.090517L;   ///< Seconds in a sidereal day.
-constexpr long double kEarthRotSolDay = 6.30038809866574L;  ///< Earth rotational angular velocity (rad/solar day).
-constexpr long double kC = 299792458.0L;                    ///< Speed of light (m/s). IERS Convention 2003.
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
+using timing::types::MJDate;
+using timing::types::SoD;
+using timing::types::MJDateTime;
+using math::units::Degrees;
+// ---------------------------------------------------------------------------------------------------------------------
 
-// CONSTANTS FOR FUNCTIONS FRON NOVAS (NAVAL OBSERVATORY VECTOR ASTROMETRY SOFTWARE)
-// =====================================================================================================================
-constexpr long double T0 = 2451545.00000000L;         ///< TDB Julian date of epoch J2000.0.
-constexpr long double AU_SEC = 499.0047838061L;       ///< Light-time for one astronomical unit (AU) in seconds (DE-405).
-constexpr long double AU = 1.4959787069098932e+11L;   ///< Astronomical unit in meters.  Value is AU_SEC * C.
-// =====================================================================================================================
+
+struct LIBDPSLR_EXPORT RA
+{
+    RA() = default;
+    RA(int hour, int min, double sec);
+    RA(double ra);
+
+    RA(const RA&) = default;
+    RA(RA&&) = default;
+    RA& operator=(const RA&) = default;
+    RA& operator=(RA&&) = default;
+
+    operator double () const;
+
+    static bool checkRA(int h, int min, double sec);
+
+    int hour;
+    int min;
+    double sec;
+    double ra;
+};
+
+struct LIBDPSLR_EXPORT Dec
+{
+    Dec() = default;
+    Dec(int deg, int min, double sec);
+    Dec(double dec);
+
+    Dec(const Dec&) = default;
+    Dec(Dec&&) = default;
+    Dec& operator=(const Dec&) = default;
+    Dec& operator=(Dec&&) = default;
+
+    operator double () const;
+
+    static bool checkDec(int deg, int min, double sec);
+
+    int deg;
+    int min;
+    double sec;
+    double dec;
+};
+
+struct LIBDPSLR_EXPORT Star
+{
+    Star() = default;
+    Star(const Star&) = default;
+    Star(Star&&) = default;
+    Star& operator =(const Star&) = default;
+    Star& operator =(Star&&) = default;
+
+    RA ra;
+    Dec dec;
+    std::string star_name;
+    std::string catalog_name;
+    int catalog_num;
+    int id;
+    double pm_ra;
+    double pm_dec;
+    double parallax;
+    double rad_vel;
+};
+
+struct LIBDPSLR_EXPORT AltAzPosition
+{
+    AltAzPosition();
+
+    AltAzPosition(const Degrees& az, const Degrees& el);
+
+
+    AltAzPosition(const AltAzPosition& pos) = default;
+    AltAzPosition(AltAzPosition&& pos) = default;
+
+    AltAzPosition& operator =(const AltAzPosition& pos) = default;
+    AltAzPosition& operator=(AltAzPosition&&) = default;
+
+    ~AltAzPosition() = default;
+
+    //size_t serialize(zmqutils::utils::BinarySerializer& serializer) const final;
+
+    //void deserialize(zmqutils::utils::BinarySerializer& serializer) final;
+
+    //size_t serializedSize() const final
+
+    Degrees az;
+    Degrees el;
+};
+
+/// Alias for altaz corrections.
+using AltAzCorrection = AltAzPosition;
+
+/// Alias for a vector of AltAzPosition.
+using AltAzPositions = std::vector<AltAzPosition>;
+
+/// Alias for a vector of AltAzCorrection.
+using AltAzCorrections = std::vector<AltAzCorrection>;
+
+
 
 }}} // END NAMESPACES
 // =====================================================================================================================

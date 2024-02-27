@@ -28,14 +28,13 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <iostream>
 #include <regex>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Testing/UnitTest>
-#include <LibDegorasSLR/Timing/TimeUtils>
+#include <LibDegorasSLR/Modules/Testing>
+#include <LibDegorasSLR/Modules/Timing>
 // =====================================================================================================================
 
 // NAMESPACES
@@ -77,7 +76,7 @@ M_DECLARE_UNIT_TEST(julianDateToTimePoint)
 M_DEFINE_UNIT_TEST(daysFromCivil)
 {
     // Test cases with inputs: year, month, day, and expected output: days since 1970-01-01.
-    std::vector<std::tuple<int, unsigned, unsigned, int>> cases =
+    std::vector<std::tuple<int, unsigned, unsigned, long long>> cases =
     {
         {1970, 1, 1, 0}, // Unix epoch start
         {1969, 12, 31, -1}, // Day before Unix epoch
@@ -91,7 +90,7 @@ M_DEFINE_UNIT_TEST(daysFromCivil)
 
     for (const auto& [year, month, day, expected] : cases)
     {
-        int result = timing::daysFromCivil(year, month, day);
+        long long result = timing::daysFromCivil(year, month, day);
         M_EXPECTED_EQ(expected, result)
     }
 }

@@ -44,9 +44,9 @@
 #include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
-#include "LibDegorasSLR/Mathematics/containers/matrix.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
-#include "LibDegorasSLR/Statistics/common/statistics_types.h"
+#include "LibDegorasSLR/Mathematics/types/matrix.h"
+#include "LibDegorasSLR/Mathematics/types/vector3d.h"
+#include "LibDegorasSLR/Statistics/types/statistics_types.h"
 #include "LibDegorasSLR/Geophysics/meteo.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
 #include "LibDegorasSLR/Timing/time_utils.h"
@@ -63,8 +63,8 @@ namespace utils{
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPoint;
 using dpslr::ilrs::cpf::CPF;
-using dpslr::math::Matrix;
-using dpslr::math::Vector3D;
+using dpslr::math::types::Matrix;
+using dpslr::math::types::Vector3D;
 using dpslr::geo::meteo::WtrVapPressModel;
 using dpslr::timing::MJDate;
 using dpslr::timing::SoD;
@@ -347,7 +347,7 @@ private:
 
     PredictionError callToInterpol(long double x, Vector3D<long double>& y, SLRPrediction& result) const;
 
-    static PredictionError convertLagInterpError(stats::common::LagrangeError error);
+    static PredictionError convertLagInterpError(stats::types::LagrangeError error);
 
     // Configuration variables.
     InterpolFunction interpol_function_;
@@ -380,7 +380,7 @@ private:
 
 
     // Topocentric local rotation matrix.
-    math::Matrix<long double> rotm_topo_local_;
+    math::types::Matrix<long double> rotm_topo_local_;
 
     std::vector<long double> pos_times_;               // Position data used at interpolation.
 

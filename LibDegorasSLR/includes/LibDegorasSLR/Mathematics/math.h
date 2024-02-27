@@ -45,9 +45,9 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Mathematics/common/math_types.h"
 #include "LibDegorasSLR/Mathematics/math.tpp"
 #include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
+#include "LibDegorasSLR/Mathematics/types/math_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -119,13 +119,13 @@ T normalizeVal(T x, T x_min, T x_max)
  * @return An instance of LldivResult<T> containing the quotient and remainder.
  */
 template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
-common::EuclideanDivResult<T> euclidDivLL(T a, T b)
+types::EuclideanDivResult<T> euclidDivLL(T a, T b)
 {
-    common::EuclideanDivResult<T> res;
+    types::EuclideanDivResult<T> res;
     T r = a % b;
     r =  r >= 0 ? r : r + std::abs(b);
     T q = (a - r) / b;
-    res.r = static_cast<typename common::EuclideanDivResult<T>::UnsignedT>(r);
+    res.r = static_cast<typename types::EuclideanDivResult<T>::UnsignedT>(r);
     res.q = q;
     return res;
 };
@@ -183,7 +183,7 @@ linspaceStep(const T& start, const T& end, const T& step)
  * @param matrix, the generated rotation matrix
  */
 template <typename T>
-void euclid3DRotMat(int axis, T angle, Matrix<T> &matrix)
+void euclid3DRotMat(int axis, T angle, types::Matrix<T> &matrix)
 {
     return dpslr::math_private::euclid3DRotMat(axis, angle, matrix);
 }

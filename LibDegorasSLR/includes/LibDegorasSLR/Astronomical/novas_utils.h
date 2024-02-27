@@ -46,7 +46,7 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/common/astro_types.h"
+#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"

@@ -32,8 +32,8 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Testing/UnitTest>
-#include <LibDegorasSLR/Helpers/Traits>
+#include <LibDegorasSLR/Modules/Testing>
+#include <LibDegorasSLR/Modules/Helpers>
 // =====================================================================================================================
 
 // NAMESPACES

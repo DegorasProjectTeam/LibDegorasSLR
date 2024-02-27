@@ -36,9 +36,9 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Statistics/common/statistics_types.h"
-#include "LibDegorasSLR/Mathematics/containers/matrix.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
+#include "LibDegorasSLR/Statistics/types/statistics_types.h"
+#include "LibDegorasSLR/Mathematics/types/matrix.h"
+#include "LibDegorasSLR/Mathematics/types/vector3d.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -46,6 +46,11 @@
 namespace dpslr{
 namespace stats{
 // =====================================================================================================================
+
+// ---------------------------------------------------------------------------------------------------------------------
+using math::types::Matrix;
+using math::types::Vector3D;
+// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Performs Lagrange polynomial interpolation on the given data points and degree.
@@ -64,12 +69,12 @@ namespace stats{
  * @return The LagrangeError indicating the result of the interpolation.
  */
 template <typename T, typename U>
-common::LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned degree,
+types::LagrangeError lagrangeInterpol(const std::vector<T>& x, const Matrix<T>& Y, unsigned degree,
                                        T x_interp, std::vector<U>& y_interp);
 
 template <typename T, typename U>
-common::LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned degree,
-                                            T x_interp, math::Vector3D<U>& y_interp);
+types::LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const Matrix<T>& Y, unsigned degree,
+                                           T x_interp, Vector3D<U>& y_interp);
 
 /**
  * @brief Computes the robust bisquare weights (Tukey bisquare) for robust regression or outlier detection.
@@ -104,7 +109,7 @@ std::vector<Ret> robustBisquareWeights(const std::vector<T>& x, const std::vecto
 template <typename T, typename Ret = T>
 std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y, unsigned int degree,
                                const std::vector<T>& w = std::vector<T>(),
-                               common::PolyFitRobustMethod robust = common::PolyFitRobustMethod::NO_ROBUST);
+                               types::PolyFitRobustMethod robust = types::PolyFitRobustMethod::NO_ROBUST);
 
 /**
  * @brief Resolve for @param x the polynomial given by its coefficients in @param coefs.

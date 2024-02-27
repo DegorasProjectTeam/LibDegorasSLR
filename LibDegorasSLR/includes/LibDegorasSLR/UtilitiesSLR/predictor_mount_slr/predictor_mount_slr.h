@@ -42,10 +42,10 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
-#include "LibDegorasSLR/Astronomical/sun_utils/predictor_sun.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
 #include "LibDegorasSLR/Mathematics/units.h"
-#include "LibDegorasSLR/Astronomical/common/astro_types.h"
+#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -58,7 +58,6 @@ namespace utils{
 using timing::types::HRTimePointStd;
 using timing::types::MJDate;
 using timing::types::SoD;
-using astro::SunPosition;
 using astro::PredictorSun;
 using astro::types::AltAzPosition;
 using astro::types::AltAzPositions;

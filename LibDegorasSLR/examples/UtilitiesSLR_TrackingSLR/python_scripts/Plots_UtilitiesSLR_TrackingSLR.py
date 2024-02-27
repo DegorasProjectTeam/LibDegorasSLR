@@ -48,7 +48,7 @@ def plot_full_coverage_circle(ax, radius_deg, points, color):
 
 
 def gen_projected_circle(ax, x_deg, y_deg, r_deg, plot_circle = True, \
-                         points = 1000, color='yellow', order = 2, alph = 0.5) :
+                         points = 1000, color='yellow', zorder = 2, alph = 0.5) :
 
     print(y_deg)
 
@@ -72,7 +72,7 @@ def gen_projected_circle(ax, x_deg, y_deg, r_deg, plot_circle = True, \
 
     # Plot on the provided axis.
     if(plot_circle):
-        ax.plot(np.radians(xvec), yvec, color, zorder=order)
+        ax.plot(np.radians(xvec), yvec, color, zorder=zorder)
 
     return xvec, yvec
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     #    plot_projected_circle(ax, np.degrees(azimuth), elevation, 15, num_points, 'yellow', 2)
 
     # Todo plot the circle in the colision momment.
-    #gen_projected_circle(ax, np.degrees(sun_azimuths[0]), sun_elevations[0], 15, True, num_points,'darkorange', 2)
+    gen_projected_circle(ax, np.degrees(sun_azimuths[0]), sun_elevations[0], 15, True, num_points,'darkorange', 2)
     #gen_projected_circle(ax, np.degrees(sun_azimuths[-1]), sun_elevations[-1], 15, True, num_points,'brown', 2)
 
 

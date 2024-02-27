@@ -23,9 +23,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file math_types.h
- * @author Degoras Project Team.
- * @brief This file contains several mathematical definitions.
+ * @file tle.h
+ * @brief This file contains the declarations of the class TLE.
+ * @author Degoras Project Team
  * @copyright EUPL License
  * @version 2305.1
 ***********************************************************************************************************************/
@@ -36,33 +36,44 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <type_traits>
+#include <string>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/helpers/types/type_traits.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace math{
-namespace common{
+namespace astro{
+namespace types{
 // =====================================================================================================================
 
-// STRUCTS
-// =====================================================================================================================
+// TODO: Mejorar la clase poniendo bien los datos.
+// Podemos usar esto de referencia: https://github.com/FedericoStra/tletools
 
-// Strcut for storing the euclidean division result.
-template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
-struct EuclideanDivResult : public helpers::types::TypeSigns<T>
+class LIBDPSLR_EXPORT TLE
 {
-    typename helpers::types::TypeSigns<T>::SignedT q;
-    typename helpers::types::TypeSigns<T>::UnsignedT r;
-};
+public:
 
-// ====================================================================================================================
+    bool parseLines(const std::string& tle);
+
+    bool isValid() const;
+    std::string getLines() const;
+    const std::string& getTitle() const;
+    const std::string& getFirstLine() const;
+    const std::string& getSecondLine() const;
+
+    const std::string& getNorad() const;
+
+private:
+    std::string title;
+    std::string first_line;
+    std::string second_line;
+    std::string norad_;
+};
 
 }}} // END NAMESPACES
 // =====================================================================================================================

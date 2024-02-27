@@ -23,56 +23,79 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tle.h
- * @brief This file contains the declarations of the class TLE.
+ * @file tle.cpp
+ * @brief This file contains the implementation of the class TLE.
  * @author Degoras Project Team
  * @copyright EUPL License
  * @version 2305.1
 ***********************************************************************************************************************/
 
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
-
 // C++ INCLUDES
 //======================================================================================================================
-#include <string>
+#include <vector>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Astronomical/types/tle.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace types{
 // =====================================================================================================================
 
-// TODO: Mejorar la clase poniendo bien los datos.
-// Podemos usar esto de referencia: https://github.com/FedericoStra/tletools
-
-class LIBDPSLR_EXPORT TLE
+bool TLE::parseLines(const std::string &tle)
 {
-public:
+    bool result = false;
+    std::vector<std::string> lines;
+    helpers::strings::split(lines, tle, "\n", false);
+    if (3 == lines.size())
+    {
+        if ('1' == lines[1][0] && '2' == lines[2][0])
+        {
+            this->title = lines[0];
+            this->first_line = lines[1];
+            this->second_line = lines[2];
+            this->norad_ = lines[1].substr(2, 5);
+            result = true;
+        }
+    }
+    return result;
+}
 
-    bool parseLines(const std::string& tle);
+bool TLE::isValid() const
+{
+    return !this->title.empty();
+}
 
-    bool isValid() const;
-    std::string getLines() const;
-    const std::string& getTitle() const;
-    const std::string& getFirstLine() const;
-    const std::string& getSecondLine() const;
+std::string TLE::getLines() const
+{
+    return this->title + '\n' + this->first_line + '\n' + this->second_line;
+}
 
-    const std::string& getNorad() const;
+const std::string &TLE::getTitle() const
+{
+    return this->title;
+}
 
-private:
-    std::string title;
-    std::string first_line;
-    std::string second_line;
-    std::string norad_;
-};
+const std::string &TLE::getFirstLine() const
+{
+    return this->first_line;
+}
 
-}} // END NAMESPACES
+const std::string &TLE::getSecondLine() const
+{
+    return this->second_line;
+}
+
+const std::string &TLE::getNorad() const
+{
+    return this->norad_;
+}
+
+}}} // END NAMESPACES
 // =====================================================================================================================

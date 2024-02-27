@@ -46,7 +46,7 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
+#include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
 
@@ -58,7 +58,7 @@ namespace cpf{
 // =====================================================================================================================
 
 // =====================================================================================================================
-using math::Vector3D;
+using math::types::Vector3DL;
 // =====================================================================================================================
 
 // CPF DATA
@@ -111,7 +111,7 @@ public:
         timing::types::MJDate mjd;        ///< Modified Julian Date.
         timing::types::SoD sod;           ///< Second of day (UTC).
         int leap_second;                  ///< Leap second flag (0 or the value of new leap second).
-        Vector3D<long double> position;   ///< Geocentric position in meters (x, y, z).
+        Vector3DL position;   ///< Geocentric position in meters (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -129,7 +129,7 @@ public:
     {
         // Members.
         DirectionFlag dir_flag;              ///< Direction flag.
-        Vector3D<long double> velocity;      ///< Geocentric velocity in m/s (x, y, z).
+        Vector3DL velocity;      ///< Geocentric velocity in m/s (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -146,7 +146,7 @@ public:
     struct CorrectionsRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;                         ///<< Direction flag
+        DirectionFlag dir_flag;                             ///<< Direction flag
         std::array<long double, 3> aberration_correction;   ///<< Stellar aberration correction in meters (x, y, z)
         double range_correction;                            ///<< Relativistic range correction in ns (positive)
         // Functions.

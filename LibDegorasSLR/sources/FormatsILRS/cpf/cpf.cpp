@@ -136,10 +136,10 @@ void CPF::getAvailableTimeWindow(MJDate &mjd_start, SoD &secs_start, MJDate &mjd
     }
 }
 
-math::Interval<long double> CPF::getAvailableTimeInterval() const
+math::types::Interval<long double> CPF::getAvailableTimeInterval() const
 {
     // Default empty interval.
-    math::Interval<long double> interval;
+    math::types::Interval<long double> interval;
     // Include min and max.
     interval.setIncludeMin(true);
     interval.setIncludeMax(true);

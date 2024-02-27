@@ -62,19 +62,19 @@
 #pragma once
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// C++ INCLUDES
+// =====================================================================================================================
+#include <string>
+// =====================================================================================================================
+
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/Helpers/filedir_helpers.h"
-#include "LibDegorasSLR/Mathematics/containers/interval.h"
-// =====================================================================================================================
-
-// C++ INCLUDES
-// =====================================================================================================================
-#include <string>
+#include "LibDegorasSLR/Mathematics/types/interval.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -249,7 +249,7 @@ public:
      *
      * @return The available time interval as an instance of math::Interval<long double>.
      */
-    math::Interval<long double> getAvailableTimeInterval() const;
+    math::types::Interval<long double> getAvailableTimeInterval() const;
 
     /**
      * @brief Checks if CPF is empty. A CPF will be empty if both header and data are empty. This can happen if an error

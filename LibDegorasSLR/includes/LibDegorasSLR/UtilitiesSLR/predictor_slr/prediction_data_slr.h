@@ -44,8 +44,8 @@
 #include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
-#include "LibDegorasSLR/Mathematics/containers/matrix.h"
-#include "LibDegorasSLR/Mathematics/containers/vector3d.h"
+#include "LibDegorasSLR/Mathematics/types/matrix.h"
+#include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Geophysics/meteo.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
 // =====================================================================================================================
@@ -60,8 +60,8 @@ namespace utils{
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPoint;
 using dpslr::ilrs::cpf::CPF;
-using dpslr::math::Matrix;
-using dpslr::math::Vector3D;
+using dpslr::math::types::Matrix;
+using dpslr::math::types::Vector3D;
 using dpslr::geo::meteo::WtrVapPressModel;
 using dpslr::timing::MJDate;
 using dpslr::timing::SoD;

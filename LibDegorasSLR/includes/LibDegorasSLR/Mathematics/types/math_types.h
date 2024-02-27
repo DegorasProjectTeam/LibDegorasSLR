@@ -23,9 +23,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file matrix.tpp
- * @brief This file contains the implementation of the mathematical class Matrix.
- * @author Degoras Project Team
+ * @file math_types.h
+ * @author Degoras Project Team.
+ * @brief This file contains several mathematical definitions.
  * @copyright EUPL License
  * @version 2305.1
 ***********************************************************************************************************************/
@@ -36,24 +36,33 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <vector>
-#include <cstddef>
-#include <algorithm>
-#include <omp.h>
-#include <math.h>
+#include <type_traits>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/helpers/types/type_traits.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace math{
+namespace types{
 // =====================================================================================================================
 
+// STRUCTS
+// =====================================================================================================================
 
+// Strcut for storing the euclidean division result.
+template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+struct EuclideanDivResult : public helpers::types::TypeSigns<T>
+{
+    typename helpers::types::TypeSigns<T>::SignedT q;
+    typename helpers::types::TypeSigns<T>::UnsignedT r;
+};
 
-}} // END NAMESPACES
+// ====================================================================================================================
+
+}}} // END NAMESPACES
 // =====================================================================================================================

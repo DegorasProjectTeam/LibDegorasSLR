@@ -38,19 +38,19 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/Initialization>
-#include <LibDegorasSLR/ModuleHelpers>
-#include <LibDegorasSLR/ModuleUtilitiesSLR>
-#include <LibDegorasSLR/ModuleFormatsILRS>
-#include <LibDegorasSLR/ModuleTiming>
-#include <LibDegorasSLR/ModuleMathematics>
+#include <LibDegorasSLR/Modules/Helpers>
+#include <LibDegorasSLR/Modules/UtilitiesSLR>
+#include <LibDegorasSLR/Modules/FormatsILRS>
+#include <LibDegorasSLR/Modules/Timing>
+#include <LibDegorasSLR/Modules/Mathematics>
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
 // LibDegorasSLR types used in example.
 using dpslr::DegorasInit;
 using dpslr::ilrs::cpf::CPF;
-using dpslr::geo::types::GeocentricPointLD;
-using dpslr::geo::types::GeodeticPointLD;
+using dpslr::geo::types::GeocentricPointL;
+using dpslr::geo::types::GeodeticPointL;
 using dpslr::utils::PredictorSLR;
 using dpslr::utils::PredictorMountSLR;
 using dpslr::timing::MJDate;
@@ -156,8 +156,8 @@ int main()
     // -------------------- UTILITIES INSTANTIATION  -------------------------------------------------------------------
 
     // Store the local geocentric and geodetic coordinates.
-    GeocentricPointLD stat_geocentric(x,y,z);
-    GeodeticPointLD stat_geodetic(latitude, longitude, alt, Angle<long double>::Unit::DEGREES);
+    GeocentricPointL stat_geocentric(x,y,z);
+    GeodeticPointL stat_geodetic(latitude, longitude, alt, Angle<long double>::Unit::DEGREES);
 
     // Open the CPF file (all data).
     CPF cpf(cpf_path, dpslr::ilrs::cpf::CPF::OpenOptionEnum::ALL_DATA);

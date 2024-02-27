@@ -43,10 +43,10 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Statistics/common/statistics_types.h>
-#include <LibDegorasSLR/Statistics/measures.h>
-#include <LibDegorasSLR/Mathematics/containers/matrix.h>
-#include <LibDegorasSLR/Mathematics/containers/vector3d.h>
+#include "LibDegorasSLR/Statistics/types/statistics_types.h"
+#include "LibDegorasSLR/Statistics/measures.h"
+#include "LibDegorasSLR/Mathematics/types/matrix.h"
+#include "LibDegorasSLR/Mathematics/types/vector3d.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -55,13 +55,15 @@ namespace dpslr{
 namespace stats{
 // =====================================================================================================================
 
-// =====================================================================================================================
-using dpslr::stats::common::LagrangeError;
-using dpslr::stats::common::PolyFitRobustMethod;
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
+using types::LagrangeError;
+using types::PolyFitRobustMethod;
+using math::types::Matrix;
+using math::types::Vector3D;
+// ---------------------------------------------------------------------------------------------------------------------
 
 template <typename T, typename U>
-LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y,
+LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::types::Matrix<T>& Y,
                                            unsigned int degree, T x_interp, std::vector<U>& y_interp)
 {
     // Variables.
@@ -126,11 +128,11 @@ LagrangeError lagrangeInterpol(const std::vector<T>& x, const dpslr::math::Matri
 }
 
 template <typename T, typename U>
-common::LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const dpslr::math::Matrix<T>& Y, unsigned degree,
-                                            T x_interp, math::Vector3D<U>& y_interp)
+LagrangeError lagrangeInterpol3DVec(const std::vector<T>& x, const Matrix<T>& Y, unsigned degree, T x_interp,
+                                    Vector3D<U>& y_interp)
 {
     // Auxiliar containers.
-    stats::common::LagrangeError lag_res;
+    stats::types::LagrangeError lag_res;
     std::vector<long double> res_y;
     // Call to lagrange.
     lag_res = lagrangeInterpol(x, Y, degree, x_interp, res_y);
@@ -192,7 +194,7 @@ std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y,
     // Variable declaration
     std::vector<Ret> coefs(degree+1);     // Resulting coeficients.
     std::vector<Ret> sigma_x(2*degree+1); // Values of sigma(xi),sigma(xi^2),sigma(xi^2n).
-    dpslr::math::Matrix<Ret> normal_matrix(degree+1, degree+2);
+    Matrix<Ret> normal_matrix(degree+1, degree+2);
     unsigned int i, j, k;
 
     // Avoid X and Y size mismatch as well as weights mismatch if it is not empty

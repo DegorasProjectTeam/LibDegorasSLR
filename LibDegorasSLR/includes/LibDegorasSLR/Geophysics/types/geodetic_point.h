@@ -88,7 +88,7 @@ struct LIBDPSLR_EXPORT GeodeticPoint
 };
 
 /// Alias for long double GeodeticPoint specialization.
-using GeodeticPointLD = GeodeticPoint<long double>;
+using GeodeticPointL = GeodeticPoint<long double>;
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

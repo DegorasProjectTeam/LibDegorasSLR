@@ -6,7 +6,7 @@
 
 // PROJECT INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Astronomical/common/astro_types.h"
+#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 // =====================================================================================================================
 
 // AMELAS NAMESPACES

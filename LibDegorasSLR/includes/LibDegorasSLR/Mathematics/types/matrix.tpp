@@ -23,78 +23,38 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tle.cpp
- * @brief This file contains the implementation of the class TLE.
+ * @file matrix.tpp
+ * @brief This file contains the implementation of the mathematical class Matrix.
  * @author Degoras Project Team
  * @copyright EUPL License
  * @version 2305.1
 ***********************************************************************************************************************/
 
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
+
 // C++ INCLUDES
 //======================================================================================================================
 #include <vector>
+#include <cstddef>
+#include <algorithm>
+#include <omp.h>
+#include <math.h>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Astronomical/tle.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
+namespace math{
+namespace types{
 // =====================================================================================================================
 
-bool TLE::parseLines(const std::string &tle)
-{
-    bool result = false;
-    std::vector<std::string> lines;
-    helpers::strings::split(lines, tle, "\n", false);
-    if (3 == lines.size())
-    {
-        if ('1' == lines[1][0] && '2' == lines[2][0])
-        {
-            this->title = lines[0];
-            this->first_line = lines[1];
-            this->second_line = lines[2];
-            this->norad_ = lines[1].substr(2, 5);
-            result = true;
-        }
-    }
-    return result;
-}
 
-bool TLE::isValid() const
-{
-    return !this->title.empty();
-}
 
-std::string TLE::getLines() const
-{
-    return this->title + '\n' + this->first_line + '\n' + this->second_line;
-}
-
-const std::string &TLE::getTitle() const
-{
-    return this->title;
-}
-
-const std::string &TLE::getFirstLine() const
-{
-    return this->first_line;
-}
-
-const std::string &TLE::getSecondLine() const
-{
-    return this->second_line;
-}
-
-const std::string &TLE::getNorad() const
-{
-    return this->norad_;
-}
-
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================
