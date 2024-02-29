@@ -41,7 +41,7 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/helpers/types/type_traits.h"
+#include <LibDegorasSLR/helpers/types/type_traits.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -51,13 +51,16 @@ namespace math{
 namespace types{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using helpers::types::TypeSigns;
+// ---------------------------------------------------------------------------------------------------------------------
 
 // Strcut for storing the euclidean division result.
 template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
-struct EuclideanDivResult : public helpers::types::TypeSigns<T>
+struct EuclideanDivResult : public TypeSigns<T>
 {
-    typename helpers::types::TypeSigns<T>::SignedT q;
-    typename helpers::types::TypeSigns<T>::UnsignedT r;
+    typename TypeSigns<T>::SignedT q;
+    typename TypeSigns<T>::UnsignedT r;
 };
 
 // ====================================================================================================================

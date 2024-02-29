@@ -44,11 +44,10 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
-#include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Timing/time_constants.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
+#include "LibDegorasSLR/Mathematics/math.h"
+#include "LibDegorasSLR/Timing/types/datetime.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -59,130 +58,10 @@ namespace types{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using helpers::types::NumericStrongType;
-using math::units::Seconds;
+using timing::types::SoD;
+using timing::kSecsPerDayL;
+using math::compareFloating;
 // ---------------------------------------------------------------------------------------------------------------------
-
-/**
- * @brief Class for handle datetimes epochs (date and fraction). This is a generic structure for handling different
- * datetime calendars. This class stores:
- * - The date in days since calendar origin
- * - The day fraction, that represents the elapsed fraction of the day.
- * - The second of the day.
- * The difference between different template specializations is the DateType used, that defines the origin of
- * the calendar.
- *
- * This class could be used with inheritance to overwrite the normalize method if necessary.
- *
- */
-template <typename DateType>
-class DateTime
-{
-
-public:
-
-    /**
-     * @brief Default constructor for DateTime. Initializes the object with default values (all to zero).
-     */
-    DateTime();
-
-    /**
-     * @brief Constructor with Date and Second Of Day parameters.
-     * @param date DateType object representing the date.
-     * @param sod Number of seconds in that day.
-     */
-    DateTime(const DateType& date, const SoD& sod);
-
-    /**
-     * @brief Constructor from long double value containing the day and fraction of day combined.
-     * @param dt, the current datetime in days since origin with day fraction.
-     */
-    DateTime(long double dt);
-
-    DateTime(const DateTime& other) = default;
-
-    DateTime(DateTime&& other) = default;
-
-    DateTime& operator=(const DateTime&) = default;
-
-    DateTime& operator=(DateTime&&) = default;
-
-    virtual ~DateTime() = default;
-
-    /**
-     * @brief Date getter.
-     * @return The current date in days since origin.
-     */
-    DateType date() const;
-
-    /**
-     * @brief Day fraction getter.
-     * @return The current elapsed day fraction. In the range of [0,1) days.
-     */
-    DayFraction fract() const;
-
-    /**
-     * @brief Second of day getter.
-     * @return The current elapsed second of day in seconds.
-     */
-    SoD sod() const;
-
-    /**
-     * @brief Function to get the date and fractional part together as a long double.
-     * @return date and fractional part combined. Precision can be reduced.
-     * @warning This function reduces the precision of the fraction.
-     */
-    long double datetime() const;
-
-    /**
-     * @brief Function to add some seconds to this datetime.
-     * @param seconds, the seconds that will be added to the datetime. If negative, the time is decremented.
-     */
-    void add(const Seconds& seconds);
-
-    bool operator==(const DateTime& other) const;
-
-    bool operator<(const DateTime& other) const;
-
-    bool operator<=(const DateTime& other) const;
-
-    bool operator>(const DateTime& other) const;
-
-    bool operator>=(const DateTime& other) const;
-
-    DateTime operator+(const Seconds& seconds) const;
-
-    static std::vector<DateTime> linspaceStep(const DateTime& start,
-                                              const DateTime& end,
-                                              const Seconds& step);
-
-private:
-
-    // TODO Check for negative days (exception).
-
-    virtual void normalize();
-
-    DateType date_;      ///< Date in days since origin.
-    DayFraction fract_;  ///< Decimal fraction of that day (up to nanoseconds resolution in the sense of day fraction).
-    SoD sod_;            ///< Number of seconds in that day (up to picoseconds resolution).
-};
-
-// External operators.
-// ---------------------------------------------------------------------------------------------------------------------
-template <typename DateType>
-Seconds operator-(const DateTime<DateType>& a, const DateTime<DateType>& b);
-
-template <typename DateType>
-Seconds operator+(const DateTime<DateType> &a, const DateTime<DateType> &b);
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-// Aliases.
-// ---------------------------------------------------------------------------------------------------------------------
-template <typename DateType>
-using DateTimes = std::vector<DateTime<DateType>>;
-// ---------------------------------------------------------------------------------------------------------------------
-
 
 template <typename DateType>
 DateTime<DateType>::DateTime() :
@@ -190,6 +69,7 @@ DateTime<DateType>::DateTime() :
     fract_(0),
     sod_(0)
 {}
+
 
 template <typename DateType>
 DateTime<DateType>::DateTime(const DateType &date, const SoD &sod) :
@@ -204,7 +84,7 @@ template<typename DateType>
 DateTime<DateType>::DateTime(long double dt)
 {
     long double day;
-    this->sod_ = std::modf(dt, &day) * timing::kSecsPerDayL;
+    this->sod_ = std::modf(dt, &day) * kSecsPerDayL;
     this->date_ = day;
 
     this->normalize();
@@ -242,21 +122,23 @@ void DateTime<DateType>::add(const Seconds &seconds)
 }
 
 
+
+
 template <typename DateType>
-DateTimes<DateType> DateTime<DateType>::linspaceStep(const DateTime &start,
+DateTimeV<DateType> DateTime<DateType>::linspaceStep(const DateTime &start,
                                                      const DateTime &end,
                                                      const Seconds &step)
 {
-    DateTimes<DateType> result;
+    DateTimeV<DateType> result;
 
-    if (math::compareFloating(step, Seconds()) <= 0)
+    if (compareFloating(step, Seconds()) <= 0)
         return result;
 
     size_t num = static_cast<size_t>(std::ceil((end - start) / step));
 
     result.resize(num);
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (size_t i = 0; i < num; i++)
     {
         DateTime value = start + step * static_cast<long double>(i);
@@ -269,35 +151,35 @@ DateTimes<DateType> DateTime<DateType>::linspaceStep(const DateTime &start,
 template <typename DateType>
 bool DateTime<DateType>::operator==(const DateTime &other) const
 {
-    return this->date_ == other.date() && math::compareFloating(this->sod_, other.sod()) == 0;
+    return this->date_ == other.date() && compareFloating(this->sod_, other.sod()) == 0;
 }
 
 template <typename DateType>
 bool DateTime<DateType>::operator<(const DateTime& other) const
 {
     return (this->date() < other.date()) ||
-           (this->date() == other.date() && math::compareFloating(this->sod(), other.sod()) < 0);
+           (this->date() == other.date() && compareFloating(this->sod(), other.sod()) < 0);
 }
 
 template <typename DateType>
 bool DateTime<DateType>::operator<=(const DateTime &other) const
 {
     return (this->date() < other.date()) ||
-           (this->date() == other.date() && math::compareFloating(this->sod(), other.sod()) <= 0);
+           (this->date() == other.date() && compareFloating(this->sod(), other.sod()) <= 0);
 }
 
 template <typename DateType>
 bool DateTime<DateType>::operator>(const DateTime &other) const
 {
     return (this->date() > other.date()) ||
-           (this->date() == other.date() && math::compareFloating(this->sod(), other.sod()) > 0);
+           (this->date() == other.date() && compareFloating(this->sod(), other.sod()) > 0);
 }
 
 template <typename DateType>
 bool DateTime<DateType>::operator>=(const DateTime &other) const
 {
     return (this->date() > other.date()) ||
-           (this->date() == other.date() && math::compareFloating(this->sod(), other.sod()) >= 0);
+           (this->date() == other.date() && compareFloating(this->sod(), other.sod()) >= 0);
 }
 
 template <typename DateType>
@@ -312,14 +194,14 @@ template <typename DateType>
 void DateTime<DateType>::normalize()
 {
     // Normalize the second of day input (decrement).
-    while(math::compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) < 0)
+    while(compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) < 0)
     {
         this->sod_ += timing::kSecsPerDayL;
         this->date_--;
     }
 
     // Normalize the second of day input (increment).
-    while(math::compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) >= 0)
+    while(compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) >= 0)
     {
         this->sod_ -= timing::kSecsPerDayL;
         this->date_++;
@@ -329,13 +211,12 @@ void DateTime<DateType>::normalize()
     this->fract_ = this->sod_ / timing::kSecsPerDayL;
 }
 
-// =====================================================================================================================
 
 template <typename DateType>
 Seconds operator-(const DateTime<DateType> &a, const DateTime<DateType> &b)
 {
     Seconds result;
-    result = (a.date()-b.date()) * Seconds(timing::kSecsPerDayL) + (a.sod() - b.sod());
+    result = (a.date()-b.date()) * Seconds(kSecsPerDayL) + (a.sod() - b.sod());
     return result;
 }
 
@@ -343,10 +224,9 @@ template <typename DateType>
 Seconds operator+(const DateTime<DateType> &a, const DateTime<DateType> &b)
 {
     Seconds result;
-    result = (a.date()+b.date()) * Seconds(timing::kSecsPerDayL) + (a.sod() + b.sod());
+    result = (a.date()+b.date()) * Seconds(kSecsPerDayL) + (a.sod() + b.sod());
     return result;
 }
-//======================================================================================================================
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

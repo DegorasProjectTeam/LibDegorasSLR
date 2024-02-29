@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -37,7 +41,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_cpf.h"
 #include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Statistics/fitting.h"
@@ -59,11 +63,9 @@ using namespace helpers::strings;
 using namespace math;
 using namespace math::units;
 using namespace math::types;
-using namespace stats;
-using namespace stats::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-const std::array<std::string, 10> PredictorSLR::PredictorErrorStr =
+const std::array<std::string, 10> PredictorCPF::PredictorErrorStr =
 {
     "No error",
     "CPF not found",
@@ -77,7 +79,7 @@ const std::array<std::string, 10> PredictorSLR::PredictorErrorStr =
     "Other error"
 };
 
-std::string PredictorSLR::SLRPrediction::toJsonStr() const
+std::string PredictorCPF::SLRPrediction::toJsonStr() const
 {
     // Result
     std::ostringstream oss;
@@ -120,7 +122,7 @@ std::string PredictorSLR::SLRPrediction::toJsonStr() const
     return oss.str();
 }
 
-PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geod,
+PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<long double> &geod,
                            const GeocentricPoint &geoc) :
     interpol_function_(InterpolFunction::LAGRANGE_16),
     tropo_model_(TroposphericModel::MARINI_MURRAY),
@@ -151,7 +153,7 @@ PredictorSLR::PredictorSLR(const CPF &cpf, const GeodeticPoint<long double> &geo
     this->setCPF(cpf);
 }
 
-PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
+PredictorCPF::PredictorCPF(const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
     interpol_function_(InterpolFunction::LAGRANGE_16),
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     prediction_mode_(PredictionMode::OUTBOUND_VECTOR),
@@ -174,7 +176,7 @@ PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const Geocent
                                  math::units::Distance<long double>::Unit::METRES);
 }
 
-bool PredictorSLR::setCPF(const CPF& cpf)
+bool PredictorCPF::setCPF(const CPF& cpf)
 {
     if(!cpf.hasData())
         return false;
@@ -220,23 +222,23 @@ bool PredictorSLR::setCPF(const CPF& cpf)
     return true;
 }
 
-const CPF& PredictorSLR::getCPF() const {return this->cpf_;}
+const CPF& PredictorCPF::getCPF() const {return this->cpf_;}
 
-void PredictorSLR::setPredictionMode(PredictionMode mode){this->prediction_mode_ = mode;}
+void PredictorCPF::setPredictionMode(PredictionMode mode){this->prediction_mode_ = mode;}
 
-void PredictorSLR::setTropoModel(TroposphericModel model){this->tropo_model_ = model;}
+void PredictorCPF::setTropoModel(TroposphericModel model){this->tropo_model_ = model;}
 
-void PredictorSLR::setInterpolFunction(InterpolFunction func){this->interpol_function_ = func;}
+void PredictorCPF::setInterpolFunction(InterpolFunction func){this->interpol_function_ = func;}
 
-void PredictorSLR::enableCorrections(bool enable){this->apply_corr_ = enable;}
+void PredictorCPF::enableCorrections(bool enable){this->apply_corr_ = enable;}
 
-void PredictorSLR::setObjEccentricityCorr(Meters correction){this->objc_ecc_corr_ = correction;}
+void PredictorCPF::setObjEccentricityCorr(Meters correction){this->objc_ecc_corr_ = correction;}
 
-void PredictorSLR::setCaliDelayCorr(Picoseconds correction){this->cali_del_corr_ =correction;}
+void PredictorCPF::setCaliDelayCorr(Picoseconds correction){this->cali_del_corr_ =correction;}
 
-void PredictorSLR::setSystematicCorr(Meters correction){this->syst_rnd_corr_ = correction;}
+void PredictorCPF::setSystematicCorr(Meters correction){this->syst_rnd_corr_ = correction;}
 
-void PredictorSLR::setTropoCorrParams(long double press, long double temp, long double rh,
+void PredictorCPF::setTropoCorrParams(long double press, long double temp, long double rh,
                                       long double wl, WtrVapPressModel wvpm)
 {
     this->press_ = press;
@@ -247,7 +249,7 @@ void PredictorSLR::setTropoCorrParams(long double press, long double temp, long 
     this->tropo_ready_ = true;
 }
 
-void PredictorSLR::unsetTropoCorrParams()
+void PredictorCPF::unsetTropoCorrParams()
 {
     this->press_ = 0;
     this->temp_ = 0;
@@ -256,16 +258,16 @@ void PredictorSLR::unsetTropoCorrParams()
     this->tropo_ready_ = false;
 }
 
-const GeodeticPoint<long double>& PredictorSLR::getGeodeticLocation() const{return this->stat_geodetic_;}
+const GeodeticPoint<long double>& PredictorCPF::getGeodeticLocation() const{return this->stat_geodetic_;}
 
-GeocentricPoint PredictorSLR::getGeocentricLocation() const
+GeocentricPoint PredictorCPF::getGeocentricLocation() const
 {
     return GeocentricPoint(this->stat_geocentric_.store());
 }
 
-bool PredictorSLR::isReady() const {return !this->pos_times_.empty(); }
+bool PredictorCPF::isReady() const {return !this->pos_times_.empty(); }
 
-bool PredictorSLR::isInsideTimeWindow(MJDateTime start, MJDateTime end) const
+bool PredictorCPF::isInsideTimeWindow(MJDateTime start, MJDateTime end) const
 {
 
     // Auxiliar.
@@ -280,7 +282,7 @@ bool PredictorSLR::isInsideTimeWindow(MJDateTime start, MJDateTime end) const
 
 
 
-PredictorSLR::PredictionError PredictorSLR::predict(MJDateTime mjdt, SLRPrediction& result) const
+PredictorCPF::PredictionError PredictorCPF::predict(MJDateTime mjdt, SLRPrediction& result) const
 {
 
  /*
@@ -671,18 +673,18 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     } */
 }
 
-PredictorSLR::SLRPredictions PredictorSLR::predict(MJDateTime mjdt_start,
+PredictorCPF::SLRPredictions PredictorCPF::predict(MJDateTime mjdt_start,
                                                    MJDateTime mjdt_end,
                                                    unsigned step_ms) const
 {
     // Container and auxiliar.
-    MJDateTimes interp_times;
+    MJDateTimeV interp_times;
     MJDateTime mjdt_current = mjdt_start;
     long double step_sec = step_ms/1000.0L;
 
     // Check interval.
     if(!this->isReady() || !isInsideTimeWindow(mjdt_start, mjdt_end))
-        return PredictorSLR::SLRPredictions();
+        return PredictorCPF::SLRPredictions();
 
     // Calculates all the interpolation times.
     while(mjdt_current < mjdt_end)
@@ -692,7 +694,7 @@ PredictorSLR::SLRPredictions PredictorSLR::predict(MJDateTime mjdt_start,
     }
 
     // Results container.
-    PredictorSLR::SLRPredictions results(interp_times.size());
+    PredictorCPF::SLRPredictions results(interp_times.size());
 
     // Parallel calculation.
     #pragma omp parallel for
@@ -709,7 +711,7 @@ PredictorSLR::SLRPredictions PredictorSLR::predict(MJDateTime mjdt_start,
 
 
 
-void PredictorSLR::getTimeWindow(MJDateTime &start, MJDateTime &end) const
+void PredictorCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
 {
     if (this->isReady())
     {
@@ -717,7 +719,7 @@ void PredictorSLR::getTimeWindow(MJDateTime &start, MJDateTime &end) const
     }
 }
 
-Meters PredictorSLR::applyCorrections(Meters& range, SLRPrediction& result, bool cali, Degrees el) const
+Meters PredictorCPF::applyCorrections(Meters& range, SLRPrediction& result, bool cali, Degrees el) const
 {
     // Auxiliar provisional range.
     Meters provisional_range = range;
@@ -754,7 +756,7 @@ Meters PredictorSLR::applyCorrections(Meters& range, SLRPrediction& result, bool
     // Compute and include the tropospheric path delay.
     if(math::compareFloating(el, Degrees(0.0L)))
     {
-        if(this->tropo_model_ == PredictorSLR::TroposphericModel::MARINI_MURRAY)
+        if(this->tropo_model_ == PredictorCPF::TroposphericModel::MARINI_MURRAY)
         {
             // Get the elevation in radians.
             long double el_instant_rad = math::units::degToRad(el);
@@ -778,30 +780,30 @@ Meters PredictorSLR::applyCorrections(Meters& range, SLRPrediction& result, bool
 }
 
 
-PredictorSLR::PredictionError PredictorSLR::callToInterpol(const Seconds& x, Vector3D<Meters> &y,
+PredictorCPF::PredictionError PredictorCPF::callToInterpol(const Seconds& x, Vector3D<Meters> &y,
                                                            SLRPrediction &result) const
 {
     // Auxiliar error container.
-    PredictorSLR::PredictionError error = PredictorSLR::PredictionError::UNKNOWN_INTERPOLATOR;
+    PredictorCPF::PredictionError error = PredictorCPF::PredictionError::UNKNOWN_INTERPOLATOR;
     result.error = error;
 
     // Lagrange related interpolators.
-    if(this->interpol_function_ == PredictorSLR::InterpolFunction::LAGRANGE_9 ||
-       this->interpol_function_ == PredictorSLR::InterpolFunction::LAGRANGE_16 )
+    if(this->interpol_function_ == PredictorCPF::InterpolFunction::LAGRANGE_9 ||
+        this->interpol_function_ == PredictorCPF::InterpolFunction::LAGRANGE_16 )
     {
         unsigned deg = kPolLagDeg9;
 
-        if(this->interpol_function_ == PredictorSLR::InterpolFunction::LAGRANGE_16)
+        if(this->interpol_function_ == PredictorCPF::InterpolFunction::LAGRANGE_16)
             deg = kPolLagDeg16;
 
         // Result of the interpolation.
-        LagrangeError lag_res;
+        stats::types::LagrangeError lag_res;
 
         // Do the lagrange interpolation.
         lag_res = stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, deg, x, y);
 
         // Convert the error code.
-        error = PredictorSLR::convertLagInterpError(lag_res);
+        error = PredictorCPF::convertLagInterpError(lag_res);
         result.error = error;
     }
 
@@ -811,18 +813,18 @@ PredictorSLR::PredictionError PredictorSLR::callToInterpol(const Seconds& x, Vec
     return error;
 }
 
-PredictorSLR::PredictionError PredictorSLR::convertLagInterpError(LagrangeError error)
+PredictorCPF::PredictionError PredictorCPF::convertLagInterpError(stats::types::LagrangeError error)
 {
-    PredictorSLR::PredictionError cpf_error;
+    PredictorCPF::PredictionError cpf_error;
     switch (error)
     {
-    case LagrangeError::NOT_ERROR :
+    case stats::types::LagrangeError::NOT_ERROR :
         cpf_error = PredictionError::NO_ERROR; break;
-    case LagrangeError::NOT_IN_THE_MIDDLE :
+    case stats::types::LagrangeError::NOT_IN_THE_MIDDLE :
         cpf_error = PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE; break;
-    case LagrangeError::X_OUT_OF_BOUNDS :
+    case stats::types::LagrangeError::X_OUT_OF_BOUNDS :
         cpf_error = PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS; break;
-    case LagrangeError::DATA_SIZE_MISMATCH :
+    case stats::types::LagrangeError::DATA_SIZE_MISMATCH :
         cpf_error = PredictionError::INTERPOLATION_DATA_SIZE_MISMATCH; break;
     }
     return cpf_error;

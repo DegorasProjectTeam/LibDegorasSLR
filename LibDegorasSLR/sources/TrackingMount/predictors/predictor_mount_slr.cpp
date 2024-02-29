@@ -56,7 +56,7 @@ using namespace dpslr::timing::types;
 using namespace dpslr::astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
+PredictorMountSLR::PredictorMountSLR(PredictorCPF&& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
                                      MillisecondsU time_delta, DegreesU min_elev,
                                      DegreesU max_elev, DegreesU sun_avoid_angle, bool sun_avoid) :
     predictor_(std::move(predictor)),
@@ -85,14 +85,14 @@ PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDateTime mjdt_s
     dpslr::DegorasInit::checkMandatoryInit();
 
     // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
-    this->predictor_.setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
+    this->predictor_.setPredictionMode(PredictorCPF::PredictionMode::INSTANT_VECTOR);
 
     // Analyze the tracking.
     this->analyzeTracking();
 
 }
 
-PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, const HRTimePointStd &tp_start,
+PredictorMountSLR::PredictorMountSLR(PredictorCPF&& predictor, const HRTimePointStd &tp_start,
                                      const HRTimePointStd &tp_end, MillisecondsU time_delta, DegreesU min_elev,
                                      DegreesU max_elev, DegreesU sun_avoid_angle, bool sun_avoid) :
     predictor_(std::move(predictor)),
@@ -164,7 +164,7 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const MJDateTime &m
     SunPosition sun_pos = this->sun_predictor_.fastPredict(j2000, false).position;
 
     // Calculates the space object position.
-    PredictorSLR::SLRPrediction prediction_result;
+    PredictorCPF::SLRPrediction prediction_result;
     auto pred_error = this->predictor_.predict(mjd, sod, prediction_result);
 
     // Store the info.
@@ -172,8 +172,8 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const MJDateTime &m
     tracking_result.sun_position = sun_pos;
 
     // Check for errors.
-    if (pred_error != PredictorSLR::PredictionError::NO_ERROR &&
-        pred_error != PredictorSLR::PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE)
+    if (pred_error != PredictorCPF::PredictionError::NO_ERROR &&
+        pred_error != PredictorCPF::PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE)
     {
         tracking_result.status =  PositionStatus::PREDICTION_ERROR;
         return PositionStatus::PREDICTION_ERROR;
@@ -261,7 +261,7 @@ void PredictorMountSLR::analyzeTracking()
 {
     // Results container and auxiliar.
     unsigned step_ms = this->mount_track_.config.time_delta;
-    PredictorSLR::SLRPredictions results_slr;
+    PredictorCPF::SLRPredictions results_slr;
     astro::PredictorSun::SunPredictions results_sun;
 
     // Update flag.
@@ -280,10 +280,10 @@ void PredictorMountSLR::analyzeTracking()
 
     // Check that the predictions correspond to a pass.
     auto it = std::find_if(results_slr.begin(), results_slr.end(),
-        [](const PredictorSLR::SLRPrediction& pred)
+        [](const PredictorCPF::SLRPrediction& pred)
         {
-            if(pred.error != PredictorSLR::PredictionError::NO_ERROR &&
-               pred.error != PredictorSLR::PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE)
+            if(pred.error != PredictorCPF::PredictionError::NO_ERROR &&
+               pred.error != PredictorCPF::PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE)
                     return true;
             else
                 return pred.instant_data->altaz_coord.el < 0;
@@ -873,7 +873,7 @@ long double PredictorMountSLR::calcSunAvoidTrajectory(const MJDateTime &mjdt,
     return entry_angle + angle * time_perc;
 }
 
-PredictorMountSLR::MountTrackSLR::MountTrackSLR(const CPF &cpf, const PredictorSLR &predictor_slr,
+PredictorMountSLR::MountTrackSLR::MountTrackSLR(const CPF &cpf, const PredictorCPF &predictor_slr,
                                                 const PredictorSun &predictor_sun) :
     cpf(cpf),
     predictor_slr(predictor_slr),

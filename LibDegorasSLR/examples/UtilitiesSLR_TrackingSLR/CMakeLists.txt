@@ -28,12 +28,12 @@ macro_setup_launcher("${EXAMPLE_NAME}"
 # Add to the build step the necessary input files for the example.
 add_custom_command(TARGET "${EXAMPLE_NAME}" PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
-                   ${EXAMPLE_DIR}"/inputs/" $<TARGET_FILE_DIR:${EXAMPLE_NAME}>"/inputs")
+                   "${EXAMPLE_DIR}/inputs/" "$<TARGET_FILE_DIR:${EXAMPLE_NAME}>/inputs")
 
 # Add to the build step the necessary python scripts.
 add_custom_command(TARGET "${EXAMPLE_NAME}" PRE_BUILD
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                  ${EXAMPLE_DIR}"/python_scripts/" $<TARGET_FILE_DIR:${EXAMPLE_NAME}>"/python_scripts")
+                  "${EXAMPLE_DIR}/python_scripts/" "$<TARGET_FILE_DIR:${EXAMPLE_NAME}>/python_scripts")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE COMPILERS

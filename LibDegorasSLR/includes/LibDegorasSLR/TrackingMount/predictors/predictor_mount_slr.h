@@ -41,9 +41,9 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_cpf.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
@@ -67,7 +67,7 @@ using math::units::DegreesU;
 using math::units::Degrees;
 using math::units::MillisecondsU;
 using math::units::Meters;
-using utils::PredictorSLR;
+using utils::PredictorCPF;
 using ilrs::cpf::CPF;
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -207,7 +207,7 @@ public:
         MJDateTime mjdt;         ///< Modified Julian DateTime.
 
         // Result members.
-        Optional<PredictorSLR::SLRPrediction> slr_pred;  ///< Optional SLR prediction with the object pass position.
+        Optional<PredictorCPF::SLRPrediction> slr_pred;  ///< Optional SLR prediction with the object pass position.
         Optional<PredictorSun::SunPrediction> sun_pred;  ///< Optional Sun position container.
         Optional<MountPosition> mount_pos;               ///< Optional tracking moun position container.
 
@@ -295,7 +295,7 @@ public:
     struct MountTrackSLR
     {
         // Constructor.
-        MountTrackSLR(const CPF& cpf, const PredictorSLR& predictor_slr, const PredictorSun& predictor_sun);
+        MountTrackSLR(const CPF& cpf, const PredictorCPF& predictor_slr, const PredictorSun& predictor_sun);
 
         // Containers
         PredictorMountSLRConfig config;    ///< Contains the PredictorMountSLR user configuration.
@@ -307,7 +307,7 @@ public:
 
         // Predictors and CPF.
         const CPF& cpf;                       ///< CPF used by the internal PredictorSLR.
-        const PredictorSLR& predictor_slr;    ///< Internal PredictorSLR predictor.
+        const PredictorCPF& predictor_slr;    ///< Internal PredictorSLR predictor.
         const PredictorSun& predictor_sun;    ///< Internal Sun predictor.
     };
 
@@ -315,11 +315,11 @@ public:
 
     // Predictor tendria que recibir PredictorSLR, PredictorSun (virtual), TrackAnalizerConfig, MJDatetime start y end.
 
-    PredictorMountSLR(PredictorSLR&& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
+    PredictorMountSLR(PredictorCPF&& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
-    PredictorMountSLR(PredictorSLR&& predictor, const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
+    PredictorMountSLR(PredictorCPF&& predictor, const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
@@ -436,7 +436,7 @@ private:
                                        const AltAzPos &sun_pos);
 
     // Private members.
-    PredictorSLR predictor_;               ///< SLR predictor.
+    PredictorCPF predictor_;               ///< SLR predictor.
     astro::PredictorSun sun_predictor_;    ///< Sun predictor.
     MountTrackSLR mount_track_;            ///< Mount track analyzed data.
 

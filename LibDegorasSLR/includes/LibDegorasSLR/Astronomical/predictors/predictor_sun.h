@@ -46,7 +46,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 // =====================================================================================================================
@@ -59,7 +59,7 @@ namespace astro{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using timing::types::J2000DateTime;
-using timing::types::J2000DateTimes;
+using timing::types::J2000DateTimeV;
 using timing::types::MJDate;
 using timing::types::SoD;
 using timing::types::MJDateTime;

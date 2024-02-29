@@ -46,9 +46,9 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
-#include "LibDegorasSLR/Timing/types/datetime.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 // =====================================================================================================================
 
 // DEFINITIONS

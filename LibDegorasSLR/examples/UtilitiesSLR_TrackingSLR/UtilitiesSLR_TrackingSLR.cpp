@@ -51,7 +51,7 @@ using dpslr::DegorasInit;
 using dpslr::ilrs::cpf::CPF;
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPointL;
-using dpslr::utils::PredictorSLR;
+using dpslr::utils::PredictorCPF;
 using dpslr::mount::PredictorMountSLR;
 using dpslr::timing::MJDateTime;
 using dpslr::timing::SoD;
@@ -166,7 +166,7 @@ int main()
     }
 
     // Configure the SLR predictor_slr.
-    PredictorSLR predictor_slr(cpf, stat_geodetic, stat_geocentric);
+    PredictorCPF predictor_slr(cpf, stat_geodetic, stat_geocentric);
 
     // Check if the predictor is ready.
     if (!predictor_slr.isReady())

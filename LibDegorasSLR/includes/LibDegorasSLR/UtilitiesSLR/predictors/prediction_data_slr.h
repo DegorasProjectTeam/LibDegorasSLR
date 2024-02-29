@@ -47,7 +47,7 @@
 #include "LibDegorasSLR/Mathematics/types/matrix.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Geophysics/meteo.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 // =====================================================================================================================
 

@@ -162,7 +162,7 @@ std::vector<Ret> robustBisquareWeights(const std::vector<T>& x, const std::vecto
     // Median absoulte deviation.
     long double mad = median(resids_abs);
     // For the standard normal E(MAD)=0.6745
-    long double s = mad/0.6745;
+    long double s = mad/0.6745L;
     long double Ks = K*s;
     std::vector<T> u;
     std::vector<Ret> w;

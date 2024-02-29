@@ -642,23 +642,6 @@ private:
     std::vector<std::vector<T>> data_;
 };
 
-/**
- * @brief Multiplies two matrices.
- *
- * The number of columns in matrix A must be equal to the number of rows in matrix B
- * for the multiplication to be valid. Otherwise, an empty matrix is returned.
- *
- * @param A The first matrix.
- * @param B The second matrix.
- * @return The resulting matrix after multiplication, or an empty matrix if the matrices cannot be multiplied.
- */
-template<typename T, typename U>
-Matrix<std::common_type_t<T,U>> operator *(const Matrix<T>& A, const Matrix<U>& B)
-{
-    // Return the multiplication.
-    return A.operator*(B);
-}
-
 template <typename T, typename U>
 bool operator==(const Matrix<T>& A, const Matrix<U>& B)
 {

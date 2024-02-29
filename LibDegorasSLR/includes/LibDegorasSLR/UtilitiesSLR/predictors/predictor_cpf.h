@@ -47,9 +47,9 @@
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
 #include "LibDegorasSLR/Geophysics/meteo.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Timing/time_utils.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictor_slr/prediction_data_slr.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/prediction_data_slr.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -68,7 +68,7 @@ using math::units::Degrees;
 using math::units::Picoseconds;
 using geo::meteo::WtrVapPressModel;
 using timing::MJDateTime;
-using timing::types::MJDateTimes;
+using timing::types::MJDateTimeV;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // CONSTANTS
@@ -94,7 +94,7 @@ constexpr unsigned kPolLagDeg16 = 16U;    ///< Fixed degree for the 16th polynom
  * currently create CPFs from TLE for these cases, so development of this functionality is not a priority right now.
  * For the ILRS trackings, always use the CPF-based predictor (for its greater precision).
  */
-class LIBDPSLR_EXPORT PredictorSLR
+class LIBDPSLR_EXPORT PredictorCPF
 {
 public:
 
@@ -130,7 +130,7 @@ public:
      * @brief This enum represents the different prediction modes.
      *
      * This enumeration represents the different modes to perform the range and position predictions. For more
-     * information, read the documentation of the class (PredictorSLR).
+     * information, read the documentation of the class (PredictorCPF).
      *
      * @warning The mode selection is very important, because it will affect the accuracy of the results and the
      *          execution time of the predictor, in such a way that it will affect both the calculation algorithm and
@@ -173,7 +173,7 @@ public:
      * the PredictionMode::OUTBOUND_VECTOR and PredictionMode::INBOUND_VECTOR modes. You can check the corrections
      * applied by accessing the corresponding parameters.
      *
-     * @see PredictorSLR::PredictionMode
+     * @see PredictorCPF::PredictionMode
      */
     struct LIBDPSLR_EXPORT SLRPrediction
     {
@@ -221,9 +221,9 @@ public:
      * @param geod Geodetic ECEF position of the station (meters with mm preccision).
      * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
      */
-    PredictorSLR(const CPF& cpf, const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
+    PredictorCPF(const CPF& cpf, const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
 
-    PredictorSLR(const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
+    PredictorCPF(const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
 
     bool setCPF(const CPF& cpf);
 
@@ -245,7 +245,7 @@ public:
      * Enabling or disabling the corrections is independent of whether or not they can be applied at a certain time.
      * For example, even if the system is enabled, if the tropospheric parameters are not configured, the tropospheric
      * correction cannot be applied. To disable specific corrections, simply use the value 0 for those corrections or,
-     * in the case of tropospheric, all the function PredictorSLR::unsetTropoCorrParams
+     * in the case of tropospheric, all the function PredictorCPF::unsetTropoCorrParams
      *
      * @param enable A boolean value indicating whether to enable or disable the corrections.
      */

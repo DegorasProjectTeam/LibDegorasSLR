@@ -82,7 +82,7 @@ PredictorStar::StarPredictions PredictorStar::predict(const timing::types::JDate
                                                       math::units::MillisecondsU step) const
 {
     // Container and auxiliar.
-    JDateTimes interp_times;
+    JDateTimeV interp_times;
     math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
 
     // Check for valid time interval.

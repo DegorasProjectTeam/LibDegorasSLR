@@ -27,8 +27,8 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file time_types.h
- * @brief This file contains several timing definitions.
+ * @file datetime_types.h
+ * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
 ***********************************************************************************************************************/
@@ -39,14 +39,12 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <chrono>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
+#include "LibDegorasSLR/Timing/types/datetime.h"
 // =====================================================================================================================
-
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
@@ -55,67 +53,23 @@ namespace timing{
 namespace types{
 // =====================================================================================================================
 
-// =====================================================================================================================
-using helpers::types::NumericStrongType;
-// =====================================================================================================================
-
-// CONVENIENT TYPES
-//======================================================================================================================
-
-/// High resolution clock.
-using HRClock = std::chrono::high_resolution_clock;
-
-/// High resolution time point to store datetimes (uses Unix Time).
-using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
-
-/// Steady clock time point for measuring intervals.
-using SCTimePointStd =  std::chrono::steady_clock::time_point;
-
-/// Short way of referring to seconds.
-using SecStd = std::chrono::seconds;
-
-/// Short way of referring to milliseconds.
-using MsStd = std::chrono::milliseconds;
-
-/// Short way of referring to microseconds.
-using UsStd = std::chrono::microseconds;
-
-/// Short way of referring to nanoseconds.
-using NsStd = std::chrono::nanoseconds;
-
-/// Alias for Windows Ticks.
-using Windows32Ticks = NumericStrongType<unsigned long long, struct Windows32TicksTag>;
-
-/// Alias for Modified Julian Date in days.
-using MJDate = NumericStrongType<long long, struct MJDateTag>;
-
-/// Alias for Julian Date in days.
-using JDate = NumericStrongType<long long, struct JDateTag>;
-
-/// Alias for Reduced Julian Date in days.
-using RJDate = NumericStrongType<long long, struct RDateTag>;
-
-/// Alias for J2000 Date in days.
-using J2000Date = NumericStrongType<long long, struct J2000DateTag>;
-
-/// Alias for second of day with decimals (always < 86400, picoseconds precision).
-using SoD = NumericStrongType<long double, struct SoDTag>;
-
-/// Alias for fraction of day with decimals (always < 0, nanoseconds precision in the sense of fraction of the day).
-using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
-
 /**
- * Enum class for specifying the time resolution in string representations.
+ * The J2000 epoch is a standard astronomical reference epoch used in the field of astronomy and celestial mechanics.
+ * It represents the start of the year 2000 in the Gregorian calendar system and is commonly used as a reference point
+ * for astronomical calculations.
  */
-enum class TimeResolution
-{
-    SECONDS,        ///< Represents the seconds.
-    MILLISECONDS,   ///< Represents the milliseconds.
-    MICROSECONDS,   ///< Represents the microseconds.
-    NANOSECONDS     ///< Represents the nanoseconds.
-};
+using J2000DateTime = DateTime<J2000Date>;
+using J2000DateTimeV = DateTimeV<J2000Date>;
 
-//======================================================================================================================
+using JDateTime = DateTime<JDate>;
+using JDateTimeV = DateTimeV<JDate>;
+
+using MJDateTime = DateTime<MJDate>;
+using MJDateTimeV = DateTimeV<MJDate>;
+
+using RJDateTime = DateTime<RJDate>;
+using RJDateTimeV = DateTimeV<RJDate>;
+
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

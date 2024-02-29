@@ -1,11 +1,15 @@
 # **********************************************************************************************************************
-#    LibDegorasSLR (Degoras Project SLR Library): A libre base library for SLR related developments.
+#    LibDegorasSLR (Degoras Project SLR Library).
 #
-#    Copyright (C) 2023 Degoras Project Team
+#    A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware
+#    related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy
+#    Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!
+#
+#    Copyright (C) 2024 Degoras Project Team
 #                       < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >
 #                       < Jesús Relinque Madroñal >
 #
-#    This file is part of LibDPSLR.
+#    This file is part of LibDegorasSLR.
 #
 #    Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license
 #    as soon they will be approved by the European Commission (IDABC).
@@ -23,7 +27,7 @@
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
-# Updated 29/01/2024
+# Updated 29/02/2024
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
@@ -90,6 +94,7 @@ macro_configure_libnovascpp_default("3.1" EXACT "" "")
 # Get the headers, sources and template files.
 file(GLOB_RECURSE HEADERS ${CMAKE_SOURCE_DIR}/includes/${LIB_NAME}/*.h)
 file(GLOB_RECURSE TEMPLTS ${CMAKE_SOURCE_DIR}/includes/${LIB_NAME}/*.tpp)
+file(GLOB_RECURSE INL ${CMAKE_SOURCE_DIR}/includes/${LIB_NAME}/*.inl)
 file(GLOB_RECURSE SOURCES1 ${CMAKE_SOURCE_DIR}/sources/*.cpp)
 file(GLOB_RECURSE SOURCES2 ${CMAKE_SOURCE_DIR}/sources/AlgorithmsSLR/*.cpp)
 
@@ -102,7 +107,7 @@ source_group("Alias Files" FILES ${ALIAS})
 
 # Setup the shared library.
 macro_setup_shared_lib("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${LIB_VER}"
-                       ${SOURCES1} ${SOURCES2} ${HEADERS} ${TEMPLTS} ${ALIAS})
+                       ${SOURCES1} ${SOURCES2} ${HEADERS} ${TEMPLTS} ${INL} ${ALIAS})
 
 # Link with LibNovasCPP.
 macro_link_libnovascpp_default(${LIB_NAME})
@@ -126,8 +131,8 @@ endif()
 
 # In mingw better do static linking of the libgcc, libwinpthread and libstd.
 if (MINGW)
-    #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static -lpthread")
-    #target_link_libraries(${LIB_NAME} PRIVATE -static-libgcc -static-libstdc++ -static -lpthread)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static -lpthread")
+    target_link_libraries(${LIB_NAME} PRIVATE -static-libgcc -static-libstdc++ -static -lpthread)
 endif()
 
 # ----------------------------------------------------------------------------------------------------------------------

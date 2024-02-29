@@ -1,1 +1,1 @@
-#include <LibDegorasSLR/UtilitiesSLR/predictor_slr/predictor_slr.h>
+#include <LibDegorasSLR/UtilitiesSLR/predictors/predictor_cpf.h>

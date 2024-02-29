@@ -39,12 +39,13 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <omp.h>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Timing/types/datetime.tpp"
+#include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -54,29 +55,147 @@ namespace timing{
 namespace types{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using helpers::types::NumericStrongType;
+using math::units::Seconds;
+// ---------------------------------------------------------------------------------------------------------------------
+
 /**
- * The J2000 epoch is a standard astronomical reference epoch used in the field of astronomy and celestial mechanics.
- * It represents the start of the year 2000 in the Gregorian calendar system and is commonly used as a reference point
- * for astronomical calculations.
+ * @brief Class for handle generic datetimes epochs (date, second of day and decimal fraction).
  *
- * This struct stores J2000 datetime epochs (date, fraction and number of seconds in that day). The use of the day
- * value (´j2d´) and the number of seconds in that day (`sod`) in a separated way will provide a time resolution of
- * picoseconds. The use of the day value (´j2d´) and the decimal fractional part of the day (´fract´) in a separated
- * way will provide a time resolution of nanoseconds (in the sense of fraction of the day). The use of the full
- * datetime value (day and fraction) directly will provide a time resolution of milliseconds.
+ * This is a generic class for handling different datetime calendars (epochs).The difference between different template
+ * specializations is the DateType used, that defines the origin of the calendar. This class could be used with
+ * inheritance to overwrite the normalize method if necessary.
+ *
+ * Due to the need to handle times with resolutions of up to picoseconds, it is impossible to store these times in a
+ * single variable. In this way, the datetimes are decomposed into different parts in order to achieve the desired
+ * resolution. The parts are:
+ *
+ * - The date in days since calendar origin.
+ * - The decimal day fraction of the day, that represents the elapsed fraction of the day.
+ * - The second of the day.
+ *
+ * The use of the date value and the number of seconds in that day in a separated way will provide a time resolution of
+ * picoseconds. The use of the date value and the decimal fractional part of the day in a separated way will provide a
+ * time resolution of nanoseconds (in the sense of fraction of the day). The use of the full datetime value (day and
+ * fraction in the same long double variable) will provide a time resolution of milliseconds.
+ *
+ * @note This class could be used with inheritance to overwrite the normalize method if necessary.
  */
-using J2000DateTime = DateTime<J2000Date>;
-using J2000DateTimes = DateTimes<J2000Date>;
+template <typename DateType>
+class DateTime
+{
 
-using JDateTime = DateTime<JDate>;
-using JDateTimes = DateTimes<JDate>;
+public:
 
-using MJDateTime = DateTime<MJDate>;
-using MJDateTimes = DateTimes<MJDate>;
+    /**
+     * @brief Default constructor for DateTime. Initializes the object with default values (all to zero).
+     */
+    DateTime();
 
-using RJDateTime = DateTime<RJDate>;
-using RJDateTimes = DateTimes<RJDate>;
+    /**
+     * @brief Constructor with Date and Second Of Day parameters.
+     * @param date DateType object representing the date.
+     * @param sod Number of seconds in that day.
+     */
+    DateTime(const DateType& date, const SoD& sod);
+
+    /**
+     * @brief Constructor from long double value containing the day and fraction of day combined.
+     * @param dt, the current datetime in days since origin with day fraction.
+     */
+    DateTime(long double dt);
+
+    DateTime(const DateTime& other) = default;
+
+    DateTime(DateTime&& other) = default;
+
+    DateTime& operator=(const DateTime&) = default;
+
+    DateTime& operator=(DateTime&&) = default;
+
+    virtual ~DateTime() = default;
+
+    /**
+     * @brief Date getter.
+     * @return The current date in days since origin.
+     */
+    DateType date() const;
+
+    /**
+     * @brief Day fraction getter.
+     * @return The current elapsed day fraction. In the range of [0,1) days.
+     */
+    DayFraction fract() const;
+
+    /**
+     * @brief Second of day getter.
+     * @return The current elapsed second of day in seconds.
+     */
+    SoD sod() const;
+
+    /**
+     * @brief Function to get the date and fractional part together as a long double.
+     * @return date and fractional part combined. Precision can be reduced.
+     * @warning This function reduces the precision of the fraction.
+     */
+    long double datetime() const;
+
+    /**
+     * @brief Function to add some seconds to this datetime.
+     * @param seconds, the seconds that will be added to the datetime. If negative, the time is decremented.
+     */
+    void add(const Seconds& seconds);
+
+    bool operator==(const DateTime& other) const;
+
+    bool operator<(const DateTime& other) const;
+
+    bool operator<=(const DateTime& other) const;
+
+    bool operator>(const DateTime& other) const;
+
+    bool operator>=(const DateTime& other) const;
+
+    DateTime operator+(const Seconds& seconds) const;
+
+    static std::vector<DateTime> linspaceStep(const DateTime& start,
+                                              const DateTime& end,
+                                              const Seconds& step);
+
+private:
+
+    // TODO Check for negative days (exception).
+
+    virtual void normalize();
+
+    DateType date_;      ///< Date in days since origin.
+    DayFraction fract_;  ///< Decimal fraction of that day (up to nanoseconds resolution in the sense of day fraction).
+    SoD sod_;            ///< Number of seconds in that day (up to picoseconds resolution).
+};
+
+// External operators.
+// ---------------------------------------------------------------------------------------------------------------------
+
+template <typename DateType>
+Seconds operator-(const DateTime<DateType>& a, const DateTime<DateType>& b);
+
+template <typename DateType>
+Seconds operator+(const DateTime<DateType> &a, const DateTime<DateType> &b);
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Aliases.
+// ---------------------------------------------------------------------------------------------------------------------
+template <typename DateType>
+using DateTimeV = std::vector<DateTime<DateType>>;
+// ---------------------------------------------------------------------------------------------------------------------
 
 
 }}} // END NAMESPACES.
+// =====================================================================================================================
+
+// TEMPLATES INCLUDES
+// =====================================================================================================================
+#include "LibDegorasSLR/Timing/types/datetime.inl"
 // =====================================================================================================================

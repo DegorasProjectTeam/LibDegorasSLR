@@ -27,129 +27,103 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun.cpp
- * @brief
- * @author Degoras Project Team.
+ * @file time_types.h
+ * @brief This file contains several timing definitions.
+ * @author Degoras Project Team
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
+
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <cmath>
+#include <chrono>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
-#include "LibDegorasSLR/Mathematics/math.h"
+#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
+// =====================================================================================================================
+
+// DEFINITIONS
+// =====================================================================================================================
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#define MKGMTIME _mkgmtime
+#else
+#define MKGMTIME timegm
+#endif
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
+namespace timing{
+namespace types{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using namespace timing::types;
-// ---------------------------------------------------------------------------------------------------------------------
+// =====================================================================================================================
+using helpers::types::NumericStrongType;
+// =====================================================================================================================
 
-dpslr::astro::PredictorSun::PredictorSun(const geo::types::GeodeticPoint<long double> &obs_geod)
+// CONVENIENT TYPES
+//======================================================================================================================
+
+/// High resolution clock.
+using HRClock = std::chrono::high_resolution_clock;
+
+/// High resolution time point to store datetimes (uses Unix Time).
+using HRTimePointStd = std::chrono::time_point<std::chrono::high_resolution_clock>;
+
+/// Steady clock time point for measuring intervals.
+using SCTimePointStd =  std::chrono::steady_clock::time_point;
+
+/// Short way of referring to seconds.
+using SecStd = std::chrono::seconds;
+
+/// Short way of referring to milliseconds.
+using MsStd = std::chrono::milliseconds;
+
+/// Short way of referring to microseconds.
+using UsStd = std::chrono::microseconds;
+
+/// Short way of referring to nanoseconds.
+using NsStd = std::chrono::nanoseconds;
+
+/// Alias for Windows Ticks.
+using Windows32Ticks = NumericStrongType<unsigned long long, struct Windows32TicksTag>;
+
+/// Alias for Modified Julian Date in days.
+using MJDate = NumericStrongType<long long, struct MJDateTag>;
+
+/// Alias for Julian Date in days.
+using JDate = NumericStrongType<long long, struct JDateTag>;
+
+/// Alias for Reduced Julian Date in days.
+using RJDate = NumericStrongType<long long, struct RDateTag>;
+
+/// Alias for J2000 Date in days.
+using J2000Date = NumericStrongType<long long, struct J2000DateTag>;
+
+/// Alias for second of day with decimals (always < 86400, picoseconds precision).
+using SoD = NumericStrongType<long double, struct SoDTag>;
+
+/// Alias for fraction of day with decimals (always < 0, nanoseconds precision in the sense of fraction of the day).
+using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
+
+/**
+ * Enum class for specifying the time resolution in string representations.
+ */
+enum class TimeResolution
 {
-    // Convert latitude and longitude to radians.
-    this->obs_lat_ = obs_geod.lat.get(decltype(obs_geod.lat)::Unit::RADIANS);
-    this->obs_lon_ = obs_geod.lon.get(decltype(obs_geod.lon)::Unit::RADIANS);
-    this->obs_alt_ = obs_geod.alt;
-}
+    SECONDS,        ///< Represents the seconds.
+    MILLISECONDS,   ///< Represents the milliseconds.
+    MICROSECONDS,   ///< Represents the microseconds.
+    NANOSECONDS     ///< Represents the nanoseconds.
+};
 
-PredictorSun::SunPrediction PredictorSun::fastPredict(const J2000DateTime& j2000, bool refraction) const
-{
-    // Store de J2000 datetime.
-    long double j2000_dt = j2000.datetime();
+//======================================================================================================================
 
-    // Local sidereal time.
-    long double sidereal = 4.894961213L + 6.300388099L * j2000_dt + this->obs_lon_;
-
-    // Mean longitude and anomaly of the sun.
-    long double mean_long = j2000_dt * 1.720279239e-2L + 4.894967873L;
-    long double mean_anom = j2000_dt * 1.720197034e-2L + 6.240040768L;
-
-    // Ecliptic longitude of the sun.
-    long double eclip_long = mean_long + 3.342305518e-2L * std::sin(mean_anom)
-                             + 3.490658504e-4L * std::sin(2 * mean_anom);
-
-    // Obliquity of the ecliptic
-    long double obliquity = 0.4090877234L - 6.981317008e-9L * j2000_dt;
-
-    // Right ascension of the sun and declination.
-    long double rasc = std::atan2(std::cos(obliquity) * std::sin(eclip_long), std::cos(eclip_long));
-    long double decl = std::asin(std::sin(obliquity) * std::sin(eclip_long));
-
-    // Hour angle of the sun
-    long double hour_ang = sidereal - rasc;
-
-    // Local elevation of the sun.
-    long double elevation = std::asin(std::sin(decl) * std::sin(this->obs_lat_) +
-                                      std::cos(decl) * std::cos(this->obs_lat_) * std::cos(hour_ang));
-
-    // Local azimuth of the sun.
-    long double azimuth = std::atan2(-std::cos(decl) * std::cos(this->obs_lat_) * std::sin(hour_ang),
-                                     std::sin(decl) - std::sin(this->obs_lat_) * std::sin(elevation));
-
-    // Convert azimuth and elevation to degrees and normalize.
-    elevation = math::normalizeVal(math::units::radToDegree(elevation), -180.0L, 180.0L);
-    azimuth = math::normalizeVal(math::units::radToDegree(azimuth), 0.0L, 360.0L);
-
-    // Very simple refraction correction but enought for several applications.
-    if (refraction && (elevation >= -1 * (0.26667L + 0.5667L)))
-    {
-        long double targ = math::units::degToRad((elevation + (10.3L / (elevation + 5.11L))));
-        elevation += (1.02L / std::tan(targ)) / 60.0L;
-    }
-
-    // Final data.
-    PredictorSun::SunPrediction prediction;
-    prediction.altaz_coord.az = azimuth;
-    prediction.altaz_coord.el = elevation;
-    prediction.j2dt = j2000;
-
-    // FORCE FOR DEBUG.
-    prediction.altaz_coord.az = 225;
-    prediction.altaz_coord.el = 70;
-
-    // Retur the final position.
-    return prediction;
-}
-
-PredictorSun::SunPredictions PredictorSun::fastPredict(
-                                    const J2000DateTime &j2000_start, const J2000DateTime &j2000_end,
-                                    MillisecondsU step_ms, bool refraction) const
-{
-    // Container and auxiliar.
-    J2000DateTimeV interp_times;
-    Seconds step_sec = static_cast<long double>(step_ms) * math::units::kMsToSec;
-
-    // Check for valid time interval.
-    if(!(j2000_start <= j2000_end))
-        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
-
-    // Calculates all the interpolation times.
-    interp_times = J2000DateTime::linspaceStep(j2000_start, j2000_end, step_sec);
-
-    // Results container.
-    SunPredictions results(interp_times.size());
-
-    // Parallel calculation.
-    #pragma omp parallel for
-    for(size_t i = 0; i<interp_times.size(); i++)
-    {
-        results[i] = this->fastPredict(interp_times[i], refraction);
-    }
-
-    // Return the container.
-    return results;
-}
-
-}} // END NAMESPACES
+}}} // END NAMESPACES.
 // =====================================================================================================================

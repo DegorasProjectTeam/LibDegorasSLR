@@ -100,9 +100,9 @@ M_DEFINE_UNIT_TEST(daysFromCivil)
 M_DEFINE_UNIT_TEST(timePointToString)
 {
     // Inputs.
-    std::chrono::nanoseconds in_1(167253349123456789);
-    std::chrono::seconds in_2(1707131464);
-    std::chrono::seconds in_3(0);
+    std::chrono::nanoseconds in_1(167253349123456789LL);
+    std::chrono::seconds in_2(1707131464LL);
+    std::chrono::seconds in_3(0LL);
 
     // Expected outputs.
     std::string out_1 = "1975-04-20T19:15:49";
@@ -157,8 +157,8 @@ M_DEFINE_UNIT_TEST(timePointToString)
 M_DEFINE_UNIT_TEST(timePointToIso8601)
 {
     // Inputs.
-    std::chrono::nanoseconds in_1(167253349123456789);
-    std::chrono::seconds in_2(1707141363);
+    std::chrono::nanoseconds in_1(167253349123456789LL);
+    std::chrono::seconds in_2(1707141363LL);
 
     // Expected outputs.
     std::string out_1 = "1975-04-20T19:15:49.123Z";
@@ -231,17 +231,17 @@ M_DEFINE_UNIT_TEST(millisecondsToISO8601Duration)
     // Test cases with expected inputs and outputs
     std::vector<std::pair<long long, std::string>> test_cases =
     {
-        {0, "PT0H0M0S"},
-        {1000, "PT0H0M1S"},
-        {61000, "PT0H1M1S"},
-        {3661000, "PT1H1M1S"},
-        {45000, "PT0H0M45S"},
-        {123456789, "PT34H17M36.789S"},
-        {86400000, "PT24H0M0S"}, // 24 hours
-        {90061000, "PT25H1M1S"},
-        {590325164, "PT163H58M45.164S"},
-        {10500, "PT0H0M10.5S"},
-        {100, "PT0H0M0.1S"}
+        {0LL, "PT0H0M0S"},
+        {1000LL, "PT0H0M1S"},
+        {61000LL, "PT0H1M1S"},
+        {3661000LL, "PT1H1M1S"},
+        {45000LL, "PT0H0M45S"},
+        {123456789LL, "PT34H17M36.789S"},
+        {86400000LL, "PT24H0M0S"}, // 24 hours
+        {90061000LL, "PT25H1M1S"},
+        {590325164LL, "PT163H58M45.164S"},
+        {10500LL, "PT0H0M10.5S"},
+        {100LL, "PT0H0M0.1S"}
     };
 
     // Custom check for format correctness: PTxxHxxMxx.SSSS
@@ -267,15 +267,15 @@ M_DEFINE_UNIT_TEST(secondsToISO8601Duration)
     // Test cases with expected inputs and outputs
     std::vector<std::pair<long long, std::string>> test_cases =
         {
-            {0, "PT0H0M0S"},
-            {1, "PT0H0M1S"},
-            {61, "PT0H1M1S"},
-            {3661, "PT1H1M1S"},
-            {45, "PT0H0M45S"},
-            {123456, "PT34H17M36S"},
-            {86400, "PT24H0M0S"},
-            {90061, "PT25H1M1S"},
-            {590325, "PT163H58M45S"}
+            {0LL, "PT0H0M0S"},
+            {1LL, "PT0H0M1S"},
+            {61LL, "PT0H1M1S"},
+            {3661LL, "PT1H1M1S"},
+            {45LL, "PT0H0M45S"},
+            {123456LL, "PT34H17M36S"},
+            {86400LL, "PT24H0M0S"},
+            {90061LL, "PT25H1M1S"},
+            {590325LL, "PT163H58M45S"}
         };
 
     // Custom check for format correctness: PTxxHxxMxxS
@@ -302,25 +302,25 @@ M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
     std::string exception_str = "[LibDegorasSLR,Timing,iso8601DatetimeParserUTC] Invalid argument:";
 
     // Base time.
-    std::chrono::seconds secs_1(167253349);
-    std::chrono::seconds secs_2(1707164728);
+    std::chrono::seconds secs_1(167253349LL);
+    std::chrono::seconds secs_2(1707164728LL);
 
     // Test valid ISO 8601 datetime strings using extended format.
     std::vector<std::pair<std::string, std::chrono::nanoseconds>> valid_cases_extended =
     {
         {"1975-04-20T19:15:49Z", std::chrono::nanoseconds(secs_1)},
-        {"1975-04-20T19:15:49.123Z", std::chrono::nanoseconds(secs_1 + std::chrono::milliseconds(123))},
-        {"1975-04-20T19:15:49.123456Z", std::chrono::nanoseconds(secs_1 + std::chrono::microseconds(123456))},
-        {"1975-04-20T19:15:49.123456789Z",  std::chrono::nanoseconds(secs_1 + std::chrono::nanoseconds(123456789))}
+        {"1975-04-20T19:15:49.123Z", std::chrono::nanoseconds(secs_1 + std::chrono::milliseconds(123LL))},
+        {"1975-04-20T19:15:49.123456Z", std::chrono::nanoseconds(secs_1 + std::chrono::microseconds(123456LL))},
+        {"1975-04-20T19:15:49.123456789Z",  std::chrono::nanoseconds(secs_1 + std::chrono::nanoseconds(123456789LL))}
     };
 
     // Test valid ISO 8601 datetime strings using basic format.
     std::vector<std::pair<std::string, std::chrono::nanoseconds>> valid_cases_basic =
         {
             {"20240205T202528Z", std::chrono::nanoseconds(secs_2)},
-            {"20240205T202528.123Z", std::chrono::nanoseconds(secs_2 + std::chrono::milliseconds(123))},
-            {"20240205T202528.123456Z", std::chrono::nanoseconds(secs_2 + std::chrono::microseconds(123456))},
-            {"20240205T202528.123456789Z",  std::chrono::nanoseconds(secs_2 + std::chrono::nanoseconds(123456789))}
+            {"20240205T202528.123Z", std::chrono::nanoseconds(secs_2 + std::chrono::milliseconds(123LL))},
+            {"20240205T202528.123456Z", std::chrono::nanoseconds(secs_2 + std::chrono::microseconds(123456LL))},
+            {"20240205T202528.123456789Z",  std::chrono::nanoseconds(secs_2 + std::chrono::nanoseconds(123456789LL))}
         };
 
     // Test invalid ISO 8601 datetime strings
@@ -422,8 +422,8 @@ M_DEFINE_UNIT_TEST(win32TicksToTimePoint)
 
 M_DEFINE_UNIT_TEST(timePointToJulianDatetime)
 {
-    auto epoch_start = std::chrono::system_clock::from_time_t(0); // 1970-01-01 00:00:00 UTC
-    auto one_day_ns = std::chrono::hours(24);
+    auto epoch_start = std::chrono::system_clock::from_time_t(0LL); // 1970-01-01 00:00:00 UTC
+    auto one_day_ns = std::chrono::hours(24LL);
     auto example_1 = std::chrono::nanoseconds(1677589965123456789LL);
     auto example_2 = std::chrono::nanoseconds(4105803825987654321LL);
     auto example_3 = std::chrono::nanoseconds(1707386592000123000LL);
@@ -500,25 +500,25 @@ M_DEFINE_UNIT_TEST(julianDatetimeToTimePoint)
 
 M_DEFINE_UNIT_TEST(timePointToJulianDate_fract)
 {
-    auto epoch_start = std::chrono::system_clock::from_time_t(0);         // 1970-01-01T00:00:00Z
-    auto one_day_ns = std::chrono::hours(24);                             // 1970-01-02T00:00:00Z
-    auto first_half = std::chrono::hours(48) + std::chrono::hours(8);     // 1970-01-03T08:00:00Z
-    auto second_half = std::chrono::hours(48) + std::chrono::hours(18);   // 1970-01-03T18:00:00Z
-    auto example_1 = std::chrono::nanoseconds(1677589965123456789);       // 2023-02-28T13:12:45.123456789Z
-    auto example_2 = std::chrono::nanoseconds(4105803825987654321);       // 2100-02-08T21:03:45.987654321Z
-    auto example_3 = std::chrono::nanoseconds(1707386592000123000);       // 2024-02-08T10:03:12.000123Z
+    auto epoch_start = std::chrono::system_clock::from_time_t(0LL);         // 1970-01-01T00:00:00Z
+    auto one_day_ns = std::chrono::hours(24LL);                             // 1970-01-02T00:00:00Z
+    auto first_half = std::chrono::hours(48LL) + std::chrono::hours(8LL);     // 1970-01-03T08:00:00Z
+    auto second_half = std::chrono::hours(48LL) + std::chrono::hours(18LL);   // 1970-01-03T18:00:00Z
+    auto example_1 = std::chrono::nanoseconds(1677589965123456789LL);       // 2023-02-28T13:12:45.123456789Z
+    auto example_2 = std::chrono::nanoseconds(4105803825987654321LL);       // 2100-02-08T21:03:45.987654321Z
+    auto example_3 = std::chrono::nanoseconds(1707386592000123000LL);       // 2024-02-08T10:03:12.000123Z
 
     // Setup test cases
     std::vector<std::tuple<timing::HRTimePointStd, JDate, DayFraction, std::string>> test_cases =
         {
             // Pair of time since epoch and expected Julian Datetime
-            {epoch_start, 2440587, 0.5L, "1970-01-01T00:00:00Z"},
-            {epoch_start + one_day_ns, 2440588, 0.5L, "1970-01-02T00:00:00Z"},
-            {epoch_start + first_half, 2440589, 0.83333333333333337L, "1970-01-03T08:00:00Z"},
-            {epoch_start + second_half, 2440590, 0.25L, "1970-01-03T18:00:00Z"},
-            {epoch_start + example_1, 2460004, 0.05052226223135416L, "2023-02-28T13:12:45.123456789Z"},
-            {epoch_start + example_2, 2488108, 0.37761559785093751L, "2100-02-08T21:03:45.987654321Z"},
-            {epoch_start + example_3, 2460348, 0.91888889031249998L, "2024-02-08T10:03:12.000123Z"}
+            {epoch_start, 2440587LL, 0.5L, "1970-01-01T00:00:00Z"},
+            {epoch_start + one_day_ns, 2440588LL, 0.5L, "1970-01-02T00:00:00Z"},
+            {epoch_start + first_half, 2440589LL, 0.83333333333333333L, "1970-01-03T08:00:00Z"},
+            {epoch_start + second_half, 2440590LL, 0.25L, "1970-01-03T18:00:00Z"},
+            {epoch_start + example_1, 2460004LL, 0.05052226223135416L, "2023-02-28T13:12:45.123456789Z"},
+            {epoch_start + example_2, 2488108LL, 0.3776155978509375L, "2100-02-08T21:03:45.987654321Z"},
+            {epoch_start + example_3, 2460348LL, 0.9188888903125L, "2024-02-08T10:03:12.000123Z"}
         };
 
     // Do the checks.
@@ -543,25 +543,25 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate_fract)
 
 M_DEFINE_UNIT_TEST(timePointToJulianDate)
 {
-    auto epoch_start = std::chrono::system_clock::from_time_t(0);         // 1970-01-01T00:00:00Z
-    auto one_day_ns = std::chrono::hours(24);                             // 1970-01-02T00:00:00Z
-    auto first_half = std::chrono::hours(48) + std::chrono::hours(8);     // 1970-01-03T08:00:00Z
-    auto second_half = std::chrono::hours(48) + std::chrono::hours(18);   // 1970-01-03T18:00:00Z
-    auto example_1 = std::chrono::nanoseconds(1677589965123456789);       // 2023-02-28T13:12:45.123456789Z
-    auto example_2 = std::chrono::nanoseconds(4105803825987654321);       // 2100-02-08T21:03:45.987654321Z
-    auto example_3 = std::chrono::nanoseconds(1707386592000123000);       // 2024-02-08T10:03:12.000123Z
+    auto epoch_start = std::chrono::system_clock::from_time_t(0LL);         // 1970-01-01T00:00:00Z
+    auto one_day_ns = std::chrono::hours(24LL);                             // 1970-01-02T00:00:00Z
+    auto first_half = std::chrono::hours(48LL) + std::chrono::hours(8LL);     // 1970-01-03T08:00:00Z
+    auto second_half = std::chrono::hours(48LL) + std::chrono::hours(18LL);   // 1970-01-03T18:00:00Z
+    auto example_1 = std::chrono::nanoseconds(1677589965123456789LL);       // 2023-02-28T13:12:45.123456789Z
+    auto example_2 = std::chrono::nanoseconds(4105803825987654321LL);       // 2100-02-08T21:03:45.987654321Z
+    auto example_3 = std::chrono::nanoseconds(1707386592000123000LL);       // 2024-02-08T10:03:12.000123Z
 
     // Setup test cases
     std::vector<std::tuple<timing::HRTimePointStd, JDate, std::string>> test_cases =
         {
             // Pair of time since epoch and expected Julian Datetime
-            {epoch_start, 2440587, "1970-01-01"},
-            {epoch_start + one_day_ns, 2440588, "1970-01-02"},
-            {epoch_start + first_half, 2440589, "1970-01-03"},
-            {epoch_start + second_half, 2440590, "1970-01-03"},
-            {epoch_start + example_1, 2460004, "2023-02-28"},
-            {epoch_start + example_2, 2488108, "2100-02-08"},
-            {epoch_start + example_3, 2460348, "2024-02-08"}
+            {epoch_start, 2440587LL, "1970-01-01"},
+            {epoch_start + one_day_ns, 2440588LL, "1970-01-02"},
+            {epoch_start + first_half, 2440589LL, "1970-01-03"},
+            {epoch_start + second_half, 2440590LL, "1970-01-03"},
+            {epoch_start + example_1, 2460004LL, "2023-02-28"},
+            {epoch_start + example_2, 2488108LL, "2100-02-08"},
+            {epoch_start + example_3, 2460348LL, "2024-02-08"}
         };
 
     // Do the checks.

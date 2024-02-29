@@ -47,7 +47,7 @@
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
-#include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
