@@ -101,7 +101,7 @@ using MJDate = NumericStrongType<long long, struct MJDateTag>;
 using JDate = NumericStrongType<long long, struct JDateTag>;
 
 /// Alias for Reduced Julian Date in days.
-using RJDate = NumericStrongType<long long, struct JDateTag>;
+using RJDate = NumericStrongType<long long, struct RDateTag>;
 
 /// Alias for J2000 Date in days.
 using J2000Date = NumericStrongType<long long, struct J2000DateTag>;

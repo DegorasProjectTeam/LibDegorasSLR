@@ -66,6 +66,7 @@ namespace types{
  * datetime value (day and fraction) directly will provide a time resolution of milliseconds.
  */
 using J2000DateTime = DateTime<J2000Date>;
+using J2000DateTimes = DateTimes<J2000Date>;
 
 using JDateTime = DateTime<JDate>;
 using JDateTimes = DateTimes<JDate>;

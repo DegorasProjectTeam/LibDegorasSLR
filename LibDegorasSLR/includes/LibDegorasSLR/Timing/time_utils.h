@@ -48,7 +48,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
-#include "LibDegorasSLR/Timing/types/j2000_date_time.h"
+#include "LibDegorasSLR/Timing/types/datetime.h"
 // =====================================================================================================================
 
 // DEFINITIONS
@@ -415,7 +415,7 @@ LIBDPSLR_EXPORT MJDateTime timePointToModifiedJulianDatetime(const HRTimePointSt
  * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
  * @return A TimePoint.
  */
-LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDatetimeToTimePoint(MJDateTime mjdt);
+LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDatetimeToTimePoint(const MJDateTime &mjdt);
 
 
 

@@ -407,7 +407,7 @@ HRTimePointStd julianDateToTimePoint(JDate jd, SoD seconds)
 
 
 
-HRTimePointStd modifiedJulianDatetimeToTimePoint(MJDateTime mjt)
+HRTimePointStd modifiedJulianDatetimeToTimePoint(const MJDateTime &mjt)
 {
     duration<long double, std::ratio<kSecsPerDayLL>> unix_days(
         mjt.datetime() + kModifiedJulianToJulian + kJulianToPosixEpoch);
