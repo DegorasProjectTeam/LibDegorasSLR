@@ -420,7 +420,7 @@ LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDatetimeToTimePoint(MJDateTime mjdt
 
 
 
-LIBDPSLR_EXPORT J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDate& mjd, const SoD& sod = SoD());
+LIBDPSLR_EXPORT J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDateTime &mjdt);
 
 /**
  * @brief Convert a modified julian datetime to a J2000 datetime
@@ -557,43 +557,9 @@ LIBDPSLR_EXPORT long double timePointToJ2000Datetime(const HRTimePointStd &tp);
  */
 LIBDPSLR_EXPORT RJDateTime timePointToReducedJulianDatetime(const HRTimePointStd &tp);
 
-/**
- * @brief Convert a Modified Julian Date and seconds (with decimals) to a Modified Julian Datetime.
- * @param mjd     The Modified Julian Date in days.
- * @param seconds The number of seconds with decimals.
- * @return The Modified Julian Datetime.
- * @warning Using this function can make your timestamp inaccurate. Use only to
- *          work with times where nanoseconds are not important.
- */
-LIBDPSLR_EXPORT long double modifiedJulianDateToModifiedJulianDatetime(MJDate mjd, SoD seconds = 0.0L);
-
-/**
- * @brief Convert a Modified Julian datetime to a Modified Julian Date and seconds (with decimals).
- * @param mjdt    The Modified Julian datetime in days with decimals.
- * @param mjd     The Modified Julian Date in days.
- * @param seconds The number of seconds with decimals.
- */
-LIBDPSLR_EXPORT void MjdtToMjdAndSecs(MJDateTime mjdt, MJDate &mjd, SoD &seconds);
-
-
-
-/**
- * @brief Checks if a timestamp given by pair MJDate, SoD, is within a time window.
- * @param mjd, The Modified Julian date in days to check if it is inside a time window.
- * @param sod, The Second of Day in seconds to check if it is inside a time window.
- * @param mjd_start, The Modified Julian date in days of time window start.
- * @param sod_start, The Second of Day in seconds of time window start.
- * @param mjd_end, The Modified Julian date in days of time window end.
- * @param sod_end, The Second of Day in seconds of time window start.
- * @return true if time is inside window, false otherwise.
- */
-bool mjdInsideTimeWindow(MJDate mjd, SoD sod, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end);
 
 // C++ time point to TLE date (year and fractional day).
 LIBDPSLR_EXPORT void timePointToTLEDate(const HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
-
-
-
 
 //======================================================================================================================
 

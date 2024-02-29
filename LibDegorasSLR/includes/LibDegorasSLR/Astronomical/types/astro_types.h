@@ -43,6 +43,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/datetime.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 

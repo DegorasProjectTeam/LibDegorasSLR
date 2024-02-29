@@ -66,7 +66,7 @@ dpslr::astro::PredictorSun::PredictorSun(const geo::types::GeodeticPoint<long do
 PredictorSun::SunPrediction PredictorSun::fastPredict(const J2000DateTime& j2000, bool refraction) const
 {
     // Store de J2000 datetime.
-    long double j2000_dt = j2000.j2dt();
+    long double j2000_dt = j2000.datetime();
 
     // Local sidereal time.
     long double sidereal = 4.894961213L + 6.300388099L * j2000_dt + this->obs_lon_;

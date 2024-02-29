@@ -27,11 +27,15 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file time_types.cpp
+ * @file datetime.h
  * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
 ***********************************************************************************************************************/
+
+// =====================================================================================================================
+#pragma once
+// =====================================================================================================================
 
 // C++ INCLUDES
 // =====================================================================================================================
@@ -40,9 +44,7 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Timing/types/j2000_date_time.h"
-#include "LibDegorasSLR/Mathematics/math.h"
-#include "LibDegorasSLR/Timing/time_constants.h"
+#include "LibDegorasSLR/Timing/types/datetime.tpp"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -52,153 +54,28 @@ namespace timing{
 namespace types{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using helpers::types::NumericStrongType;
-using math::units::Seconds;
-// ---------------------------------------------------------------------------------------------------------------------
+/**
+ * The J2000 epoch is a standard astronomical reference epoch used in the field of astronomy and celestial mechanics.
+ * It represents the start of the year 2000 in the Gregorian calendar system and is commonly used as a reference point
+ * for astronomical calculations.
+ *
+ * This struct stores J2000 datetime epochs (date, fraction and number of seconds in that day). The use of the day
+ * value (´j2d´) and the number of seconds in that day (`sod`) in a separated way will provide a time resolution of
+ * picoseconds. The use of the day value (´j2d´) and the decimal fractional part of the day (´fract´) in a separated
+ * way will provide a time resolution of nanoseconds (in the sense of fraction of the day). The use of the full
+ * datetime value (day and fraction) directly will provide a time resolution of milliseconds.
+ */
+using J2000DateTime = DateTime<J2000Date>;
 
-J2000DateTime::J2000DateTime() :
-    j2d_(J2000Date()),
-    fract_(DayFraction()),
-    sod_(SoD())
-{}
+using JDateTime = DateTime<JDate>;
+using JDateTimes = DateTimes<JDate>;
 
-J2000Date J2000DateTime::j2d() const
-{
-    return this->j2d_;
-}
+using MJDateTime = DateTime<MJDate>;
+using MJDateTimes = DateTimes<MJDate>;
 
-DayFraction J2000DateTime::fract() const
-{
-    return this->fract_;
-}
+using RJDateTime = DateTime<RJDate>;
+using RJDateTimes = DateTimes<RJDate>;
 
-SoD J2000DateTime::sod() const
-{
-    return this->sod_;
-}
-
-long double J2000DateTime::j2dt() const
-{
-    return static_cast<long double>(this->j2d_) + this->fract_;
-}
-
-void J2000DateTime::increment(const Seconds &seconds)
-{
-    sod_ += seconds;
-    normalize();
-}
-
-void J2000DateTime::decrement(const SoD &seconds)
-{
-    sod_ -= seconds;
-    normalize();
-}
-
-J2000DateTime::J2000DateTime(const J2000Date &date, const SoD &sod) :
-    j2d_(date),
-    sod_(sod)
-{
-    // Normalize.
-    this->normalize();
-}
-
-std::vector<J2000DateTime> J2000DateTime::linspaceStep(const J2000DateTime &start, const J2000DateTime &end,
-                                                       const Seconds &step)
-{
-    std::vector<J2000DateTime> result;
-
-    if (math::compareFloating(step, Seconds()) <= 0)
-        return result;
-
-    size_t num = static_cast<size_t>(std::ceil((end - start) / step));
-
-    result.resize(num);
-
-    #pragma omp parallel for
-    for (size_t i = 0; i < num; i++)
-    {
-        J2000DateTime value = start + step * static_cast<long double>(i);
-        result[i] = value;
-    }
-
-    return result;
-}
-
-bool J2000DateTime::operator==(const J2000DateTime &other) const
-{
-    return this->j2d_ == other.j2d() && math::compareFloating(this->sod_, other.sod()) == 0;
-}
-
-bool J2000DateTime::operator<(const J2000DateTime& other) const
-{
-    return (this->j2d() < other.j2d()) ||
-           (this->j2d() == other.j2d() && math::compareFloating(this->sod(), other.sod()) < 0);
-}
-
-bool J2000DateTime::operator<=(const J2000DateTime &other) const
-{
-    return (this->j2d() < other.j2d()) ||
-           (this->j2d() == other.j2d() && math::compareFloating(this->sod(), other.sod()) <= 0);
-}
-
-bool J2000DateTime::operator>(const J2000DateTime &other) const
-{
-    return (this->j2d() > other.j2d()) ||
-           (this->j2d() == other.j2d() && math::compareFloating(this->sod(), other.sod()) > 0);
-}
-
-bool J2000DateTime::operator>=(const J2000DateTime &other) const
-{
-    return (this->j2d() > other.j2d()) ||
-           (this->j2d() == other.j2d() && math::compareFloating(this->sod(), other.sod()) >= 0);
-}
-
-J2000DateTime J2000DateTime::operator+(const Seconds &seconds) const
-{
-    J2000DateTime result = *this;
-    result.sod_ += seconds;
-    result.normalize();
-    return result;
-}
-
-void J2000DateTime::normalize()
-{
-    // Normalize the second of day input (decrement).
-    while(math::compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) < 0)
-    {
-        this->sod_ += timing::kSecsPerDayL;
-        this->j2d_--;
-    }
-
-    // Normalize the second of day input (increment).
-    while(math::compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) >= 0)
-    {
-        this->sod_ -= timing::kSecsPerDayL;
-        this->j2d_++;
-    }
-
-    // Calculate the fractional part of the day
-    this->fract_ = this->sod_ / timing::kSecsPerDayL;
-}
-
-// =====================================================================================================================
-
-Seconds operator-(const J2000DateTime &a, const J2000DateTime &b)
-{
-    Seconds result;
-    result = (a.j2d()-b.j2d()) * Seconds(timing::kSecsPerDayL) + (a.sod() - b.sod());
-    return result;
-}
-
-Seconds operator+(const J2000DateTime &a, const J2000DateTime &b)
-{
-    Seconds result;
-    result = (a.j2d()+b.j2d()) * Seconds(timing::kSecsPerDayL) + (a.sod() + b.sod());
-    return result;
-}
-
-// =====================================================================================================================
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

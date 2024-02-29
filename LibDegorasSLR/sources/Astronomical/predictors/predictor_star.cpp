@@ -71,8 +71,8 @@ PredictorStar::StarPrediction PredictorStar::predict(const timing::types::JDateT
     PredictorStar::StarPrediction pred;
     pred.jdt = jdt;
 
-    astro::novas::getStarAltAzPosition(this->star_, this->loc_, jdt, pred.altaz_coord,
-                                       this->leap_secs_, this->ut1_utc_diff_);
+    astro::novas::getStarAltAzPos(this->star_, this->loc_, jdt, pred.altaz_coord,
+                                  this->leap_secs_, this->ut1_utc_diff_);
 
     return pred;
 }
@@ -81,17 +81,16 @@ PredictorStar::StarPredictions PredictorStar::predict(const timing::types::JDate
                                                       const timing::types::JDateTime &jdt_end,
                                                       math::units::MillisecondsU step) const
 {
-    /*
     // Container and auxiliar.
-    timing::types::J2000DateTimes interp_times;
-    math::units::Seconds step_sec = static_cast<long double>(step_ms) * math::units::kMsToSec;
+    JDateTimes interp_times;
+    math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
 
     // Check for valid time interval.
     if(!(jdt_start <= jdt_end))
         throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
 
     // Calculates all the interpolation times.
-    interp_times = J2000DateTime::linspaceStep(j2000_start, j2000_end, step_sec);
+    interp_times = JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);
 
     // Results container.
     StarPredictions results(interp_times.size());
@@ -105,7 +104,6 @@ PredictorStar::StarPredictions PredictorStar::predict(const timing::types::JDate
 
     // Return the container.
     return results;
-*/
 }
 
 

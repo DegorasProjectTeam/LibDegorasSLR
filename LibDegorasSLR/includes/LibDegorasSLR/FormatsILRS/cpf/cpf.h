@@ -233,13 +233,12 @@ public:
      * This function retrieves the available time window from the CPF data. If the CPF is empty, the start and end
      * times are set to zero. Otherwise, the start and end times are obtained from the position records.
      *
-     * @param mjd_start The output parameter to store the Modified Julian Date of the start time.
-     * @param secs_start The output parameter to store the seconds of the day of the start time with decimals.
+     * @param start The output parameter to store the Modified Julian Date of the start time.
+     * @param end The output parameter to store the seconds of the day of the start time with decimals.
      * @param mjd_end The output parameter to store the Modified Julian Date of the end time.
      * @param secs_end The output parameter to store the seconds of the day of the end time with decimals.
      */
-    void getAvailableTimeWindow(timing::types::MJDate &mjd_start, timing::types::SoD &secs_start,
-                                timing::types::MJDate &mjd_end, timing::types::SoD &secs_end) const;
+    void getAvailableTimeWindow(timing::types::MJDateTime &start, timing::types::MJDateTime &end) const;
 
     /**
      * @brief Gets the available time window for the CPF as an Interval (will be invalid if the CPF is empty).

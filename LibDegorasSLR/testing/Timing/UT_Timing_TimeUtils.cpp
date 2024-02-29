@@ -424,9 +424,9 @@ M_DEFINE_UNIT_TEST(timePointToJulianDatetime)
 {
     auto epoch_start = std::chrono::system_clock::from_time_t(0); // 1970-01-01 00:00:00 UTC
     auto one_day_ns = std::chrono::hours(24);
-    auto example_1 = std::chrono::nanoseconds(1677589965123456789);
-    auto example_2 = std::chrono::nanoseconds(4105803825987654321);
-    auto example_3 = std::chrono::nanoseconds(1707386592000123000);
+    auto example_1 = std::chrono::nanoseconds(1677589965123456789LL);
+    auto example_2 = std::chrono::nanoseconds(4105803825987654321LL);
+    auto example_3 = std::chrono::nanoseconds(1707386592000123000LL);
 
     // Setup test cases
     std::vector<std::pair<timing::HRTimePointStd, JDateTime>> test_cases =

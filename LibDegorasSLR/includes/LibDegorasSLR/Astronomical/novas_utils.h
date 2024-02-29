@@ -51,6 +51,7 @@
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
 #include "LibDegorasSLR/Timing/types/time_types.h"
+#include "LibDegorasSLR/Timing/types/datetime.h"
 // =====================================================================================================================
 
 // NAMESPACES
@@ -69,19 +70,19 @@ namespace novas{
 // =====================================================================================================================
 
 
-LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
-                                         const geo::types::SurfaceLocation<double> &loc,
-                                         const timing::types::HRTimePointStd &tp,
-                                         types::AltAzPos &pos,
-                                         int leap_secs = 0,
-                                         double ut1_utc_diff = 0);
+LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
+                                    const geo::types::SurfaceLocation<double> &loc,
+                                    const timing::types::HRTimePointStd &tp,
+                                    types::AltAzPos &pos,
+                                    int leap_secs = 0,
+                                    double ut1_utc_diff = 0);
 
-LIBDPSLR_EXPORT int getStarAltAzPosition(const astro::types::Star &star,
-                                         const geo::types::SurfaceLocation<double> &loc,
-                                         const timing::types::JDateTime &jdt,
-                                         types::AltAzPos &pos,
-                                         int leap_secs = 0,
-                                         double ut1_utc_diff = 0);
+LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
+                                    const geo::types::SurfaceLocation<double> &loc,
+                                    const timing::types::JDateTime &jdt,
+                                    types::AltAzPos &pos,
+                                    int leap_secs = 0,
+                                    double ut1_utc_diff = 0);
 
 LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::SurfaceLocation<double> &loc);
 

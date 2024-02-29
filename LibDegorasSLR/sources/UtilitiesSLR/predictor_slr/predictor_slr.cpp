@@ -265,12 +265,25 @@ GeocentricPoint PredictorSLR::getGeocentricLocation() const
 
 bool PredictorSLR::isReady() const {return !this->pos_times_.empty(); }
 
-
-
-PredictorSLR::PredictionError PredictorSLR::predict(MJDate mjd, SoD sod_instant, SLRPrediction& result) const
+bool PredictorSLR::isInsideTimeWindow(MJDateTime start, MJDateTime end) const
 {
 
-/*
+    // Auxiliar.
+    MJDateTime predict_mjd_start, predict_mjd_end;
+
+    // Get the predict time window.
+    this->getTimeWindow(predict_mjd_start, predict_mjd_end);
+
+    // Check if requested window is inside predict time window
+    return start >= predict_mjd_start && end <= predict_mjd_end;
+}
+
+
+
+PredictorSLR::PredictionError PredictorSLR::predict(MJDateTime mjdt, SLRPrediction& result) const
+{
+
+ /*
  *
  * The algorithm is based on the RAZEL algorithm (the reverse of the SITE-TRACK algorithm, A. Vallado) and inspired
  * by the implementation by W. Gurtner (Astronomical Institute, University of Berne). While Hermite was previously
@@ -424,8 +437,8 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.error = PredictionError::NO_ERROR;
 
     // Generate the relative times.
-    long long day_relative = mjd - this->cpf_.getData().positionRecords().front().mjd;
-    x_instant = (day_relative*kSecsSolDay) + sod_instant - this->cpf_.getData().positionRecords().front().sod;
+    long long day_relative = mjdt.date() - this->cpf_.getData().positionRecords().front().mjd;
+    x_instant = (day_relative*kSecsSolDay) + mjdt.sod() - this->cpf_.getData().positionRecords().front().sod;
 
     // Check if the interpolation times are valid in the cpf data interval.
     if((x_instant - kTMargin)   < 0 || (x_instant + kTMargin) > this->pos_times_.back())
@@ -456,9 +469,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
     // Store computed data up to this moment.
     // In the storage only, include the object eccentricity correction (CoM) and the systematic errors.
-    result.instant_range.mjd = mjd;
-    result.instant_range.mjdt = mjd + sod_instant/kSecsSolDay;
-    result.instant_range.sod = sod_instant;
+    result.instant_range.mjdt = mjdt;
     result.instant_range.geo_pos = y_instant;
     result.instant_range.range_1w = prov_range_1w;
     result.instant_range.tof_2w = 2*result.instant_range.range_1w/kC;
@@ -615,7 +626,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.outbound_data.value().tof_2w = 2 * result.outbound_data->range_1w/kC;
 
     // coger del xbound relativo y pasarlo a mjd mjdt y seconds.
-    result.outbound_data.value().mjd = mjd;
+    result.outbound_data.value().mjdt = mjdt;
 
 
     // If the mode is only outbound vector, return here.
@@ -660,29 +671,24 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     } */
 }
 
-PredictorSLR::SLRPredictions PredictorSLR::predict(MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
+PredictorSLR::SLRPredictions PredictorSLR::predict(MJDateTime mjdt_start,
+                                                   MJDateTime mjdt_end,
                                                    unsigned step_ms) const
 {
     // Container and auxiliar.
-    std::vector<std::pair<MJDate, SoD>> interp_times;
-    MJDate mjd_current = mjd_start;
-    SoD sod_current = sod_start;
+    MJDateTimes interp_times;
+    MJDateTime mjdt_current = mjdt_start;
     long double step_sec = step_ms/1000.0L;
 
     // Check interval.
-    if(!this->isReady() || !isInsideTimeWindow(mjd_start, sod_start, mjd_end, sod_end))
+    if(!this->isReady() || !isInsideTimeWindow(mjdt_start, mjdt_end))
         return PredictorSLR::SLRPredictions();
 
     // Calculates all the interpolation times.
-    while(mjd_current < mjd_end ||sod_current <= sod_end)
+    while(mjdt_current < mjdt_end)
     {
-        interp_times.push_back({mjd_current, sod_current});
-        sod_current += step_sec;
-        if (sod_current >= 86400.0L)
-        {
-            mjd_current++;
-            sod_current -= 86400.0L;
-        }
+        interp_times.push_back(mjdt_current);
+        mjdt_current.add(step_sec);
     }
 
     // Results container.
@@ -692,7 +698,7 @@ PredictorSLR::SLRPredictions PredictorSLR::predict(MJDate mjd_start, SoD sod_sta
     #pragma omp parallel for
     for(size_t i = 0; i<interp_times.size(); i++)
     {
-        this->predict(interp_times[i].first, interp_times[i].second, results[i]);
+        this->predict(interp_times[i], results[i]);
     }
 
     // Return the container.
@@ -703,11 +709,11 @@ PredictorSLR::SLRPredictions PredictorSLR::predict(MJDate mjd_start, SoD sod_sta
 
 
 
-void PredictorSLR::getTimeWindow(MJDate &mjd_start, SoD &sod_start, MJDate &mjd_end, SoD &sod_end) const
+void PredictorSLR::getTimeWindow(MJDateTime &start, MJDateTime &end) const
 {
     if (this->isReady())
     {
-        this->cpf_.getAvailableTimeWindow(mjd_start, sod_start, mjd_end, sod_end);
+        this->cpf_.getAvailableTimeWindow(start, end);
     }
 }
 

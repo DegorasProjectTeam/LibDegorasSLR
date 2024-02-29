@@ -279,20 +279,20 @@ JDateTime timePointToJulianDatetime(const HRTimePointStd &tp)
     long long ns_in_current_day = ns_since_epoch % static_cast<long long>(kSecsPerDayLL * kNsPerSecond);
     long double fractional_day = static_cast<long double>(ns_in_current_day) / (kSecsPerDayLL * kNsPerSecond);
     long double jd = static_cast<long double>(days_since_epoch_int) + fractional_day + kPosixEpochToJulian;
-    return jd;
+    return JDateTime(jd);
 }
 
 HRTimePointStd julianDatetimeToTimePoint(JDateTime jdt)
 {
     // Convert JDT to Unix timestamp (seconds since Unix epoch)
-    long double unix_stamp = (jdt + kJulianToPosixEpoch) * kSecsPerDayLL;
+    long double unix_dt = jdt.datetime() + kJulianToPosixEpoch;
     // Check if the resulting time point is before the Unix epoch
-    if (unix_stamp<0)
+    if (unix_dt<0)
     {
         throw std::invalid_argument(
             "[LibDegorasSLR,Timing,julianDatetimeToTimePoint] The jdt represent a time before the Unix epoch.");
     }
-    duration<long double, std::ratio<kSecsPerDayLL>> unix_days(jdt + kJulianToPosixEpoch);
+    duration<long double, std::ratio<kSecsPerDayLL>> unix_days(unix_dt);
     auto dur = duration_cast<HRTimePointStd::duration>(unix_days);
     return HRTimePointStd(dur);
 }
@@ -410,7 +410,7 @@ HRTimePointStd julianDateToTimePoint(JDate jd, SoD seconds)
 HRTimePointStd modifiedJulianDatetimeToTimePoint(MJDateTime mjt)
 {
     duration<long double, std::ratio<kSecsPerDayLL>> unix_days(
-        mjt + kModifiedJulianToJulian + kJulianToPosixEpoch);
+        mjt.datetime() + kModifiedJulianToJulian + kJulianToPosixEpoch);
     return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
 }
 
@@ -581,17 +581,17 @@ void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& s
 
 long double timePointToJ2000Datetime(const HRTimePointStd &tp)
 {
-    return timePointToJulianDatetime(tp) + kJulianToJ2000;
+    return timePointToJulianDatetime(tp).datetime() + kJulianToJ2000;
 }
 
 MJDateTime timePointToModifiedJulianDatetime(const HRTimePointStd &tp)
 {
-    return timePointToJulianDatetime(tp) + kJulianToModifiedJulian;
+    return timePointToJulianDatetime(tp).datetime() + kJulianToModifiedJulian;
 }
 
 RJDateTime timePointToReducedJulianDatetime(const HRTimePointStd &tp)
 {
-    return timePointToJulianDatetime(tp) + kJulianToReducedJulian;
+    return timePointToJulianDatetime(tp).datetime() + kJulianToReducedJulian;
 }
 
 
@@ -628,18 +628,6 @@ void adjMJDAndSecs(MJDate& mjd, SoD& seconds)
     }
 }
 
-long double modifiedJulianDateToModifiedJulianDatetime(MJDate mjd, SoD seconds)
-{
-    if (seconds >= kSecsPerDayLL)
-    {
-        const int days_add =  static_cast<int>(std::floor(seconds / kSecsPerDayLL));
-        mjd += days_add;
-        seconds -= days_add*kSecsPerDayLL;
-    }
-
-    return mjd + (seconds / static_cast<long double>(kSecsPerDayLL));
-}
-
 
 long double jdtToGmst(long double jdt)
 {
@@ -662,36 +650,22 @@ long double jdtToLmst(long double jdt, long double lon)
     return lmst;
 }
 
-J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDate& mjd, const SoD& sod)
+J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDateTime& mjdt)
 {
-    long double jd = static_cast<long double>(mjd) + kModifiedJulianToJulian;
+    long double jd = static_cast<long double>(mjdt.date()) + kModifiedJulianToJulian;
     long double j2000_date = jd + kJulianToJ2000;
     long double j2000_date_dec;
     long double j2000_date_frac;
     j2000_date_frac = std::modf(j2000_date, &j2000_date_dec);
     long double fraction_sod = j2000_date_frac * kSecsPerDayL;
-    J2000DateTime j2000(J2000Date(static_cast<long long>(j2000_date_dec)), fraction_sod + sod);
+    J2000DateTime j2000(static_cast<J2000Date>(static_cast<long long>(j2000_date_dec)),
+                        fraction_sod + mjdt.sod());
     return j2000;
 }
 
 long double mjdtToJ2000Datetime(MJDateTime mjdt)
 {
-    return mjdt + kModifiedJulianToJulian + kJulianToJ2000;
-}
-
-void MjdtToMjdAndSecs(MJDateTime mjdt, MJDate &mjd, SoD &seconds)
-{
-    long double int_part;
-    seconds = std::modf(mjdt, &int_part) * kSecsPerDayLL;
-    mjd = static_cast<MJDate>(int_part);
-}
-
-
-
-bool mjdInsideTimeWindow(MJDate mjd, SoD sod, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end)
-{
-    return mjd >= mjd_start && mjd <= mjd_end &&
-           !(mjd == mjd_start && sod < sod_start) && !(mjd == mjd_end && sod > sod_end);
+    return mjdt.datetime() + kModifiedJulianToJulian + kJulianToJ2000;
 }
 
 

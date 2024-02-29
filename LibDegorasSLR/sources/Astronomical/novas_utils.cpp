@@ -44,12 +44,12 @@ on_surface makeOnSurface(const geo::types::GeodeticPoint<double> &geod, const ge
     return geo_loc;
 }
 
-LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
-                                         const geo::types::SurfaceLocation<double> &loc,
-                                         const timing::types::JDateTime &jdt,
-                                         types::AltAzPos &pos,
-                                         int leap_secs,
-                                         double ut1_utc_diff)
+int getStarAltAzPos(const astro::types::Star &star,
+                    const geo::types::SurfaceLocation<double> &loc,
+                    const timing::types::JDateTime &jdt,
+                    types::AltAzPos &pos,
+                    int leap_secs,
+                    double ut1_utc_diff)
 {
     int error;
     auto surface = makeOnSurface(loc);
@@ -64,7 +64,7 @@ LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
 
     // Calculate timestamps
     double leap_secs_d = static_cast<double>(leap_secs);
-    double jd_utc = jdt;
+    double jd_utc = jdt.datetime();
     double jd_tt = jd_utc + (leap_secs_d + 32.184) / timing::kSecsPerDay;  // TT = UTC + incrementAT + 32.184
     double jd_ut1 = jd_utc + ut1_utc_diff / timing::kSecsPerDay;
     double delta_t = 32.184 + leap_secs_d - ut1_utc_diff;                               // TT - UT1 in seconds.
@@ -97,17 +97,15 @@ LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
 
 
 int getStarAltAzPos(const types::Star &star,
-                         const geo::types::SurfaceLocation<double> &loc,
-                         const timing::types::HRTimePointStd &tp,
-                         types::AltAzPos &pos,
-                         int leap_secs,
-                         double ut1_utc_diff)
+                    const geo::types::SurfaceLocation<double> &loc,
+                    const timing::types::HRTimePointStd &tp,
+                    types::AltAzPos &pos,
+                    int leap_secs,
+                    double ut1_utc_diff)
 {
-    timing::types::JDate jd;
-    timing::types::DayFraction df;
-    timing::timePointToJulianDate(tp, jd, df);
+    timing::types::JDateTime jdt = timing::timePointToJulianDatetime(tp);
 
-    return getStarAltAzPos(star, loc, jd + df, pos, leap_secs, ut1_utc_diff);
+    return getStarAltAzPos(star, loc, jdt, pos, leap_secs, ut1_utc_diff);
 }
 
 int makeCatEntry(const types::Star &star, cat_entry &entry)

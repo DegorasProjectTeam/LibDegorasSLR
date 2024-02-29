@@ -204,9 +204,7 @@ public:
         // utilizar el nuevo datetime.
 
         // Datetime members.
-        MJDate mjd;              ///< Modified Julian Date in days.
-        SoD sod;                 ///< Second of day in that Modified Julian Date.
-        MJDateTime mjdt;         ///< Modified Julian DateTime (day & fraction).
+        MJDateTime mjdt;         ///< Modified Julian DateTime.
 
         // Result members.
         Optional<PredictorSLR::SLRPrediction> slr_pred;  ///< Optional SLR prediction with the object pass position.
@@ -238,10 +236,8 @@ public:
         // Datos de tiempo
 
         // Basic data.
-        MJDate mjd_start;
-        SoD sod_start;
-        MJDate mjd_end;
-        SoD sod_end;
+        MJDateTime mjdt_start;
+        MJDateTime mjdt_end;
         MillisecondsU time_delta;  ///< Time delta fo calculations in milliseconds.
         DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
         DegreesU min_elev;         ///< Configured minimum elevation (degrees).
@@ -265,10 +261,8 @@ public:
         {}
 
         // Time data.
-        MJDate mjd_start;
-        SoD sod_start;
-        MJDate mjd_end;
-        SoD sod_end;
+        MJDateTime mjdt_start;
+        MJDateTime mjdt_end;
 
         // Position data.
         AltAzPos start_coord;    ///< Track start altazimuth coordinates.
@@ -321,7 +315,7 @@ public:
 
     // Predictor tendria que recibir PredictorSLR, PredictorSun (virtual), TrackAnalizerConfig, MJDatetime start y end.
 
-    PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end, SoD sod_end,
+    PredictorMountSLR(PredictorSLR&& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
@@ -344,18 +338,17 @@ public:
     /**
      * @brief If this traking is valid, you can get the tracking start with this function. This start time
      * could be different from the start time of the space object pass.
-     * @param mjd, the MJ date in days for the tracking start.
-     * @param sod, the second of day for the tracking start.
+     * @param mjd, the MJ datetime in days for the tracking start.
      */
-    void getTrackingStart(MJDate &mjd, SoD& sod) const;
+    void getTrackingStart(MJDateTime &mjdt) const;
 
     /**
      * @brief If this tracking is valid, you can get the tracking end with this function. This end time
      * could be different from the end time of the space object pass.
-     * @param mjd, the MJ date in days for the tracking end.
+     * @param mjd, the MJ datetime in days for the tracking end.
      * @param sod, the second of day for the tracking end.
      */
-    void getTrackingEnd(MJDate &mjd, SoD& sod) const;
+    void getTrackingEnd(MJDateTime &mjdt) const;
 
     /**
      * @brief This function returns an interator to the first valid position in tracking.
@@ -407,11 +400,10 @@ public:
     /**
      * @brief This function returns the object's position at a given time.
      * @param mjd, the MJD in days.
-     * @param sod, the second of day in seconds.
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(MJDate mjd, SoD sod, MountSLRPrediction &tracking_result);
+    PositionStatus predict(const MJDateTime &mjd, MountSLRPrediction &tracking_result);
 
 private:
 

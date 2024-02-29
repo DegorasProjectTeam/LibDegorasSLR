@@ -53,7 +53,7 @@ using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPointL;
 using dpslr::utils::PredictorSLR;
 using dpslr::mount::PredictorMountSLR;
-using dpslr::timing::MJDate;
+using dpslr::timing::MJDateTime;
 using dpslr::timing::SoD;
 using dpslr::math::units::Angle;
 using dpslr::math::units::DegreesU;
@@ -71,10 +71,8 @@ struct ExampleData
 {
     std::string example_alias;
     std::string cpf_name;
-    MJDate mjd_start;
-    SoD sod_start;
-    MJDate mjd_end;
-    SoD sod_end;
+    MJDateTime mjdt_start;
+    MJDateTime mjdt_end;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -115,13 +113,13 @@ int main()
     std::vector<ExampleData> examples =
         {
             // Example 0: Lares with Sun at beginning.
-            {"Lares_SunBeg", "38077_cpf_240128_02901.sgf", 60340, 56726, 60340, 57756},
+            {"Lares_SunBeg", "38077_cpf_240128_02901.sgf", 60340.65655L, 60340.668472L},
             // Example 1: Jason 3 with Sun in the middle. Trespasses North cw.
-            {"Jason3_SunMid", "41240_cpf_240128_02801.hts", 60340, 42140, 60340, 43150},
+            {"Jason3_SunMid", "41240_cpf_240128_02801.hts", 60340.48773L, 60340.499421L},
             // Example 2: Explorer 27 with Sun in the end.
-            {"Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", 60340, 30687, 60340, 31467},
+            {"Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", 60340.3551736L, 60340.364201L},
             // Example 3: Jason 3 with no sun. Trespasses North ccw.
-            {"Jason3_NoSun", "41240_cpf_240128_02801.hts", 60340, 35250, 60340, 36060},
+            {"Jason3_NoSun", "41240_cpf_240128_02801.hts", 60340.407986L, 60340.41736L},
         };
 
     // Configure the CPF input folder.
@@ -135,10 +133,8 @@ int main()
 
     // Store the example data.
     std::string cpf_path = input_dir + "/" + examples[example_selector].cpf_name;
-    MJDate mjd_start = examples[example_selector].mjd_start;
-    SoD sod_start = examples[example_selector].sod_start;
-    MJDate mjd_end = examples[example_selector].mjd_end;
-    SoD sod_end = examples[example_selector].sod_end;
+    MJDateTime mjd_start = examples[example_selector].mjdt_start;
+    MJDateTime mjd_end = examples[example_selector].mjdt_end;
     std::string example_alias = examples[example_selector].example_alias;
     std::string track_csv_filename = example_alias + "_track.csv";
 
@@ -181,7 +177,7 @@ int main()
 
     // Configure the SLR predictor_mount. The class will process the pass automatically and will
     // generate a preview mount track in the steps indicated by step_ms.
-    PredictorMountSLR predictor_mount(std::move(predictor_slr), mjd_start, sod_start, mjd_end, sod_end,
+    PredictorMountSLR predictor_mount(std::move(predictor_slr), mjd_start, mjd_end,
                                       step, min_el, max_el , sun_avoid_angle, avoid_sun);
 
     // Check if the tracking is valid.
@@ -195,8 +191,8 @@ int main()
 
     // Get the new tracking start and end date. If there is sun overlapping at start or end, the affected date
     // is changed so the tracking will start or end after/before the sun security sector.
-    predictor_mount.getTrackingStart(mjd_start, sod_start);
-    predictor_mount.getTrackingEnd(mjd_end, sod_end);
+    predictor_mount.getTrackingStart(mjd_start);
+    predictor_mount.getTrackingEnd(mjd_end);
 
     // Get the analyzed mount track with all the relevant data. You can use this data for example to print
     // a polar plot with the space object pass, the mount track and the Sun position. In the example folder,
@@ -267,7 +263,7 @@ int main()
         //
         // Store the data.
         file_analyzed_track <<'\n';
-        file_analyzed_track << std::to_string(pred.mjd) <<";" << std::to_string(pred.sod) <<";";
+        file_analyzed_track << std::to_string(pred.mjdt.datetime()) <<";";
         file_analyzed_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.az, 7, 4) <<";";
         file_analyzed_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.el, 7, 4) <<";";
         file_analyzed_track << track_az <<";";
@@ -290,24 +286,23 @@ int main()
 
     // -------------------- NOW LET'S START CALCULATING PREDICTIONS ----------------------------------------------------
 
-    predictor_mount.getTrackingStart(mjd_start, sod_start);
-    predictor_mount.getTrackingEnd(mjd_end, sod_end);
+    predictor_mount.getTrackingStart(mjd_start);
+    predictor_mount.getTrackingEnd(mjd_end);
 
     // Real time.
 
     // Now, we have the tracking configured, so we can ask the tracking to predict any position within the valid
     // tracking time window (determined by tracking start and tracking end). For the example, we will ask
     // predictions from start to end with a step of 0.5 s.
-    MJDate mjd = mjd_start;
-    SoD sod = sod_start;
+    MJDateTime mjd = mjd_start;
     PredictorMountSLR::MountSLRPredictions results;
 
-    while (mjd < mjd_end || sod < sod_end)
+    while (mjd < mjd_end)
     {
 
         // Store the resulting prediction
         results.push_back({});
-        auto status = predictor_mount.predict(mjd, sod, results.back());
+        auto status = predictor_mount.predict(mjd, results.back());
 
         if (status == PredictorMountSLR::PositionStatus::INSIDE_SUN)
         {
@@ -335,12 +330,7 @@ int main()
         }
 
         // Advance to next position
-        sod += 0.5L;
-        if (sod > 86400.L)
-        {
-            sod -= 86400.L;
-            mjd++;
-        }
+        mjd.add(0.5L);
     }
 
     // We will store the positions in a file. This could be used for graphical representation.

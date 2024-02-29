@@ -56,18 +56,16 @@ using namespace dpslr::timing::types;
 using namespace dpslr::astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDate mjd_start, SoD sod_start, MJDate mjd_end,
-                                     SoD sod_end, MillisecondsU time_delta, DegreesU min_elev,
+PredictorMountSLR::PredictorMountSLR(PredictorSLR&& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
+                                     MillisecondsU time_delta, DegreesU min_elev,
                                      DegreesU max_elev, DegreesU sun_avoid_angle, bool sun_avoid) :
     predictor_(std::move(predictor)),
     sun_predictor_(this->predictor_.getGeodeticLocation()),
     mount_track_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
 {
     // Store the configuration data.
-    this->mount_track_.config.mjd_start = mjd_start;
-    this->mount_track_.config.sod_start = sod_start;
-    this->mount_track_.config.mjd_end = mjd_end;
-    this->mount_track_.config.sod_end = sod_end;
+    this->mount_track_.config.mjdt_start = mjdt_start;
+    this->mount_track_.config.mjdt_end = mjdt_end;
     this->mount_track_.config.min_elev = min_elev;
     this->mount_track_.config.max_elev = max_elev;
     this->mount_track_.config.time_delta = time_delta;
@@ -116,13 +114,13 @@ const PredictorMountSLR::MountTrackSLR& PredictorMountSLR::getMountTrack() const
 
 
 
-void PredictorMountSLR::getTrackingStart(MJDate &mjd, SoD &sod) const
+void PredictorMountSLR::getTrackingStart(MJDateTime &mjdt) const
 {
     //mjd = this->mount_track_.cfg_mjd_start;
     //sod = this->mount_track_.cfg_sod_start;
 }
 
-void PredictorMountSLR::getTrackingEnd(MJDate &mjd, SoD &sod) const
+void PredictorMountSLR::getTrackingEnd(MJDateTime &mjdt) const
 {
    // mjd = this->mount_track_.mjd_end;
     //sod = this->mount_track_.sod_end;
@@ -141,14 +139,11 @@ PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTra
 PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
                                                  MountSLRPrediction &tracking_result)
 {
-    MJDate mjd;
-    SoD sod;
-    timing::timePointToModifiedJulianDate(tp_time, mjd, sod);
-    return predict(mjd, sod, tracking_result);
+    MJDateTime mjdt = timing::timePointToModifiedJulianDatetime(tp_time);
+    return predict(mjdt, tracking_result);
 }
 
-PredictorMountSLR::PositionStatus PredictorMountSLR::predict(MJDate mjd, SoD sod,
-                                                 MountSLRPrediction &tracking_result)
+PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountSLRPrediction &tracking_result)
 {
     /*
     // Update the times.
@@ -275,10 +270,8 @@ void PredictorMountSLR::analyzeTracking()
     // --------------------------------------------------------------
     // TODO MOVE TO PASS GENERATOR
     // Parallel calculation of all SLR positions.
-    results_slr = this->predictor_.predict(this->mount_track_.config.mjd_start,
-                                           this->mount_track_.config.sod_start,
-                                           this->mount_track_.config.mjd_end,
-                                           this->mount_track_.config.sod_end,
+    results_slr = this->predictor_.predict(this->mount_track_.config.mjdt_start,
+                                           this->mount_track_.config.mjdt_end,
                                            step_ms);
 
     // Check if we have prediction results.
@@ -301,20 +294,16 @@ void PredictorMountSLR::analyzeTracking()
 
     // TODO
     // COPIAR INFO DEL PASE AL TRACK. AHORA LO HACEMOS A MANO.
-    this->mount_track_.track_info.mjd_start = this->mount_track_.config.mjd_start;
-    this->mount_track_.track_info.sod_start = this->mount_track_.config.sod_start;
-    this->mount_track_.track_info.mjd_end = this->mount_track_.config.mjd_end;
-    this->mount_track_.track_info.sod_end = this->mount_track_.config.sod_end;
+    this->mount_track_.track_info.mjdt_start = this->mount_track_.config.mjdt_start;
+    this->mount_track_.track_info.mjdt_end = this->mount_track_.config.mjdt_end;
     // TODO MAX EL
     this->mount_track_.track_info.start_coord = results_slr.front().instant_data->altaz_coord;
     this->mount_track_.track_info.end_coord = results_slr.back().instant_data->altaz_coord;
 
     // Time transformations with milliseconds precision.
     // TODO Move to the Sun predictor class.
-    J2000DateTime j2000_start = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.config.mjd_start,
-                                                                          this->mount_track_.config.sod_start);
-    J2000DateTime j2000_end = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.config.mjd_end,
-                                                                        this->mount_track_.config.sod_end);
+    J2000DateTime j2000_start = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.config.mjdt_start);
+    J2000DateTime j2000_end = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.config.mjdt_end);
 
     // Parallel calculation of all Sun positions.
     results_sun = this->sun_predictor_.fastPredict(j2000_start, j2000_end, step_ms);
@@ -324,8 +313,6 @@ void PredictorMountSLR::analyzeTracking()
     for (std::size_t i = 0; i < results_slr.size(); i++)
     {
         MountSLRPrediction tr;
-        tr.mjd = results_slr[i].instant_data->mjd;
-        tr.sod = results_slr[i].instant_data->sod;
         tr.mjdt = results_slr[i].instant_data->mjdt;
         tr.slr_pred = results_slr[i];
         tr.sun_pred = results_sun[i];
@@ -424,8 +411,7 @@ bool PredictorMountSLR::analyzeTrackingStart()
     if (it_pred != this->mount_track_.predictions.begin())
     {
         this->mount_track_.track_info.trim_at_start = true;
-        this->mount_track_.track_info.mjd_start = it_pred->mjd;
-        this->mount_track_.track_info.sod_start = it_pred->sod;
+        this->mount_track_.track_info.mjdt_start = it_pred->mjdt;
     }
 
     // Update the start position and the real track begin iterator.
@@ -509,8 +495,7 @@ bool PredictorMountSLR::analyzeTrackingEnd()
     if (it_pred != this->mount_track_.predictions.rbegin())
     {
         this->mount_track_.track_info.trim_at_end = true;
-        this->mount_track_.track_info.mjd_end = it_pred->mjd;
-        this->mount_track_.track_info.sod_end = it_pred->sod;
+        this->mount_track_.track_info.mjdt_end = it_pred->mjdt;
     }
 
     // Update the end elevation and the real track end iterator.
@@ -528,8 +513,7 @@ bool PredictorMountSLR::analyzeTrackingMiddle()
     bool inside_sun = false;
     bool sun_collision = false;
     SunCollisionSector sun_sector;
-    MJDate max_elev_mjd = 0;
-    SoD max_elev_sod = 0;
+    MJDateTime max_elev_mjdt = 0;
     long double max_elev = -1.0L;
     const long double cfg_max_el = static_cast<long double>(this->mount_track_.config.max_elev);
     const long double sun_avoid_angle = static_cast<long double>(this->mount_track_.config.sun_avoid_angle);
@@ -621,8 +605,7 @@ bool PredictorMountSLR::analyzeTrackingMiddle()
         if (it->mount_pos->altaz_coord.el > max_elev)
         {
             max_elev = it->mount_pos->altaz_coord.el;
-            max_elev_mjd = it->mjd;
-            max_elev_sod = it->sod;
+            max_elev_mjdt = it->mjdt;
         }
 
     }

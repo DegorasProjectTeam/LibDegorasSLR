@@ -114,9 +114,7 @@ struct LIBDPSLR_EXPORT InstantRange
     InstantRange& operator=(InstantRange&&) = default;
 
     // Datetime members.
-    MJDate mjd;                  ///< Modified julian date in days.
-    SoD sod;               ///< Second of day in that MJD (ps precission -> 12 decimals).
-    MJDateTime mjdt;              ///< Modified julian datetime (day & fraction -> 12 decimals).
+    MJDateTime mjdt;        ///< Modified julian datetime.
 
     // Range and time of flight.
     Meters range_1w;        ///< One way range in meters (mm precission -> 3 decimals).
@@ -248,9 +246,7 @@ struct LIBDPSLR_EXPORT InboundData
     InboundData& operator=(InboundData&&) = default;
 
     // Datetime members.
-    MJDate mjd;              ///< Modified julian date in days.
-    SoD sod;                 ///< Second of day in that MJD (ps precission -> 12 decimals).
-    MJDateTime mjdt;         ///< Modified julian datetime (day & fraction -> 12 decimals).
+    MJDateTime mjdt;         ///< Modified julian datetime.
 
     // Range (1 way) and time of flight (2 way).
     Meters range_1w;          ///< One way range in meters (mm precission -> 3 decimals).

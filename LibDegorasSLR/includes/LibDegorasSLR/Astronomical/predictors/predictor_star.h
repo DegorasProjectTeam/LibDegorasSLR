@@ -69,8 +69,8 @@ public:
     struct StarPrediction
     {
         // Containers.
-        timing::types::JDateTime jdt;    ///< Julian datetime used to generate the star prediction data.
-        astro::types::AltAzPosition altaz_coord; ///< Star predicted altazimuth coordinates referenced to an observer (deg)
+        timing::types::JDateTime jdt;       ///< Julian datetime used to generate the star prediction data.
+        astro::types::AltAzPos altaz_coord; ///< Star predicted altazimuth coordinates referenced to an observer (deg)
     };
 
     /// Alias for a vector of SunPrediction.

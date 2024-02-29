@@ -118,21 +118,17 @@ const std::string &CPF::getSourceFilename() const {return this->cpf_filename_;}
 
 const std::string &CPF::getSourceFilepath() const {return this->cpf_fullpath_;}
 
-void CPF::getAvailableTimeWindow(MJDate &mjd_start, SoD &secs_start, MJDate &mjd_end, SoD &secs_end) const
+void CPF::getAvailableTimeWindow(MJDateTime &start, MJDateTime &end) const
 {
     if (this->empty_)
     {
-        mjd_start = 0LL;
-        secs_start = 0.L;
-        mjd_end = 0LL;
-        secs_end = 0.L;
+        start = MJDateTime();
+        end = MJDateTime();
     }
     else
     {
-        mjd_start = this->getData().positionRecords().front().mjd;
-        secs_start = this->getData().positionRecords().front().sod;
-        mjd_end = this->getData().positionRecords().back().mjd;
-        secs_end = this->getData().positionRecords().back().sod;
+        start = MJDateTime(this->getData().positionRecords().front().mjd, this->getData().positionRecords().front().sod);
+        end = MJDateTime(this->getData().positionRecords().back().mjd, this->getData().positionRecords().back().sod);
     }
 }
 
@@ -147,14 +143,16 @@ math::types::Interval<long double> CPF::getAvailableTimeInterval() const
     if (!this->empty_)
     {
         // Get the start time.
-        timing::MJDateTime mjdt_start = timing::modifiedJulianDateToModifiedJulianDatetime(this->getData().positionRecords().front().mjd,
-                                                          this->getData().positionRecords().front().sod);
+        timing::MJDateTime mjdt_start(
+            this->getData().positionRecords().front().mjd,
+            this->getData().positionRecords().front().sod);
         // Get the stop time.
-        timing::MJDateTime mjdt_stop = timing::modifiedJulianDateToModifiedJulianDatetime(this->getData().positionRecords().back().mjd,
-                                                         this->getData().positionRecords().back().sod);
+        timing::MJDateTime mjdt_stop(
+            this->getData().positionRecords().back().mjd,
+            this->getData().positionRecords().back().sod);
         // Update the interval.
-        interval.setMin(mjdt_start);
-        interval.setMax(mjdt_stop);
+        interval.setMin(mjdt_start.datetime());
+        interval.setMax(mjdt_stop.datetime());
     }
     // Return the interval.
     return interval;

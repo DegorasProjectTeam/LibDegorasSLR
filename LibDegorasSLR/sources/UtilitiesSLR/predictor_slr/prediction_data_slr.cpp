@@ -58,9 +58,7 @@ std::string InstantRange::toJsonStr() const
 
     // Generate the data.
     oss << "{";
-    oss << "\"mjd\":" << this->mjd << ",";
-    oss << "\"sod\":" << this->sod << ",";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
     oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
     oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
     oss << "\"geo_pos\":" << this->geo_pos.toJsonStr();
@@ -77,9 +75,7 @@ std::string InstantData::toJsonStr() const
 
     // Generate the data.
     oss << "{";
-    oss << "\"mjd\":" << this->mjd << ",";
-    oss << "\"sod\":" << this->sod << ",";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
     oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
     oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
     oss << "\"geo_pos\":" << this->geo_pos.toJsonStr() << ",";
@@ -99,9 +95,7 @@ std::string InboundData::toJsonStr() const
 
     // Generate the data.
     oss << "{";
-    oss << "\"mjd\":" << this->mjd << ",";
-    oss << "\"sod\":" << this->sod << ",";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt) << ",";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
     oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
     oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12);
     oss << "}";
