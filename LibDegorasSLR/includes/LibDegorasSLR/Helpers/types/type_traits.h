@@ -43,6 +43,7 @@
 #include <type_traits>
 #include <vector>
 #include <array>
+#include <sstream>
 // =====================================================================================================================
 
 // DPSLR NAMESPACES

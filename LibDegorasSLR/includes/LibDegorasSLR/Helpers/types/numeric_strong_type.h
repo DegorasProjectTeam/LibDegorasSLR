@@ -41,6 +41,7 @@
 // =====================================================================================================================
 #include <algorithm>
 #include <type_traits>
+#include <limits>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
@@ -188,13 +189,13 @@ template<typename T, class Tag>
 class numeric_limits<dpslr::helpers::types::NumericStrongType<T, Tag>>
 {
 public:
-    static constexpr bool is_specialized = numeric_limits<T>::is_specialized;
+    static constexpr bool is_specialized = std::numeric_limits<T>::is_specialized;
 
     static constexpr auto max_digits10 = std::numeric_limits<T>::max_digits10;
     static constexpr auto digits10 = std::numeric_limits<T>::digits10;
-    static constexpr T min() noexcept { return numeric_limits<T>::min(); }
-    static constexpr T max() noexcept { return numeric_limits<T>::max(); }
-    static constexpr T epsilon() noexcept { return numeric_limits<T>::epsilon(); }
+    static constexpr T min() noexcept { return std::numeric_limits<T>::min(); }
+    static constexpr T max() noexcept { return std::numeric_limits<T>::max(); }
+    static constexpr T epsilon() noexcept { return std::numeric_limits<T>::epsilon(); }
 };
 
 }

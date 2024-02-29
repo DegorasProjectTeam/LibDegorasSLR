@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -26,6 +30,7 @@
 #pragma once
 // =====================================================================================================================
 
+// EXPORT
 // =====================================================================================================================
 #if ((defined __WIN32__) || (defined _WIN32)) && (!defined LIBDEGORASSLR_STATIC)
     #ifdef LIBDEGORASSLR_LIBRARY
@@ -36,5 +41,14 @@
 #else
     /* Static libraries or non-Windows needs no special declaration. */
     # define LIBDPSLR_EXPORT
+#endif
+// =====================================================================================================================
+
+// DEFINITIONS
+// =====================================================================================================================
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#define MKGMTIME _mkgmtime
+#else
+#define MKGMTIME timegm
 #endif
 // =====================================================================================================================

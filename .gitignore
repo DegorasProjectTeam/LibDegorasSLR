@@ -3,6 +3,10 @@
 *product*/
 *todo*/
 
+# Temporal
+*.TMP
+*.tmp
+
 # Python
 *.idea
 
