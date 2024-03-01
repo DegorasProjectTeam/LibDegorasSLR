@@ -77,6 +77,13 @@ struct LIBDPSLR_EXPORT GeocentricPoint
         x(v.getX()), y(v.getY()), z(v.getZ())
     {}
 
+    GeocentricPoint(const GeocentricPoint&) = default;
+    GeocentricPoint(GeocentricPoint&&) = default;
+
+    GeocentricPoint& operator=(const GeocentricPoint&) = default;
+    GeocentricPoint& operator=(GeocentricPoint&&) = default;
+
+
     Vector3D<Meters> toVector3D() const {return Vector3D<Meters>(x,y,z);}
 
     std::vector<Meters> toStdVector() const {return this->toVector3D().toVector();}

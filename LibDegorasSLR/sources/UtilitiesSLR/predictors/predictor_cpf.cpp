@@ -27,16 +27,15 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file cpf_interpolator.cpp
+ * @file predictor_cpf.cpp
  * @author Degoras Project Team.
- * @brief This file contains the implementation of the class CPFInterpolator.
+ * @brief This file contains the implementation of the class PredictorCPF.
  * @copyright EUPL License
  * @version 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <sstream>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
@@ -44,11 +43,9 @@
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_cpf.h"
 #include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
-#include "LibDegorasSLR/Statistics/fitting.h"
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
+#include "LibDegorasSLR/Statistics/fitting.h"
 #include "LibDegorasSLR/Astronomical/astro_constants.h"
-#include "LibDegorasSLR/Geophysics/tropo.h"
-#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -63,6 +60,7 @@ using namespace helpers::strings;
 using namespace math;
 using namespace math::units;
 using namespace math::types;
+using stats::lagrangeInterpol3DVec;
 // ---------------------------------------------------------------------------------------------------------------------
 
 const std::array<std::string, 10> PredictorCPF::PredictorErrorStr =
@@ -79,101 +77,19 @@ const std::array<std::string, 10> PredictorCPF::PredictorErrorStr =
     "Other error"
 };
 
-std::string PredictorCPF::SLRPrediction::toJsonStr() const
+
+
+PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
+    PredictorSLR(geod, geoc)
 {
-    // Result
-    std::ostringstream oss;
-    oss << "{";
-
-    // InstantRange
-    oss << "\"instant_range\":" << instant_range.toJsonStr() << ",";
-
-    // InstantData.
-    oss << "\"instant_data\":" << (this->instant_data.has_value() ? this->instant_data->toJsonStr() : "null") << ",";
-
-    // OutboundData.
-    oss << "\"outbound_data\":"<<(this->outbound_data.has_value() ? this->outbound_data->toJsonStr() : "null")<<",";
-
-    // InboundData.
-    oss << "\"inbound_data\":"<<(this->inbound_data.has_value() ? this->inbound_data->toJsonStr() : "null")<<",";
-
-    // Difference between receive and transmit direction at instant time.
-    oss << "\"diff_az\":";
-    oss << (this->diff_az.has_value() ? numberToStr(this->diff_az.value(), 4, 4) : "null") << ",";
-    oss << "\"diff_el\":";
-    oss << (this->diff_el.has_value() ? numberToStr(this->diff_el.value(), 4, 4) : "null") << ",";
-
-    // Corrections applied.
-    oss << "\"objc_ecc_corr\":";
-    oss <<(this->objc_ecc_corr.has_value() ? std::to_string(this->objc_ecc_corr.value()) : "null") << ",";
-    oss << "\"grnd_ecc_corr\":";
-    oss <<(this->grnd_ecc_corr.has_value() ? std::to_string(this->grnd_ecc_corr.value()) : "null") << ",";
-    oss << "\"cali_del_corr\":";
-    oss <<(this->cali_del_corr.has_value() ? std::to_string(this->cali_del_corr.value()) : "null") << ",";
-    oss << "\"corr_tropo\":";
-    oss <<(this->corr_tropo.has_value() ? std::to_string(this->corr_tropo.value()) : "null") << ",";
-    oss << "\"syst_rnd_corr\":";
-    oss <<(this->syst_rnd_corr.has_value() ? std::to_string(this->syst_rnd_corr.value()) : "null");
-
-    // End.
-    oss << "}";
-
-    // Return the JSON str.
-    return oss.str();
-}
-
-PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<long double> &geod,
-                           const GeocentricPoint &geoc) :
-    interpol_function_(InterpolFunction::LAGRANGE_16),
-    tropo_model_(TroposphericModel::MARINI_MURRAY),
-    prediction_mode_(PredictionMode::OUTBOUND_VECTOR),
-    objc_ecc_corr_(0.0L),
-    grnd_ecc_corr_(0.0L),
-    syst_rnd_corr_(0.0L),
-    cali_del_corr_(0.0L),
-    apply_corr_(false),
-    press_(0.0L),
-    temp_(0.0L),
-    rel_hum_(0.0L),
-    wl_(0.0L),
-    wtrvap_model_(WtrVapPressModel::GIACOMO_DAVIS),
-    tropo_ready_(false),
-    stat_geodetic_(geod),
-    stat_geocentric_(geoc.toVector3D())
-{
-    // Check if the cpf is empty.
-    if (!cpf.hasData())
-        return;
-
-    // Store latitude and longitude in radians.
-    this->stat_geodetic_.convert(math::units::Angle<long double>::Unit::RADIANS,
-                                math::units::Distance<long double>::Unit::METRES);
-
-    // Set the cpf.
-    this->setCPF(cpf);
+    // If CPF has data, then set it for prediction.
+    if (cpf.hasData())
+        this->setCPF(cpf);
 }
 
 PredictorCPF::PredictorCPF(const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
-    interpol_function_(InterpolFunction::LAGRANGE_16),
-    tropo_model_(TroposphericModel::MARINI_MURRAY),
-    prediction_mode_(PredictionMode::OUTBOUND_VECTOR),
-    objc_ecc_corr_(0.0L),
-    grnd_ecc_corr_(0.0L),
-    syst_rnd_corr_(0.0L),
-    cali_del_corr_(0.0L),
-    apply_corr_(false),
-    press_(0.0L),
-    temp_(0.0L),
-    rel_hum_(0.0L),
-    wl_(0.0L),
-    wtrvap_model_(WtrVapPressModel::GIACOMO_DAVIS),
-    tropo_ready_(false),
-    stat_geodetic_(geod),
-    stat_geocentric_(geoc.toVector3D())
+    PredictorSLR(geod, geoc)
 {
-    // Store latitude and longitude in radians.
-    this->stat_geodetic_.convert(math::units::Angle<long double>::Unit::RADIANS,
-                                 math::units::Distance<long double>::Unit::METRES);
 }
 
 bool PredictorCPF::setCPF(const CPF& cpf)
@@ -194,8 +110,8 @@ bool PredictorCPF::setCPF(const CPF& cpf)
     // Auxiliar variables.
     MJDate mjd_start = this->cpf_.getData().positionRecords().front().mjd;
     SoD sod_start = this->cpf_.getData().positionRecords().front().sod;
-    long double s_lon = this->stat_geodetic_.lon;
-    long double s_lat = this->stat_geodetic_.lat;
+    long double s_lon = this->getGeodeticLocation().lon;
+    long double s_lat = this->getGeodeticLocation().lat;
 
     // Rotation matrices.
     Matrix<long double> rot_long, rot_lat, rot_long_pi;
@@ -224,65 +140,10 @@ bool PredictorCPF::setCPF(const CPF& cpf)
 
 const CPF& PredictorCPF::getCPF() const {return this->cpf_;}
 
-void PredictorCPF::setPredictionMode(PredictionMode mode){this->prediction_mode_ = mode;}
-
-void PredictorCPF::setTropoModel(TroposphericModel model){this->tropo_model_ = model;}
-
-void PredictorCPF::setInterpolFunction(InterpolFunction func){this->interpol_function_ = func;}
-
-void PredictorCPF::enableCorrections(bool enable){this->apply_corr_ = enable;}
-
-void PredictorCPF::setObjEccentricityCorr(Meters correction){this->objc_ecc_corr_ = correction;}
-
-void PredictorCPF::setCaliDelayCorr(Picoseconds correction){this->cali_del_corr_ =correction;}
-
-void PredictorCPF::setSystematicCorr(Meters correction){this->syst_rnd_corr_ = correction;}
-
-void PredictorCPF::setTropoCorrParams(long double press, long double temp, long double rh,
-                                      long double wl, WtrVapPressModel wvpm)
-{
-    this->press_ = press;
-    this->temp_ = temp;
-    this->rel_hum_ = rh;
-    this->wl_ = wl;
-    this->wtrvap_model_ = wvpm;
-    this->tropo_ready_ = true;
-}
-
-void PredictorCPF::unsetTropoCorrParams()
-{
-    this->press_ = 0;
-    this->temp_ = 0;
-    this->rel_hum_ = 0;
-    this->wl_ = 0;
-    this->tropo_ready_ = false;
-}
-
-const GeodeticPoint<long double>& PredictorCPF::getGeodeticLocation() const{return this->stat_geodetic_;}
-
-GeocentricPoint PredictorCPF::getGeocentricLocation() const
-{
-    return GeocentricPoint(this->stat_geocentric_.store());
-}
-
 bool PredictorCPF::isReady() const {return !this->pos_times_.empty(); }
 
-bool PredictorCPF::isInsideTimeWindow(MJDateTime start, MJDateTime end) const
-{
 
-    // Auxiliar.
-    MJDateTime predict_mjd_start, predict_mjd_end;
-
-    // Get the predict time window.
-    this->getTimeWindow(predict_mjd_start, predict_mjd_end);
-
-    // Check if requested window is inside predict time window
-    return start >= predict_mjd_start && end <= predict_mjd_end;
-}
-
-
-
-PredictorCPF::PredictionError PredictorCPF::predict(MJDateTime mjdt, SLRPrediction& result) const
+int PredictorCPF::predict(MJDateTime mjdt, SLRPrediction& result) const
 {
 
  /*
@@ -377,8 +238,8 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // Interpolation is not possible if there are no position records
     if (this->pos_times_.empty())
     {
-        result.error = PredictionError::NO_POS_RECORDS;
-        return PredictionError::NO_POS_RECORDS;
+        result.error = static_cast<int>(PredictorCPF::PredictionError::NO_POS_RECORDS);
+        return result.error;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -421,7 +282,6 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     Degrees el_outbound, az_outbound;  // Elevation and azimuth for the outbound vector (degrees).
 
     // Other auxiliar variables.
-    PredictionError error;     // Auxiliar error variable.
     Degrees diff_az, diff_el;  // Azimuth and elevation difference between the outbound and instant vectors (degrees).
     Meters prov_range_1w;      // Provisional range variable which will be updated during calculations (meters, 1 way).
     Seconds aux_tof_1w;        // Auxiliar time of flight value (seconds, 1 way).
@@ -436,7 +296,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // ONLY INSTANT RANGE MODE -----------------------------------------------------------------------------------------
 
     // Default error value (no error).
-    result.error = PredictionError::NO_ERROR;
+    result.error = static_cast<int>(PredictionError::NO_ERROR);
 
     // Generate the relative times.
     long long day_relative = mjdt.date() - this->cpf_.getData().positionRecords().front().mjd;
@@ -445,19 +305,19 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // Check if the interpolation times are valid in the cpf data interval.
     if((x_instant - kTMargin)   < 0 || (x_instant + kTMargin) > this->pos_times_.back())
     {
-        result.error = PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS;
-        return PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS;
+        result.error = static_cast<int>(PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS);
+        return result.error;
     }
 
     // Call to the interpolator and get the y_instant position vector.
-    error = this->callToInterpol(x_instant, y_instant, result);
+    this->callInterp(x_instant, y_instant, result);
 
     // Check the interpolator error.
-    if(error != PredictionError::NO_ERROR)
-        return error;
+    if(result.error != static_cast<int>(PredictionError::NO_ERROR))
+        return result.error;
 
     // Form the topocentric position vector (station to object) at instant time.
-    topo_s_o_instant = y_instant - this->stat_geocentric_.toVector3D();
+    topo_s_o_instant = y_instant - this->getGeocentricLocation().toVector3D();
 
     // Instant range from station to object at instant time.
     range_1w_instant = topo_s_o_instant.magnitude();
@@ -480,8 +340,8 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // <PredictionResult> the range include the eccentricity corrections and the systematic errors.
 
     // If the mode is only instant range, return here.
-    if (this->prediction_mode_ == PredictionMode::ONLY_INSTANT_RANGE)
-        return PredictionError::NO_ERROR;
+    if (this->getPredictionMode() == PredictionMode::ONLY_INSTANT_RANGE)
+        return result.error;
 
     // INSTANT VECTOR MODE ---------------------------------------------------------------------------------------------
 
@@ -521,8 +381,8 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.instant_data.value().tof_2w = 2*result.instant_data.value().range_1w/kC;
 
     // If the mode is only instant vector, return here.
-    if (this->prediction_mode_ == PredictionMode::INSTANT_VECTOR)
-        return PredictionError::NO_ERROR;
+    if (this->getPredictionMode() == PredictionMode::INSTANT_VECTOR)
+        return result.error;
 
     // WARNING: At this point, <range_1w_instant> include the system delay correction and the tropospheric path delay
     // correction, but the <PredictionResult> container include the eccentricity corrections and the systematic errors.
@@ -542,7 +402,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     aux_tof_1w = range_1w_instant/kC;
 
     // Prepare the matrix to rotate the ECEF coordinate system (with the rotation of the Earth).
-    rotatedm_earth.pushBackRow(this->stat_geocentric_.toStdVector());
+    rotatedm_earth.pushBackRow(this->getGeocentricLocation().toStdVector());
 
     // Rotate the coordinate system for laser pulse two-way trip (2 iteration). Remember that this is
     // due to the fact that the light becomes detached from the reference system during its trip.
@@ -552,11 +412,11 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         x_bounce = x_instant + aux_tof_1w;
 
         // Interpolate geocentric position of the object at bounce time.
-        error = this->callToInterpol(x_bounce, y_outbound, result);
+        this->callInterp(x_bounce, y_outbound, result);
 
         // Check the interpolator error.
-        if(error != PredictionError::NO_ERROR)
-            return error;
+        if(result.error != static_cast<int>(PredictionError::NO_ERROR))
+            return result.error;
 
         // Topocentric outbound vector
         topo_s_o_outbound = y_outbound - Vector3D<Meters>::fromVector(rotatedm_earth.getRow(0));
@@ -608,7 +468,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     diff_el = 2*(el_instant-el_outbound);
 
     // Calculates the average distance from station to object at bounce time (good approximation).
-    range_1w_average = (y_outbound-this->stat_geocentric_.toVector3D()).magnitude();
+    range_1w_average = (y_outbound-this->getGeocentricLocation().toVector3D()).magnitude();
 
     // WARNING: The change of the elevation and azimuth are minimal, so isn't neccesary recalculate the tropospheric
     // path delay correction. In addition, in other ILRS algorithms such as the one for NP formation and analysis,
@@ -632,11 +492,12 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
 
     // If the mode is only outbound vector, return here.
-    if (this->prediction_mode_ == PredictionMode::OUTBOUND_VECTOR)
-        return PredictionError::NO_ERROR;
+    if (this->getPredictionMode() == PredictionMode::OUTBOUND_VECTOR)
+        return result.error;
 
     // Return here if inbound is selected (TODO).
-    return PredictionError::OTHER_ERROR;
+    result.error = static_cast<int>(PredictionError::OTHER_ERROR);
+    return result.error;
 
     // INBOUND VECTOR MODE ---------------------------------------------------------------------------------------------
 
@@ -673,9 +534,9 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     } */
 }
 
-PredictorCPF::SLRPredictions PredictorCPF::predict(MJDateTime mjdt_start,
-                                                   MJDateTime mjdt_end,
-                                                   unsigned step_ms) const
+SLRPredictions PredictorCPF::predict(MJDateTime mjdt_start,
+                                     MJDateTime mjdt_end,
+                                     unsigned step_ms) const
 {
     // Container and auxiliar.
     MJDateTimeV interp_times;
@@ -684,7 +545,7 @@ PredictorCPF::SLRPredictions PredictorCPF::predict(MJDateTime mjdt_start,
 
     // Check interval.
     if(!this->isReady() || !isInsideTimeWindow(mjdt_start, mjdt_end))
-        return PredictorCPF::SLRPredictions();
+        return SLRPredictions();
 
     // Calculates all the interpolation times.
     while(mjdt_current < mjdt_end)
@@ -694,7 +555,7 @@ PredictorCPF::SLRPredictions PredictorCPF::predict(MJDateTime mjdt_start,
     }
 
     // Results container.
-    PredictorCPF::SLRPredictions results(interp_times.size());
+    SLRPredictions results(interp_times.size());
 
     // Parallel calculation.
     #pragma omp parallel for
@@ -707,10 +568,6 @@ PredictorCPF::SLRPredictions PredictorCPF::predict(MJDateTime mjdt_start,
     return results;
 }
 
-
-
-
-
 void PredictorCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
 {
     if (this->isReady())
@@ -719,81 +576,38 @@ void PredictorCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
     }
 }
 
-Meters PredictorCPF::applyCorrections(Meters& range, SLRPrediction& result, bool cali, Degrees el) const
+std::string PredictorCPF::getErrorMsg(int error_code) const
 {
-    // Auxiliar provisional range.
-    Meters provisional_range = range;
+    std::string result;
+    if (error_code >= 0 && error_code < PredictorCPF::PredictorErrorStr.size())
+        result = PredictorCPF::PredictorErrorStr[error_code];
+    return result;
+}
 
-    // Include the half of the system delay to the range. This will be permanent for the rest of computations.
-    if(math::compareFloating(this->cali_del_corr_, Picoseconds(0.0L)) && cali)
-    {
-        range += 0.5L*this->cali_del_corr_*kC*kPsToSec;
-        result.cali_del_corr = this->cali_del_corr_;
-        provisional_range = range;
-    }
+void PredictorCPF::setInterpFunction(InterpFunction intp_funct)
+{
+    this->interp_funct_ = intp_funct;
+}
 
-    // Include the object eccentricity correction.
-    if(math::compareFloating(this->objc_ecc_corr_, Meters(0.0L)))
-    {
-        provisional_range = provisional_range - this->objc_ecc_corr_;
-        result.objc_ecc_corr = this->objc_ecc_corr_;
-    }
-
-    // Include the ground eccentricity correction.
-    if(math::compareFloating(this->grnd_ecc_corr_, Meters(0.0L)))
-    {
-        provisional_range = provisional_range + this->grnd_ecc_corr_;
-        result.grnd_ecc_corr = this->grnd_ecc_corr_;
-    }
-
-    // Include the systematic and random errors.
-    if(math::compareFloating(this->syst_rnd_corr_, Meters(0.0L)))
-    {
-        provisional_range = provisional_range + this->syst_rnd_corr_;
-        result.syst_rnd_corr = this->syst_rnd_corr_;
-    }
-
-    // Compute and include the tropospheric path delay.
-    if(math::compareFloating(el, Degrees(0.0L)))
-    {
-        if(this->tropo_model_ == PredictorCPF::TroposphericModel::MARINI_MURRAY)
-        {
-            // Get the elevation in radians.
-            long double el_instant_rad = math::units::degToRad(el);
-
-            // Calculate the tropospheric path delay (1 way).
-            range += geo::tropo::pathDelayMariniMurray(this->press_, this->temp_, this->rel_hum_, el_instant_rad,
-                                                       this->wl_, this->stat_geodetic_.lat, this->stat_geodetic_.alt,
-                                                       this->wtrvap_model_);
-            // Store the range.
-            provisional_range = range;
-        }
-        else
-        {
-            throw std::runtime_error(
-                "[LibDegorasSLR,UtilitiesSLR,PredictorSLR, predict] Tropospheric model not implemented.");
-        }
-    }
-
-    // Return the new range with the corrections.
-    return provisional_range;
+PredictorCPF::InterpFunction PredictorCPF::getInterpFunction() const
+{
+    return this->interp_funct_;
 }
 
 
-PredictorCPF::PredictionError PredictorCPF::callToInterpol(const Seconds& x, Vector3D<Meters> &y,
-                                                           SLRPrediction &result) const
+void PredictorCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, SLRPrediction &result) const
 {
     // Auxiliar error container.
     PredictorCPF::PredictionError error = PredictorCPF::PredictionError::UNKNOWN_INTERPOLATOR;
-    result.error = error;
+    result.error = static_cast<int>(error);
 
     // Lagrange related interpolators.
-    if(this->interpol_function_ == PredictorCPF::InterpolFunction::LAGRANGE_9 ||
-        this->interpol_function_ == PredictorCPF::InterpolFunction::LAGRANGE_16 )
+    if(this->interp_funct_ == PredictorCPF::InterpFunction::LAGRANGE_9 ||
+        this->interp_funct_ == PredictorCPF::InterpFunction::LAGRANGE_16 )
     {
         unsigned deg = kPolLagDeg9;
 
-        if(this->interpol_function_ == PredictorCPF::InterpolFunction::LAGRANGE_16)
+        if(this->interp_funct_ == PredictorCPF::InterpFunction::LAGRANGE_16)
             deg = kPolLagDeg16;
 
         // Result of the interpolation.
@@ -804,13 +618,10 @@ PredictorCPF::PredictionError PredictorCPF::callToInterpol(const Seconds& x, Vec
 
         // Convert the error code.
         error = PredictorCPF::convertLagInterpError(lag_res);
-        result.error = error;
+        result.error = static_cast<int>(error);
     }
 
     // TODO Other interpolators.
-
-    // Return the error.
-    return error;
 }
 
 PredictorCPF::PredictionError PredictorCPF::convertLagInterpError(stats::types::LagrangeError error)

@@ -110,5 +110,48 @@ std::string InboundData::toJsonStr() const
 
 InstantData::InstantData(InstantRange &&instant_range) : InstantRange(std::move(instant_range)){}
 
+std::string SLRPrediction::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
+    oss << "{";
+
+    // InstantRange
+    oss << "\"instant_range\":" << instant_range.toJsonStr() << ",";
+
+    // InstantData.
+    oss << "\"instant_data\":" << (this->instant_data.has_value() ? this->instant_data->toJsonStr() : "null") << ",";
+
+    // OutboundData.
+    oss << "\"outbound_data\":"<<(this->outbound_data.has_value() ? this->outbound_data->toJsonStr() : "null")<<",";
+
+    // InboundData.
+    oss << "\"inbound_data\":"<<(this->inbound_data.has_value() ? this->inbound_data->toJsonStr() : "null")<<",";
+
+    // Difference between receive and transmit direction at instant time.
+    oss << "\"diff_az\":";
+    oss << (this->diff_az.has_value() ? numberToStr(this->diff_az.value(), 4, 4) : "null") << ",";
+    oss << "\"diff_el\":";
+    oss << (this->diff_el.has_value() ? numberToStr(this->diff_el.value(), 4, 4) : "null") << ",";
+
+    // Corrections applied.
+    oss << "\"objc_ecc_corr\":";
+    oss <<(this->objc_ecc_corr.has_value() ? std::to_string(this->objc_ecc_corr.value()) : "null") << ",";
+    oss << "\"grnd_ecc_corr\":";
+    oss <<(this->grnd_ecc_corr.has_value() ? std::to_string(this->grnd_ecc_corr.value()) : "null") << ",";
+    oss << "\"cali_del_corr\":";
+    oss <<(this->cali_del_corr.has_value() ? std::to_string(this->cali_del_corr.value()) : "null") << ",";
+    oss << "\"corr_tropo\":";
+    oss <<(this->corr_tropo.has_value() ? std::to_string(this->corr_tropo.value()) : "null") << ",";
+    oss << "\"syst_rnd_corr\":";
+    oss <<(this->syst_rnd_corr.has_value() ? std::to_string(this->syst_rnd_corr.value()) : "null");
+
+    // End.
+    oss << "}";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
 }} // END NAMESPACES
 // =====================================================================================================================

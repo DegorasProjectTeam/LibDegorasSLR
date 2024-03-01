@@ -177,7 +177,7 @@ int main()
 
     // Configure the SLR predictor_mount. The class will process the pass automatically and will
     // generate a preview mount track in the steps indicated by step_ms.
-    PredictorMountSLR predictor_mount(std::move(predictor_slr), mjd_start, mjd_end,
+    PredictorMountSLR predictor_mount(predictor_slr, mjd_start, mjd_end,
                                       step, min_el, max_el , sun_avoid_angle, avoid_sun);
 
     // Check if the tracking is valid.
@@ -213,8 +213,8 @@ int main()
     data<<border.str();
     data<<"= Intputs:" << std::endl;
     data<<lines.str();
-    data<<"= File:        " << mount_track.cpf.getSourceFilename() << std::endl;
-    data<<"= Object:      " << mount_track.cpf.getHeader().basicInfo1Header()->target_name << std::endl;
+    data<<"= File:        " << cpf.getSourceFilename() << std::endl;
+    data<<"= Object:      " << cpf.getHeader().basicInfo1Header()->target_name << std::endl;
     //std::cout<<"= Pass interval: " << mount_track. << std::endl;
     data<<"= Avoid Sun:   " << (mount_track.config.sun_avoid ? "true" : "false") << std::endl;
     data<<"= Avoid angle: " << mount_track.config.sun_avoid_angle << std::endl;

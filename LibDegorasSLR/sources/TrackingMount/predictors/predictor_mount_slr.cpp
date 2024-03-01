@@ -56,12 +56,12 @@ using namespace dpslr::timing::types;
 using namespace dpslr::astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(PredictorCPF&& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
+PredictorMountSLR::PredictorMountSLR(const PredictorSLR& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
                                      MillisecondsU time_delta, DegreesU min_elev,
                                      DegreesU max_elev, DegreesU sun_avoid_angle, bool sun_avoid) :
-    predictor_(std::move(predictor)),
+    predictor_(predictor),
     sun_predictor_(this->predictor_.getGeodeticLocation()),
-    mount_track_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
+    mount_track_(this->predictor_, this->sun_predictor_)
 {
     // Store the configuration data.
     this->mount_track_.config.mjdt_start = mjdt_start;
@@ -84,20 +84,17 @@ PredictorMountSLR::PredictorMountSLR(PredictorCPF&& predictor, MJDateTime mjdt_s
     // Check Degoras initialization.
     dpslr::DegorasInit::checkMandatoryInit();
 
-    // Configure the predictor for fast instant vector mode, enough for an astronomical mount.
-    this->predictor_.setPredictionMode(PredictorCPF::PredictionMode::INSTANT_VECTOR);
-
     // Analyze the tracking.
     this->analyzeTracking();
 
 }
 
-PredictorMountSLR::PredictorMountSLR(PredictorCPF&& predictor, const HRTimePointStd &tp_start,
+PredictorMountSLR::PredictorMountSLR(const PredictorSLR& predictor, const HRTimePointStd &tp_start,
                                      const HRTimePointStd &tp_end, MillisecondsU time_delta, DegreesU min_elev,
                                      DegreesU max_elev, DegreesU sun_avoid_angle, bool sun_avoid) :
-    predictor_(std::move(predictor)),
+    predictor_(predictor),
     sun_predictor_(this->predictor_.getGeodeticLocation()),
-    mount_track_(this->predictor_.getCPF(), this->predictor_, this->sun_predictor_)
+    mount_track_(this->predictor_, this->sun_predictor_)
 {
 
 }
@@ -261,7 +258,7 @@ void PredictorMountSLR::analyzeTracking()
 {
     // Results container and auxiliar.
     unsigned step_ms = this->mount_track_.config.time_delta;
-    PredictorCPF::SLRPredictions results_slr;
+    SLRPredictions results_slr;
     astro::PredictorSun::SunPredictions results_sun;
 
     // Update flag.
@@ -280,10 +277,9 @@ void PredictorMountSLR::analyzeTracking()
 
     // Check that the predictions correspond to a pass.
     auto it = std::find_if(results_slr.begin(), results_slr.end(),
-        [](const PredictorCPF::SLRPrediction& pred)
+        [](const auto& pred)
         {
-            if(pred.error != PredictorCPF::PredictionError::NO_ERROR &&
-               pred.error != PredictorCPF::PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE)
+            if(pred.error != 0)
                     return true;
             else
                 return pred.instant_data->altaz_coord.el < 0;
@@ -873,9 +869,8 @@ long double PredictorMountSLR::calcSunAvoidTrajectory(const MJDateTime &mjdt,
     return entry_angle + angle * time_perc;
 }
 
-PredictorMountSLR::MountTrackSLR::MountTrackSLR(const CPF &cpf, const PredictorCPF &predictor_slr,
+PredictorMountSLR::MountTrackSLR::MountTrackSLR(const PredictorSLR &predictor_slr,
                                                 const PredictorSun &predictor_sun) :
-    cpf(cpf),
     predictor_slr(predictor_slr),
     predictor_sun(predictor_sun)
 {}

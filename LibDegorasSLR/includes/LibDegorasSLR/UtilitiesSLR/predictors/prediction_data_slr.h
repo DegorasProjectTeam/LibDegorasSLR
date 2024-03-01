@@ -27,9 +27,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file ranges_data.h
+ * @file prediction_data_slr.h
  * @author Degoras Project Team.
- * @brief
+ * @brief This file contains the declaration of the types usded by PredictorSLR.
  * @copyright EUPL License.
  * @version
 ***********************************************************************************************************************/
@@ -70,6 +70,8 @@ using math::types::Vector3D;
 using math::units::Meters;
 using math::units::Seconds;
 using astro::types::AltAzPos;
+using math::units::Degrees;
+using math::units::Picoseconds;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -258,6 +260,55 @@ struct LIBDPSLR_EXPORT InboundData
      */
     std::string toJsonStr() const;
 };
+
+/**
+ * @brief
+ * This container has all the data returned by the predictor. The InstantRange always will be disponible. The
+ * rest of the data will be available or not depending on the selected computing mode. The azimuth and elevation
+ * difference between receive and transmit direction at instant time parameters will only be available in
+ * the PredictionMode::OUTBOUND_VECTOR and PredictionMode::INBOUND_VECTOR modes. You can check the corrections
+ * applied by accessing the corresponding parameters.
+ *
+ */
+struct LIBDPSLR_EXPORT SLRPrediction
+{
+    // Constructors.
+    SLRPrediction() = default;
+    SLRPrediction(const SLRPrediction&) = default;
+    SLRPrediction(SLRPrediction&&) = default;
+
+    // Operators.
+    SLRPrediction& operator=(const SLRPrediction&) = default;
+    SLRPrediction& operator=(SLRPrediction&&) = default;
+
+    // Result containers for the different modes.
+    InstantRange instant_range;           ///< Result range for the instant time in the ONLY_INSTANT_RANGE mode.
+    Optional<InstantData> instant_data;   ///< Result data for the instant time (instant vectors).
+    Optional<OutboundData> outbound_data; ///< Result data for the bounce time (outbound vectors).
+    Optional<InboundData> inbound_data;   ///< Result data for the arrival time (inbound vector).
+
+    // Difference between receive and transmit direction at instant time.
+    Optional<Degrees> diff_az;   ///< Azimuth difference between outbound and instant vectors (4 decimals).
+    Optional<Degrees> diff_el;   ///< Elevation difference between outbound and instant vectors (4 decimals).
+
+    // Corrections applied.
+    Optional<Picoseconds> cali_del_corr; ///< Station calibration delay correction (picoseconds, 2 way).
+    Optional<Meters> objc_ecc_corr;      ///< Eccentricity correction at the object (meters, 1 way, usually CoM).
+    Optional<Meters> grnd_ecc_corr;      ///< Eccentricity correction at the ground (meters, usually not used).
+    Optional<Meters> corr_tropo;         ///< Tropospheric path delay correction (meters, 1 way).
+    Optional<Meters> syst_rnd_corr;      ///< Other systematic and random error corrections (meters, 1 way).
+
+    // Error code.
+    int error;  ///< Error that may have occurred. Zero is always reserved for NOT_ERROR.
+
+    /**
+     * @brief Represents all the prediction result as a JSON formated string.
+     */
+    std::string toJsonStr() const;
+};
+
+/// Alias for SLRPrediction vector.
+using SLRPredictions = std::vector<SLRPrediction>;
 
 }} // END NAMESPACES
 // =====================================================================================================================
