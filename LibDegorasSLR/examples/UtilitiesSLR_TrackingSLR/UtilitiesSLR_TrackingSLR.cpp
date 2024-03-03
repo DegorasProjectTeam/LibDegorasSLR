@@ -50,25 +50,41 @@
 using dpslr::DegorasInit;
 using dpslr::ilrs::cpf::CPF;
 using dpslr::geo::types::GeocentricPoint;
-using dpslr::geo::types::GeodeticPointL;
+using dpslr::geo::types::GeodeticPoint;
 using dpslr::utils::PredictorCPF;
 using dpslr::mount::PredictorMountSLR;
 using dpslr::timing::MJDateTime;
 using dpslr::timing::SoD;
+using dpslr::timing::Iso8601Str;
+using dpslr::timing::types::HRTimePointStd;
 using dpslr::math::units::Angle;
 using dpslr::math::units::DegreesU;
 using dpslr::math::units::Degrees;
 using dpslr::math::units::MillisecondsU;
 using dpslr::math::units::Meters;
 using dpslr::helpers::strings::numberToStr;
+using dpslr::timing::iso8601DatetimeToTimePoint;
+using dpslr::timing::timePointToModifiedJulianDateTime;
 // ---------------------------------------------------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------------------------------------------------
 // Auxiliar structs.
-
-// ---------------------------------------------------------------------------------------------------------------------
 
 struct ExampleData
 {
+    ExampleData(const std::string& alias, const std::string& cpf, const Iso8601Str& start, const Iso8601Str& end):
+        example_alias(alias),
+        cpf_name(cpf)
+    {
+        this->mjdt_start = timePointToModifiedJulianDateTime(iso8601DatetimeToTimePoint(start));
+        this->mjdt_end = timePointToModifiedJulianDateTime(iso8601DatetimeToTimePoint(end));
+        std::cout<<dpslr::timing::timePointToIso8601(iso8601DatetimeToTimePoint(end))<<std::endl;
+        std::cout<<std::to_string(iso8601DatetimeToTimePoint(end).time_since_epoch().count())<<std::endl;
+        std::cout<<dpslr::timing::timePointToIso8601(dpslr::timing::modifiedJulianDateTimeToTimePoint(mjdt_end))<<std::endl;
+        std::cout<<std::to_string(dpslr::timing::modifiedJulianDateTimeToTimePoint(mjdt_end).time_since_epoch().count())<<std::endl;
+
+    }
+
     std::string example_alias;
     std::string cpf_name;
     MJDateTime mjdt_start;
@@ -86,9 +102,9 @@ int main()
 
     // -------------------- EXAMPLE CONFIGURATION ----------------------------------------------------------------------
 
-    // SFEL station geodetic coordinates.
+    // SFEL station geodetic position (north and east > 0) with 8 decimals (1.1mm precision).
     Degrees latitude = 36.46525556L;
-    Degrees longitude = 353.79469440L;  // Always > 0.
+    Degrees longitude = 353.79469440L;
     Meters alt = 98.177L;
 
     // SFEL station geocentric coordinates (meters).
@@ -104,24 +120,24 @@ int main()
     bool avoid_sun = true;            // Flag for enable or disable the Sun avoidance utility.
 
     // Selectors.
-    size_t example_selector = 1;    // Select the example to process.
+    size_t example_selector = 0;    // Select the example to process.
     bool plot_data = true;          // Flag for enable the data plotting using a Python3 helper script.
 
     // -------------------- EXAMPLE PREPARATION ------------------------------------------------------------------------
 
     // Examples vector with their configurations.
     std::vector<ExampleData> examples =
-        {
-            // Example 0: Lares with Sun at beginning.
-            {"Lares_SunBeg", "38077_cpf_240128_02901.sgf", 60340.65655L, 60340.668472L},
-            // Example 1: Jason 3 with Sun in the middle. Trespasses North cw.
-            {"Jason3_SunMid", "41240_cpf_240128_02801.hts", 60340.48773L, 60340.499421L},
-            // Example 2: Explorer 27 with Sun in the end.
-            {"Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", 60340.3551736L, 60340.364201L},
-            // Example 3: Jason 3 with no sun. Trespasses North ccw.
-            {"Jason3_NoSun", "41240_cpf_240128_02801.hts", 60340.407986L, 60340.41736L},
-        };
-
+    {
+        // Example 0: Lares with Sun at beginning.
+        {"Lares_SunBeg", "38077_cpf_240128_02901.sgf", "2024-01-31T15:45:25Z", "2024-01-31T16:02:35Z"},
+        // Example 1: Jason 3 with Sun in the middle. Trespasses North cw.
+        //{"Jason3_SunMid", "41240_cpf_240128_02801.hts", 60340.48773L, 60340.499421L},
+        // Example 2: Explorer 27 with Sun in the end.
+        //{"Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", 60340.3551736L, 60340.364201L},
+        // Example 3: Jason 3 with no sun. Trespasses North ccw.
+        //{"Jason3_NoSun", "41240_cpf_240128_02801.hts", 60340.407986L, 60340.41736L},
+    };
+    
     // Configure the CPF input folder.
     std::string current_dir = dpslr::helpers::files::getCurrentDir();
     std::string input_dir(current_dir+"/inputs");
@@ -141,7 +157,8 @@ int main()
     // Check the input file.
     if(!dpslr::helpers::files::fileExists(cpf_path))
     {
-        std::cerr << "Input file does not exist." << std::endl;
+        std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
+        std::cerr << "Error: Input file does not exist." << std::endl;
         return -1;
     }
 
@@ -153,7 +170,7 @@ int main()
 
     // Store the local geocentric and geodetic coordinates.
     GeocentricPoint stat_geocentric(x,y,z);
-    GeodeticPointL stat_geodetic(latitude, longitude, alt, Angle<long double>::Unit::DEGREES);
+    GeodeticPoint<long double> stat_geodetic(latitude, longitude, alt, Angle<long double>::Unit::DEGREES);
 
     // Open the CPF file (all data).
     CPF cpf(cpf_path, dpslr::ilrs::cpf::CPF::OpenOptionEnum::ALL_DATA);
@@ -161,29 +178,32 @@ int main()
     // Check that the CPF has data.
     if (!cpf.hasData())
     {
-        std::cerr << "The CPF has no valid data." << std::endl;
+        std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
+        std::cerr << "Error: The CPF has no valid data." << std::endl;
         return -1;
     }
 
-    // Configure the SLR predictor_slr.
-    PredictorCPF predictor_slr(cpf, stat_geodetic, stat_geocentric);
+    // Configure the SLR predictor_cpf.
+    PredictorCPF predictor_cpf(cpf, stat_geodetic, stat_geocentric);
 
     // Check if the predictor is ready.
-    if (!predictor_slr.isReady())
+    if (!predictor_cpf.isReady())
     {
-        std::cerr << "The predictor has no valid data to do predictions." << std::endl;
+        std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
+        std::cerr << "Error: The CPF predictor has no valid data to do predictions." << std::endl;
         return -1;
     }
 
     // Configure the SLR predictor_mount. The class will process the pass automatically and will
     // generate a preview mount track in the steps indicated by step_ms.
-    PredictorMountSLR predictor_mount(predictor_slr, mjd_start, mjd_end,
+    PredictorMountSLR predictor_mount(predictor_cpf, mjd_start, mjd_end,
                                       step, min_el, max_el , sun_avoid_angle, avoid_sun);
 
     // Check if the tracking is valid.
     if (!predictor_mount.isValid())
     {
-        std::cerr << "There is no valid tracking." << std::endl;
+        std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
+        std::cerr << "Error: There is no valid tracking." << std::endl;
         return -1;
     }
 
@@ -289,6 +309,8 @@ int main()
     predictor_mount.getTrackingStart(mjd_start);
     predictor_mount.getTrackingEnd(mjd_end);
 
+    /*
+
     // Real time.
 
     // Now, we have the tracking configured, so we can ask the tracking to predict any position within the valid
@@ -349,6 +371,7 @@ int main()
 
     file_pos.close();
     file_pos_sun.close();
+    */
 
     return 0;
 }

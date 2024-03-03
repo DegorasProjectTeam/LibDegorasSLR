@@ -41,7 +41,7 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_cpf.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_cpf.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
@@ -69,7 +69,7 @@ using math::units::MillisecondsU;
 using math::units::Meters;
 using utils::PredictorSLR;
 using utils::SLRPrediction;
-using utils::SLRPredictions;
+using utils::SLRPredictionV;
 using ilrs::cpf::CPF;
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -316,7 +316,7 @@ public:
 
     // Predictor tendria que recibir PredictorSLR, PredictorSun (virtual), TrackAnalizerConfig, MJDatetime start y end.
 
-    PredictorMountSLR(const PredictorSLR &predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
+    PredictorMountSLR(const PredictorSLR& predictor, const MJDateTime& mjdt_start, const MJDateTime& mjdt_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 

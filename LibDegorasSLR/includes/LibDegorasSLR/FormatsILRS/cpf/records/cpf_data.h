@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -27,7 +31,6 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of the CPFData class that abstracts the data of ILRS CPF format.
  * @copyright EUPL License
- * @version 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -41,16 +44,19 @@
 #include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
+#include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
+#include "LibDegorasSLR/Geophysics/types/geocentric_velocity.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace ilrs{
@@ -58,7 +64,13 @@ namespace cpf{
 // =====================================================================================================================
 
 // =====================================================================================================================
+using geo::types::GeocentricPoint;
+using geo::types::GeocentricVelocity;
+using timing::types::MJDate;
+using timing::types::SoD;
 using math::types::Vector3D;
+using math::units::Meters;
+using math::units::Nanoseconds;
 // =====================================================================================================================
 
 // CPF DATA
@@ -101,17 +113,18 @@ public:
 
     // CPF DATA STRUCTS
     // -----------------------------------------------------------------------------------------------------------------
+
     /**
      * @brief 10 - POSITION RECORD
      */
     struct PositionRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;           ///< Direction flag.
-        timing::types::MJDate mjd;        ///< Modified Julian Date.
-        timing::types::SoD sod;           ///< Second of day (UTC).
-        int leap_second;                  ///< Leap second flag (0 or the value of new leap second).
-        Vector3D<> position;   ///< Geocentric position in meters (x, y, z).
+        DirectionFlag dir_flag;     ///< Direction flag.
+        MJDate mjd;                 ///< Modified Julian Date.
+        SoD sod;                    ///< Second of day (UTC).
+        int leap_second;            ///< Leap second flag (0 or the value of new leap second).
+        GeocentricPoint geo_pos;    ///< Object geocentric position in meters (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -128,8 +141,8 @@ public:
     struct VelocityRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;              ///< Direction flag.
-        Vector3D<> velocity;      ///< Geocentric velocity in m/s (x, y, z).
+        DirectionFlag dir_flag;        ///< Direction flag.
+        GeocentricVelocity geo_vel;    ///< Geocentric velocity in m/s (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -146,10 +159,10 @@ public:
     struct CorrectionsRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;                             ///<< Direction flag
-        std::array<long double, 3> aberration_correction;   ///<< Stellar aberration correction in meters (x, y, z)
-        double range_correction;                            ///<< Relativistic range correction in ns (positive)
-        // Functions.
+        DirectionFlag dir_flag;                     ///<< Direction flag.
+        Vector3D<Meters> aberration_correction;     ///<< Stellar aberration correction in meters (x, y, z).
+        Nanoseconds range_correction;               ///<< Relativistic range correction in nanoseconds (positive).
+
         /**
          * @brief Generate the line for this record.
          * @param version
@@ -241,6 +254,16 @@ public:
     // Destructor.
     ~CPFData() = default;
 
+    // ALIASES
+    // -----------------------------------------------------------------------------------------------------------------
+    using PositionRecordV = std::vector<PositionRecord>;
+    using VelocityRecordV = std::vector<VelocityRecord>;
+    using CorrectionsRecordV = std::vector<CorrectionsRecord>;
+    using TransponderRecordV = std::vector<TransponderRecord>;
+    using OffsetFromCenterRecordV = std::vector<OffsetFromCenterRecord>;
+    using RotationAngleRecordV = std::vector<RotationAngleRecord>;
+    using EarthOrientationRecordV = std::vector<EarthOrientationRecord>;
+
     // Clear methods.
     /**
      * @brief Clear all records.
@@ -276,32 +299,32 @@ public:
     void clearEarthOrientationRecords();
 
     // Const getters
-    const std::vector<PositionRecord> &positionRecords() const;
-    const std::vector<VelocityRecord> &velocityRecords() const;
-    const std::vector<CorrectionsRecord> &correctionsRecords() const;
-    const std::vector<TransponderRecord> &transponderRecords() const;
-    const std::vector<OffsetFromCenterRecord> &offsetFromCenterRecords() const;
-    const std::vector<RotationAngleRecord> &rotationAngleRecords() const;
-    const std::vector<EarthOrientationRecord> &earthOrientationRecords() const;
+    const PositionRecordV& positionRecords() const;
+    const VelocityRecordV& velocityRecords() const;
+    const CorrectionsRecordV& correctionsRecords() const;
+    const TransponderRecordV& transponderRecords() const;
+    const OffsetFromCenterRecordV& offsetFromCenterRecords() const;
+    const RotationAngleRecordV& rotationAngleRecords() const;
+    const EarthOrientationRecordV& earthOrientationRecords() const;
 
     // Non-const getters
-    std::vector<PositionRecord> &positionRecords();
-    std::vector<VelocityRecord> &velocityRecords();
-    std::vector<CorrectionsRecord> &correctionsRecords();
-    std::vector<TransponderRecord> &transponderRecords();
-    std::vector<OffsetFromCenterRecord> &offsetFromCenterRecords();
-    std::vector<RotationAngleRecord> &rotationAngleRecords();
-    std::vector<EarthOrientationRecord> &earthOrientationRecords();
+    PositionRecordV& positionRecords();
+    VelocityRecordV& velocityRecords();
+    CorrectionsRecordV& correctionsRecords();
+    TransponderRecordV& transponderRecords();
+    OffsetFromCenterRecordV& offsetFromCenterRecords();
+    RotationAngleRecordV& rotationAngleRecords();
+    EarthOrientationRecordV& earthOrientationRecords();
 
 
     // Setter methods
-    void setPositionRecords(const std::vector<PositionRecord>&);
-    void setVelocityRecords(const std::vector<VelocityRecord>&);
-    void setCorrectionsRecords(const std::vector<CorrectionsRecord>&);
-    void setTransponderRecords(const std::vector<TransponderRecord>&);
-    void setOffsetFromCenterRecords(const std::vector<OffsetFromCenterRecord>&);
-    void setRotationAngleRecords(const std::vector<RotationAngleRecord>&);
-    void setEarthOrientationRecords(const std::vector<EarthOrientationRecord>&);
+    void setPositionRecords(const PositionRecordV&);
+    void setVelocityRecords(const VelocityRecordV&);
+    void setCorrectionsRecords(const CorrectionsRecordV&);
+    void setTransponderRecords(const TransponderRecordV&);
+    void setOffsetFromCenterRecords(const OffsetFromCenterRecordV&);
+    void setRotationAngleRecords(const RotationAngleRecordV&);
+    void setEarthOrientationRecords(const EarthOrientationRecordV&);
 
 
     // Records individual setter methods.
@@ -424,13 +447,13 @@ private:
     common::RecordReadError readDataLine(const common::RecordLinePair &rpair, float version);
 
     // Private vectors for store the different data records.
-    std::vector<PositionRecord> pos_records;
-    std::vector<VelocityRecord> vel_records;
-    std::vector<CorrectionsRecord> corr_records;
-    std::vector<TransponderRecord> transp_records;
-    std::vector<OffsetFromCenterRecord> offset_records;
-    std::vector<RotationAngleRecord> rot_angle_records;
-    std::vector<EarthOrientationRecord> earth_orientation_records;
+    PositionRecordV pos_records_;
+    VelocityRecordV vel_records_;
+    CorrectionsRecordV corr_records_;
+    TransponderRecordV transp_records_;
+    OffsetFromCenterRecordV offset_records_;
+    RotationAngleRecordV rot_angle_records_;
+    EarthOrientationRecordV earth_orientation_records_;
 };
 
 // =====================================================================================================================

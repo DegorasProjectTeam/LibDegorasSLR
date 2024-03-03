@@ -61,15 +61,15 @@ namespace types{
 using timing::types::SoD;
 using timing::kSecsPerDayL;
 using math::compareFloating;
+using math::isFloatingZeroOrMinor;
 // ---------------------------------------------------------------------------------------------------------------------
 
 template <typename DateType>
 DateTime<DateType>::DateTime() :
-    date_(0),
-    fract_(0),
-    sod_(0)
+    date_(DateType()),
+    fract_(DayFraction()),
+    sod_(SoD())
 {}
-
 
 template <typename DateType>
 DateTime<DateType>::DateTime(const DateType &date, const SoD &sod) :
@@ -115,23 +115,18 @@ long double DateTime<DateType>::datetime() const
 }
 
 template <typename DateType>
-void DateTime<DateType>::add(const Seconds &seconds)
+void DateTime<DateType>::add(const Seconds& seconds)
 {
     sod_ += seconds;
     normalize();
 }
 
-
-
-
 template <typename DateType>
-DateTimeV<DateType> DateTime<DateType>::linspaceStep(const DateTime &start,
-                                                     const DateTime &end,
-                                                     const Seconds &step)
+DateTimeV<DateType> DateTime<DateType>::linspaceStep(const DateTime& start, const DateTime& end, const Seconds& step)
 {
     DateTimeV<DateType> result;
 
-    if (compareFloating(step, Seconds()) <= 0)
+    if (isFloatingZeroOrMinor(step))
         return result;
 
     size_t num = static_cast<size_t>(std::ceil((end - start) / step));

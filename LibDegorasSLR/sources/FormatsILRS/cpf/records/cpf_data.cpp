@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -66,82 +70,82 @@ void CPFData::clearAll()
     this->clearEarthOrientationRecords();
 }
 
-void CPFData::clearPositionRecords() {this->pos_records.clear();}
+void CPFData::clearPositionRecords() {this->pos_records_.clear();}
 
-void CPFData::clearVelocityRecords() {this->vel_records.clear();}
+void CPFData::clearVelocityRecords() {this->vel_records_.clear();}
 
-void CPFData::clearCorrectionRecords() {this->corr_records.clear();}
+void CPFData::clearCorrectionRecords() {this->corr_records_.clear();}
 
-void CPFData::clearTransponderRecords() {this->transp_records.clear();}
+void CPFData::clearTransponderRecords() {this->transp_records_.clear();}
 
-void CPFData::clearOffsetFromCenterRecords() {this->offset_records.clear();}
+void CPFData::clearOffsetFromCenterRecords() {this->offset_records_.clear();}
 
-void CPFData::clearRotationAngleRecords() {this->rot_angle_records = {};}
+void CPFData::clearRotationAngleRecords() {this->rot_angle_records_ = {};}
 
-void CPFData::clearEarthOrientationRecords() {this->earth_orientation_records = {};}
+void CPFData::clearEarthOrientationRecords() {this->earth_orientation_records_ = {};}
 
-void CPFData::setPositionRecords(const std::vector<PositionRecord> &records) {this->pos_records = records;}
+void CPFData::setPositionRecords(const std::vector<PositionRecord> &records) {this->pos_records_ = records;}
 
-void CPFData::setVelocityRecords(const std::vector<VelocityRecord> &records) {this->vel_records = records;}
+void CPFData::setVelocityRecords(const std::vector<VelocityRecord> &records) {this->vel_records_ = records;}
 
-void CPFData::setCorrectionsRecords(const std::vector<CorrectionsRecord> &records) {this->corr_records = records;}
+void CPFData::setCorrectionsRecords(const std::vector<CorrectionsRecord> &records) {this->corr_records_ = records;}
 
-void CPFData::setTransponderRecords(const std::vector<TransponderRecord> &records) {this->transp_records = records;}
+void CPFData::setTransponderRecords(const std::vector<TransponderRecord> &records) {this->transp_records_ = records;}
 
 void CPFData::setOffsetFromCenterRecords(const std::vector<OffsetFromCenterRecord> &records)
-{this->offset_records = records;}
+{this->offset_records_ = records;}
 
 void CPFData::setRotationAngleRecords(const std::vector<RotationAngleRecord> &records)
-{this->rot_angle_records = records;}
+{this->rot_angle_records_ = records;}
 
 void CPFData::setEarthOrientationRecords(const std::vector<EarthOrientationRecord> &records)
-{this->earth_orientation_records = records;}
+{this->earth_orientation_records_ = records;}
 
-void CPFData::addPositionRecord(const PositionRecord &rec) {this->pos_records.push_back(rec);}
+void CPFData::addPositionRecord(const PositionRecord &rec) {this->pos_records_.push_back(rec);}
 
-void CPFData::addVelocityRecord(const VelocityRecord &rec) {this->vel_records.push_back(rec);}
+void CPFData::addVelocityRecord(const VelocityRecord &rec) {this->vel_records_.push_back(rec);}
 
-void CPFData::addCorrectionsRecord(const CorrectionsRecord &rec) {this->corr_records.push_back(rec);}
+void CPFData::addCorrectionsRecord(const CorrectionsRecord &rec) {this->corr_records_.push_back(rec);}
 
-void CPFData::addTransponderRecord(const TransponderRecord &rec) {this->transp_records.push_back(rec);}
+void CPFData::addTransponderRecord(const TransponderRecord &rec) {this->transp_records_.push_back(rec);}
 
-void CPFData::addOffsetFromCenterRecord(const OffsetFromCenterRecord &rec) {this->offset_records.push_back(rec);}
+void CPFData::addOffsetFromCenterRecord(const OffsetFromCenterRecord &rec) {this->offset_records_.push_back(rec);}
 
-void CPFData::addRotationAngleRecord(const RotationAngleRecord &rec) {this->rot_angle_records.push_back(rec);}
+void CPFData::addRotationAngleRecord(const RotationAngleRecord &rec) {this->rot_angle_records_.push_back(rec);}
 
 void CPFData::addEarthOrientationRecord(const EarthOrientationRecord &rec)
-{this->earth_orientation_records.push_back(rec);}
+{this->earth_orientation_records_.push_back(rec);}
 
-const std::vector<CPFData::PositionRecord> &CPFData::positionRecords() const {return this->pos_records;}
+const std::vector<CPFData::PositionRecord> &CPFData::positionRecords() const {return this->pos_records_;}
 
-const std::vector<CPFData::VelocityRecord> &CPFData::velocityRecords() const {return this->vel_records;}
+const std::vector<CPFData::VelocityRecord> &CPFData::velocityRecords() const {return this->vel_records_;}
 
-const std::vector<CPFData::CorrectionsRecord> &CPFData::correctionsRecords() const {return this->corr_records;}
+const std::vector<CPFData::CorrectionsRecord> &CPFData::correctionsRecords() const {return this->corr_records_;}
 
-const std::vector<CPFData::TransponderRecord> &CPFData::transponderRecords() const {return this->transp_records;}
+const std::vector<CPFData::TransponderRecord> &CPFData::transponderRecords() const {return this->transp_records_;}
 
 const std::vector<CPFData::OffsetFromCenterRecord> &CPFData::offsetFromCenterRecords() const
-{return this->offset_records;}
+{return this->offset_records_;}
 
-const std::vector<CPFData::RotationAngleRecord> &CPFData::rotationAngleRecords() const {return this->rot_angle_records;}
+const std::vector<CPFData::RotationAngleRecord> &CPFData::rotationAngleRecords() const {return this->rot_angle_records_;}
 
 const std::vector<CPFData::EarthOrientationRecord> &CPFData::earthOrientationRecords() const
-{return this->earth_orientation_records;}
+{return this->earth_orientation_records_;}
 
-std::vector<CPFData::PositionRecord> &CPFData::positionRecords() {return this->pos_records;}
+std::vector<CPFData::PositionRecord> &CPFData::positionRecords() {return this->pos_records_;}
 
-std::vector<CPFData::VelocityRecord> &CPFData::velocityRecords() {return this->vel_records;}
+std::vector<CPFData::VelocityRecord> &CPFData::velocityRecords() {return this->vel_records_;}
 
-std::vector<CPFData::CorrectionsRecord> &CPFData::correctionsRecords() {return this->corr_records;}
+std::vector<CPFData::CorrectionsRecord> &CPFData::correctionsRecords() {return this->corr_records_;}
 
-std::vector<CPFData::TransponderRecord> &CPFData::transponderRecords() {return this->transp_records;}
+std::vector<CPFData::TransponderRecord> &CPFData::transponderRecords() {return this->transp_records_;}
 
-std::vector<CPFData::OffsetFromCenterRecord> &CPFData::offsetFromCenterRecords() {return this->offset_records;}
+std::vector<CPFData::OffsetFromCenterRecord> &CPFData::offsetFromCenterRecords() {return this->offset_records_;}
 
-std::vector<CPFData::RotationAngleRecord> &CPFData::rotationAngleRecords() {return this->rot_angle_records;}
+std::vector<CPFData::RotationAngleRecord> &CPFData::rotationAngleRecords() {return this->rot_angle_records_;}
 
 std::vector<CPFData::EarthOrientationRecord> &CPFData::earthOrientationRecords()
-{return this->earth_orientation_records;}
+{return this->earth_orientation_records_;}
 
 std::string CPFData::generateDataLines(float version) const
 {
@@ -149,7 +153,7 @@ std::string CPFData::generateDataLines(float version) const
     std::stringstream data;
 
     // Generate the position records line.
-    if (!this->pos_records.empty())
+    if (!this->pos_records_.empty())
         data << this->generatePositionRecordsLines(version);
 
     // TODO: the rest of the lines
@@ -165,7 +169,7 @@ std::string CPFData::generatePositionRecordsLines(float version) const
     std::stringstream pr_line;
 
     // Generate the Position record line for each record.
-    for(const auto& pr : this->pos_records)
+    for(const auto& pr : this->pos_records_)
     {
         // Add the comment block.
         if(!pr.comment_block.empty())
@@ -316,7 +320,7 @@ RecordReadError CPFData::readPositionRecord(
             pos_record.mjd = std::stoi(tokens[2]);
             pos_record.sod = std::stold(tokens[3]);
             pos_record.leap_second = std::stoi(tokens[4]);
-            pos_record.position = {std::stold(tokens[5]), std::stold(tokens[6]), std::stold(tokens[7])};
+            pos_record.geo_pos = {std::stold(tokens[5]), std::stold(tokens[6]), std::stold(tokens[7])};
 
         } catch (...)
         {
@@ -324,7 +328,7 @@ RecordReadError CPFData::readPositionRecord(
         }
 
     // All ok, insert the struct.
-    this->pos_records.push_back(pos_record);
+    this->pos_records_.push_back(pos_record);
 
     // Return the result.
     return RecordReadError::NOT_ERROR;
@@ -353,7 +357,7 @@ RecordReadError CPFData::readVelocityRecord(
         {
             // Get the data.
             vel_record.dir_flag = static_cast<CPFData::DirectionFlag>(std::stoi(tokens[1]));
-            vel_record.velocity = {std::stold(tokens[2]), std::stold(tokens[3]), std::stold(tokens[4])};
+            vel_record.geo_vel = {std::stold(tokens[2]), std::stold(tokens[3]), std::stold(tokens[4])};
 
         } catch (...)
         {
@@ -361,7 +365,7 @@ RecordReadError CPFData::readVelocityRecord(
         }
 
     // All ok, insert the struct.
-    this->vel_records.push_back(vel_record);
+    this->vel_records_.push_back(vel_record);
 
     // Return the result.
     return RecordReadError::NOT_ERROR;
@@ -399,7 +403,7 @@ RecordReadError CPFData::readCorrectionsRecord(
         }
 
     // All ok, insert the struct.
-    this->corr_records.push_back(corr_record);
+    this->corr_records_.push_back(corr_record);
 
     // Return the result.
     return RecordReadError::NOT_ERROR;
@@ -446,9 +450,9 @@ std::string CPFData::PositionRecord::generateLine(float) const
             << ' ' << this->mjd
             << ' ' << helpers::strings::numberToStr(this->sod, 13, 6)
             << ' ' << this->leap_second
-            << ' ' << helpers::strings::numberToStr(this->position[0], 17, 3)
-            << ' ' << helpers::strings::numberToStr(this->position[1], 17, 3)
-            << ' ' << helpers::strings::numberToStr(this->position[2], 17, 3);
+            << ' ' << helpers::strings::numberToStr(this->geo_pos.x, 17, 3)
+            << ' ' << helpers::strings::numberToStr(this->geo_pos.y, 17, 3)
+            << ' ' << helpers::strings::numberToStr(this->geo_pos.z, 17, 3);
     // Return the line.
     return line_10.str();
 }

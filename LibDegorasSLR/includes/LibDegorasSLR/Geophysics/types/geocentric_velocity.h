@@ -27,81 +27,77 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file
- * @brief
+ * @file geocentric_point.h
  * @author Degoras Project Team.
+ * @brief
  * @copyright EUPL License
- * @todo Use the new units system in units_todo (for the future).
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
+// C++ INCLUDES
+// =====================================================================================================================
+#include <array>
+// =====================================================================================================================
+
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Mathematics/types/vector3d.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace math{
-namespace units{
+namespace geo{
+namespace types{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using dpslr::helpers::types::NumericStrongType;
+using math::types::Vector3D;
+using math::units::MetersSecond;
 // ---------------------------------------------------------------------------------------------------------------------
 
-// ALIASES FOR STRONG TYPE UNITS
-// ---------------------------------------------------------------------------------------------------------------------
+/**
+ */
+struct LIBDPSLR_EXPORT GeocentricVelocity
+{
+    GeocentricVelocity(const MetersSecond& x = MetersSecond(), const MetersSecond& y = MetersSecond(),
+                       const MetersSecond& z = MetersSecond()) :
+        x(x), y(y), z(z)
+    {}
 
-/// Alias for strong type long double representing seconds.
-using Seconds = NumericStrongType<long double, struct SecondsTag>;
+    GeocentricVelocity(std::array<MetersSecond,3> a) :
+        x(a[0]), y(a[1]), z(a[2])
+    {}
 
-/// Alias for strong type unsigned representing seconds.
-using SecondsU = NumericStrongType<unsigned, struct SecondsUTag>;
+    GeocentricVelocity(Vector3D<MetersSecond> v) :
+        x(v.getX()), y(v.getY()), z(v.getZ())
+    {}
 
-/// Alias for strong type long double representing milliseconds.
-using Milliseconds = NumericStrongType<long double, struct MillisecondsTag>;
+    GeocentricVelocity(const GeocentricVelocity&) = default;
+    GeocentricVelocity(GeocentricVelocity&&) = default;
 
-/// Alias for strong type unsigned representing milliseconds.
-using MillisecondsU = NumericStrongType<unsigned, struct MillisecondsUTag>;
+    GeocentricVelocity& operator=(const GeocentricVelocity&) = default;
+    GeocentricVelocity& operator=(GeocentricVelocity&&) = default;
 
-/// Alias for strong type long double representing microseconds.
-using Microseconds = NumericStrongType<long double, struct MicrosecondsTag>;
 
-/// Alias for strong type unsigned representing microseconds.
-using MicrosecondsU = NumericStrongType<unsigned, struct MicrosecondsUTag>;
+    Vector3D<MetersSecond> toVector3D() const {return Vector3D<MetersSecond>(x,y,z);}
 
-/// Alias for strong type long double representing nanoseconds.
-using Nanoseconds = NumericStrongType<long double, struct NanosecondsTag>;
+    std::vector<MetersSecond> toStdVector() const {return this->toVector3D().toVector();}
 
-/// Alias for strong type unsigned representing nanoseconds.
-using NanosecondsU = NumericStrongType<unsigned, struct NanosecondsUTag>;
+    std::string toJsonStr() const {return this->toVector3D().toJsonStr();}
 
-/// Alias for strong type long double representing picoseconds.
-using Picoseconds = NumericStrongType<long double, struct PicosecondsTag>;
+    template<typename Container = std::array<MetersSecond, 3>>
+    inline constexpr Container store() const {return Container{x,y,z};}
 
-/// Alias for strong type unsigned representing picoseconds.
-using PicosecondsU = NumericStrongType<unsigned, struct PicosecondsUTag>;
+    MetersSecond x;
+    MetersSecond y;
+    MetersSecond z;
+};
 
-/// Alias for strong type long double representing meters.
-using Meters = NumericStrongType<long double, struct MetersTag>;
-
-/// Alias for strong type long double representing degrees.
-using Degrees = NumericStrongType<long double, struct DegreesTag>;
-
-/// Alias for strong type unsigned representing degrees.
-using DegreesU = NumericStrongType<unsigned, struct DegreesUTag>;
-
-/// Alias for strong type long double representing radians.
-using Radians = NumericStrongType<long double, struct RadiansTag>;
-
-/// Alias for strong type long double representing meters/second.
-using MetersSecond = NumericStrongType<long double, struct MetersSecondTag>;
-
-}}} // END NAMESPACES
+}}} // END NAMESPACES.
 // =====================================================================================================================
-

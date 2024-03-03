@@ -112,6 +112,9 @@ using SoD = NumericStrongType<long double, struct SoDTag>;
 /// Alias for fraction of day with decimals (always < 0, nanoseconds precision in the sense of fraction of the day).
 using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
 
+/// Alias for ISO 8601 string.
+using Iso8601Str = std::string;
+
 /**
  * Enum class for specifying the time resolution in string representations.
  */

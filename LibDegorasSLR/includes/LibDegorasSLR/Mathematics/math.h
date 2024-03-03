@@ -141,13 +141,22 @@ types::EuclideanDivResult<T> euclidDivLL(T a, T b)
 template <typename T>
 std::enable_if_t<
     std::is_floating_point<T>::value ||
-    (helpers::types::is_numeric_strong_type<T>::value &&
-        helpers::types::is_strong_float<T>::value),
+    (helpers::types::is_numeric_strong_type<T>::value && helpers::types::is_strong_float<T>::value),
     int>
 compareFloating(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
 {
     T aux = a - b;
     return std::abs(aux) < epsilon ? 0 : std::signbit(aux) ? -1 : 1;
+}
+
+template <typename T>
+std::enable_if_t<
+    std::is_floating_point<T>::value ||
+    (helpers::types::is_numeric_strong_type<T>::value && helpers::types::is_strong_float<T>::value),
+    bool>
+isFloatingZeroOrMinor(T a, T epsilon = std::numeric_limits<T>::epsilon())
+{
+    return (compareFloating(a, static_cast<T>(0.0L)) <= 0);
 }
 
 template <typename T>

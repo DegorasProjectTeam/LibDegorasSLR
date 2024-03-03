@@ -40,7 +40,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_cpf.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_cpf.h"
 #include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
@@ -120,7 +120,7 @@ bool PredictorCPF::setCPF(const CPF& cpf)
     for (const auto& pos_record : cpf.getData().positionRecords())
     {
         auto time_tag = pos_record.sod - sod_start + (pos_record.mjd - mjd_start) * 86400.L;
-        pos_data_.pushBackRow(pos_record.position.store());
+        pos_data_.pushBackRow(pos_record.geo_pos.store());
         pos_times_.push_back(time_tag);
     }
 
@@ -143,7 +143,7 @@ const CPF& PredictorCPF::getCPF() const {return this->cpf_;}
 bool PredictorCPF::isReady() const {return !this->pos_times_.empty(); }
 
 
-int PredictorCPF::predict(MJDateTime mjdt, SLRPrediction& result) const
+int PredictorCPF::predict(const MJDateTime& mjdt, SLRPrediction& result) const
 {
 
  /*
@@ -534,28 +534,23 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     } */
 }
 
-SLRPredictions PredictorCPF::predict(MJDateTime mjdt_start,
-                                     MJDateTime mjdt_end,
-                                     unsigned step_ms) const
+SLRPredictionV PredictorCPF::predict(const MJDateTime& mjdt_start, const MJDateTime& mjdt_end,
+                                     Milliseconds step_ms) const
 {
     // Container and auxiliar.
     MJDateTimeV interp_times;
     MJDateTime mjdt_current = mjdt_start;
-    long double step_sec = step_ms/1000.0L;
+    Seconds step_sec = step_ms/1000.0L;
 
-    // Check interval.
-    if(!this->isReady() || !isInsideTimeWindow(mjdt_start, mjdt_end))
-        return SLRPredictions();
+    // Check the validity of the predictor and the inputs.
+    if(!this->isReady() || !this->isInsideTimeWindow(mjdt_start, mjdt_end) || isFloatingZeroOrMinor(step_sec))
+        return SLRPredictionV();
 
-    // Calculates all the interpolation times.
-    while(mjdt_current < mjdt_end)
-    {
-        interp_times.push_back(mjdt_current);
-        mjdt_current.add(step_sec);
-    }
+    // Generate the interpolation times lineal space.
+    interp_times = MJDateTime::linspaceStep(mjdt_start, mjdt_end, step_sec);
 
     // Results container.
-    SLRPredictions results(interp_times.size());
+    SLRPredictionV results(interp_times.size());
 
     // Parallel calculation.
     #pragma omp parallel for

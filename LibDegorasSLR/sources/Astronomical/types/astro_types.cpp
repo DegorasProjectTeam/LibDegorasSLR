@@ -32,7 +32,7 @@ RA::RA(int hour, int min, double sec) :
     min(min),
     sec(sec)
 {
-    this->ra = hour + min / 60. + sec / 3600.;
+    this->ra = hour + min / 60.0L + sec / 3600.0L;
 }
 
 RA::RA(double ra) :

@@ -340,14 +340,14 @@ M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
     // Do the checks.
     for (const auto& [input, expected] : valid_cases_extended)
     {
-        HRTimePointStd parsed = timing::iso8601DatetimeParserUTC(input);
+        HRTimePointStd parsed = timing::iso8601DatetimeToTimePoint(input);
         M_EXPECTED_EQ(parsed.time_since_epoch(), expected)
     }
 
     // Do the checks.
     for (const auto& [input, expected] : valid_cases_basic)
     {
-        HRTimePointStd parsed = timing::iso8601DatetimeParserUTC(input);
+        HRTimePointStd parsed = timing::iso8601DatetimeToTimePoint(input);
         M_EXPECTED_EQ(parsed.time_since_epoch(), expected)
     }
 
@@ -356,7 +356,7 @@ M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
     {
         try
         {
-            timing::iso8601DatetimeParserUTC(input);
+            timing::iso8601DatetimeToTimePoint(input);
             M_FORCE_FAIL()
         }
         catch (const std::invalid_argument& e)
@@ -442,8 +442,8 @@ M_DEFINE_UNIT_TEST(timePointToJulianDatetime)
     // Do the checks.
     for (const auto& [input, output] : test_cases)
     {
-        timing::JDateTime jdt = timePointToJulianDatetime(input);
-        timing::HRTimePointStd jdt_tp = julianDatetimeToTimePoint(jdt);
+        timing::JDateTime jdt = timePointToJulianDateTime(input);
+        timing::HRTimePointStd jdt_tp = julianDateTimeToTimePoint(jdt);
         std::string str_result = timing::timePointToIso8601(jdt_tp, TimeResolution::MILLISECONDS);
         std::string str_expected = timing::timePointToIso8601(input, TimeResolution::MILLISECONDS);
 
@@ -455,8 +455,8 @@ M_DEFINE_UNIT_TEST(timePointToJulianDatetime)
 M_DEFINE_UNIT_TEST(julianDatetimeToTimePoint)
 {
     // Exception result.
-    std::string exception_str =
-        "[LibDegorasSLR,Timing,julianDatetimeToTimePoint] The jdt represent a time before the Unix epoch.";
+    std::string exception_str = "[LibDegorasSLR,Timing,julianDateTimeToTimePoint] "
+                                "The Julian DateTime represents a time before the Unix epoch.";
 
     // Valid cases.
     std::vector<std::pair<timing::JDateTime, timing::HRTimePointStd>> valid_cases =
@@ -475,7 +475,7 @@ M_DEFINE_UNIT_TEST(julianDatetimeToTimePoint)
     {
         try
         {
-            timing::julianDatetimeToTimePoint(input);
+            timing::julianDateTimeToTimePoint(input);
             M_FORCE_FAIL()
         }
         catch (const std::invalid_argument& e)
@@ -489,7 +489,7 @@ M_DEFINE_UNIT_TEST(julianDatetimeToTimePoint)
     for (const auto& [input, expected] : valid_cases)
     {
         // Up to ms resolution.
-        timing::HRTimePointStd result_tp = julianDatetimeToTimePoint(input);
+        timing::HRTimePointStd result_tp = julianDateTimeToTimePoint(input);
         std::string str_result = timing::timePointToIso8601(result_tp, TimeResolution::MILLISECONDS);
         std::string str_expected = timing::timePointToIso8601(expected, TimeResolution::MILLISECONDS);
         M_EXPECTED_EQ(str_expected, str_result)
@@ -524,27 +524,24 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate_fract)
     // Do the checks.
     for (const auto& [input, output_jdate, output_frac, string] : test_cases)
     {
-        // Containers.
-        DayFraction fraction;
-        JDate jd;
         // Conversion and reverse conversion.
-        timePointToJulianDate(input, jd, fraction);
+        JDateTime jdt = timePointToJulianDateTime(input);
 
 
         std::string out_str = timePointToIso8601(input, TimeResolution::NANOSECONDS);
 
 
         // Nanoseconds preccision (in day fraction sense, approx 17 decimals).
-        M_EXPECTED_EQ(jd, output_jdate)
+        M_EXPECTED_EQ(jdt.date(), output_jdate)
         M_EXPECTED_EQ(out_str, string)
-        M_EXPECTED_EQ_F(fraction, output_frac, 0.00000000000000001L)
+        M_EXPECTED_EQ_F(jdt.fract(), output_frac, 0.00000000000000001L)
     }
 }
 
 M_DEFINE_UNIT_TEST(timePointToJulianDate)
 {
-    auto epoch_start = std::chrono::system_clock::from_time_t(0LL);         // 1970-01-01T00:00:00Z
-    auto one_day_ns = std::chrono::hours(24LL);                             // 1970-01-02T00:00:00Z
+    auto epoch_start = std::chrono::system_clock::from_time_t(0LL);           // 1970-01-01T00:00:00Z
+    auto one_day_ns = std::chrono::hours(24LL);                               // 1970-01-02T00:00:00Z
     auto first_half = std::chrono::hours(48LL) + std::chrono::hours(8LL);     // 1970-01-03T08:00:00Z
     auto second_half = std::chrono::hours(48LL) + std::chrono::hours(18LL);   // 1970-01-03T18:00:00Z
     auto example_1 = std::chrono::nanoseconds(1677589965123456789LL);       // 2023-02-28T13:12:45.123456789Z
@@ -567,9 +564,9 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate)
     // Do the checks.
     for (const auto& [input, output_jdate, string] : test_cases)
     {
-        JDate jd = timePointToJulianDate(input);
+        JDateTime jdt = timePointToJulianDateTime(input);
 
-        M_EXPECTED_EQ(jd, output_jdate)
+        M_EXPECTED_EQ(jdt.date(), output_jdate)
     }
 }
 
@@ -591,7 +588,7 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate)
 M_START_UNIT_TEST_SESSION("LibDegorasSLR Timing Session")
 
 // Configuration.
-M_FORCE_SHOW_RESULTS(false)
+M_FORCE_SHOW_RESULTS(true)
 
 // Register the tests.
 M_REGISTER_UNIT_TEST(Timing-time_utils, helpers, daysFromCivil)

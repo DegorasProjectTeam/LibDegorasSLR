@@ -100,6 +100,8 @@ public:
      */
     DateTime(const DateType& date, const SoD& sod);
 
+    DateTime(const DateType& date, const DayFraction& sod);
+
     /**
      * @brief Constructor from long double value containing the day and fraction of day combined.
      * @param dt, the current datetime in days since origin with day fraction.
@@ -137,7 +139,7 @@ public:
     /**
      * @brief Function to get the date and fractional part together as a long double.
      * @return date and fractional part combined. Precision can be reduced.
-     * @warning This function reduces the precision of the fraction.
+     * @warning This function reduces the precision of the fraction. TODO EXPLAIN MORE
      */
     long double datetime() const;
 
@@ -159,9 +161,7 @@ public:
 
     DateTime operator+(const Seconds& seconds) const;
 
-    static std::vector<DateTime> linspaceStep(const DateTime& start,
-                                              const DateTime& end,
-                                              const Seconds& step);
+    static std::vector<DateTime> linspaceStep(const DateTime& start,  const DateTime& end, const Seconds& step);
 
 private:
 

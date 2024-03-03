@@ -103,7 +103,7 @@ int getStarAltAzPos(const types::Star &star,
                     int leap_secs,
                     double ut1_utc_diff)
 {
-    timing::types::JDateTime jdt = timing::timePointToJulianDatetime(tp);
+    timing::types::JDateTime jdt = timing::timePointToJulianDateTime(tp);
 
     return getStarAltAzPos(star, loc, jdt, pos, leap_secs, ut1_utc_diff);
 }

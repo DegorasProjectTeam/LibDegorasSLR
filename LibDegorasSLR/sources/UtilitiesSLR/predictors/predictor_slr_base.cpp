@@ -40,7 +40,7 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
 #include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Astronomical/astro_constants.h"
 #include "LibDegorasSLR/Geophysics/tropo.h"
@@ -81,6 +81,8 @@ PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const Geocent
                                  math::units::Distance<long double>::Unit::METRES);
 }
 
+
+
 void PredictorSLR::setTropoModel(TroposphericModel model){this->tropo_model_ = model;}
 
 void PredictorSLR::enableCorrections(bool enable){this->apply_corr_ = enable;}
@@ -117,17 +119,16 @@ const GeocentricPoint& PredictorSLR::getGeocentricLocation() const {return this-
 
 void PredictorSLR::setPredictionMode(PredictionMode mode)
 {
-    this->prediction_mode = mode;
+    this->prediction_mode_ = mode;
 }
 
 PredictorSLR::PredictionMode PredictorSLR::getPredictionMode() const
 {
-    return this->prediction_mode;
+    return this->prediction_mode_;
 }
 
-bool PredictorSLR::isInsideTimeWindow(MJDateTime start, MJDateTime end) const
+bool PredictorSLR::isInsideTimeWindow(const MJDateTime& start, const MJDateTime& end) const
 {
-
     // Auxiliar.
     MJDateTime predict_mjd_start, predict_mjd_end;
 
@@ -197,6 +198,9 @@ Meters PredictorSLR::applyCorrections(Meters& range, SLRPrediction& result, bool
     // Return the new range with the corrections.
     return provisional_range;
 }
+
+PredictorSLR::~PredictorSLR()
+{}
 
 }} // END NAMESPACES
 // =====================================================================================================================

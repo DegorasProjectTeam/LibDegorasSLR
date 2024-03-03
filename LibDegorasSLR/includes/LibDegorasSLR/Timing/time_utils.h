@@ -67,6 +67,7 @@ namespace timing{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
+using timing::types::Iso8601Str;
 using timing::types::HRClock;
 using timing::types::HRTimePointStd;
 using timing::types::TimeResolution;
@@ -257,7 +258,7 @@ LIBDPSLR_EXPORT std::string secondsToISO8601Duration(const std::chrono::seconds&
  * @warning This function uses regular expressions, which may not be fully supported or performant on some older
  * compiler versions. Ensure compatibility with your compiler's regex implementation when using this function.
  */
-LIBDPSLR_EXPORT HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime);
+LIBDPSLR_EXPORT HRTimePointStd iso8601DatetimeToTimePoint(const Iso8601Str& datetime);
 
 //======================================================================================================================
 
@@ -312,7 +313,7 @@ LIBDPSLR_EXPORT HRTimePointStd win32TicksToTimePoint(Windows32Ticks ticks);
  *
  * @see julianDatetimeToTimePoint for the reverse conversion.
  */
-LIBDPSLR_EXPORT JDateTime timePointToJulianDatetime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT JDateTime timePointToJulianDateTime(const HRTimePointStd &tp);
 
 /**
  * @brief Converts JDateTime to a HRTimePointStd with precision up to milliseconds.
@@ -344,7 +345,9 @@ LIBDPSLR_EXPORT JDateTime timePointToJulianDatetime(const HRTimePointStd &tp);
  *
  * @see timePointToJulianDatetime for the reverse conversion.
  */
-LIBDPSLR_EXPORT HRTimePointStd julianDatetimeToTimePoint(JDateTime jdt);
+
+
+
 
 /**
  * @brief Converts a HRTimePointStd to Julian Date and the fractional part of the day.
@@ -366,15 +369,9 @@ LIBDPSLR_EXPORT HRTimePointStd julianDatetimeToTimePoint(JDateTime jdt);
  *
  * @see julianDateToTimePoint for the reverse conversion.
  */
-LIBDPSLR_EXPORT void timePointToJulianDate(const HRTimePointStd &tp, JDate& jd, DayFraction& fraction);
-
-
-LIBDPSLR_EXPORT void timePointToJulianDate(const HRTimePointStd &tp, JDate& jd, SoD& seconds);
-
-//LIBDPSLR_EXPORT JDate timePointToJulianDate(const HRTimePointStd &tp, SoD& seconds);
-
 
 /**
+ * TODO CHAGE DOC
  * @brief Converts a HRTimePointStd to Julian Date without considering the fractional part of the day.
  *
  * This function calculates the Julian Date for a given time point without returning the fractional part of the day.
@@ -391,21 +388,14 @@ LIBDPSLR_EXPORT void timePointToJulianDate(const HRTimePointStd &tp, JDate& jd, 
  * @see timePointToJulianDate(const HRTimePointStd &tp, DayFraction& fraction) for a version of this function that
  *      also returns the fractional part of the Julian day.
  */
-LIBDPSLR_EXPORT JDate timePointToJulianDate(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT JDateTime timePointToJulianDateTime(const HRTimePointStd &tp);
+
+
+LIBDPSLR_EXPORT MJDateTime timePointToModifiedJulianDateTime(const HRTimePointStd &tp);
 
 
 
-
-LIBDPSLR_EXPORT HRTimePointStd julianDateToTimePoint(JDate jd, SoD seconds = 0.0L);
-
-
-
-/**
- * @brief Converts a TimePoint to Modified Julian Datetime
- * @param tp, TimePoint to convert.
- * @return A floating point value representing Modified Julian Datetime in days. Precission up to ns.
- */
-LIBDPSLR_EXPORT MJDateTime timePointToModifiedJulianDatetime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT HRTimePointStd julianDateTimeToTimePoint(const JDateTime& jdt);
 
 
 
@@ -415,7 +405,7 @@ LIBDPSLR_EXPORT MJDateTime timePointToModifiedJulianDatetime(const HRTimePointSt
  * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
  * @return A TimePoint.
  */
-LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDatetimeToTimePoint(const MJDateTime &mjdt);
+LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDateTimeToTimePoint(const MJDateTime &mjdt);
 
 
 

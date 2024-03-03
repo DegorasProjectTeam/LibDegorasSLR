@@ -49,6 +49,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/Mathematics/math_constants.h"
+#include "LibDegorasSLR/Mathematics/unit_conversions.h"
 #include "LibDegorasSLR/Timing/time_utils.h"
 #include "LibDegorasSLR/Timing/time_constants.h"
 // =====================================================================================================================
@@ -61,10 +62,11 @@ namespace timing{
 
 // =====================================================================================================================
 using namespace dpslr::timing::types;
+using namespace dpslr::math::units;
 using std::chrono::duration;
-using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::time_point_cast;
+using std::chrono::duration_cast;
 // =====================================================================================================================
 
 // AUXILIAR
@@ -89,7 +91,7 @@ long long daysFromCivil(int y, unsigned m, unsigned d)
     const unsigned doy = (153*(m > 2 ? m-3 : m+9) + 2)/5 + d-1;  // [0, 365]
     const unsigned doe = yoe * 365 + yoe/4 - yoe/100 + doy;      // [0, 146096]
     // Return the result.
-    return era * 146097 + static_cast<int>(doe) - 719468;
+    return era * 146097LL + static_cast<int>(doe) - 719468LL;
 }
 
 std::string timePointToString(const HRTimePointStd &tp, const std::string& format, TimeResolution resolution,
@@ -218,7 +220,7 @@ std::string secondsToISO8601Duration(const std::chrono::seconds& secs)
     return millisecondsToISO8601Duration(msecs);
 }
 
-HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime)
+HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime)
 {
     // Auxiliar variables.
     int y,m,d,h,M, s;
@@ -272,94 +274,6 @@ HRTimePointStd iso8601DatetimeParserUTC(const std::string& datetime)
     return t;
 }
 
-JDateTime timePointToJulianDatetime(const HRTimePointStd &tp)
-{
-    long long ns_since_epoch = std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
-    long long days_since_epoch_int = ns_since_epoch / (kSecsPerDayLL * kNsPerSecond);
-    long long ns_in_current_day = ns_since_epoch % static_cast<long long>(kSecsPerDayLL * kNsPerSecond);
-    long double fractional_day = static_cast<long double>(ns_in_current_day) / (kSecsPerDayLL * kNsPerSecond);
-    long double jd = static_cast<long double>(days_since_epoch_int) + fractional_day + kPosixEpochToJulian;
-    return JDateTime(jd);
-}
-
-HRTimePointStd julianDatetimeToTimePoint(JDateTime jdt)
-{
-    // Convert JDT to Unix timestamp (seconds since Unix epoch)
-    long double unix_dt = jdt.datetime() + kJulianToPosixEpoch;
-    // Check if the resulting time point is before the Unix epoch
-    if (unix_dt<0)
-    {
-        throw std::invalid_argument(
-            "[LibDegorasSLR,Timing,julianDatetimeToTimePoint] The jdt represent a time before the Unix epoch.");
-    }
-    duration<long double, std::ratio<kSecsPerDayLL>> unix_days(unix_dt);
-    auto dur = duration_cast<HRTimePointStd::duration>(unix_days);
-    return HRTimePointStd(dur);
-}
-
-void timePointToJulianDate(const HRTimePointStd& tp, JDate& jd, DayFraction& fraction)
-{
-    // Calculate total nanoseconds since the Unix epoch.
-    auto ns_since_epoch = std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
-
-    // Calculate total days from the Unix epoch to the Julian date.
-    long long days_since_epoch = ns_since_epoch / (kNsPerSecond * kSecsPerDayLL);
-
-    // Convert Unix days to Julian Date.
-    jd = static_cast<JDate>(days_since_epoch - kJulianToPosixEpoch);
-
-    // Calculate the remainder to find the nanoseconds for the current day.
-    long long ns_in_current_day = ns_since_epoch % (kNsPerSecond * kSecsPerDayLL);
-
-    // Adjust for Julian Date starting from noon. If the time corresponds to the first half of the Julian day,
-    // it actually belongs to the previous Julian Date.
-    if (ns_in_current_day < kNsPerHalfDay)
-    {
-        ns_in_current_day += kNsPerHalfDay;
-    }
-    else if(ns_in_current_day > kNsPerHalfDay)
-    {
-        jd += 1;
-        ns_in_current_day -= kNsPerHalfDay;
-    }
-
-    // Store the fractional part.
-    fraction = ns_in_current_day/static_cast<long double>(kNsPerDay);
-}
-
-JDate timePointToJulianDate(const HRTimePointStd &tp, SoD& seconds)
-{
-    DayFraction fraction;
-}
-
-
-
-JDate timePointToJulianDate(const HRTimePointStd& tp)
-{
-    // Calculate total nanoseconds since the Unix epoch.
-    auto ns_since_epoch = std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
-
-    // Calculate total days from the Unix epoch to the Julian date.
-    long long days_since_epoch = ns_since_epoch / (kNsPerSecond * kSecsPerDayLL);
-
-    // Convert Unix days to Julian Date.
-    JDate jd = static_cast<JDate>(days_since_epoch - kJulianToPosixEpoch);
-
-    // Calculate the remainder to find the nanoseconds for the current day.
-    long long ns_in_current_day = ns_since_epoch % (kNsPerSecond * kSecsPerDayLL);
-
-    // Adjust for Julian Date starting from noon. If the time corresponds to the first half of the Julian day,
-    // it actually belongs to the previous Julian Date.
-    if(ns_in_current_day > kNsPerHalfDay)
-    {
-        jd += 1;
-    }
-
-    // Return the julian day.
-    return jd;
-}
-
-
 HRTimePointStd win32TicksToTimePoint(Windows32Ticks ticks)
 {
     const unsigned long long ns = ticks * static_cast<unsigned long long>(kNsPerWin32Tick);
@@ -377,27 +291,93 @@ HRTimePointStd win32TicksToTimePoint(Windows32Ticks ticks)
 }
 
 
+JDateTime timePointToJulianDateTime(const HRTimePointStd &tp)
+{
+    // Calculate total nanoseconds since the Unix epoch.
+    auto ns_since_epoch = std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
+
+    // Calculate total days from the Unix epoch to the Julian date.
+    long long days_since_epoch = ns_since_epoch / (kNsPerSecond * kSecsPerDayLL);
+
+    // Convert Unix days to Julian Date.
+    JDate jd = static_cast<JDate>(days_since_epoch - kJulianToPosixEpoch);
+
+    // Calculate the remainder to find the nanoseconds for the current day.
+    long long ns_in_current_day = ns_since_epoch % (kNsPerSecond * kSecsPerDayLL);
+
+    // Adjust for Julian Date starting from noon. If the time corresponds to the first half of the Julian day,
+    // it actually belongs to the previous Julian Date.
+    if (ns_in_current_day < kNsPerHalfDay)
+    {
+        ns_in_current_day += kNsPerHalfDay;
+    }
+    else if(ns_in_current_day > kNsPerHalfDay)
+    {
+        jd += 1;
+        ns_in_current_day -= kNsPerHalfDay;
+    }
+
+    // Calculate the seconds.
+    SoD seconds = static_cast<SoD>(ns_in_current_day) / kNsPerSecond;
+
+    // Return the Julian Datetime.
+    return JDateTime(jd, seconds);
+}
+
+
+MJDateTime timePointToModifiedJulianDateTime(const HRTimePointStd &tp)
+{
+    // Calculate total nanoseconds since the Unix epoch.
+    auto ns_since_epoch = std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
+
+    // Calculate total days from the Unix epoch to the Julian date.
+    long long days_since_epoch = ns_since_epoch / (kNsPerSecond * kSecsPerDayLL);
+
+    // Convert Unix days to Julian Date.
+    MJDate mjd = static_cast<MJDate>(days_since_epoch - kModifiedJulianToPosixEpoch);
+
+    // Calculate the remainder to find the nanoseconds for the current day.
+    long long ns_in_current_day = ns_since_epoch % (kNsPerSecond * kSecsPerDayLL);
+
+    // Adjust for Julian Date starting from noon. If the time corresponds to the first half of the Julian day,
+    // it actually belongs to the previous Julian Date.
+    if (ns_in_current_day < kNsPerHalfDay)
+    {
+        ns_in_current_day += kNsPerHalfDay;
+    }
+    else if(ns_in_current_day > kNsPerHalfDay)
+    {
+        mjd += 1;
+        ns_in_current_day -= kNsPerHalfDay;
+    }
+
+    // Calculate the seconds.
+    SoD seconds = static_cast<SoD>(ns_in_current_day) / kNsPerSecond;
+
+    // Return the Julian Datetime.
+    return MJDateTime(mjd, seconds);
+}
 
 
 
 
-
-HRTimePointStd julianDateToTimePoint(JDate jd, SoD seconds)
+HRTimePointStd julianDateTimeToTimePoint(const JDateTime& jdt)
 {
     // Calculate total days from Julian Date to Unix epoch (1970-01-01).
-    long long days_from_epoch = jd + static_cast<long long>(kJulianToPosixEpoch);
+    long long days_from_epoch = jdt.date() + static_cast<long long>(kJulianToPosixEpoch);
+
+    // Check if the resulting time point is before the Unix epoch
+    if (days_from_epoch < 0)
+    {
+        std::string submodule("[LibDegorasSLR,Timing,julianDateTimeToTimePoint]");
+        std::string error("The Julian DateTime represents a time before the Unix epoch.");
+        throw std::invalid_argument(submodule + " " + error);
+    }
 
     // Now the seconds.
     long long secs_from_epoch = days_from_epoch * kSecsPerDayLL - 43200;
-    long long ns_day = static_cast<long long>(seconds*kNsPerSecond);
+    long long ns_day = static_cast<long long>(jdt.sod()*kNsPerSecond);
     long long ns_from_epoch = secs_from_epoch*kNsPerSecond + ns_day;
-
-    // Check if the resulting time point is before the Unix epoch
-    if (ns_from_epoch < 0)
-    {
-        throw std::invalid_argument(
-            "[LibDegorasSLR,Timing,julianDateToTimePoint] The jd represents a time before the Unix epoch.");
-    }
 
     // Return.
     return HRTimePointStd(std::chrono::nanoseconds(ns_from_epoch));
@@ -407,11 +387,37 @@ HRTimePointStd julianDateToTimePoint(JDate jd, SoD seconds)
 
 
 
-HRTimePointStd modifiedJulianDatetimeToTimePoint(const MJDateTime &mjt)
+HRTimePointStd julianDateToTimePoint(JDate jd, SoD seconds)
 {
-    duration<long double, std::ratio<kSecsPerDayLL>> unix_days(
-        mjt.datetime() + kModifiedJulianToJulian + kJulianToPosixEpoch);
-    return HRTimePointStd(duration_cast<HRTimePointStd::duration>(unix_days));
+
+}
+
+
+
+
+
+HRTimePointStd modifiedJulianDateTimeToTimePoint(const MJDateTime &mjdt)
+{
+    // Calculate total days from Modified Julian Date to Unix epoch (1970-01-01).
+    long long days_from_epoch = mjdt.date() + static_cast<long long>(kModifiedJulianToPosixEpoch);
+
+    // Check if the resulting time point is before the Unix epoch.
+    if (days_from_epoch < 0)
+    {
+        std::string submodule("[LibDegorasSLR,Timing,modifiedJulianDateTimeToTimePoint]");
+        std::string error("The Modified Julian DateTime represents a time before the Unix epoch.");
+        throw std::invalid_argument(submodule + " " + error);
+    }
+
+    // Now the seconds.
+    long long secs_from_epoch = days_from_epoch * kSecsPerDayLL - 43200;
+    long long ns_day = static_cast<long long>(mjdt.sod()*kNsPerSecond);
+    long long ns_from_epoch = secs_from_epoch*kNsPerSecond + ns_day;
+
+
+
+    // Return.
+    return HRTimePointStd(std::chrono::nanoseconds(ns_from_epoch));
 }
 
 
@@ -579,19 +585,12 @@ void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& s
 
 
 
+
+
+
 long double timePointToJ2000Datetime(const HRTimePointStd &tp)
 {
-    return timePointToJulianDatetime(tp).datetime() + kJulianToJ2000;
-}
-
-MJDateTime timePointToModifiedJulianDatetime(const HRTimePointStd &tp)
-{
-    return timePointToJulianDatetime(tp).datetime() + kJulianToModifiedJulian;
-}
-
-RJDateTime timePointToReducedJulianDatetime(const HRTimePointStd &tp)
-{
-    return timePointToJulianDatetime(tp).datetime() + kJulianToReducedJulian;
+    //return timePointToJulianDatetime(tp).datetime() + kJulianToJ2000;
 }
 
 
@@ -658,8 +657,8 @@ J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDateTime& mjdt)
     long double j2000_date_frac;
     j2000_date_frac = std::modf(j2000_date, &j2000_date_dec);
     long double fraction_sod = j2000_date_frac * kSecsPerDayL;
-    J2000DateTime j2000(static_cast<J2000Date>(static_cast<long long>(j2000_date_dec)),
-                        fraction_sod + mjdt.sod());
+    J2000Date j2000_date_strong(static_cast<long long>(j2000_date_dec));
+    J2000DateTime j2000(j2000_date_strong, SoD(fraction_sod + mjdt.sod()));
     return j2000;
 }
 

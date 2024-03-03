@@ -52,17 +52,21 @@ namespace mount{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace dpslr::timing::types;
-using namespace dpslr::astro::types;
+using namespace timing::types;
+using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(const PredictorSLR& predictor, MJDateTime mjdt_start, MJDateTime mjdt_end,
+PredictorMountSLR::PredictorMountSLR(const PredictorSLR& predictor, const MJDateTime& mjdt_start,
+                                     const MJDateTime& mjdt_end,
                                      MillisecondsU time_delta, DegreesU min_elev,
                                      DegreesU max_elev, DegreesU sun_avoid_angle, bool sun_avoid) :
     predictor_(predictor),
     sun_predictor_(this->predictor_.getGeodeticLocation()),
     mount_track_(this->predictor_, this->sun_predictor_)
 {
+    // Check Degoras initialization.
+    DegorasInit::checkMandatoryInit();
+
     // Store the configuration data.
     this->mount_track_.config.mjdt_start = mjdt_start;
     this->mount_track_.config.mjdt_end = mjdt_end;
@@ -74,19 +78,15 @@ PredictorMountSLR::PredictorMountSLR(const PredictorSLR& predictor, MJDateTime m
 
     // Check configured elevations.
     if(min_elev >= max_elev || min_elev > 90 || max_elev > 90 || sun_avoid_angle > 90)
-        throw std::invalid_argument("[LibDegorasSLR,UtilitiesSLR,PredictorMountSLR] Invalid angles configuration.");
+        throw std::invalid_argument("[LibDegorasSLR,TrackingMount,PredictorMountSLR] Invalid angles configuration.");
 
     // Check too high values for the sun avoid angle, so the algorithm can fail.
     if((sun_avoid_angle*2)+min_elev >= 90 || (sun_avoid_angle*2)+(90-max_elev) >= 90)
-        throw std::invalid_argument("[LibDegorasSLR,UtilitiesSLR,PredictorMountSLR] Sun avoid angle too high for the "
+        throw std::invalid_argument("[LibDegorasSLR,TrackingMount,PredictorMountSLR] Sun avoid angle too high for the "
                                     "configured minimum and maximum elevations.");
-
-    // Check Degoras initialization.
-    dpslr::DegorasInit::checkMandatoryInit();
 
     // Analyze the tracking.
     this->analyzeTracking();
-
 }
 
 PredictorMountSLR::PredictorMountSLR(const PredictorSLR& predictor, const HRTimePointStd &tp_start,
@@ -136,7 +136,7 @@ PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTra
 PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
                                                  MountSLRPrediction &tracking_result)
 {
-    MJDateTime mjdt = timing::timePointToModifiedJulianDatetime(tp_time);
+    MJDateTime mjdt = timing::timePointToModifiedJulianDateTime(tp_time);
     return predict(mjdt, tracking_result);
 }
 
@@ -258,7 +258,7 @@ void PredictorMountSLR::analyzeTracking()
 {
     // Results container and auxiliar.
     unsigned step_ms = this->mount_track_.config.time_delta;
-    SLRPredictions results_slr;
+    SLRPredictionV results_slr;
     astro::PredictorSun::SunPredictions results_sun;
 
     // Update flag.

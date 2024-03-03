@@ -66,6 +66,7 @@ constexpr long double kJulianToJ2000 = -2451545.0L;
 constexpr long double kJ2000ToJulian = 2451545.0L;
 constexpr long double kPosixEpochToJulian = 2440587.5L;
 constexpr long double kJulianToPosixEpoch = -2440587.5L;
+constexpr long double kModifiedJulianToPosixEpoch = kModifiedJulianToJulian + kJulianToPosixEpoch;
 constexpr long long kNsPerSecond = 1000000000LL;
 //
 constexpr long long kSecsPerDayLL = 86400LL;
