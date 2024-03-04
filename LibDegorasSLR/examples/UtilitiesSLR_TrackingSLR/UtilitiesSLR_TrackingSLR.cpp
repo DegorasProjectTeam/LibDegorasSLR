@@ -196,6 +196,8 @@ int main()
         return -1;
     }
 
+    predictor_cpf->setInterpFunction(PredictorCPF::InterpFunction::LAGRANGE_9);
+
     // Configure sun predictor
     auto predictor_sun = std::make_shared<PredictorSunFast>(stat_geodetic);
 

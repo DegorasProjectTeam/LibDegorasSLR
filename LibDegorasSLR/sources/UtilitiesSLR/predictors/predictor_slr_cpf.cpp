@@ -80,7 +80,8 @@ const std::array<std::string, 10> PredictorCPF::PredictorErrorStr =
 
 
 PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
-    PredictorSLR(geod, geoc)
+    PredictorSLR(geod, geoc),
+    interp_funct_(InterpFunction::LAGRANGE_9)
 {
     // If CPF has data, then set it for prediction.
     if (cpf.hasData())
@@ -88,7 +89,8 @@ PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<long double> &geo
 }
 
 PredictorCPF::PredictorCPF(const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
-    PredictorSLR(geod, geoc)
+    PredictorSLR(geod, geoc),
+    interp_funct_(InterpFunction::LAGRANGE_9)
 {
 }
 
@@ -553,7 +555,7 @@ SLRPredictionV PredictorCPF::predict(const MJDateTime& mjdt_start, const MJDateT
     SLRPredictionV results(interp_times.size());
 
     // Parallel calculation.
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(size_t i = 0; i<interp_times.size(); i++)
     {
         this->predict(interp_times[i], results[i]);

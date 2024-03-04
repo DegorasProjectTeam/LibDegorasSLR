@@ -107,18 +107,17 @@ def read_positions(filename):
         lines = file.readlines()
         for line in lines[header_size:]:
             data = line.split(';')
-            
-            pass_az = float(data[2])
-            pass_el = float(data[3])
+            pass_az = float(data[1])
+            pass_el = float(data[2])
             pass_positions.append((pass_az, pass_el))
 
-            if(data[4] != '' and data[5] != ''):
-                track_az = float(data[4])
-                track_el = float(data[5])
+            if(data[3] != '' and data[4] != ''):
+                track_az = float(data[3])
+                track_el = float(data[4])
                 track_positions.append((track_az, track_el))
 
-            sun_az = float(data[6])
-            sun_el = float(data[7])
+            sun_az = float(data[5])
+            sun_el = float(data[6])
             sun_positions.append((sun_az, sun_el))
                         
     return [pass_positions, track_positions, sun_positions]

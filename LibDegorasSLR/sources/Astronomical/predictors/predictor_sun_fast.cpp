@@ -111,10 +111,6 @@ SunPrediction PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
     prediction.altaz_coord.el = elevation;
     prediction.j2dt = j2000;
 
-    // FORCE FOR DEBUG.
-    prediction.altaz_coord.az = 225;
-    prediction.altaz_coord.el = 70;
-
     // Retur the final position.
     return prediction;
 }
@@ -122,6 +118,7 @@ SunPrediction PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
 SunPredictionV PredictorSunFast::predict(const J2000DateTime &j2000_start, const J2000DateTime &j2000_end,
                                          MillisecondsU step_ms, bool refraction) const
 {
+    std::cout << "muerte" << std::endl;
     // Container and auxiliar.
     J2000DateTimeV interp_times;
     Seconds step_sec = static_cast<long double>(step_ms) * math::units::kMsToSec;
@@ -136,11 +133,13 @@ SunPredictionV PredictorSunFast::predict(const J2000DateTime &j2000_start, const
     // Results container.
     SunPredictionV results(interp_times.size());
 
+    std::cout << "size: " << interp_times.size() << std::endl;
     // Parallel calculation.
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(size_t i = 0; i<interp_times.size(); i++)
     {
         results[i] = this->predict(interp_times[i], refraction);
+        std::cout << "az,el: " << results[i].altaz_coord.az << " , " << results[i].altaz_coord.el << std::endl;
     }
 
     // Return the container.

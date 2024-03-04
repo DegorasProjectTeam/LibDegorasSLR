@@ -69,7 +69,7 @@ using math::types::Vector3D;
 using astro::types::AltAzPos;
 // ---------------------------------------------------------------------------------------------------------------------
 
-struct SunPrediction
+struct LIBDPSLR_EXPORT SunPrediction
 {
     // Default constructor.
     SunPrediction() = default;
