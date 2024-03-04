@@ -27,29 +27,22 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun_fast.h
+ * @file predictor_sun_fast.cpp
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
  * @version
 ***********************************************************************************************************************/
 
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
-
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
+#include <cmath>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_fast.h"
+#include "LibDegorasSLR/Mathematics/math.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -59,74 +52,100 @@ namespace astro{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using timing::types::J2000DateTime;
-using timing::types::J2000DateTimeV;
-using timing::types::MJDate;
-using timing::types::SoD;
-using timing::types::MJDateTime;
-using geo::types::GeodeticPoint;
-using math::units::MillisecondsU;
-using math::types::Vector3D;
-using astro::types::AltAzPos;
+using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-/**
- * @brief The PredictorSunFast class provides functionality to predict the position of the Sun using a fast algorithm.
- *
- * This class utilizes astronomical algorithms to calculate the azimuth and elevation of the Sun at a given time
- * and observer's geodetic coordinates. This algorithm as a 0.01 degree accuracy.
- */
-class LIBDPSLR_EXPORT PredictorSunFast : public PredictorSun
+dpslr::astro::PredictorSunFast::PredictorSunFast(const geo::types::GeodeticPoint<long double> &obs_geod) :
+    PredictorSun(obs_geod)
 {
+}
 
-public:
+SunPrediction PredictorSunFast::predict(const J2000DateTime& j2000, bool refraction) const
+{
+    // Store de J2000 datetime.
+    long double j2000_dt = j2000.datetime();
 
-    /**
-     * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
-     * @param obs_geod The geodetic coordinates of the observer.
-     */
-    PredictorSunFast(const GeodeticPoint<long double>& obs_geod);
+    // Local sidereal time.
+    long double sidereal = 4.894961213L + 6.300388099L * j2000_dt + this->obs_lon_;
 
-    PredictorSunFast(const PredictorSunFast&) = default;
-    PredictorSunFast(PredictorSunFast&&) = default;
-    PredictorSunFast& operator =(const PredictorSunFast&) = default;
-    PredictorSunFast& operator =(PredictorSunFast&&) = default;
+    // Mean longitude and anomaly of the sun.
+    long double mean_long = j2000_dt * 1.720279239e-2L + 4.894967873L;
+    long double mean_anom = j2000_dt * 1.720197034e-2L + 6.240040768L;
 
-    /**
-     * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
-     *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts the Sun position
-     * with a 0.01 degree accuracy up to 2099. It can perform also a simple atmospheric refraction correction. The
-     * time precision, internally, is decreased to milliseconds (for this type of prediction it is enough).
-     *
-     * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted SunPrediction.
-     *
-     * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
-     */
-    SunPrediction predict(const J2000DateTime& j2000, bool refraction) const override;
+    // Ecliptic longitude of the sun.
+    long double eclip_long = mean_long + 3.342305518e-2L * std::sin(mean_anom)
+                             + 3.490658504e-4L * std::sin(2 * mean_anom);
 
-    /**
-     * @brief Predicts Sun positions within a time range with a specified time step using a fast algorithm.
-     *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts in parallel
-     * all Sun position within a time range with a specified time step, with a 0.01 degree accuracy up to 2099.
-     * It can perform also a simple atmospheric refraction correction. The time precision, internally, is decreased to
-     * milliseconds (for this type of prediction it is enough).
-     *
-     * @param j2000_start The J2000 start datetime of the prediction range.
-     * @param j2000_end The J2000 end datetime of the prediction range.
-     * @param step The time step in milliseconds between predictions.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return A vector of SunPrediction objects representing predicted sun positions at each step.
-     *
-     * @throws std::invalid_argument If the interval is invalid.
-     */
-    SunPredictionV predict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
-                           MillisecondsU step, bool refraction) const override;
+    // Obliquity of the ecliptic
+    long double obliquity = 0.4090877234L - 6.981317008e-9L * j2000_dt;
 
-};
+    // Right ascension of the sun and declination.
+    long double rasc = std::atan2(std::cos(obliquity) * std::sin(eclip_long), std::cos(eclip_long));
+    long double decl = std::asin(std::sin(obliquity) * std::sin(eclip_long));
 
-}} // END NAMESPACES.
+    // Hour angle of the sun
+    long double hour_ang = sidereal - rasc;
+
+    // Local elevation of the sun.
+    long double elevation = std::asin(std::sin(decl) * std::sin(this->obs_lat_) +
+                                      std::cos(decl) * std::cos(this->obs_lat_) * std::cos(hour_ang));
+
+    // Local azimuth of the sun.
+    long double azimuth = std::atan2(-std::cos(decl) * std::cos(this->obs_lat_) * std::sin(hour_ang),
+                                     std::sin(decl) - std::sin(this->obs_lat_) * std::sin(elevation));
+
+    // Convert azimuth and elevation to degrees and normalize.
+    elevation = math::normalizeVal(math::units::radToDegree(elevation), -180.0L, 180.0L);
+    azimuth = math::normalizeVal(math::units::radToDegree(azimuth), 0.0L, 360.0L);
+
+    // Very simple refraction correction but enought for several applications.
+    if (refraction && (elevation >= -1 * (0.26667L + 0.5667L)))
+    {
+        long double targ = math::units::degToRad((elevation + (10.3L / (elevation + 5.11L))));
+        elevation += (1.02L / std::tan(targ)) / 60.0L;
+    }
+
+    // Final data.
+    SunPrediction prediction;
+    prediction.altaz_coord.az = azimuth;
+    prediction.altaz_coord.el = elevation;
+    prediction.j2dt = j2000;
+
+    // FORCE FOR DEBUG.
+    prediction.altaz_coord.az = 225;
+    prediction.altaz_coord.el = 70;
+
+    // Retur the final position.
+    return prediction;
+}
+
+SunPredictionV PredictorSunFast::predict(const J2000DateTime &j2000_start, const J2000DateTime &j2000_end,
+                                         MillisecondsU step_ms, bool refraction) const
+{
+    // Container and auxiliar.
+    J2000DateTimeV interp_times;
+    Seconds step_sec = static_cast<long double>(step_ms) * math::units::kMsToSec;
+
+    // Check for valid time interval.
+    if(!(j2000_start <= j2000_end))
+        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
+
+    // Calculates all the interpolation times.
+    interp_times = J2000DateTime::linspaceStep(j2000_start, j2000_end, step_sec);
+
+    // Results container.
+    SunPredictionV results(interp_times.size());
+
+    // Parallel calculation.
+    #pragma omp parallel for
+    for(size_t i = 0; i<interp_times.size(); i++)
+    {
+        results[i] = this->predict(interp_times[i], refraction);
+    }
+
+    // Return the container.
+    return results;
+}
+
+}} // END NAMESPACES
 // =====================================================================================================================

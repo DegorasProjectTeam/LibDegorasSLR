@@ -69,6 +69,24 @@ using math::types::Vector3D;
 using astro::types::AltAzPos;
 // ---------------------------------------------------------------------------------------------------------------------
 
+struct SunPrediction
+{
+    // Default constructor.
+    SunPrediction() = default;
+
+    // Containers.
+    J2000DateTime j2dt;         ///< J2000 datetime used to generate the Sun prediction data.
+    AltAzPos altaz_coord;  ///< Sun predicted altazimuth coordinates referenced to an observer in degrees.
+    Vector3D<> geo_pos;         ///< Sun predicted geocentric position in meters.
+
+    // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
+
+};
+
+/// Alias for a vector of SunPrediction.
+using SunPredictionV = std::vector<SunPrediction>;
+
+
 /**
  * @brief The PredictorSun class provides functionality to predict the position of the Sun.
  *
@@ -82,51 +100,30 @@ class LIBDPSLR_EXPORT PredictorSun
 
 public:
 
-    struct SunPrediction
-    {
-        // Default constructor.
-        SunPrediction() = default;
-
-        // Containers.
-        J2000DateTime j2dt;         ///< J2000 datetime used to generate the Sun prediction data.
-        AltAzPos altaz_coord;  ///< Sun predicted altazimuth coordinates referenced to an observer in degrees.
-        Vector3D<> geo_pos;         ///< Sun predicted geocentric position in meters.
-
-        // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
-
-    };
-
-    /// Alias for a vector of SunPrediction.
-    using SunPredictions = std::vector<SunPrediction>;
-
     /**
      * @brief Constructs a PredictorSun object with the given observer's geodetic coordinates.
      * @param obs_geod The geodetic coordinates of the observer.
      */
     PredictorSun(const GeodeticPoint<long double>& obs_geod);
 
+    PredictorSun(const PredictorSun&) = default;
+    PredictorSun(PredictorSun&&) = default;
+    PredictorSun& operator =(const PredictorSun&) = default;
+    PredictorSun& operator =(PredictorSun&&) = default;
+
+    virtual ~PredictorSun() = default;
+
     /**
-     * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
-     *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts the Sun position
-     * with a 0.01 degree accuracy up to 2099. It can perform also a simple atmospheric refraction correction. The
-     * time precision, internally, is decreased to milliseconds (for this type of prediction it is enough).
+     * @brief Predicts the position of the Sun at a specific time.
      *
      * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
      * @return The predicted SunPrediction.
-     *
-     * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
      */
-    SunPrediction fastPredict(const J2000DateTime& j2000, bool refraction = false) const;
+    virtual SunPrediction predict(const J2000DateTime& j2000, bool refraction) const = 0;
 
     /**
-     * @brief Predicts Sun positions within a time range with a specified time step using a fast algorithm.
-     *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts in parallel
-     * all Sun position within a time range with a specified time step, with a 0.01 degree accuracy up to 2099.
-     * It can perform also a simple atmospheric refraction correction. The time precision, internally, is decreased to
-     * milliseconds (for this type of prediction it is enough).
+     * @brief Predicts Sun positions within a time range with a specified time step.
      *
      * @param j2000_start The J2000 start datetime of the prediction range.
      * @param j2000_end The J2000 end datetime of the prediction range.
@@ -136,10 +133,10 @@ public:
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    SunPredictions fastPredict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
-                               MillisecondsU step, bool refraction = false) const;
+    virtual SunPredictionV predict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
+                                   MillisecondsU step, bool refraction) const = 0;
 
-private:
+protected:
 
     long double obs_lat_;  ///< Geodetic observer latitude in radians.
     long double obs_lon_;  ///< Geodetic observer longitude in radians.

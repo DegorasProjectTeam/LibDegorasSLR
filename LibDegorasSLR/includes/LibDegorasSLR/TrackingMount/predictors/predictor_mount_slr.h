@@ -47,6 +47,8 @@
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
+
+#include <memory>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -70,6 +72,8 @@ using math::units::Meters;
 using utils::PredictorSLR;
 using utils::SLRPrediction;
 using utils::SLRPredictionV;
+using astro::SunPrediction;
+using astro::SunPredictionV;
 using ilrs::cpf::CPF;
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -210,8 +214,8 @@ public:
 
         // Result members.
         Optional<SLRPrediction> slr_pred;  ///< Optional SLR prediction with the object pass position.
-        Optional<PredictorSun::SunPrediction> sun_pred;  ///< Optional Sun position container.
-        Optional<MountPosition> mount_pos;               ///< Optional tracking moun position container.
+        Optional<SunPrediction> sun_pred;  ///< Optional Sun position container.
+        Optional<MountPosition> mount_pos; ///< Optional tracking moun position container.
 
         // Status.
         PositionStatus status;  ///< The current postion status.
@@ -316,11 +320,13 @@ public:
 
     // Predictor tendria que recibir PredictorSLR, PredictorSun (virtual), TrackAnalizerConfig, MJDatetime start y end.
 
-    PredictorMountSLR(const PredictorSLR& predictor, const MJDateTime& mjdt_start, const MJDateTime& mjdt_end,
+    PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr, std::shared_ptr<PredictorSun> pred_sun,
+                      const MJDateTime& mjdt_start, const MJDateTime& mjdt_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
-    PredictorMountSLR(const PredictorSLR& predictor, const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
+    PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr, std::shared_ptr<PredictorSun> pred_sun,
+                      const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
@@ -437,9 +443,9 @@ private:
                                        const AltAzPos &sun_pos);
 
     // Private members.
-    const PredictorSLR& predictor_;              ///< SLR predictor.
-    astro::PredictorSun sun_predictor_;    ///< Sun predictor.
-    MountTrackSLR mount_track_;            ///< Mount track analyzed data.
+    std::shared_ptr<PredictorSLR> predictor_;       ///< SLR predictor.
+    std::shared_ptr<PredictorSun> sun_predictor_;   ///< Sun predictor.
+    MountTrackSLR mount_track_;                     ///< Mount track analyzed data.
 
     MountSLRPredictions::iterator tracking_begin_;
     MountSLRPredictions::iterator tracking_end_;

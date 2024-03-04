@@ -43,6 +43,7 @@
 #include <LibDegorasSLR/Modules/TrackingMount>
 #include <LibDegorasSLR/Modules/FormatsILRS>
 #include <LibDegorasSLR/Modules/Timing>
+#include <LibDegorasSLR/Modules/Astronomical>
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -65,6 +66,7 @@ using dpslr::math::units::Meters;
 using dpslr::helpers::strings::numberToStr;
 using dpslr::timing::iso8601DatetimeToTimePoint;
 using dpslr::timing::timePointToModifiedJulianDateTime;
+using dpslr::astro::PredictorSunFast;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -184,20 +186,24 @@ int main()
     }
 
     // Configure the SLR predictor_cpf.
-    PredictorCPF predictor_cpf(cpf, stat_geodetic, stat_geocentric);
+    auto predictor_cpf = std::make_shared<PredictorCPF>(cpf, stat_geodetic, stat_geocentric);
 
     // Check if the predictor is ready.
-    if (!predictor_cpf.isReady())
+    if (!predictor_cpf->isReady())
     {
         std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
         std::cerr << "Error: The CPF predictor has no valid data to do predictions." << std::endl;
         return -1;
     }
 
+    // Configure sun predictor
+    auto predictor_sun = std::make_shared<PredictorSunFast>(stat_geodetic);
+
     // Configure the SLR predictor_mount. The class will process the pass automatically and will
     // generate a preview mount track in the steps indicated by step_ms.
-    PredictorMountSLR predictor_mount(predictor_cpf, mjd_start, mjd_end,
+    PredictorMountSLR predictor_mount(predictor_cpf, predictor_sun, mjd_start, mjd_end,
                                       step, min_el, max_el , sun_avoid_angle, avoid_sun);
+
 
     // Check if the tracking is valid.
     if (!predictor_mount.isValid())

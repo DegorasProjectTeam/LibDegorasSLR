@@ -339,17 +339,17 @@ MJDateTime timePointToModifiedJulianDateTime(const HRTimePointStd &tp)
     // Calculate the remainder to find the nanoseconds for the current day.
     long long ns_in_current_day = ns_since_epoch % (kNsPerSecond * kSecsPerDayLL);
 
-    // Adjust for Julian Date starting from noon. If the time corresponds to the first half of the Julian day,
-    // it actually belongs to the previous Julian Date.
-    if (ns_in_current_day < kNsPerHalfDay)
-    {
-        ns_in_current_day += kNsPerHalfDay;
-    }
-    else if(ns_in_current_day > kNsPerHalfDay)
-    {
-        mjd += 1;
-        ns_in_current_day -= kNsPerHalfDay;
-    }
+    // // Adjust for Julian Date starting from noon. If the time corresponds to the first half of the Julian day,
+    // // it actually belongs to the previous Julian Date.
+    // if (ns_in_current_day < kNsPerHalfDay)
+    // {
+    //     ns_in_current_day += kNsPerHalfDay;
+    // }
+    // else if(ns_in_current_day > kNsPerHalfDay)
+    // {
+    //     mjd += 1;
+    //     ns_in_current_day -= kNsPerHalfDay;
+    // }
 
     // Calculate the seconds.
     SoD seconds = static_cast<SoD>(ns_in_current_day) / kNsPerSecond;

@@ -73,6 +73,7 @@ PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const Geocent
     wl_(0.0L),
     wtrvap_model_(WtrVapPressModel::GIACOMO_DAVIS),
     tropo_ready_(false),
+    prediction_mode_(PredictionMode::INSTANT_VECTOR),
     stat_geodetic_(geod),
     stat_geocentric_(geoc.toVector3D())
 {
