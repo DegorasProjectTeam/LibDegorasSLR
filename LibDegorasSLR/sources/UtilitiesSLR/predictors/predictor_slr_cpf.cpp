@@ -79,7 +79,7 @@ const std::array<std::string, 10> PredictorCPF::PredictorErrorStr =
 
 
 
-PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
+PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
     PredictorSLR(geod, geoc),
     interp_funct_(InterpFunction::LAGRANGE_9)
 {
@@ -88,7 +88,7 @@ PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<long double> &geo
         this->setCPF(cpf);
 }
 
-PredictorCPF::PredictorCPF(const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
+PredictorCPF::PredictorCPF(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
     PredictorSLR(geod, geoc),
     interp_funct_(InterpFunction::LAGRANGE_9)
 {
@@ -112,8 +112,8 @@ bool PredictorCPF::setCPF(const CPF& cpf)
     // Auxiliar variables.
     MJDate mjd_start = this->cpf_.getData().positionRecords().front().mjd;
     SoD sod_start = this->cpf_.getData().positionRecords().front().sod;
-    long double s_lon = this->getGeodeticLocation().lon;
-    long double s_lat = this->getGeodeticLocation().lat;
+    long double s_lon = this->getGeodeticLocation<Radians>().lon;
+    long double s_lat = this->getGeodeticLocation<Radians>().lat;
 
     // Rotation matrices.
     Matrix<long double> rot_long, rot_lat, rot_long_pi;

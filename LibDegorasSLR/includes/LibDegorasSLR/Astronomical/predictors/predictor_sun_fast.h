@@ -85,7 +85,7 @@ public:
      * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
      * @param obs_geod The geodetic coordinates of the observer.
      */
-    PredictorSunFast(const GeodeticPoint<long double>& obs_geod);
+    PredictorSunFast(const GeodeticPoint<Degrees>& obs_geod);
 
     PredictorSunFast(const PredictorSunFast&) = default;
     PredictorSunFast(PredictorSunFast&&) = default;

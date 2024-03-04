@@ -49,6 +49,7 @@
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -58,11 +59,19 @@ namespace geo{
 namespace types{
 // =====================================================================================================================
 
-template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+// ---------------------------------------------------------------------------------------------------------------------
+using math::units::Degrees;
+using math::units::Radians;
+// ---------------------------------------------------------------------------------------------------------------------
+
+template <typename AngleType,
+         typename = typename std::enable_if<
+         std::is_same<AngleType, Degrees>::value ||
+         std::is_same<AngleType, Radians>::value>::type>
 struct LIBDPSLR_EXPORT SurfaceLocation
 {
     MeteoData meteo;
-    GeodeticPoint<T> geodetic;
+    GeodeticPoint<AngleType> geodetic;
     GeocentricPoint geocentric;  ///<
 };
 

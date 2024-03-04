@@ -55,18 +55,21 @@ namespace astro{
 using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorSunFast::PredictorSunFast(const geo::types::GeodeticPoint<long double> &obs_geod) :
+dpslr::astro::PredictorSunFast::PredictorSunFast(const geo::types::GeodeticPoint<Degrees> &obs_geod) :
     PredictorSun(obs_geod)
 {
 }
 
 SunPrediction PredictorSunFast::predict(const J2000DateTime& j2000, bool refraction) const
 {
+    long double lon_rad = this->obs_geo_pos_.lon;
+    long double lat_rad = this->obs_geo_pos_.lat;
+
     // Store de J2000 datetime.
     long double j2000_dt = j2000.datetime();
 
     // Local sidereal time.
-    long double sidereal = 4.894961213L + 6.300388099L * j2000_dt + this->obs_lon_;
+    long double sidereal = 4.894961213L + 6.300388099L * j2000_dt + lon_rad;
 
     // Mean longitude and anomaly of the sun.
     long double mean_long = j2000_dt * 1.720279239e-2L + 4.894967873L;
@@ -87,12 +90,12 @@ SunPrediction PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
     long double hour_ang = sidereal - rasc;
 
     // Local elevation of the sun.
-    long double elevation = std::asin(std::sin(decl) * std::sin(this->obs_lat_) +
-                                      std::cos(decl) * std::cos(this->obs_lat_) * std::cos(hour_ang));
+    long double elevation = std::asin(std::sin(decl) * std::sin(lat_rad) +
+                                      std::cos(decl) * std::cos(lat_rad) * std::cos(hour_ang));
 
     // Local azimuth of the sun.
-    long double azimuth = std::atan2(-std::cos(decl) * std::cos(this->obs_lat_) * std::sin(hour_ang),
-                                     std::sin(decl) - std::sin(this->obs_lat_) * std::sin(elevation));
+    long double azimuth = std::atan2(-std::cos(decl) * std::cos(lat_rad) * std::sin(hour_ang),
+                                     std::sin(decl) - std::sin(lat_rad) * std::sin(elevation));
 
     // Convert azimuth and elevation to degrees and normalize.
     elevation = math::normalizeVal(math::units::radToDegree(elevation), -180.0L, 180.0L);

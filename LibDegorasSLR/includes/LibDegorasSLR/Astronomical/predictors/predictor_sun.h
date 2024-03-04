@@ -45,10 +45,11 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -64,8 +65,10 @@ using timing::types::MJDate;
 using timing::types::SoD;
 using timing::types::MJDateTime;
 using geo::types::GeodeticPoint;
+using geo::types::GeocentricPoint;
 using math::units::MillisecondsU;
-using math::types::Vector3D;
+using math::units::Degrees;
+using math::units::Radians;
 using astro::types::AltAzPos;
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -75,9 +78,9 @@ struct LIBDPSLR_EXPORT SunPrediction
     SunPrediction() = default;
 
     // Containers.
-    J2000DateTime j2dt;         ///< J2000 datetime used to generate the Sun prediction data.
-    AltAzPos altaz_coord;  ///< Sun predicted altazimuth coordinates referenced to an observer in degrees.
-    Vector3D<> geo_pos;         ///< Sun predicted geocentric position in meters.
+    J2000DateTime j2dt;        ///< J2000 datetime used to generate the Sun prediction data.
+    AltAzPos altaz_coord;      ///< Sun predicted altazimuth coordinates referenced to an observer in degrees.
+    GeocentricPoint geo_pos;   ///< Sun predicted geocentric position in meters.
 
     // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
 
@@ -104,7 +107,7 @@ public:
      * @brief Constructs a PredictorSun object with the given observer's geodetic coordinates.
      * @param obs_geod The geodetic coordinates of the observer.
      */
-    PredictorSun(const GeodeticPoint<long double>& obs_geod);
+    PredictorSun(const GeodeticPoint<Degrees>& obs_geod);
 
     PredictorSun(const PredictorSun&) = default;
     PredictorSun(PredictorSun&&) = default;
@@ -138,9 +141,7 @@ public:
 
 protected:
 
-    long double obs_lat_;  ///< Geodetic observer latitude in radians.
-    long double obs_lon_;  ///< Geodetic observer longitude in radians.
-    long double obs_alt_;  ///< Observer altitude in meters.
+    GeodeticPoint<Radians> obs_geo_pos_;  ///< Geodetic observer position (radians and meters).
 };
 
 }} // END NAMESPACES.

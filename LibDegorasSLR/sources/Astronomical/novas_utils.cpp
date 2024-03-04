@@ -30,12 +30,12 @@ namespace novas{
 
 
 
-on_surface makeOnSurface(const geo::types::SurfaceLocation<double> &loc)
+on_surface makeOnSurface(const geo::types::SurfaceLocation<Degrees> &loc)
 {
     return makeOnSurface(loc.geodetic, loc.meteo);
 }
 
-on_surface makeOnSurface(const geo::types::GeodeticPoint<double> &geod, const geo::types::MeteoData &meteo)
+on_surface makeOnSurface(const geo::types::GeodeticPoint<Degrees> &geod, const geo::types::MeteoData &meteo)
 {
     // TODO CHECK GEDOTIC UNITS AND METEO
 
@@ -45,7 +45,7 @@ on_surface makeOnSurface(const geo::types::GeodeticPoint<double> &geod, const ge
 }
 
 int getStarAltAzPos(const astro::types::Star &star,
-                    const geo::types::SurfaceLocation<double> &loc,
+                    const geo::types::SurfaceLocation<Degrees> &loc,
                     const timing::types::JDateTime &jdt,
                     types::AltAzPos &pos,
                     int leap_secs,
@@ -97,7 +97,7 @@ int getStarAltAzPos(const astro::types::Star &star,
 
 
 int getStarAltAzPos(const types::Star &star,
-                    const geo::types::SurfaceLocation<double> &loc,
+                    const geo::types::SurfaceLocation<Degrees> &loc,
                     const timing::types::HRTimePointStd &tp,
                     types::AltAzPos &pos,
                     int leap_secs,

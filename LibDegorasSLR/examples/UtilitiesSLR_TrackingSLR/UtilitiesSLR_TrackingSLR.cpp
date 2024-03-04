@@ -80,11 +80,6 @@ struct ExampleData
     {
         this->mjdt_start = timePointToModifiedJulianDateTime(iso8601DatetimeToTimePoint(start));
         this->mjdt_end = timePointToModifiedJulianDateTime(iso8601DatetimeToTimePoint(end));
-        std::cout<<dpslr::timing::timePointToIso8601(iso8601DatetimeToTimePoint(end))<<std::endl;
-        std::cout<<std::to_string(iso8601DatetimeToTimePoint(end).time_since_epoch().count())<<std::endl;
-        std::cout<<dpslr::timing::timePointToIso8601(dpslr::timing::modifiedJulianDateTimeToTimePoint(mjdt_end))<<std::endl;
-        std::cout<<std::to_string(dpslr::timing::modifiedJulianDateTimeToTimePoint(mjdt_end).time_since_epoch().count())<<std::endl;
-
     }
 
     std::string example_alias;
@@ -104,18 +99,19 @@ int main()
 
     // -------------------- EXAMPLE CONFIGURATION ----------------------------------------------------------------------
 
-    // SFEL station geodetic position (north and east > 0) with 8 decimals (1.1mm precision).
+    // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).
+    // Altitude in meters with 3 decimals (~1 mm precision).
     Degrees latitude = 36.46525556L;
     Degrees longitude = 353.79469440L;
     Meters alt = 98.177L;
 
-    // SFEL station geocentric coordinates (meters).
+    // SFEL station geocentric coordinates in meters with 3 decimals (~1 mm precison).
     Meters x = 5105473.885L;
     Meters y = -555110.526L;
     Meters z = 3769892.958L;
 
     // TrackingSLR configuration.
-    MillisecondsU step = 500;         // Steps into which the algorithm will divide the pass for analysis.
+    MillisecondsU step = 500;         // Steps into which the algorithm will divide the pass for initial analysis.
     DegreesU min_el = 15;             // Minimum acceptable elevation for the mount.
     DegreesU max_el = 90;             // Maximum acceptable elevation for the mount.
     DegreesU sun_avoid_angle = 15;    // Sun avoidance angle to make Sun the security sectors.
@@ -123,7 +119,7 @@ int main()
 
     // Selectors.
     size_t example_selector = 0;    // Select the example to process.
-    bool plot_data = true;          // Flag for enable the data plotting using a Python3 helper script.
+    bool plot_data = true;          // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // -------------------- EXAMPLE PREPARATION ------------------------------------------------------------------------
 
@@ -172,7 +168,7 @@ int main()
 
     // Store the local geocentric and geodetic coordinates.
     GeocentricPoint stat_geocentric(x,y,z);
-    GeodeticPoint<long double> stat_geodetic(latitude, longitude, alt, Angle<long double>::Unit::DEGREES);
+    GeodeticPoint<Degrees> stat_geodetic(latitude, longitude, alt);
 
     // Open the CPF file (all data).
     CPF cpf(cpf_path, dpslr::ilrs::cpf::CPF::OpenOptionEnum::ALL_DATA);
@@ -187,6 +183,11 @@ int main()
 
     // Configure the SLR predictor_cpf.
     auto predictor_cpf = std::make_shared<PredictorCPF>(cpf, stat_geodetic, stat_geocentric);
+
+    std::cout<<predictor_cpf->getGeodeticLocation<Degrees>().lat<<std::endl;
+    std::cout<<predictor_cpf->getGeodeticLocation<Degrees>().lon<<std::endl;
+    std::cout<<predictor_cpf->getGeodeticLocation<dpslr::math::units::Radians>().lat<<std::endl;
+    std::cout<<predictor_cpf->getGeodeticLocation<dpslr::math::units::Radians>().lon<<std::endl;
 
     // Check if the predictor is ready.
     if (!predictor_cpf->isReady())

@@ -55,7 +55,7 @@ using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 dpslr::astro::PredictorStar::PredictorStar(const types::Star &star,
-                                           const geo::types::SurfaceLocation<double> &loc,
+                                           const geo::types::SurfaceLocation<Degrees> &loc,
                                            int leap_secs,
                                            double ut1_utc_diff) :
     star_(star),

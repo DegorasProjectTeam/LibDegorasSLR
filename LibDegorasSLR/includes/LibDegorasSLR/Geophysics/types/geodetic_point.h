@@ -48,7 +48,6 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Mathematics/unit_conversions.h"
-
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
@@ -59,38 +58,67 @@ namespace geo{
 namespace types{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using math::units::Degrees;
+using math::units::Radians;
+using math::units::Meters;
+// ---------------------------------------------------------------------------------------------------------------------
+
 /**
  * GeodeticCoords is defined as <lat, lon, alt> tuple
  */
-template <typename T = double, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+template <typename AngleType,
+         typename = typename std::enable_if<
+         std::is_same<AngleType, Degrees>::value ||
+         std::is_same<AngleType, Radians>::value>::type>
 struct LIBDPSLR_EXPORT GeodeticPoint
 {
-    using AngleType = math::units::Angle<T>;
-    using DistType = math::units::Distance<T>;
-
     AngleType lat;
     AngleType lon;
-    DistType alt;
+    Meters alt;
 
-    GeodeticPoint(T lat = T(), T lon = T(), T alt = T(),
-                  typename AngleType::Unit angle_unit = AngleType::Unit::RADIANS,
-                  typename DistType::Unit dist_unit = DistType::Unit::METRES) :
-        lat(lat, angle_unit), lon(lon, angle_unit), alt(alt, dist_unit)
+    GeodeticPoint(const AngleType& lat = AngleType(),
+                  const AngleType lon = AngleType(),
+                  const Meters alt = Meters()) :
+        lat(lat),
+        lon(lon),
+        alt(alt)
     {}
 
-    void convert(typename AngleType::Unit angle_unit, typename DistType::Unit dist_unit)
+    GeodeticPoint(const GeodeticPoint&) = default;
+    GeodeticPoint(GeodeticPoint&&) = default;
+
+    template<typename NewAngleType>
+    inline constexpr GeodeticPoint<NewAngleType> convertAngles() const
     {
-        this->lat.convert(angle_unit);
-        this->lon.convert(angle_unit);
-        this->alt.convert(dist_unit);
+        // Check if the new angle type is the same as the current angle type.
+        if constexpr(std::is_same_v<AngleType, NewAngleType>)
+        {
+            return *this;
+        }
+        else if constexpr(std::is_same_v<NewAngleType, Radians>)
+        {
+            NewAngleType new_lat = static_cast<Radians>(math::units::degToRad(this->lat));
+            NewAngleType new_lon = static_cast<Radians>(math::units::degToRad(this->lon));
+            return GeodeticPoint<NewAngleType>(new_lat, new_lon, this->alt);
+        }
+        else if constexpr(std::is_same_v<NewAngleType, Degrees>)
+        {
+            NewAngleType new_lat = static_cast<Degrees>(math::units::radToDegree(this->lat));
+            NewAngleType new_lon = static_cast<Degrees>(math::units::radToDegree(this->lon));
+            return GeodeticPoint<NewAngleType>(new_lat, new_lon, this->alt);
+        }
     }
 
-    template<typename Container = std::array<long double, 3>>
+    template<typename Container = std::array<std::common_type_t<AngleType, Meters>, 3>>
     inline constexpr Container store() const {return Container{lat, lon, alt};}
 };
 
-/// Alias for long double GeodeticPoint specialization.
-using GeodeticPointL = GeodeticPoint<long double>;
+/// Alias for degrees GeodeticPoint specialization.
+using GeodeticPointDeg = GeodeticPoint<Degrees>;
+
+/// Alias for radians GeodeticPoint specialization.
+using GeodeticPointRad = GeodeticPoint<Radians>;
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

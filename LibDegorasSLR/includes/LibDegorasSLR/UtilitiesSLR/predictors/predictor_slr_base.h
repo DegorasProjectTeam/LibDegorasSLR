@@ -57,6 +57,7 @@ using geo::types::GeocentricPoint;
 using geo::types::GeodeticPoint;
 using geo::meteo::WtrVapPressModel;
 using math::units::Degrees;
+using math::units::Radians;
 using math::units::Picoseconds;
 using math::units::Milliseconds;
 using timing::MJDateTime;
@@ -115,7 +116,7 @@ public:
      * @param geod Geodetic ECEF position of the station (meters with mm preccision).
      * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
      */
-    PredictorSLR(const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
+    PredictorSLR(const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
 
     PredictorSLR(const PredictorSLR&) = default;
     PredictorSLR(PredictorSLR&&) = default;
@@ -125,7 +126,11 @@ public:
     /**
      * @brief Get the station location of this cpf interpolator as a GeodeticPoint.
      */
-    const GeodeticPoint<long double>& getGeodeticLocation() const;
+    template <typename T>
+    GeodeticPoint<T> getGeodeticLocation() const
+    {
+        return this->stat_geodetic_.convertAngles<T>();
+    }
 
     /**
      * @brief Get the station location of this cpf interpolator as a GeocentricPoint.
@@ -286,7 +291,7 @@ private:
     // Station latitude in radians (north > 0). 8 decimals preccision (1.1mm).
     // Station longitude in radians (east > 0). 8 decimals preccision (1.1mm).
     // Station altitude in metres
-    GeodeticPoint<long double> stat_geodetic_;
+    GeodeticPoint<Radians> stat_geodetic_;  //
 
     // Station geocentric in metres
     GeocentricPoint stat_geocentric_;

@@ -53,12 +53,9 @@ namespace astro{
 using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorSun::PredictorSun(const geo::types::GeodeticPoint<long double> &obs_geod)
+dpslr::astro::PredictorSun::PredictorSun(const geo::types::GeodeticPoint<Degrees> &obs_geod) :
+    obs_geo_pos_(obs_geod.convertAngles<math::units::Radians>())
 {
-    // Convert latitude and longitude to radians.
-    this->obs_lat_ = obs_geod.lat.get(decltype(obs_geod.lat)::Unit::RADIANS);
-    this->obs_lon_ = obs_geod.lon.get(decltype(obs_geod.lon)::Unit::RADIANS);
-    this->obs_alt_ = obs_geod.alt;
 }
 
 }} // END NAMESPACES

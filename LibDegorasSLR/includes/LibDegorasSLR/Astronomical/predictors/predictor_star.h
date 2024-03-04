@@ -47,6 +47,7 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -54,6 +55,10 @@
 namespace dpslr{
 namespace astro{
 // =====================================================================================================================
+
+// ---------------------------------------------------------------------------------------------------------------------
+using math::units::Degrees;
+// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief The PredictorStar class provides functionality to predict the position of a star.
@@ -84,7 +89,7 @@ public:
      * @param ut1_utc_diff The difference between UT1 and UTC time systems to apply.
      */
     PredictorStar(const astro::types::Star &star,
-                  const geo::types::SurfaceLocation<double> &loc,
+                  const geo::types::SurfaceLocation<Degrees> &loc,
                   int leap_secs = 0,
                   double ut1_utc_diff = 0);
 
@@ -113,7 +118,7 @@ public:
 private:
 
     astro::types::Star star_;
-    geo::types::SurfaceLocation<double> loc_;
+    geo::types::SurfaceLocation<Degrees> loc_;
     int leap_secs_;
     double ut1_utc_diff_;
 };

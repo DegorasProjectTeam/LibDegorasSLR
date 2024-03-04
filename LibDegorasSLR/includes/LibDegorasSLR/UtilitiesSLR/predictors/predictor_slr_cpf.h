@@ -143,9 +143,9 @@ public:
      * @param geod Geodetic ECEF position of the station (meters with mm preccision).
      * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
      */
-    PredictorCPF(const CPF& cpf, const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
+    PredictorCPF(const CPF& cpf, const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
 
-    PredictorCPF(const GeodeticPoint<long double>& geod, const GeocentricPoint& geoc);
+    PredictorCPF(const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
 
     PredictorCPF(const PredictorCPF&) = default;
     PredictorCPF(PredictorCPF&&) = default;

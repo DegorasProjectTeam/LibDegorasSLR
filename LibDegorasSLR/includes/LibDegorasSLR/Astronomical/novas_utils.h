@@ -69,24 +69,28 @@ namespace astro{
 namespace novas{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using math::units::Degrees;
+// ---------------------------------------------------------------------------------------------------------------------
+
 
 LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
-                                    const geo::types::SurfaceLocation<double> &loc,
+                                    const geo::types::SurfaceLocation<Degrees> &loc,
                                     const timing::types::HRTimePointStd &tp,
                                     types::AltAzPos &pos,
                                     int leap_secs = 0,
                                     double ut1_utc_diff = 0);
 
 LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
-                                    const geo::types::SurfaceLocation<double> &loc,
+                                    const geo::types::SurfaceLocation<Degrees> &loc,
                                     const timing::types::JDateTime &jdt,
                                     types::AltAzPos &pos,
                                     int leap_secs = 0,
                                     double ut1_utc_diff = 0);
 
-LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::SurfaceLocation<double> &loc);
+LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::SurfaceLocation<Degrees> &loc);
 
-LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::GeodeticPoint<double>& geod,
+LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::GeodeticPoint<Degrees>& geod,
                                          const geo::types::MeteoData& meteo);
 
 LIBDPSLR_EXPORT int makeCatEntry(const astro::types::Star &star, cat_entry &entry);

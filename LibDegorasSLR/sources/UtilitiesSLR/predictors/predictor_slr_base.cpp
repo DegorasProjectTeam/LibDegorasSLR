@@ -60,7 +60,7 @@ using namespace math::units;
 using namespace math::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const GeocentricPoint &geoc) :
+PredictorSLR::PredictorSLR(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     objc_ecc_corr_(0.0L),
     grnd_ecc_corr_(0.0L),
@@ -74,12 +74,10 @@ PredictorSLR::PredictorSLR(const GeodeticPoint<long double> &geod, const Geocent
     wtrvap_model_(WtrVapPressModel::GIACOMO_DAVIS),
     tropo_ready_(false),
     prediction_mode_(PredictionMode::INSTANT_VECTOR),
-    stat_geodetic_(geod),
+    stat_geodetic_(geod.convertAngles<Radians>()),
     stat_geocentric_(geoc.toVector3D())
 {
-    // Store latitude and longitude in radians.
-    this->stat_geodetic_.convert(math::units::Angle<long double>::Unit::RADIANS,
-                                 math::units::Distance<long double>::Unit::METRES);
+
 }
 
 
@@ -114,7 +112,7 @@ void PredictorSLR::unsetTropoCorrParams()
     this->tropo_ready_ = false;
 }
 
-const GeodeticPoint<long double>& PredictorSLR::getGeodeticLocation() const {return this->stat_geodetic_;}
+
 
 const GeocentricPoint& PredictorSLR::getGeocentricLocation() const {return this->stat_geocentric_;}
 
