@@ -138,7 +138,6 @@ public:
     void analyzeTracking(const TrackingPredictionV &predictions);
 
 
-
 private:
 
     // Private functions.

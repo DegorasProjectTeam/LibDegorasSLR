@@ -42,7 +42,7 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/unit_conversions.h"
+#include "LibDegorasSLR/Mathematics/units/unit_conversions.h"
 #include <cmath>
 // =====================================================================================================================
 
@@ -69,11 +69,11 @@ namespace astro{
  * @param[out] ra The calculated right ascension in the same units as `lmst`.
  * @param[out] dec The calculated declination in radians.
  */
-LIBDPSLR_EXPORT void azElToRaDec(long double az, long double el, long double lmst, long double lat, long double &ra, long double &dec);
+//LIBDPSLR_EXPORT void azElToRaDec(long double az, long double el, long double lmst, long double lat, long double &ra, long double &dec);
 
 
 
-void raDecToAzEl(long double ra, long double dec, long double lmst, long double lat, long double &az, long double &el);
+//void raDecToAzEl(long double ra, long double dec, long double lmst, long double lat, long double &az, long double &el);
 
 
 
