@@ -110,7 +110,7 @@ PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountSLRPredic
 
 
     // Calculates the Sun position.
-    long double j2000 = dpslr::timing::mjdtToJ2000Datetime(mjdt);
+    long double j2000 = dpslr::timing::modifiedJulianDateToJ2000DateTime(mjdt).datetime();
     SunPrediction sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
 
     // Calculates the space object position.

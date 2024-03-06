@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import math
+import os
 from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Circle, Wedge
 
@@ -130,13 +131,15 @@ if __name__ == "__main__":
     num_points = 100
     selector = 1
     plot_all = True
-    output_dir = "../outputs"
 
     # Manual example files.
     files = ['Lares_SunBeg_track.csv', 'Jason3_SunMid_track.csv', 'Explorer27_SunEnd_track.csv']
 
     # Get external file by arguments. If no external file, use the manually selected.
-    filename = filename = sys.argv[1] if len(sys.argv) > 1 else output_dir + '/' + files[selector]
+    filename = sys.argv[1] if len(sys.argv) > 1 else output_dir + '/' + files[selector]
+    output_dir = "outputs" if len(sys.argv) > 1 else "../outputs"
+
+    plot_file_name = os.path.splitext(os.path.basename(filename))[0]
 
     # Read positions from files
     pass_positions, track_positions, sun_positions = read_positions(filename)
@@ -207,7 +210,7 @@ if __name__ == "__main__":
     plt.legend()
 
     # Save plot with high resolution
-    plt.savefig('polar_plot.png', dpi=800)
+    plt.savefig(output_dir + '/' + plot_file_name + '_plot_polar.png', dpi=500)
 
     # Show plot
     plt.show()

@@ -191,6 +191,7 @@ struct MountMovePrediction
     // Status.
     PositionStatus status;  ///< The current postion status.
 };
+
 /// Alias for mount slr predictions vector.
 using MountMovePredictionV = std::vector<MountMovePrediction>;
 

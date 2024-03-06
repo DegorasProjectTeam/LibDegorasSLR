@@ -98,6 +98,7 @@ MACRO(macro_install_runtime_deps target dependency_set ext_deps_dirs bin_dest pr
         message(STATUS "Installing external dependencies for: ${target}")
         message(STATUS "  External dependencies paths: ${ext_deps_dirs}")
         message(STATUS "  Installation path: ${bin_dest}")
+        message(STATUS "  Bin installation path: ${CMAKE_CURRENT_BINARY_DIR}")
 
         if(${MODULES_GLOBAL_EXCLUDE_SO_LIBS})
 
@@ -131,7 +132,6 @@ MACRO(macro_install_runtime_deps target dependency_set ext_deps_dirs bin_dest pr
                 POST_EXCLUDE_REGEXES ${POST_EXC}
                 DIRECTORIES ${ext_deps_dirs}
                 DESTINATION ${bin_dest})
-
     endif()
 
 ENDMACRO()

@@ -310,7 +310,7 @@ JDateTime timePointToJulianDateTime(const HRTimePointStd &tp)
     long long days_since_epoch = ns_since_epoch / (kNsPerSecond * kSecsPerDayLL);
 
     // Convert Unix days to Julian Date.
-    JDate jd = static_cast<JDate>(days_since_epoch - kJulianToPosixEpoch);
+    JDate jd = static_cast<long long>(days_since_epoch - kJulianToPosixEpoch);
 
     // Calculate the remainder to find the nanoseconds for the current day.
     long long ns_in_current_day = ns_since_epoch % (kNsPerSecond * kSecsPerDayLL);
@@ -344,7 +344,7 @@ MJDateTime timePointToModifiedJulianDateTime(const HRTimePointStd &tp)
     long long days_since_epoch = ns_since_epoch / (kNsPerSecond * kSecsPerDayLL);
 
     // Convert Unix days to Julian Date.
-    MJDate mjd = static_cast<MJDate>(days_since_epoch - kModifiedJulianToPosixEpoch);
+    MJDate mjd = static_cast<long long>(days_since_epoch - kModifiedJulianToPosixEpoch);
 
     // Calculate the remainder to find the nanoseconds for the current day.
     long long ns_in_current_day = ns_since_epoch % (kNsPerSecond * kSecsPerDayLL);
@@ -380,18 +380,6 @@ HRTimePointStd julianDateTimeToTimePoint(const JDateTime& jdt)
     // Return.
     return HRTimePointStd(std::chrono::nanoseconds(ns_from_epoch));
 }
-
-
-
-
-
-HRTimePointStd julianDateToTimePoint(JDate jd, SoD seconds)
-{
-
-}
-
-
-
 
 
 HRTimePointStd modifiedJulianDateTimeToTimePoint(const MJDateTime &mjdt)
@@ -585,11 +573,6 @@ void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& s
 
 
 
-
-long double timePointToJ2000Datetime(const HRTimePointStd &tp)
-{
-    //return timePointToJulianDatetime(tp).datetime() + kJulianToJ2000;
-}
 
 
 

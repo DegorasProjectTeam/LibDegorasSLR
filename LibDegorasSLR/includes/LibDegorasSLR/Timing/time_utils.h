@@ -424,7 +424,7 @@ LIBDPSLR_EXPORT J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDateTime
  * @warning Using this function can make your timestamp inaccurate. Use only to
  *          work with times where nanoseconds are not important.
  */
-LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(MJDateTime mjdt);
+//LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(MJDateTime mjdt);
 
 
 
@@ -442,7 +442,7 @@ LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(MJDateTime mjdt);
  * @param s   The second of the minute.
  * @return The HRTimePointStd representing the specified date and time.
  */
-LIBDPSLR_EXPORT HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h=0, int min=0, int s=0);
+//LIBDPSLR_EXPORT HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h=0, int min=0, int s=0);
 
 
 
@@ -454,10 +454,10 @@ LIBDPSLR_EXPORT HRTimePointStd tleDateToTimePoint(unsigned int cent_year, long d
 
 
 
-LIBDPSLR_EXPORT long double jdtToGmst(long double jd);
+//LIBDPSLR_EXPORT long double jdtToGmst(long double jd);
 
 
-LIBDPSLR_EXPORT long double jdtToLmst(long double jdt, long double lon);
+//LIBDPSLR_EXPORT long double jdtToLmst(long double jdt, long double lon);
 
 
 
@@ -502,8 +502,8 @@ LIBDPSLR_EXPORT void ydtomd(int year, unsigned int yday, unsigned int& month, un
  *
  * @warning Not works with the 2100, etc year (but we will be dead xD).
  */
-LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute,
-                          unsigned int sec, long long &jd_day, long double &jd_fract);
+//LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute,
+//                          unsigned int sec, long long &jd_day, long double &jd_fract);
 
 /**
  * @brief Converts a Julian Date to Gregorian
@@ -519,8 +519,8 @@ LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsi
  *
  * @warning Not works with the 2100, etc year (but we will be dead xD).
  */
-LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, unsigned int &month,
-                          unsigned int &day, unsigned int &hour, unsigned int &minute, unsigned int &second);
+//LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, unsigned int &month,
+//                          unsigned int &day, unsigned int &hour, unsigned int &minute, unsigned int &second);
 
 /**
  * @brief Convert a TimePoint to Modified Julian Date
@@ -529,10 +529,10 @@ LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, un
  * @param second_day, Modified Julian second of day. Output param.
  * @param second_fract, Fraction of second. Precission up to ns. Output param.
  */
-LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd,
-                                                   unsigned int& second_day, long double& second_fract);
+//LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd,
+//                                                   unsigned int& second_day, long double& second_fract);
 
-LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& second_day_fract);
+//LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& second_day_fract);
 
 
 
@@ -541,7 +541,7 @@ LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJD
  * @param tp, TimePoint to convert.
  * @return A floating point value representing J2000 Datetime in days. Precission up to ns.
  */
-LIBDPSLR_EXPORT long double timePointToJ2000Datetime(const HRTimePointStd &tp);
+//LIBDPSLR_EXPORT long double timePointToJ2000Datetime(const HRTimePointStd &tp);
 
 
 
@@ -550,7 +550,7 @@ LIBDPSLR_EXPORT long double timePointToJ2000Datetime(const HRTimePointStd &tp);
  * @param tp The high-resolution time point.
  * @return The reduced Julian datetime corresponding to the given time point.
  */
-LIBDPSLR_EXPORT RJDateTime timePointToReducedJulianDatetime(const HRTimePointStd &tp);
+//LIBDPSLR_EXPORT RJDateTime timePointToReducedJulianDatetime(const HRTimePointStd &tp);
 
 
 // C++ time point to TLE date (year and fractional day).

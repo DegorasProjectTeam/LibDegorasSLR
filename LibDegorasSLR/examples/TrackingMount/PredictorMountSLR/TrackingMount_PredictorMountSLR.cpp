@@ -127,7 +127,7 @@ int main()
     // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
 
     // Example selector.
-    size_t example_selector = 7;  // Select the example to process (between reals and sintetics).
+    size_t example_selector = 4;  // Select the example to process (between reals and sintetics).
     bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).
@@ -239,7 +239,9 @@ int main()
     if (!predictor_cpf->isReady())
     {
         std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
-        std::cerr << "Error: The CPF predictor has no valid data to do predictions." << std::endl;
+        std::cerr << "Error: The PredictorSlrCPF is not ready, check CPF inputs." << std::endl;
+        std::cerr << "Example finished. Press Enter to exit..." << std::endl;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return -1;
     }
 
@@ -257,12 +259,13 @@ int main()
 
     PredictorMountSLR predictor_mount(predictor_cpf, predictor_sun, config);
 
-
     // Check if the tracking is ready.
     if (!predictor_mount.isReady())
     {
         std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
-        std::cerr << "Error: There is no valid tracking." << std::endl;
+        std::cerr << "Error: The PredictorMountSLR is not ready, maybe there is no valid pass." << std::endl;
+        std::cerr << "Example finished. Press Enter to exit..." << std::endl;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return -1;
     }
 
@@ -419,7 +422,12 @@ int main()
 
     */
 
-    return 0;
+    // Final wait.
+    std::cout << "Example finished. Press Enter to exit..." << std::endl;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    // All ok.
+    return (0);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
