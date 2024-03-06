@@ -56,8 +56,8 @@ using namespace timing::types;
 using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr,
-                                     std::shared_ptr<PredictorSun> pred_sun,
+PredictorMountSLR::PredictorMountSLR(std::shared_ptr<PredictorSlrBase> pred_slr,
+                                     std::shared_ptr<PredictorSunBase> pred_sun,
                                      const MJDateTime& mjdt_start,
                                      const MJDateTime& mjdt_end,
                                      MillisecondsU time_delta, DegreesU min_elev,
@@ -88,14 +88,14 @@ PredictorMountSLR::PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr,
                                     "configured minimum and maximum elevations.");
 
     // Configure predictor slr in instant vector mode.
-    this->predictor_->setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
+    this->predictor_->setPredictionMode(PredictorSlrBase::PredictionMode::INSTANT_VECTOR);
 
     // Analyze the tracking.
     this->analyzeTracking();
 }
 
-PredictorMountSLR::PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr,
-                                     std::shared_ptr<PredictorSun> pred_sun,
+PredictorMountSLR::PredictorMountSLR(std::shared_ptr<PredictorSlrBase> pred_slr,
+                                     std::shared_ptr<PredictorSunBase> pred_sun,
                                      const HRTimePointStd& tp_start,
                                      const HRTimePointStd &tp_end, MillisecondsU time_delta, DegreesU min_elev,
                                      DegreesU max_elev, DegreesU sun_avoid_angle, bool sun_avoid) :
@@ -112,7 +112,7 @@ PredictorMountSLR::PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr,
 
 }
 
-bool PredictorMountSLR::isValid() const
+bool PredictorMountSLR::isReady() const
 {
     return this->mount_track_.track_info.valid_pass;
 }
@@ -122,26 +122,22 @@ const PredictorMountSLR::MountTrackSLR& PredictorMountSLR::getMountTrack() const
     return this->mount_track_;
 }
 
-
-
-void PredictorMountSLR::getTrackingStart(MJDateTime &mjdt) const
+MJDateTime PredictorMountSLR::getTrackingStart() const
 {
-    //mjd = this->mount_track_.cfg_mjd_start;
-    //sod = this->mount_track_.cfg_sod_start;
+    return this->mount_track_.track_info.mjdt_start;
 }
 
-void PredictorMountSLR::getTrackingEnd(MJDateTime &mjdt) const
+MJDateTime PredictorMountSLR::getTrackingEnd() const
 {
-   // mjd = this->mount_track_.mjd_end;
-    //sod = this->mount_track_.sod_end;
+    return this->mount_track_.track_info.mjdt_end;
 }
 
-PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingBegin() const
+PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingBeginIt() const
 {
     return this->mount_track_.track_info.valid_pass ? this->tracking_begin_ : this->mount_track_.predictions.cend();
 }
 
-PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingEnd() const
+PredictorMountSLR::MountSLRPredictions::const_iterator PredictorMountSLR::getTrackingEndIt() const
 {
     return this->mount_track_.track_info.valid_pass ? this->tracking_end_ : this->mount_track_.predictions.cend();
 }
@@ -155,6 +151,8 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const timing::HRTim
 
 PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountSLRPrediction &tracking_result)
 {
+    // Auxiliar.
+    const long double cfg_max_el = static_cast<long double>(this->mount_track_.config.max_elev);
 
     // Update the times.
     tracking_result.mjdt = mjdt;
@@ -188,13 +186,15 @@ PredictorMountSLR::PositionStatus PredictorMountSLR::predict(const MJDateTime &m
     // Final position.
     MountPosition tracking_position;
 
-
     // TODO REFACTOR
     AltAzPos obj_altazpos = {prediction_result.instant_data->altaz_coord.az,
-                                  prediction_result.instant_data->altaz_coord.el};
+                             prediction_result.instant_data->altaz_coord.el};
+
+    // Positions that trespasses will be clipped to maximum elevation.
+    if(obj_altazpos.el > cfg_max_el)
+        obj_altazpos.el = cfg_max_el;
 
     bool inside_sun = this->insideSunSector(obj_altazpos, sun_pos.altaz_coord);
-
 
     // If sun avoidance is applied and position for requested time is inside a sun security sector, map the point
     // to its corresponding point in the sun security sector circumference.
@@ -568,7 +568,6 @@ bool PredictorMountSLR::analyzeTrackingMiddle()
                 }
                 break;
             }
-
             // If sun avoid is applied we have to store the data for each sector  where the tracking goes through a sun
             // security sector.This data will be used for calculating an alternative trajetctory at those sectors.
             else if (inside_sun)
@@ -871,8 +870,8 @@ long double PredictorMountSLR::calcSunAvoidTrajectory(const MJDateTime &mjdt,
     return entry_angle + angle * time_perc;
 }
 
-PredictorMountSLR::MountTrackSLR::MountTrackSLR(const PredictorSLR &predictor_slr,
-                                                const PredictorSun &predictor_sun) :
+PredictorMountSLR::MountTrackSLR::MountTrackSLR(const PredictorSlrBase &predictor_slr,
+                                                const PredictorSunBase &predictor_sun) :
     predictor_slr(predictor_slr),
     predictor_sun(predictor_sun)
 {}

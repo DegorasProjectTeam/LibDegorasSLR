@@ -42,7 +42,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_cpf.h"
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
@@ -62,14 +62,16 @@ using timing::types::HRTimePointStd;
 using timing::types::MJDateTime;
 using timing::types::MJDate;
 using timing::types::SoD;
-using astro::PredictorSun;
+using astro::PredictorSunBase;
+using astro::PredictorSunPtr;
 using astro::types::AltAzPos;
 using astro::types::AltAzPosV;
 using math::units::DegreesU;
 using math::units::Degrees;
 using math::units::MillisecondsU;
 using math::units::Meters;
-using utils::PredictorSLR;
+using utils::PredictorSlrBase;
+using utils::PredictorSlrPtr;
 using utils::SLRPrediction;
 using utils::SLRPredictionV;
 using astro::SunPrediction;
@@ -77,11 +79,8 @@ using astro::SunPredictionV;
 using ilrs::cpf::CPF;
 // ---------------------------------------------------------------------------------------------------------------------
 
-// No se procesa la elevacion maxima porque es trivial, a diferencia de un cambio de trayectoria completo como
-// puede ser el resultado de una posible interferencia del Sol. La elevación minima simplemente se utiliza para
-// comprobar la existencia o no de un pase en el intervalo seleccionado. Por defecto, para satélites que no sean
-// altos, 10 grados es suficiente. Esta elevación debe de coincidir con la que se use para generar las predicciones
-// para evitar incongruencias.
+// la elevacion minima deberia de coincidir con la que se use para generar las predicciones
+// para evitar incongruencias, aunque nunca llevaría a un estado de error.
 
 // Este sistema no analiza los limites físicos de la montura de seguimiento. En SFEl, la montura AMELAS tiene
 // capacidad independiente de cálculo, y es la encargada de realizar internamente una modificación de la trayectoria
@@ -135,10 +134,13 @@ public:
         PREDICTION_ERROR    ///< The object position can't be calculated, there was a SLR prediction error.
     };
 
+    /**
+     * @brief Enumerates the possible rotation direction during a maneuver.
+     */
     enum class RotationDirection
     {
-        CLOCKWISE,
-        COUNTERCLOCKWISE
+        CLOCKWISE,         ///< Clockwise rotation maneuver.
+        COUNTERCLOCKWISE   ///< Counterclockwise rotation maneuver
     };
 
     /**
@@ -147,16 +149,16 @@ public:
      */
     struct SunCollisionSector
     {
+        // TODOs
         // Meter las coordenadas del sol
-        // Actualizar rotation al limitar la elevacion.
-        // Actualizar todo cuando se limita la elevacion.
+        // Añadir colision cuando se limita la elevacion.
 
         AltAzPosV altaz_sun_coords;  ///< Altazimuth coordinates of the Sun during the collision time in degrees.
         AltAzPos altaz_entry;        ///< Sun sector altazimuth entry point coordinate in degrees.
         AltAzPos altaz_exit;         ///< Sun sector altazimuth exit point coordinate in degrees.
-        MJDateTime mjdt_entry;            ///< MJ datetime of sun sector entry point.
-        MJDateTime mjdt_exit;             ///< MJ datetime of sun sector exit point.
-        RotationDirection cw;             ///< Rotation direction of the avoidance manoeuvre.
+        MJDateTime mjdt_entry;       ///< MJ datetime of sun sector entry point.
+        MJDateTime mjdt_exit;        ///< MJ datetime of sun sector exit point.
+        RotationDirection cw;        ///< Rotation direction of the avoidance manoeuvre.
     };
 
     /// Alias for vector of SunCollisionSector.
@@ -301,7 +303,7 @@ public:
     struct MountTrackSLR
     {
         // Constructor.
-        MountTrackSLR(const PredictorSLR& predictor_slr, const PredictorSun& predictor_sun);
+        MountTrackSLR(const PredictorSlrBase& predictor_slr, const PredictorSunBase& predictor_sun);
 
         // Containers
         PredictorMountSLRConfig config;    ///< Contains the PredictorMountSLR user configuration.
@@ -312,21 +314,21 @@ public:
         MountSLRPredictions predictions;    ///< Predicted data for the required time interval.
 
         // Predictors.
-        const PredictorSLR& predictor_slr;    ///< Internal PredictorSLR predictor.
-        const PredictorSun& predictor_sun;    ///< Internal Sun predictor.
+        const PredictorSlrBase& predictor_slr;    ///< Internal PredictorSLR predictor.
+        const PredictorSunBase& predictor_sun;    ///< Internal Sun predictor.
     };
 
     // TODO Use the maximum elevations.
 
     // Predictor tendria que recibir PredictorSLR, PredictorSun (virtual), TrackAnalizerConfig, MJDatetime start y end.
 
-    PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr, std::shared_ptr<PredictorSun> pred_sun,
-                      const MJDateTime& mjdt_start, const MJDateTime& mjdt_end,
+    PredictorMountSLR(PredictorSlrPtr pred_slr, PredictorSunPtr pred_sun,
+                      const MJDateTime& pass_mjdt_start, const MJDateTime& pass_mjdt_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
-    PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr, std::shared_ptr<PredictorSun> pred_sun,
-                      const HRTimePointStd& tp_start, const HRTimePointStd& tp_end,
+    PredictorMountSLR(PredictorSlrPtr pred_slr, PredictorSunPtr pred_sun,
+                      const HRTimePointStd& pass_tp_start, const HRTimePointStd& pass_tp_end,
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
@@ -334,7 +336,7 @@ public:
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
      * @return true if there is a valid tracking, false otherwise.
      */
-    bool isValid() const;
+    bool isReady() const;
 
     /**
      * @brief This function returns the tracking info available.
@@ -345,9 +347,9 @@ public:
     /**
      * @brief If this traking is valid, you can get the tracking start with this function. This start time
      * could be different from the start time of the space object pass.
-     * @param mjd, the MJ datetime in days for the tracking start.
+     * @return The MJ datetime in days for the tracking start.
      */
-    void getTrackingStart(MJDateTime &mjdt) const;
+    MJDateTime getTrackingStart() const;
 
     /**
      * @brief If this tracking is valid, you can get the tracking end with this function. This end time
@@ -355,19 +357,19 @@ public:
      * @param mjd, the MJ datetime in days for the tracking end.
      * @param sod, the second of day for the tracking end.
      */
-    void getTrackingEnd(MJDateTime &mjdt) const;
+    MJDateTime getTrackingEnd() const;
 
     /**
      * @brief This function returns an interator to the first valid position in tracking.
      * @return an interator to the first valid position in tracking, if tracking is valid. Otherwise end iterator.
      */
-    MountSLRPredictions::const_iterator getTrackingBegin() const;
+    MountSLRPredictions::const_iterator getTrackingBeginIt() const;
 
     /**
      * @brief This function returns an interator to the last valid position in tracking.
      * @return an interator to the last valid position in tracking, if tracking is valid. Otherwise end iterator.
      */
-    MountSLRPredictions::const_iterator getTrackingEnd() const;
+    MountSLRPredictions::const_iterator getTrackingEndIt() const;
 
     /**
      * @brief This function returns if sun avoidance is applied.
@@ -443,9 +445,9 @@ private:
                                        const AltAzPos &sun_pos);
 
     // Private members.
-    std::shared_ptr<PredictorSLR> predictor_;       ///< SLR predictor.
-    std::shared_ptr<PredictorSun> sun_predictor_;   ///< Sun predictor.
-    MountTrackSLR mount_track_;                     ///< Mount track analyzed data.
+    PredictorSlrPtr predictor_;       ///< SLR predictor shared smart pointer.
+    PredictorSunPtr sun_predictor_;                     ///< Sun predictor shared smart pointer.
+    MountTrackSLR mount_track_;                         ///< Mount track analyzed data.
 
     MountSLRPredictions::iterator tracking_begin_;
     MountSLRPredictions::iterator tracking_end_;

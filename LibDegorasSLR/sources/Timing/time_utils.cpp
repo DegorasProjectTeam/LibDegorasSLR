@@ -163,6 +163,16 @@ std::string timePointToIso8601(const HRTimePointStd& tp, TimeResolution resoluti
     return result;
 }
 
+std::string modifiedJulianDateTimeToIso8601(const MJDateTime &mjdt, TimeResolution resolution, bool utc,
+                                            bool rm_trailing_zeros)
+{
+    HRTimePointStd tp = modifiedJulianDateTimeToTimePoint(mjdt);
+    std::string result = timePointToString(tp, "%Y-%m-%dT%H:%M:%S", resolution, utc, rm_trailing_zeros);
+    if(utc)
+        result += 'Z';
+    return result;
+}
+
 std::string currentISO8601Date(TimeResolution resolution, bool utc, bool rm_trailing_zeros)
 {
     auto now = high_resolution_clock::now();
@@ -398,7 +408,7 @@ HRTimePointStd modifiedJulianDateTimeToTimePoint(const MJDateTime &mjdt)
     }
 
     // Now the seconds.
-    long long secs_from_epoch = days_from_epoch * kSecsPerDayLL - 43200;
+    long long secs_from_epoch = days_from_epoch * kSecsPerDayLL;
     long long ns_day = static_cast<long long>(mjdt.sod()*kNsPerSecond);
     long long ns_from_epoch = secs_from_epoch*kNsPerSecond + ns_day;
 
@@ -675,6 +685,7 @@ long long nsDayTohhmmssns(long long ns_in, unsigned int& hour, unsigned int& min
     ns = ns_in % 1000000000ll;
     return  result.q;
 }
+
 
 
 }}// END NAMESPACES.

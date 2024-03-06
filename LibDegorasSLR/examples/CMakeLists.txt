@@ -16,6 +16,6 @@ set(GLOBAL_LIBDPSLR_EXAMPLES_INSTALL_PATH ${MODULES_GLOBAL_INSTALL_BIN_PATH}/exa
 # COMPLEX EXAMPLES
 
 # Add the examples in the subdirectories.
-macro_add_subdirs("${CMAKE_CURRENT_SOURCE_DIR}")
+macro_add_subdirs_recursive("${CMAKE_CURRENT_SOURCE_DIR}" "")
 
 # ----------------------------------------------------------------------------------------------------------------------

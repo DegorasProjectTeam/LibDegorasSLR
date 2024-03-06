@@ -86,7 +86,13 @@ struct LIBDPSLR_EXPORT GeodeticPoint
     {}
 
     GeodeticPoint(const GeodeticPoint&) = default;
+
     GeodeticPoint(GeodeticPoint&&) = default;
+
+    GeodeticPoint& operator =(const GeodeticPoint&) = default;
+
+    GeodeticPoint& operator =(GeodeticPoint&&) = default;
+
 
     template<typename NewAngleType>
     inline constexpr GeodeticPoint<NewAngleType> convertAngles() const

@@ -27,29 +27,20 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun.h
+ * @file
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
  * @version
 ***********************************************************************************************************************/
 
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
-
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_fixed.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -59,90 +50,18 @@ namespace astro{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using timing::types::J2000DateTime;
-using timing::types::J2000DateTimeV;
-using timing::types::MJDate;
-using timing::types::SoD;
-using timing::types::MJDateTime;
-using geo::types::GeodeticPoint;
-using geo::types::GeocentricPoint;
-using math::units::MillisecondsU;
-using math::units::Degrees;
-using math::units::Radians;
-using astro::types::AltAzPos;
 // ---------------------------------------------------------------------------------------------------------------------
 
-struct LIBDPSLR_EXPORT SunPrediction
+PredictorSunFixed::PredictorSunFixed(const AltAzPos &fixed_coord) :
+    PredictorSunBase(GeodeticPoint<Degrees>()),
+    fixed_coord_(fixed_coord)
+{}
+
+SunPrediction PredictorSunFixed::predict(const J2000DateTime &j2000, bool) const
 {
-    // Default constructor.
-    SunPrediction() = default;
-
-    // Containers.
-    J2000DateTime j2dt;        ///< J2000 datetime used to generate the Sun prediction data.
-    AltAzPos altaz_coord;      ///< Sun predicted altazimuth coordinates referenced to an observer in degrees.
-    GeocentricPoint geo_pos;   ///< Sun predicted geocentric position in meters.
-
-    // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
-
-};
-
-/// Alias for a vector of SunPrediction.
-using SunPredictionV = std::vector<SunPrediction>;
+    return {j2000, this->fixed_coord_, GeocentricPoint()};
+}
 
 
-/**
- * @brief The PredictorSun class provides functionality to predict the position of the Sun.
- *
- * This class utilizes astronomical algorithms to calculate the azimuth and elevation of the Sun at a given time
- * and observer's geodetic coordinates.
- *
- * @warning At this moment, only the function fastPredict (0.01 degree accuracy) is implemented.
- */
-class LIBDPSLR_EXPORT PredictorSun
-{
-
-public:
-
-    /**
-     * @brief Constructs a PredictorSun object with the given observer's geodetic coordinates.
-     * @param obs_geod The geodetic coordinates of the observer.
-     */
-    PredictorSun(const GeodeticPoint<Degrees>& obs_geod);
-
-    PredictorSun(const PredictorSun&) = default;
-    PredictorSun(PredictorSun&&) = default;
-    PredictorSun& operator =(const PredictorSun&) = default;
-    PredictorSun& operator =(PredictorSun&&) = default;
-
-    virtual ~PredictorSun() = default;
-
-    /**
-     * @brief Predicts the position of the Sun at a specific time.
-     *
-     * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted SunPrediction.
-     */
-    virtual SunPrediction predict(const J2000DateTime& j2000, bool refraction) const = 0;
-
-    /**
-     * @brief Predicts Sun positions within a time range with a specified time step.
-     *
-     * @param j2000_start The J2000 start datetime of the prediction range.
-     * @param j2000_end The J2000 end datetime of the prediction range.
-     * @param step The time step in milliseconds between predictions.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return A vector of SunPrediction objects representing predicted sun positions at each step.
-     *
-     * @throws std::invalid_argument If the interval is invalid.
-     */
-    virtual SunPredictionV predict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
-                                   MillisecondsU step, bool refraction) const = 0;
-
-protected:
-
-    GeodeticPoint<Radians> obs_geo_pos_;  ///< Geodetic observer position (radians and meters).
-};
-
-}} // END NAMESPACES.
+}} // END NAMESPACES
 // =====================================================================================================================

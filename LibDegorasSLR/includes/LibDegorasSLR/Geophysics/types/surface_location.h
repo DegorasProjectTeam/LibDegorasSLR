@@ -70,6 +70,11 @@ template <typename AngleType,
          std::is_same<AngleType, Radians>::value>::type>
 struct LIBDPSLR_EXPORT SurfaceLocation
 {
+    SurfaceLocation(const SurfaceLocation&) = default;
+    SurfaceLocation(SurfaceLocation&&) = default;
+    SurfaceLocation& operator=(const SurfaceLocation&) = default;
+    SurfaceLocation& operator=(SurfaceLocation&&) = default;
+
     MeteoData meteo;
     GeodeticPoint<AngleType> geodetic;
     GeocentricPoint geocentric;  ///<

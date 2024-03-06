@@ -40,7 +40,7 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -53,7 +53,7 @@ namespace astro{
 using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorSun::PredictorSun(const geo::types::GeodeticPoint<Degrees> &obs_geod) :
+dpslr::astro::PredictorSunBase::PredictorSunBase(const geo::types::GeodeticPoint<Degrees> &obs_geod) :
     obs_geo_pos_(obs_geod.convertAngles<math::units::Radians>())
 {
 }

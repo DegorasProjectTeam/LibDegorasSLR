@@ -27,29 +27,20 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun_fast.h
+ * @file predictor_star.cpp
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
  * @version
 ***********************************************************************************************************************/
 
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
-
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_star_base.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -59,55 +50,48 @@ namespace astro{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using timing::types::J2000DateTime;
-using timing::types::J2000DateTimeV;
-using timing::types::MJDate;
-using timing::types::SoD;
-using timing::types::MJDateTime;
-using geo::types::GeodeticPoint;
-using math::units::MillisecondsU;
-using math::types::Vector3D;
-using astro::types::AltAzPos;
+using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-/**
- * @brief The PredictorSunFast class provides functionality to predict the position of the Sun using a fast algorithm.
- *
- * This class utilizes astronomical algorithms to calculate the azimuth and elevation of the Sun at a given time
- * and observer's geodetic coordinates. This algorithm as a 0.01 degree accuracy.
- */
-class LIBDPSLR_EXPORT PredictorSunFast : public PredictorSunBase
+dpslr::astro::PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
+                                                   int leap_secs, double ut1_utc_diff) :
+    star_(star),
+    loc_(loc),
+    leap_secs_(leap_secs),
+    ut1_utc_diff_(ut1_utc_diff)
+{}
+
+StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDateTime &jdt_end,
+                                           const MillisecondsU& step) const
 {
+    // Container and auxiliar.
+    JDateTimeV interp_times;
+    math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
 
-public:
+    // Check for valid time interval.
+    if(!(jdt_start <= jdt_end))
+        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
 
-    /**
-     * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
-     * @param obs_geod The geodetic coordinates of the observer.
-     */
-    PredictorSunFast(const GeodeticPoint<Degrees>& obs_geod);
+    // Calculates all the interpolation times.
+    interp_times = JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);
 
-    PredictorSunFast(const PredictorSunFast&) = default;
-    PredictorSunFast(PredictorSunFast&&) = default;
-    PredictorSunFast& operator =(const PredictorSunFast&) = default;
-    PredictorSunFast& operator =(PredictorSunFast&&) = default;
+    // Results container.
+    StarPredictionV results(interp_times.size());
 
-    /**
-     * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
-     *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts the Sun position
-     * with a 0.01 degree accuracy up to 2099. It can perform also a simple atmospheric refraction correction. The
-     * time precision, internally, is decreased to milliseconds (for this type of prediction it is enough).
-     *
-     * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted SunPrediction.
-     *
-     * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
-     */
-    SunPrediction predict(const J2000DateTime& j2000, bool refraction) const override;
+    // Parallel calculation.
+    #pragma omp parallel for
+    for(size_t i = 0; i<interp_times.size(); i++)
+    {
+        results[i] = this->predict(interp_times[i]);
+    }
 
-};
+    // Return the container.
+    return results;
+}
 
-}} // END NAMESPACES.
+PredictorStarBase::~PredictorStarBase()
+{}
+
+
+}} // END NAMESPACES
 // =====================================================================================================================

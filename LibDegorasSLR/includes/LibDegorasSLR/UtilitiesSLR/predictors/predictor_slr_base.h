@@ -27,7 +27,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_slr.h
+ * @file predictor_slr_base.h
  * @author Degoras Project Team
  * @brief This file contains the definition of the PredictorSLR class.
  * @copyright EUPL License
@@ -35,6 +35,11 @@
 
 // =====================================================================================================================
 #pragma once
+// =====================================================================================================================
+
+// C++ INCLUDES
+//======================================================================================================================
+#include <memory>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
@@ -67,7 +72,6 @@ using timing::types::MJDateTimeV;
 /**
  * @brief This class implements an interpolator for CPF positions.
  *
- *
  * Para la interpolacion de las velocidades no se utilizan las del CPF, porque no es habitual que estén disponibles,
  *  se utiliza el la posición -0.5 y +0.5 en tiempo.
  *
@@ -79,7 +83,7 @@ using timing::types::MJDateTimeV;
  * currently create CPFs from TLE for these cases, so development of this functionality is not a priority right now.
  * For the ILRS trackings, always use the CPF-based predictor (for its greater precision).
  */
-class LIBDPSLR_EXPORT PredictorSLR
+class LIBDPSLR_EXPORT PredictorSlrBase
 {
 public:
 
@@ -87,7 +91,6 @@ public:
      * @enum PredictionMode
      *
      * @brief This enum represents the different prediction modes.
-
      *
      * @warning The mode selection is very important, because it will affect the accuracy of the results and the
      *          execution time of the predictor, in such a way that it will affect both the calculation algorithm and
@@ -112,16 +115,28 @@ public:
     };
 
     /**
-     * @brief Constructs the interpolator by getting CPF and the station location. CPF must be correctly opened.
-     * @param geod Geodetic ECEF position of the station (meters with mm preccision).
-     * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
+     * @brief Constructs the interpolator by getting the station location.
+     * @param geod Geodetic position of the station (N and E > 0, 8 decimals for ~1 mm).
+     * @param geoc Geocentric ECEF position of the station (with mm preccision).
      */
-    PredictorSLR(const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
+    PredictorSlrBase(const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
 
-    PredictorSLR(const PredictorSLR&) = default;
-    PredictorSLR(PredictorSLR&&) = default;
-    PredictorSLR& operator=(const PredictorSLR&) = default;
-    PredictorSLR& operator=(PredictorSLR&&) = default;
+    PredictorSlrBase(const PredictorSlrBase&) = default;
+    PredictorSlrBase(PredictorSlrBase&&) = default;
+    PredictorSlrBase& operator=(const PredictorSlrBase&) = default;
+    PredictorSlrBase& operator=(PredictorSlrBase&&) = default;
+
+    template <typename T, typename... Args>
+    static std::shared_ptr<PredictorSlrBase> factory(Args&&... args)
+    {
+        return std::static_pointer_cast<PredictorSlrBase>(std::make_shared<T>(std::forward<Args>(args)...));
+    }
+
+    template <typename T>
+    static std::shared_ptr<T> specialization(std::shared_ptr<PredictorSlrBase> base)
+    {
+        return std::static_pointer_cast<T>(base);
+    }
 
     /**
      * @brief Get the station location of this cpf interpolator as a GeodeticPoint.
@@ -231,7 +246,6 @@ public:
      */
     virtual int predict(const MJDateTime& mjdt, SLRPrediction& result) const = 0;
 
-
     /**
      * @brief Interpolates positions at requested time window.
      * @param mjdt_start The start Modified Julian Datetime of the time window.
@@ -241,7 +255,7 @@ public:
      * check errors produced at individual interpolations, check each independent result error code.
      */
     virtual SLRPredictionV predict(const MJDateTime& mjdt_start, const MJDateTime& mjdt_end,
-                                   Milliseconds step) const = 0;
+                                   const Milliseconds& step) const;
 
     /**
      * @brief If predictor is ready, returns the time window in which the predictor can be used. Otherwise,
@@ -258,7 +272,7 @@ public:
      */
     virtual std::string getErrorMsg(int error_code) const = 0;
 
-    virtual ~PredictorSLR();
+    virtual ~PredictorSlrBase();
 
 protected:
     
@@ -297,6 +311,9 @@ private:
     GeocentricPoint stat_geocentric_;
 
 };
+
+/// Alias for PredictorSlr unique smart pointer.
+using PredictorSlrPtr = std::shared_ptr<PredictorSlrBase>;
 
 }} // END NAMESPACES
 // =====================================================================================================================

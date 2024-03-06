@@ -27,7 +27,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun_fast.h
+ * @file predictor_star.h
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
@@ -45,11 +45,9 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
+#include "LibDegorasSLR/Geophysics/types/surface_location.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -59,54 +57,79 @@ namespace astro{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using timing::types::J2000DateTime;
-using timing::types::J2000DateTimeV;
-using timing::types::MJDate;
-using timing::types::SoD;
-using timing::types::MJDateTime;
-using geo::types::GeodeticPoint;
+using math::units::Degrees;
 using math::units::MillisecondsU;
-using math::types::Vector3D;
+using timing::types::JDateTime;
 using astro::types::AltAzPos;
+using astro::types::Star;
+using geo::types::SurfaceLocation;
 // ---------------------------------------------------------------------------------------------------------------------
 
+struct LIBDPSLR_EXPORT StarPrediction
+{
+    // Containers.
+    JDateTime jdt;         ///< Julian datetime used to generate the star prediction data.
+    AltAzPos altaz_coord;  ///< Star predicted altazimuth coordinates referenced to an observer (degrees).
+};
+
+/// Alias for a vector of SunPrediction.
+using StarPredictionV = std::vector<StarPrediction>;
+
 /**
- * @brief The PredictorSunFast class provides functionality to predict the position of the Sun using a fast algorithm.
+ * @brief The PredictorStar class provides functionality to predict the position of a star.
  *
- * This class utilizes astronomical algorithms to calculate the azimuth and elevation of the Sun at a given time
- * and observer's geodetic coordinates. This algorithm as a 0.01 degree accuracy.
+ * This class utilizes astronomical algorithms to calculate the position of the star at a given time
+ * and observer's location.
  */
-class LIBDPSLR_EXPORT PredictorSunFast : public PredictorSunBase
+class LIBDPSLR_EXPORT PredictorStarBase
 {
 
 public:
 
     /**
-     * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
-     * @param obs_geod The geodetic coordinates of the observer.
+     * @brief Constructs a PredictorStarBase object with the given observer's location.
+     * @param star The parameters of the star.
+     * @param loc The location of the observer.
+     * @param leap_secs The leap seconds to apply.
+     * @param ut1_utc_diff The difference between UT1 and UTC time systems to apply.
      */
-    PredictorSunFast(const GeodeticPoint<Degrees>& obs_geod);
+    PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
+                      int leap_secs = 0, double ut1_utc_diff = 0);
 
-    PredictorSunFast(const PredictorSunFast&) = default;
-    PredictorSunFast(PredictorSunFast&&) = default;
-    PredictorSunFast& operator =(const PredictorSunFast&) = default;
-    PredictorSunFast& operator =(PredictorSunFast&&) = default;
+    PredictorStarBase(const PredictorStarBase&) = default;
+    PredictorStarBase(PredictorStarBase&&) = default;
+    PredictorStarBase& operator=(const PredictorStarBase&) = default;
+    PredictorStarBase& operator=(PredictorStarBase&&) = default;
 
     /**
-     * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
+     * @brief Predicts the position of a star at a specific time
      *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts the Sun position
-     * with a 0.01 degree accuracy up to 2099. It can perform also a simple atmospheric refraction correction. The
-     * time precision, internally, is decreased to milliseconds (for this type of prediction it is enough).
-     *
-     * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted SunPrediction.
-     *
-     * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
+     * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
+     * @return The resulting StarPrediction.
      */
-    SunPrediction predict(const J2000DateTime& j2000, bool refraction) const override;
+    virtual StarPrediction predict(const JDateTime& jdt) const = 0;
 
+    /**
+     * @brief Predicts star positions within a time range with a specified time step.
+     *
+     * @param jdt_start The Julian start datetime of the prediction range.
+     * @param jdt_end The Julian end datetime of the prediction range.
+     * @param step The time step in milliseconds between predictions.
+     * @return A vector of StarPrediction objects representing predicted star positions at each step.
+     *
+     * @throws std::invalid_argument If the interval is invalid.
+     */
+    StarPredictionV predict(const JDateTime& jdt_start, const JDateTime& jdt_end,
+                            const MillisecondsU& step) const;
+
+    virtual ~PredictorStarBase();
+
+protected:
+
+    Star star_;
+    SurfaceLocation<Degrees> loc_;
+    int leap_secs_;
+    double ut1_utc_diff_;
 };
 
 }} // END NAMESPACES.

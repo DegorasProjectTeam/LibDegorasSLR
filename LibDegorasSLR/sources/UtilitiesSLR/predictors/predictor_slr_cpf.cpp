@@ -63,7 +63,7 @@ using namespace math::types;
 using stats::lagrangeInterpol3DVec;
 // ---------------------------------------------------------------------------------------------------------------------
 
-const std::array<std::string, 10> PredictorCPF::PredictorErrorStr =
+const std::array<std::string, 10> PredictorSlrCPF::PredictorErrorStr =
 {
     "No error",
     "CPF not found",
@@ -77,30 +77,28 @@ const std::array<std::string, 10> PredictorCPF::PredictorErrorStr =
     "Other error"
 };
 
-
-
-PredictorCPF::PredictorCPF(const CPF &cpf, const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
-    PredictorSLR(geod, geoc),
-    interp_funct_(InterpFunction::LAGRANGE_9)
+PredictorSlrCPF::PredictorSlrCPF(const std::string &cpf_path, const GeodeticPoint<Degrees> &geod,
+                                 const GeocentricPoint &geoc) :
+    PredictorSlrBase(geod, geoc),
+    interp_funct_(InterpFunction::LAGRANGE_16)
 {
-    // If CPF has data, then set it for prediction.
-    if (cpf.hasData())
-        this->setCPF(cpf);
+    // Set the CPF ephemerids file.
+    this->setCPF(cpf_path);
 }
 
-PredictorCPF::PredictorCPF(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
-    PredictorSLR(geod, geoc),
-    interp_funct_(InterpFunction::LAGRANGE_9)
-{
-}
+PredictorSlrCPF::PredictorSlrCPF(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
+    PredictorSlrBase(geod, geoc),
+    interp_funct_(InterpFunction::LAGRANGE_16)
+{}
 
-bool PredictorCPF::setCPF(const CPF& cpf)
+bool PredictorSlrCPF::setCPF(const std::string &cpf_path)
 {
-    if(!cpf.hasData())
+    // Open and store the cpf.
+    this->cpf_ = CPF(cpf_path, CPF::OpenOptionEnum::ALL_DATA);
+
+    // Check if the CPF was open and has data.
+    if(this->cpf_.getReadError() != CPF::ReadFileErrorEnum::NOT_ERROR || !this->cpf_.hasData())
         return false;
-
-    // Store the cpf.
-    this->cpf_ = cpf;
 
     // Store the eccentricity correction from the cpf.
     if(this->cpf_.getHeader().comCorrectionHeader())
@@ -119,7 +117,7 @@ bool PredictorCPF::setCPF(const CPF& cpf)
     Matrix<long double> rot_long, rot_lat, rot_long_pi;
 
     // Get position records and position times for interpolation calculations.
-    for (const auto& pos_record : cpf.getData().positionRecords())
+    for (const auto& pos_record : this->cpf_.getData().positionRecords())
     {
         auto time_tag = pos_record.sod - sod_start + (pos_record.mjd - mjd_start) * 86400.L;
         pos_data_.pushBackRow(pos_record.geo_pos.store());
@@ -140,12 +138,14 @@ bool PredictorCPF::setCPF(const CPF& cpf)
     return true;
 }
 
-const CPF& PredictorCPF::getCPF() const {return this->cpf_;}
+const CPF& PredictorSlrCPF::getCPF() const {return this->cpf_;}
 
-bool PredictorCPF::isReady() const {return !this->pos_times_.empty(); }
+bool PredictorSlrCPF::isReady() const
+{
+    return !this->pos_times_.empty();
+}
 
-
-int PredictorCPF::predict(const MJDateTime& mjdt, SLRPrediction& result) const
+int PredictorSlrCPF::predict(const MJDateTime& mjdt, SLRPrediction& result) const
 {
 
  /*
@@ -237,10 +237,17 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // CHECK SOME PARAMETERS.
     //------------------------------------------------------------------------------------------------------------------
 
+    // The CPF has issues.
+    if(this->cpf_.getReadError() != CPF::ReadFileErrorEnum::NOT_ERROR)
+    {
+         result.error = static_cast<int>(PredictorSlrCPF::PredictionError::CPF_LOAD_ERROR);
+         return result.error;
+    }
+
     // Interpolation is not possible if there are no position records
     if (this->pos_times_.empty())
     {
-        result.error = static_cast<int>(PredictorCPF::PredictionError::NO_POS_RECORDS);
+        result.error = static_cast<int>(PredictorSlrCPF::PredictionError::NO_POS_RECORDS);
         return result.error;
     }
 
@@ -536,36 +543,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     } */
 }
 
-SLRPredictionV PredictorCPF::predict(const MJDateTime& mjdt_start, const MJDateTime& mjdt_end,
-                                     Milliseconds step_ms) const
-{
-    // Container and auxiliar.
-    MJDateTimeV interp_times;
-    MJDateTime mjdt_current = mjdt_start;
-    Seconds step_sec = step_ms/1000.0L;
-
-    // Check the validity of the predictor and the inputs.
-    if(!this->isReady() || !this->isInsideTimeWindow(mjdt_start, mjdt_end) || isFloatingZeroOrMinor(step_sec))
-        return SLRPredictionV();
-
-    // Generate the interpolation times lineal space.
-    interp_times = MJDateTime::linspaceStep(mjdt_start, mjdt_end, step_sec);
-
-    // Results container.
-    SLRPredictionV results(interp_times.size());
-
-    // Parallel calculation.
-    //#pragma omp parallel for
-    for(size_t i = 0; i<interp_times.size(); i++)
-    {
-        this->predict(interp_times[i], results[i]);
-    }
-
-    // Return the container.
-    return results;
-}
-
-void PredictorCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
+void PredictorSlrCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
 {
     if (this->isReady())
     {
@@ -573,38 +551,38 @@ void PredictorCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
     }
 }
 
-std::string PredictorCPF::getErrorMsg(int error_code) const
+std::string PredictorSlrCPF::getErrorMsg(int error_code) const
 {
     std::string result;
-    if (error_code >= 0 && error_code < PredictorCPF::PredictorErrorStr.size())
-        result = PredictorCPF::PredictorErrorStr[error_code];
+    if (error_code >= 0 && error_code < PredictorSlrCPF::PredictorErrorStr.size())
+        result = PredictorSlrCPF::PredictorErrorStr[error_code];
     return result;
 }
 
-void PredictorCPF::setInterpFunction(InterpFunction intp_funct)
+void PredictorSlrCPF::setInterpFunction(InterpFunction intp_funct)
 {
     this->interp_funct_ = intp_funct;
 }
 
-PredictorCPF::InterpFunction PredictorCPF::getInterpFunction() const
+PredictorSlrCPF::InterpFunction PredictorSlrCPF::getInterpFunction() const
 {
     return this->interp_funct_;
 }
 
 
-void PredictorCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, SLRPrediction &result) const
+void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, SLRPrediction &result) const
 {
     // Auxiliar error container.
-    PredictorCPF::PredictionError error = PredictorCPF::PredictionError::UNKNOWN_INTERPOLATOR;
+    PredictorSlrCPF::PredictionError error = PredictorSlrCPF::PredictionError::UNKNOWN_INTERPOLATOR;
     result.error = static_cast<int>(error);
 
     // Lagrange related interpolators.
-    if(this->interp_funct_ == PredictorCPF::InterpFunction::LAGRANGE_9 ||
-        this->interp_funct_ == PredictorCPF::InterpFunction::LAGRANGE_16 )
+    if(this->interp_funct_ == PredictorSlrCPF::InterpFunction::LAGRANGE_9 ||
+        this->interp_funct_ == PredictorSlrCPF::InterpFunction::LAGRANGE_16 )
     {
         unsigned deg = kPolLagDeg9;
-
-        if(this->interp_funct_ == PredictorCPF::InterpFunction::LAGRANGE_16)
+        
+        if(this->interp_funct_ == PredictorSlrCPF::InterpFunction::LAGRANGE_16)
             deg = kPolLagDeg16;
 
         // Result of the interpolation.
@@ -614,16 +592,16 @@ void PredictorCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, SLRPredicti
         lag_res = stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, deg, x, y);
 
         // Convert the error code.
-        error = PredictorCPF::convertLagInterpError(lag_res);
+        error = PredictorSlrCPF::convertLagInterpError(lag_res);
         result.error = static_cast<int>(error);
     }
 
     // TODO Other interpolators.
 }
 
-PredictorCPF::PredictionError PredictorCPF::convertLagInterpError(stats::types::LagrangeError error)
+PredictorSlrCPF::PredictionError PredictorSlrCPF::convertLagInterpError(stats::types::LagrangeError error)
 {
-    PredictorCPF::PredictionError cpf_error;
+    PredictorSlrCPF::PredictionError cpf_error;
     switch (error)
     {
     case stats::types::LagrangeError::NOT_ERROR :

@@ -60,7 +60,7 @@ using namespace math::units;
 using namespace math::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorSLR::PredictorSLR(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
+PredictorSlrBase::PredictorSlrBase(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     objc_ecc_corr_(0.0L),
     grnd_ecc_corr_(0.0L),
@@ -76,23 +76,19 @@ PredictorSLR::PredictorSLR(const GeodeticPoint<Degrees> &geod, const GeocentricP
     prediction_mode_(PredictionMode::INSTANT_VECTOR),
     stat_geodetic_(geod.convertAngles<Radians>()),
     stat_geocentric_(geoc.toVector3D())
-{
+{}
 
-}
+void PredictorSlrBase::setTropoModel(TroposphericModel model){this->tropo_model_ = model;}
 
+void PredictorSlrBase::enableCorrections(bool enable){this->apply_corr_ = enable;}
 
+void PredictorSlrBase::setObjEccentricityCorr(Meters correction){this->objc_ecc_corr_ = correction;}
 
-void PredictorSLR::setTropoModel(TroposphericModel model){this->tropo_model_ = model;}
+void PredictorSlrBase::setCaliDelayCorr(Picoseconds correction){this->cali_del_corr_ =correction;}
 
-void PredictorSLR::enableCorrections(bool enable){this->apply_corr_ = enable;}
+void PredictorSlrBase::setSystematicCorr(Meters correction){this->syst_rnd_corr_ = correction;}
 
-void PredictorSLR::setObjEccentricityCorr(Meters correction){this->objc_ecc_corr_ = correction;}
-
-void PredictorSLR::setCaliDelayCorr(Picoseconds correction){this->cali_del_corr_ =correction;}
-
-void PredictorSLR::setSystematicCorr(Meters correction){this->syst_rnd_corr_ = correction;}
-
-void PredictorSLR::setTropoCorrParams(long double press, long double temp, long double rh,
+void PredictorSlrBase::setTropoCorrParams(long double press, long double temp, long double rh,
                                       long double wl, WtrVapPressModel wvpm)
 {
     this->press_ = press;
@@ -103,7 +99,7 @@ void PredictorSLR::setTropoCorrParams(long double press, long double temp, long 
     this->tropo_ready_ = true;
 }
 
-void PredictorSLR::unsetTropoCorrParams()
+void PredictorSlrBase::unsetTropoCorrParams()
 {
     this->press_ = 0;
     this->temp_ = 0;
@@ -112,21 +108,13 @@ void PredictorSLR::unsetTropoCorrParams()
     this->tropo_ready_ = false;
 }
 
+const GeocentricPoint& PredictorSlrBase::getGeocentricLocation() const {return this->stat_geocentric_;}
 
+void PredictorSlrBase::setPredictionMode(PredictionMode mode) {this->prediction_mode_ = mode;}
 
-const GeocentricPoint& PredictorSLR::getGeocentricLocation() const {return this->stat_geocentric_;}
+PredictorSlrBase::PredictionMode PredictorSlrBase::getPredictionMode() const {return this->prediction_mode_;}
 
-void PredictorSLR::setPredictionMode(PredictionMode mode)
-{
-    this->prediction_mode_ = mode;
-}
-
-PredictorSLR::PredictionMode PredictorSLR::getPredictionMode() const
-{
-    return this->prediction_mode_;
-}
-
-bool PredictorSLR::isInsideTimeWindow(const MJDateTime& start, const MJDateTime& end) const
+bool PredictorSlrBase::isInsideTimeWindow(const MJDateTime& start, const MJDateTime& end) const
 {
     // Auxiliar.
     MJDateTime predict_mjd_start, predict_mjd_end;
@@ -138,7 +126,36 @@ bool PredictorSLR::isInsideTimeWindow(const MJDateTime& start, const MJDateTime&
     return start >= predict_mjd_start && end <= predict_mjd_end;
 }
 
-Meters PredictorSLR::applyCorrections(Meters& range, SLRPrediction& result, bool cali, Degrees el) const
+SLRPredictionV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJDateTime &mjdt_end,
+                                         const Milliseconds &step) const
+{
+    // Container and auxiliar.
+    MJDateTimeV interp_times;
+    MJDateTime mjdt_current = mjdt_start;
+    Seconds step_sec = step/1000.0L;
+
+    // Check the validity of the predictor and the inputs.
+    if(!this->isInsideTimeWindow(mjdt_start, mjdt_end) || math::isFloatingZeroOrMinor(step_sec))
+        return SLRPredictionV();
+
+    // Generate the interpolation times lineal space.
+    interp_times = MJDateTime::linspaceStep(mjdt_start, mjdt_end, step_sec);
+
+    // Results container.
+    SLRPredictionV results(interp_times.size());
+
+    // Parallel calculation.
+    //#pragma omp parallel for
+    for(size_t i = 0; i<interp_times.size(); i++)
+    {
+        this->predict(interp_times[i], results[i]);
+    }
+
+    // Return the container.
+    return results;
+}
+
+Meters PredictorSlrBase::applyCorrections(Meters& range, SLRPrediction& result, bool cali, Degrees el) const
 {
     // Auxiliar provisional range.
     Meters provisional_range = range;
@@ -175,7 +192,7 @@ Meters PredictorSLR::applyCorrections(Meters& range, SLRPrediction& result, bool
     // Compute and include the tropospheric path delay.
     if(math::compareFloating(el, Degrees(0.0L)))
     {
-        if(this->tropo_model_ == PredictorSLR::TroposphericModel::MARINI_MURRAY)
+        if(this->tropo_model_ == PredictorSlrBase::TroposphericModel::MARINI_MURRAY)
         {
             // Get the elevation in radians.
             long double el_instant_rad = math::units::degToRad(el);
@@ -198,7 +215,7 @@ Meters PredictorSLR::applyCorrections(Meters& range, SLRPrediction& result, bool
     return provisional_range;
 }
 
-PredictorSLR::~PredictorSLR()
+PredictorSlrBase::~PredictorSlrBase()
 {}
 
 }} // END NAMESPACES

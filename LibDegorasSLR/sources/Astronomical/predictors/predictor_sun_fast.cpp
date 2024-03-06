@@ -56,7 +56,7 @@ using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 dpslr::astro::PredictorSunFast::PredictorSunFast(const geo::types::GeodeticPoint<Degrees> &obs_geod) :
-    PredictorSun(obs_geod)
+    PredictorSunBase(obs_geod)
 {
 }
 
@@ -118,33 +118,7 @@ SunPrediction PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
     return prediction;
 }
 
-SunPredictionV PredictorSunFast::predict(const J2000DateTime &j2000_start, const J2000DateTime &j2000_end,
-                                         MillisecondsU step_ms, bool refraction) const
-{
-    // Container and auxiliar.
-    J2000DateTimeV interp_times;
-    Seconds step_sec = static_cast<long double>(step_ms) * math::units::kMsToSec;
 
-    // Check for valid time interval.
-    if(!(j2000_start <= j2000_end))
-        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
-
-    // Calculates all the interpolation times.
-    interp_times = J2000DateTime::linspaceStep(j2000_start, j2000_end, step_sec);
-
-    // Results container.
-    SunPredictionV results(interp_times.size());
-
-    // Parallel calculation.
-    #pragma omp parallel for
-    for(size_t i = 0; i<interp_times.size(); i++)
-    {
-        results[i] = this->predict(interp_times[i], refraction);
-    }
-
-    // Return the container.
-    return results;
-}
 
 }} // END NAMESPACES
 // =====================================================================================================================

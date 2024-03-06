@@ -40,7 +40,7 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Astronomical/predictors/predictor_star.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_star_novas.h"
 #include "LibDegorasSLR/Astronomical/novas_utils.h"
 // =====================================================================================================================
 
@@ -54,21 +54,14 @@ namespace astro{
 using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorStar::PredictorStar(const types::Star &star,
-                                           const geo::types::SurfaceLocation<Degrees> &loc,
-                                           int leap_secs,
-                                           double ut1_utc_diff) :
-    star_(star),
-    loc_(loc),
-    leap_secs_(leap_secs),
-    ut1_utc_diff_(ut1_utc_diff)
-{
+PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<Degrees> &loc,
+                                       int leap_secs, double ut1_utc_diff) :
+    PredictorStarBase(star, loc, leap_secs, ut1_utc_diff)
+{}
 
-}
-
-PredictorStar::StarPrediction PredictorStar::predict(const timing::types::JDateTime &jdt) const
+StarPrediction PredictorStarNovas::predict(const timing::types::JDateTime &jdt) const
 {
-    PredictorStar::StarPrediction pred;
+    StarPrediction pred;
     pred.jdt = jdt;
 
     astro::novas::getStarAltAzPos(this->star_, this->loc_, jdt, pred.altaz_coord,
@@ -76,36 +69,6 @@ PredictorStar::StarPrediction PredictorStar::predict(const timing::types::JDateT
 
     return pred;
 }
-
-PredictorStar::StarPredictions PredictorStar::predict(const timing::types::JDateTime &jdt_start,
-                                                      const timing::types::JDateTime &jdt_end,
-                                                      math::units::MillisecondsU step) const
-{
-    // Container and auxiliar.
-    JDateTimeV interp_times;
-    math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
-
-    // Check for valid time interval.
-    if(!(jdt_start <= jdt_end))
-        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
-
-    // Calculates all the interpolation times.
-    interp_times = JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);
-
-    // Results container.
-    StarPredictions results(interp_times.size());
-
-    // Parallel calculation.
-#pragma omp parallel for
-    for(size_t i = 0; i<interp_times.size(); i++)
-    {
-        results[i] = this->predict(interp_times[i]);
-    }
-
-    // Return the container.
-    return results;
-}
-
 
 }} // END NAMESPACES
 // =====================================================================================================================

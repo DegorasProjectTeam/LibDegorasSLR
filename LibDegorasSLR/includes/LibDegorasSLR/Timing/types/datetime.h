@@ -58,6 +58,10 @@ namespace types{
 // ---------------------------------------------------------------------------------------------------------------------
 using helpers::types::NumericStrongType;
 using math::units::Seconds;
+using timing::types::JDate;
+using timing::types::MJDate;
+using timing::types::J2000Date;
+using timing::types::RJDate;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -104,9 +108,9 @@ public:
 
     /**
      * @brief Constructor from long double value containing the day and fraction of day combined.
-     * @param dt, the current datetime in days since origin with day fraction.
+     * @param datetime, the current datetime in days since origin with day fraction.
      */
-    DateTime(long double dt);
+    DateTime(long double datetime);
 
     DateTime(const DateTime& other) = default;
 

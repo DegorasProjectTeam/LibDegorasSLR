@@ -110,7 +110,7 @@ const RecordReadErrorMultimap &CPF::getReadHeaderErrors() const {return this->re
 
 const RecordReadErrorMultimap &CPF::getReadDataErrors() const {return this->read_data_errors_;}
 
-CPF::ReadFileErrorEnum CPF::getLastReadError() const {return this->last_read_error_;}
+CPF::ReadFileErrorEnum CPF::getReadError() const {return this->last_read_error_;}
 
 const Optional<ConsolidatedRecord> &CPF::getLastReadErrorRecord() const {return this->last_error_record_;}
 
@@ -219,11 +219,19 @@ std::string CPF::getStandardFilename(TargetIdOptionEnum option) const
     return filename;
 }
 
-bool CPF::isEmpty() const {return this->empty_;}
+bool CPF::isEmpty() const
+{
+    return this->empty_;
+}
 
 bool CPF::hasData() const
 {
     return (!this->isEmpty() && !this->getData().positionRecords().empty());
+}
+
+bool CPF::exists() const
+{
+    return dpslr::helpers::files::fileExists(this->cpf_fullpath_);
 }
 
 CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::OpenOptionEnum open_option)

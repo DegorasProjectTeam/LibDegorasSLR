@@ -27,7 +27,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_star.h
+ * @file
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
@@ -45,9 +45,9 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
+#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Geophysics/types/surface_location.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -57,70 +57,22 @@ namespace astro{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using math::units::Degrees;
+using timing::types::J2000DateTime;
+using geo::types::GeodeticPoint;
+using astro::types::AltAzPos;
 // ---------------------------------------------------------------------------------------------------------------------
 
-/**
- * @brief The PredictorStar class provides functionality to predict the position of a star.
- *
- * This class utilizes astronomical algorithms to calculate the position of the star at a given time
- * and observer's location.
- */
-class LIBDPSLR_EXPORT PredictorStar
+class LIBDPSLR_EXPORT PredictorSunFixed final : public PredictorSunBase
 {
-
 public:
 
-    struct StarPrediction
-    {
-        // Containers.
-        timing::types::JDateTime jdt;       ///< Julian datetime used to generate the star prediction data.
-        astro::types::AltAzPos altaz_coord; ///< Star predicted altazimuth coordinates referenced to an observer (deg)
-    };
+    PredictorSunFixed(const AltAzPos& fixed_coord);
 
-    /// Alias for a vector of SunPrediction.
-    using StarPredictions = std::vector<StarPrediction>;
-
-    /**
-     * @brief Constructs a PredictorStar object with the given observer's location.
-     * @param star The parameters of the star.
-     * @param loc The location of the observer.
-     * @param leap_secs The leap seconds to apply.
-     * @param ut1_utc_diff The difference between UT1 and UTC time systems to apply.
-     */
-    PredictorStar(const astro::types::Star &star,
-                  const geo::types::SurfaceLocation<Degrees> &loc,
-                  int leap_secs = 0,
-                  double ut1_utc_diff = 0);
-
-    /**
-     * @brief Predicts the position of a star at a specific time
-     *
-     * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
-     * @return The resulting StarPrediction.
-     */
-    StarPrediction predict(const timing::types::JDateTime& jdt) const;
-
-    /**
-     * @brief Predicts star positions within a time range with a specified time step.
-     *
-     * @param jdt_start The Julian start datetime of the prediction range.
-     * @param jdt_end The Julian end datetime of the prediction range.
-     * @param step The time step in milliseconds between predictions.
-     * @return A vector of StarPrediction objects representing predicted star positions at each step.
-     *
-     * @throws std::invalid_argument If the interval is invalid.
-     */
-    StarPredictions predict(const timing::types::JDateTime& jdt_start,
-                            const timing::types::JDateTime& jdt_end,
-                            math::units::MillisecondsU step) const;
+    SunPrediction predict(const J2000DateTime& j2000, bool) const final;
 
 private:
 
-    astro::types::Star star_;
-    geo::types::SurfaceLocation<Degrees> loc_;
-    int leap_secs_;
-    double ut1_utc_diff_;
+    AltAzPos fixed_coord_;
 };
 
 }} // END NAMESPACES.

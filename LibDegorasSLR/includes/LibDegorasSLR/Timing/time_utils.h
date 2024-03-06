@@ -163,9 +163,14 @@ LIBDPSLR_EXPORT std::string timePointToString(const HRTimePointStd& tp,
  *
  * @throws std::runtime_error If there's an error during formatting.
  */
-LIBDPSLR_EXPORT std::string timePointToIso8601(const HRTimePointStd& tp,
-                                               TimeResolution resolution = TimeResolution::MILLISECONDS,
-                                               bool utc = true, bool rm_trailing_zeros = true);
+LIBDPSLR_EXPORT Iso8601Str timePointToIso8601(const HRTimePointStd& tp,
+                                              TimeResolution resolution = TimeResolution::MILLISECONDS,
+                                              bool utc = true, bool rm_trailing_zeros = true);
+
+
+LIBDPSLR_EXPORT Iso8601Str modifiedJulianDateTimeToIso8601(const MJDateTime &mjdt,
+                                                           TimeResolution resolution = TimeResolution::MILLISECONDS,
+                                                           bool utc = true, bool rm_trailing_zeros = true);
 
 /**
  * @brief Generates the current date and time as a string formatted according to ISO 8601.

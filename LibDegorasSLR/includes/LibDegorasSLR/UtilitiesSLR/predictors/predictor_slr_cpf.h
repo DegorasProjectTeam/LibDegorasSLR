@@ -93,7 +93,7 @@ constexpr unsigned kPolLagDeg16 = 16U;    ///< Fixed degree for the 16th polynom
  * currently create CPFs from TLE for these cases, so development of this functionality is not a priority right now.
  * For the ILRS trackings, always use the CPF-based predictor (for its greater precision).
  */
-class LIBDPSLR_EXPORT PredictorCPF : public PredictorSLR
+class LIBDPSLR_EXPORT PredictorSlrCPF : public PredictorSlrBase
 {
 public:
 
@@ -111,9 +111,7 @@ public:
     enum class PredictionError : int
     {
         NO_ERROR,
-        CPF_NOT_FOUND,
-        CPF_HEADER_LOAD_FAILED,
-        CPF_DATA_LOAD_FAILED,
+        CPF_LOAD_ERROR,
         INTERPOLATION_NOT_IN_THE_MIDDLE,
         X_INTERPOLATED_OUT_OF_BOUNDS,
         INTERPOLATION_DATA_SIZE_MISMATCH,
@@ -139,25 +137,25 @@ public:
     /**
      * @brief Constructs the interpolator with a opened CPF (all data) and the station location. CPF must be correctly opened with
      * all datas.
-     * @param cpf CPF object for getting position records.
+     * @param cpf_path CPF ephemerids file path for getting position records.
      * @param geod Geodetic ECEF position of the station (meters with mm preccision).
      * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
      */
-    PredictorCPF(const CPF& cpf, const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
+    PredictorSlrCPF(const std::string &cpf_path, const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
 
-    PredictorCPF(const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
+    PredictorSlrCPF(const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
 
-    PredictorCPF(const PredictorCPF&) = default;
-    PredictorCPF(PredictorCPF&&) = default;
-    PredictorCPF& operator=(const PredictorCPF&) = default;
-    PredictorCPF& operator=(PredictorCPF&&) = default;
+    PredictorSlrCPF(const PredictorSlrCPF&) = default;
+    PredictorSlrCPF(PredictorSlrCPF&&) = default;
+    PredictorSlrCPF& operator=(const PredictorSlrCPF&) = default;
+    PredictorSlrCPF& operator=(PredictorSlrCPF&&) = default;
 
     /**
      * @brief Sets the CPF to use for predictions.
-     * @param cpf, the CPF used for prediction,s
+     * @param cpf_path CPF ephemerids file path for getting position records.
      * @return true if CPF is correct for predictions, false otherwise.
      */
-    bool setCPF(const CPF& cpf);
+    bool setCPF(const std::string& cpf_path);
 
     /**
      * @brief Gets the CPF used for predictions.
@@ -193,16 +191,6 @@ public:
     int predict(const MJDateTime& mjdt, SLRPrediction& result) const override;
 
     /**
-     * @brief Interpolates positions at requested time window.
-     * @param mjdt_start, the start MJ datetime of the time window.
-     * @param mjdt_end, the end MJ datetime of the time window.
-     * @param step_ms, the step in ms from one interpolation to the next one.
-     * @return A vector with all the results, or empty if it was impossible. To check errors produced at individual
-     *         interpolations, check each result's error code.
-     */
-    SLRPredictionV predict(const MJDateTime& mjdt_start, const MJDateTime& mjdt_end, Milliseconds step) const override;
-
-    /**
      * @brief If predictor is ready, returns the time window in which the predictor can be used. Otherwise,
      *        return time 0 at start and end.
      * @param start, MJ datetime of time window start.
@@ -231,6 +219,9 @@ private:
     InterpFunction interp_funct_;                  // The interpolator function used.
     CPF cpf_;                                      // The CPF ephemerids file used for interpolation.
 };
+
+/// Alias for PredictorSkrCpf unique smart pointer.
+using PredictorSlrCPFPtr = std::shared_ptr<PredictorSlrCPF>;
 
 }} // END NAMESPACES
 // =====================================================================================================================

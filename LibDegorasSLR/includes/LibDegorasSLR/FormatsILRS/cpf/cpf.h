@@ -208,7 +208,6 @@ public:
      */
     void clearCPFData();
 
-
     // CPF header and data getter methods for records edition as modifiers.
     CPFHeader &getHeader();
     CPFData &getData();
@@ -220,7 +219,7 @@ public:
     // Error getters.
     const common::RecordReadErrorMultimap& getReadHeaderErrors() const;
     const common::RecordReadErrorMultimap& getReadDataErrors() const;
-    ReadFileErrorEnum getLastReadError() const;
+    ReadFileErrorEnum getReadError() const;
     const Optional<common::ConsolidatedRecord>& getLastReadErrorRecord() const;
 
     // Filename getters.
@@ -262,6 +261,7 @@ public:
 
     bool hasData() const;
 
+    bool exists() const;
 
     /**
      * @brief Custom getter that generates the filename using the CPF naming convention.

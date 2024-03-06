@@ -35,7 +35,7 @@
 #include <cstdlib>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBDEGORASSLR MODULES
 // =====================================================================================================================
 #include <LibDegorasSLR/Initialization>
 #include <LibDegorasSLR/Modules/Helpers>
@@ -47,45 +47,69 @@
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-// LibDegorasSLR types used in example.
+// LibDegorasSLR types used in this example.
+//
+// Initialization.
 using dpslr::DegorasInit;
-using dpslr::ilrs::cpf::CPF;
-using dpslr::geo::types::GeocentricPoint;
-using dpslr::geo::types::GeodeticPoint;
-using dpslr::utils::PredictorCPF;
-using dpslr::mount::PredictorMountSLR;
+// Time tipes and conversions.
 using dpslr::timing::MJDateTime;
 using dpslr::timing::SoD;
-using dpslr::timing::Iso8601Str;
 using dpslr::timing::types::HRTimePointStd;
+using dpslr::timing::types::J2000DateTime;
+using dpslr::timing::types::Iso8601Str;
+using dpslr::timing::iso8601DatetimeToTimePoint;
+using dpslr::timing::timePointToModifiedJulianDateTime;
+// Used units.
 using dpslr::math::units::Angle;
 using dpslr::math::units::DegreesU;
 using dpslr::math::units::Degrees;
 using dpslr::math::units::MillisecondsU;
 using dpslr::math::units::Meters;
-using dpslr::helpers::strings::numberToStr;
-using dpslr::timing::iso8601DatetimeToTimePoint;
-using dpslr::timing::timePointToModifiedJulianDateTime;
+// Geocentric and geodetic containers.
+using dpslr::geo::types::GeocentricPoint;
+using dpslr::geo::types::GeodeticPoint;
+// Astronomical containers.
+using dpslr::astro::SunPrediction;
+using dpslr::astro::AltAzPos;
+// ILRS related.
+using dpslr::ilrs::cpf::CPF;
+// Sun predictor related.
+using dpslr::astro::PredictorSunBase;
 using dpslr::astro::PredictorSunFast;
+using dpslr::astro::PredictorSunFixed;
+using dpslr::astro::PredictorSunPtr;
+// SLR preditor related.
+using dpslr::utils::PredictorSlrBase;
+using dpslr::utils::PredictorSlrCPF;
+using dpslr::utils::PredictorSlrPtr;
+using dpslr::utils::PredictorSlrCPFPtr;
+// Mount predictor related.
+using dpslr::mount::PredictorMountSLR;
+// Helpers.
+using dpslr::helpers::strings::numberToStr;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Auxiliar structs.
+// Auxiliar structs and classes.
 
 struct ExampleData
 {
-    ExampleData(const std::string& alias, const std::string& cpf, const Iso8601Str& start, const Iso8601Str& end):
+    ExampleData(PredictorSunPtr sun_pred, const std::string& alias, const std::string& cpf,
+                const Iso8601Str& start, const Iso8601Str& end):
         example_alias(alias),
-        cpf_name(cpf)
+        cpf_name(cpf),
+        predictor_sun(sun_pred)
     {
         this->mjdt_start = timePointToModifiedJulianDateTime(iso8601DatetimeToTimePoint(start));
         this->mjdt_end = timePointToModifiedJulianDateTime(iso8601DatetimeToTimePoint(end));
     }
 
-    std::string example_alias;
-    std::string cpf_name;
-    MJDateTime mjdt_start;
-    MJDateTime mjdt_end;
+    // Specific example data.
+    std::string example_alias;      // Example alias for file generation.
+    std::string cpf_name;           // CPF ephemeris namefile.
+    MJDateTime mjdt_start;          // Space object pass fragment start Modified Julian Datetime.
+    MJDateTime mjdt_end;            // Space object pass fragment end Modified Julian Datetime.
+    PredictorSunPtr predictor_sun;  // Predictor Sun that will be used.
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -97,7 +121,11 @@ int main()
     // Initialize LibDegorasSLR.
     DegorasInit::init();
 
-    // -------------------- EXAMPLE CONFIGURATION ----------------------------------------------------------------------
+    // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
+
+    // Example selector.
+    size_t example_selector = 7;  // Select the example to process (between reals and sintetics).
+    bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).
     // Altitude in meters with 3 decimals (~1 mm precision).
@@ -113,115 +141,128 @@ int main()
     // TrackingSLR configuration.
     MillisecondsU step = 500;         // Steps into which the algorithm will divide the pass for initial analysis.
     DegreesU min_el = 15;             // Minimum acceptable elevation for the mount.
-    DegreesU max_el = 90;             // Maximum acceptable elevation for the mount.
+    DegreesU max_el = 85;             // Maximum acceptable elevation for the mount.
     DegreesU sun_avoid_angle = 15;    // Sun avoidance angle to make Sun the security sectors.
     bool avoid_sun = true;            // Flag for enable or disable the Sun avoidance utility.
 
-    // Selectors.
-    size_t example_selector = 0;    // Select the example to process.
-    bool plot_data = true;          // Flag for enable the data plotting using a Python3 (>3.9) helper script.
-
-    // -------------------- EXAMPLE PREPARATION ------------------------------------------------------------------------
-
-    // Examples vector with their configurations.
-    std::vector<ExampleData> examples =
-    {
-        // Example 0: Lares with Sun at beginning.
-        {"Lares_SunBeg", "38077_cpf_240128_02901.sgf", "2024-01-31T15:45:25Z", "2024-01-31T16:02:35Z"},
-        // Example 1: Jason 3 with Sun in the middle. Trespasses North cw.
-        //{"Jason3_SunMid", "41240_cpf_240128_02801.hts", 60340.48773L, 60340.499421L},
-        // Example 2: Explorer 27 with Sun in the end.
-        //{"Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", 60340.3551736L, 60340.364201L},
-        // Example 3: Jason 3 with no sun. Trespasses North ccw.
-        //{"Jason3_NoSun", "41240_cpf_240128_02801.hts", 60340.407986L, 60340.41736L},
-    };
-    
     // Configure the CPF input folder.
     std::string current_dir = dpslr::helpers::files::getCurrentDir();
     std::string input_dir(current_dir+"/inputs");
     std::string output_dir(current_dir+"/outputs");
 
     // Configure the python script executable.
-    std::string python_plot_exec(current_dir+"/python_scripts/Plots_UtilitiesSLR_TrackingSLR.py");
-    std::string python_cmd = "python \"" + python_plot_exec + "\" ";
-
-    // Store the example data.
-    std::string cpf_path = input_dir + "/" + examples[example_selector].cpf_name;
-    MJDateTime mjd_start = examples[example_selector].mjdt_start;
-    MJDateTime mjd_end = examples[example_selector].mjdt_end;
-    std::string example_alias = examples[example_selector].example_alias;
-    std::string track_csv_filename = example_alias + "_track.csv";
-
-    // Check the input file.
-    if(!dpslr::helpers::files::fileExists(cpf_path))
-    {
-        std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
-        std::cerr << "Error: Input file does not exist." << std::endl;
-        return -1;
-    }
+    std::string python_plot_analysis(current_dir+"/python_scripts/Helper_Plotting_Analysis.py");
+    std::string python_plot_track(current_dir+"/python_scripts/Helper_Plotting_Track.py");
+    std::string python_cmd_analysis = "python \"" + python_plot_analysis + "\" ";
+    std::string python_cmd_track = "python \"" + python_plot_track + "\" ";
 
     // Create the ouput directory.
     if (!dpslr::helpers::files::directoryExists(output_dir))
         dpslr::helpers::files::createDirectory(output_dir);
 
-    // -------------------- UTILITIES INSTANTIATION  -------------------------------------------------------------------
+    // -------------------- EXAMPLES PREPARATION -----------------------------------------------------------------------
 
     // Store the local geocentric and geodetic coordinates.
-    GeocentricPoint stat_geocentric(x,y,z);
-    GeodeticPoint<Degrees> stat_geodetic(latitude, longitude, alt);
+    GeocentricPoint stat_geoc(x,y,z);
+    GeodeticPoint<Degrees> stat_geod(latitude, longitude, alt);
 
-    // Open the CPF file (all data).
-    CPF cpf(cpf_path, dpslr::ilrs::cpf::CPF::OpenOptionEnum::ALL_DATA);
+    // Prepare the Sun predictors to be used. For this example, the PredictorMount class needs the shared smart
+    // pointers with the Sun and SLR inherited predictors, so it is neccesary to use the factories (the smart pointers
+    // can also be created manually). This is not necessary when using the Sun and SLR predictors independently, as
+    // can be seen in other LibDegorasSLR examples.
+    //
+    // Sintetic Sun predictors.
+    PredictorSunPtr pred_sun_sin_1 = PredictorSunBase::factory<PredictorSunFixed>(AltAzPos(20L,30L));
+    PredictorSunPtr pred_sun_sin_2 = PredictorSunBase::factory<PredictorSunFixed>(AltAzPos(225L,70L));
+    PredictorSunPtr pred_sun_sin_3 = PredictorSunBase::factory<PredictorSunFixed>(AltAzPos(90L,25L));
+    //
+    // Real Sun predictor.
+    PredictorSunPtr pred_sun_real = PredictorSunBase::factory<PredictorSunFast>(stat_geod);
 
-    // Check that the CPF has data.
-    if (!cpf.hasData())
+    // Real examples vector with their configurations.
+    // Sun Predictor - Alias - CPF - Pass Start - Pass End
+    std::vector<ExampleData> examples =
     {
-        std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
-        std::cerr << "Error: The CPF has no valid data." << std::endl;
-        return -1;
-    }
+        // Example 0: Lares | Sun at beginning | SW-N_CW
+        {pred_sun_real, "Lares_SunBeg", "38077_cpf_240128_02901.sgf",
+            "2024-01-31T15:45:25Z", "2024-01-31T16:02:35Z"},
 
-    // Configure the SLR predictor_cpf.
-    auto predictor_cpf = std::make_shared<PredictorCPF>(cpf, stat_geodetic, stat_geocentric);
+        // Example 1: Jason 3 | Sun at middle | NW-SE-CCW
+        {pred_sun_real, "Jason3_SunMid", "41240_cpf_240128_02801.hts",
+            "2024-01-31T11:42:20Z", "2024-01-31T11:59:10Z"},
 
-    std::cout<<predictor_cpf->getGeodeticLocation<Degrees>().lat<<std::endl;
-    std::cout<<predictor_cpf->getGeodeticLocation<Degrees>().lon<<std::endl;
-    std::cout<<predictor_cpf->getGeodeticLocation<dpslr::math::units::Radians>().lat<<std::endl;
-    std::cout<<predictor_cpf->getGeodeticLocation<dpslr::math::units::Radians>().lon<<std::endl;
+        // Example 2: Explorer 27 | Sun at end | El deviation | WW-ESE-CCW
+        {pred_sun_real, "Explorer27_SunEnd", "1328_cpf_240128_02901.sgf",
+            "2024-01-31T08:31:27Z", "2024-01-31T08:44:27Z"},
+
+        // Example 3: Jason 3 | No Sun | N-E-CW
+        {pred_sun_real, "Jason3_NoSun", "41240_cpf_240128_02801.hts",
+            "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z"},
+
+        // Example 4: Jason 3 | Sun at middle | N-E-CW
+        {pred_sun_sin_1, "Jason3_SunMid_Sintetic_1", "41240_cpf_240128_02801.hts",
+            "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z"},
+
+        // Example 5: Jason 3 | Sun at middle in high el | NW-SE-CCW
+        {pred_sun_sin_2, "Jason3_SunMid_Sintetic_1", "41240_cpf_240128_02801.hts",
+            "2024-01-31T11:42:20Z", "2024-01-31T11:59:10Z"},
+
+        // Example 6: Jason 3 | Sun at beginning | NE-E-CW
+        {pred_sun_sin_1, "Jason3_SunMid_Sintetic_2", "41240_cpf_240128_02801.hts",
+            "2024-01-31T09:51:00Z", "2024-01-31T10:01:00Z"},
+
+        // Example 7: Jason 3 | Sun at end | N-ENE-CW
+        {pred_sun_sin_3, "Jason3_SunMid_Sintetic_3", "41240_cpf_240128_02801.hts",
+            "2024-01-31T09:47:30Z", "2024-01-31T09:59:00Z"}
+    };
+
+    // Get band store the example data.
+    std::string cpf_path = input_dir + "/" + examples[example_selector].cpf_name;
+    MJDateTime mjd_pass_start = examples[example_selector].mjdt_start;
+    MJDateTime mjd_pass_end = examples[example_selector].mjdt_end;
+    std::string example_alias = examples[example_selector].example_alias;
+    PredictorSunPtr predictor_sun = examples[example_selector].predictor_sun;
+    std::string track_csv_filename = example_alias + "_track.csv";
+
+    // -------------------- PREDICTOR MOUNT PREPARATION  ---------------------------------------------------------------
+
+    // Prepare the SLR predictor to be used. For this example, the PredictorMount class needs the shared smart
+    // pointers with the Sun and SLR inherited predictors, so it is neccesary to use the factories (the smart pointers
+    // can also be created manually). This is not necessary when using the Sun and SLR predictors independently, as
+    // can be seen in other LibDegorasSLR examples.
+    PredictorSlrPtr predictor_cpf = PredictorSlrBase::factory<PredictorSlrCPF>(cpf_path, stat_geod, stat_geoc);
 
     // Check if the predictor is ready.
     if (!predictor_cpf->isReady())
     {
-        std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
+        std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
         std::cerr << "Error: The CPF predictor has no valid data to do predictions." << std::endl;
         return -1;
     }
 
-    predictor_cpf->setInterpFunction(PredictorCPF::InterpFunction::LAGRANGE_9);
-
-    // Configure sun predictor
-    auto predictor_sun = std::make_shared<PredictorSunFast>(stat_geodetic);
-
     // Configure the SLR predictor_mount. The class will process the pass automatically and will
     // generate a preview mount track in the steps indicated by step_ms.
-    PredictorMountSLR predictor_mount(predictor_cpf, predictor_sun, mjd_start, mjd_end,
+    PredictorMountSLR predictor_mount(predictor_cpf, predictor_sun, mjd_pass_start, mjd_pass_end,
                                       step, min_el, max_el , sun_avoid_angle, avoid_sun);
 
 
-    // Check if the tracking is valid.
-    if (!predictor_mount.isValid())
+    // Check if the tracking is ready.
+    if (!predictor_mount.isReady())
     {
-        std::cerr << "Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
+        std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
         std::cerr << "Error: There is no valid tracking." << std::endl;
         return -1;
     }
 
     // -------------------- ALL IS OK. WE WILL SEE THE ANALYZED DATA ---------------------------------------------------
 
+    // Get the specializated SLR predictor to get useful information.
+    PredictorSlrCPFPtr pred_cpf_recover = PredictorSlrBase::specialization<PredictorSlrCPF>(predictor_cpf);
+
     // Get the new tracking start and end date. If there is sun overlapping at start or end, the affected date
     // is changed so the tracking will start or end after/before the sun security sector.
-    predictor_mount.getTrackingStart(mjd_start);
-    predictor_mount.getTrackingEnd(mjd_end);
+    MJDateTime tracking_start = predictor_mount.getTrackingStart();
+    MJDateTime tracking_end = predictor_mount.getTrackingEnd();
 
     // Get the analyzed mount track with all the relevant data. You can use this data for example to print
     // a polar plot with the space object pass, the mount track and the Sun position. In the example folder,
@@ -238,12 +279,12 @@ int main()
     border << "\n";
     lines << "\n";
     data<<border.str();
-    data<<"= Module: UtilititesSLR   |   Example: TrackingSLR" << std::endl;
+    data<<"= Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
     data<<border.str();
     data<<"= Intputs:" << std::endl;
     data<<lines.str();
-    data<<"= File:        " << cpf.getSourceFilename() << std::endl;
-    data<<"= Object:      " << cpf.getHeader().basicInfo1Header()->target_name << std::endl;
+    data<<"= File:        " << pred_cpf_recover->getCPF().getSourceFilename() << std::endl;
+    data<<"= Object:      " << pred_cpf_recover->getCPF().getHeader().basicInfo1Header()->target_name << std::endl;
     //std::cout<<"= Pass interval: " << mount_track. << std::endl;
     data<<"= Avoid Sun:   " << (mount_track.config.sun_avoid ? "true" : "false") << std::endl;
     data<<"= Avoid angle: " << mount_track.config.sun_avoid_angle << std::endl;
@@ -267,6 +308,7 @@ int main()
 
     // --
     // Store the analyzed track data into a CSV file (only part of the data for easy usage).
+    // TODO: Store the full track data as JSON.
     // --
     // Create the file and header.
     std::ofstream file_analyzed_track(output_dir + "/" + track_csv_filename, std::ios_base::out);
@@ -308,15 +350,15 @@ int main()
     if(plot_data)
     {
         std::cout<<"Plotting analyzed data using Python helpers..."<<std::endl;
-        python_cmd += (output_dir + "/" + track_csv_filename);
-        if(system(python_cmd.c_str()))
+        python_cmd_analysis += (output_dir + "/" + track_csv_filename);
+        if(system(python_cmd_analysis.c_str()))
             std::cout<<"Plotting failed!!"<<std::endl;
     }
 
-    // -------------------- NOW LET'S START CALCULATING PREDICTIONS ----------------------------------------------------
+    // -------------------- NOW LET'S START CALCULATING PREDICTIONS SIMULATING REAL TIME PROCESS -----------------------
 
-    predictor_mount.getTrackingStart(mjd_start);
-    predictor_mount.getTrackingEnd(mjd_end);
+    // TODO
+    // We have some issues at this momment in the real time predictor.
 
     /*
 
@@ -330,7 +372,6 @@ int main()
 
     while (mjd < mjd_end)
     {
-
         // Store the resulting prediction
         results.push_back({});
         auto status = predictor_mount.predict(mjd, results.back());
@@ -364,22 +405,6 @@ int main()
         mjd.add(0.5L);
     }
 
-    // We will store the positions in a file. This could be used for graphical representation.
-    // We will also store the sun position at each tracking position.
-    std::ofstream file_pos(output_dir + "/" + example_alias + "_tracking.dat", std::ios_base::out);
-    std::ofstream file_pos_sun(output_dir + "/" + example_alias + "_sun.dat", std::ios_base::out);
-
-    // std::ofstream file_pos(output_dir + "/" + "tracking.txt", std::ios_base::out);
-    // std::ofstream file_pos_sun(output_dir + "/" + "pos_sun.txt", std::ios_base::out);
-
-    for (const auto &prediction : results)
-    {
-        file_pos << prediction.mount_pos->altaz_coord.az << "," << prediction.mount_pos->altaz_coord.el << std::endl;
-        file_pos_sun << prediction.sun_pred->altaz_coord.az << "," << prediction.sun_pred->altaz_coord.el << std::endl;
-    }
-
-    file_pos.close();
-    file_pos_sun.close();
     */
 
     return 0;
