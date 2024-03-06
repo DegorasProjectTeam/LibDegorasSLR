@@ -27,9 +27,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tracking_slr.h
+ * @file predictor_mount_slr.h
  * @author Degoras Project Team.
- * @brief This file contains the definition of the TrackingSLR class.
+ * @brief This file contains the definition of the PredictorMountSLR class.
  * @copyright EUPL License
  * @version
 ***********************************************************************************************************************/
@@ -47,7 +47,13 @@
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
+#include "LibDegorasSLR/TrackingMount/types/tracking_types.h"
+#include "LibDegorasSLR/TrackingMount/types/tracking_analyzer.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
+// =====================================================================================================================
 
+// C++ INCLUDES
+// =====================================================================================================================
 #include <memory>
 // =====================================================================================================================
 
@@ -116,7 +122,7 @@ using ilrs::cpf::CPF;
  */
 class LIBDPSLR_EXPORT PredictorMountSLR
 {
-public:
+public:    
 
     /**
      * @brief Enumerates the possible status codes for a tracking position.
@@ -327,10 +333,6 @@ public:
                       MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
                       DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
-    PredictorMountSLR(PredictorSlrPtr pred_slr, PredictorSunPtr pred_sun,
-                      const HRTimePointStd& pass_tp_start, const HRTimePointStd& pass_tp_end,
-                      MillisecondsU time_delta = 1000, DegreesU min_elev = 10, DegreesU max_elev = 85,
-                      DegreesU sun_avoid_angle = 15, bool sun_avoid = true);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
@@ -338,63 +340,7 @@ public:
      */
     bool isReady() const;
 
-    /**
-     * @brief This function returns the tracking info available.
-     * @return the tracking info.
-     */
-    const MountTrackSLR& getMountTrack() const;
-
-    /**
-     * @brief If this traking is valid, you can get the tracking start with this function. This start time
-     * could be different from the start time of the space object pass.
-     * @return The MJ datetime in days for the tracking start.
-     */
-    MJDateTime getTrackingStart() const;
-
-    /**
-     * @brief If this tracking is valid, you can get the tracking end with this function. This end time
-     * could be different from the end time of the space object pass.
-     * @param mjd, the MJ datetime in days for the tracking end.
-     * @param sod, the second of day for the tracking end.
-     */
-    MJDateTime getTrackingEnd() const;
-
-    /**
-     * @brief This function returns an interator to the first valid position in tracking.
-     * @return an interator to the first valid position in tracking, if tracking is valid. Otherwise end iterator.
-     */
-    MountSLRPredictions::const_iterator getTrackingBeginIt() const;
-
-    /**
-     * @brief This function returns an interator to the last valid position in tracking.
-     * @return an interator to the last valid position in tracking, if tracking is valid. Otherwise end iterator.
-     */
-    MountSLRPredictions::const_iterator getTrackingEndIt() const;
-
-    /**
-     * @brief This function returns if sun avoidance is applied.
-     * @return true if sun avoidance is applied, false otherwise.
-     */
-    bool getSunAvoidApplied() const;
-
-    /**
-     * @brief This function returns if there is sun overlapping in this tracking.
-     * @return true if sun avoid is applied and there is an overlapping with the sun, false otherwise.
-     */
-    bool isSunOverlapping() const;
-
-    /**
-     * @brief This function returns if the start time of the tracking was modified due to a sun collision
-     * at the begining.
-     * @return if sun avoid is applied, it returns true if tracking start time was modified due to sun, false otherwise.
-     */
-    bool isSunAtStart() const;
-
-    /**
-     * @brief This function returns if the end time of the tracking was modified due to a sun collision at the end.
-     * @return if sun avoid is applied, it returns true if tracking end time was modified due to sun, false otherwise.
-     */
-    bool isSunAtEnd() const;
+    const MountTrackingSLR& getMountTrackingSLR() const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -404,7 +350,7 @@ public:
      *
      * @warning Nanoseconds resolution for the prediction.
      */
-    PositionStatus predict(const timing::HRTimePointStd& tp_time, MountSLRPrediction &tracking_result);
+    PositionStatus predict(const timing::HRTimePointStd& tp_time, MountSLRPrediction &tracking_result) const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -412,7 +358,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(const MJDateTime &mjd, MountSLRPrediction &tracking_result);
+    PositionStatus predict(const MJDateTime &mjd, MountSLRPrediction &tracking_result) const;
 
 private:
 
@@ -421,28 +367,6 @@ private:
     /// Helper to analyze the track.
     void analyzeTracking();
 
-    /// Helper to check the tracking start.
-    bool analyzeTrackingStart();
-
-    /// Helper to check the tracking end.
-    bool analyzeTrackingEnd();
-
-    /// Helper to check the tracking.
-    bool analyzeTrackingMiddle();
-
-    /// Helper to check if the predicted position is inside a sun sector.
-    bool insideSunSector(const AltAzPos& pass_pos, const AltAzPos& sun_pos) const;
-
-    /// Helper to set the rotation direction of a sun sector.
-    bool setSunSectorRotationDirection(
-        SunCollisionSector &sector, MountSLRPredictions::const_iterator sun_start, MountSLRPredictions::const_iterator sun_end);
-
-    /// Helper to check positions whithin a sun sector to see if it is possible to avoid sun
-    void checkSunSectorPositions(
-        const SunCollisionSector &sector, MountSLRPredictions::iterator sun_start, MountSLRPredictions::iterator sun_end);
-
-    long double calcSunAvoidTrajectory(const MJDateTime& mjdt, const SunCollisionSector &sector,
-                                       const AltAzPos &sun_pos);
 
     // Private members.
     PredictorSlrPtr predictor_;       ///< SLR predictor shared smart pointer.
@@ -451,6 +375,8 @@ private:
 
     MountSLRPredictions::iterator tracking_begin_;
     MountSLRPredictions::iterator tracking_end_;
+    MountTrackingSLR mount_track_;                     ///< Mount track analyzed data.
+    TrackingAnalyzer tr_analyzer_;
 };
 
 }} // END NAMESPACES

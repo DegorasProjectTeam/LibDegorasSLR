@@ -87,6 +87,9 @@ using dpslr::utils::PredictorSlrCPFPtr;
 using dpslr::mount::PredictorMountSLR;
 // Helpers.
 using dpslr::helpers::strings::numberToStr;
+using dpslr::mount::PositionStatus;
+using dpslr::mount::MountTrackingSLR;
+using dpslr::mount::TrackingConfig;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -242,8 +245,17 @@ int main()
 
     // Configure the SLR predictor_mount. The class will process the pass automatically and will
     // generate a preview mount track in the steps indicated by step_ms.
-    PredictorMountSLR predictor_mount(predictor_cpf, predictor_sun, mjd_pass_start, mjd_pass_end,
-                                      step, min_el, max_el , sun_avoid_angle, avoid_sun);
+    // Store the configuration data.
+    TrackingConfig config;
+    config.mjdt_start = mjd_start;
+    config.mjdt_end = mjd_end;
+    config.min_elev = min_el;
+    config.max_elev = max_el;
+    config.time_delta = step;
+    config.sun_avoid_angle = sun_avoid_angle;
+    config.sun_avoid = avoid_sun;
+
+    PredictorMountSLR predictor_mount(predictor_cpf, predictor_sun, config);
 
 
     // Check if the tracking is ready.
@@ -261,13 +273,11 @@ int main()
 
     // Get the new tracking start and end date. If there is sun overlapping at start or end, the affected date
     // is changed so the tracking will start or end after/before the sun security sector.
-    MJDateTime tracking_start = predictor_mount.getTrackingStart();
-    MJDateTime tracking_end = predictor_mount.getTrackingEnd();
 
     // Get the analyzed mount track with all the relevant data. You can use this data for example to print
     // a polar plot with the space object pass, the mount track and the Sun position. In the example folder,
     // you can see a Python illustrative example using the data of this struct.
-    const PredictorMountSLR::MountTrackSLR& mount_track =  predictor_mount.getMountTrack();
+    const MountTrackingSLR& mount_track =  predictor_mount.getMountTrackingSLR();
 
     // Log the pass and tracking information (illustrative example). You can read the specific
     // documentation to learn what you can do with each class and struct.
@@ -326,21 +336,23 @@ int main()
         // At this point, you only must check if the prediction is outside track. This is becaouse, for example,
         // the beginning of the real satellite pass may coincide with the Sun sector, so at those points there
         // would be no data from the mount's track, only the real pass.
-        if(pred.status != PredictorMountSLR::PositionStatus::OUT_OF_TRACK)
+        if(pred.status != PositionStatus::OUT_OF_TRACK)
         {
             track_az = numberToStr(pred.mount_pos->altaz_coord.az,7, 4);
             track_el = numberToStr(pred.mount_pos->altaz_coord.el,7, 4);
+
+            // Store the data.
+            file_analyzed_track <<'\n';
+            file_analyzed_track << std::to_string(pred.mjdt.datetime()) <<";";
+            file_analyzed_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.az, 7, 4) <<";";
+            file_analyzed_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.el, 7, 4) <<";";
+            file_analyzed_track << track_az <<";";
+            file_analyzed_track << track_el <<";";
+            file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
+            file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
         }
         //
-        // Store the data.
-        file_analyzed_track <<'\n';
-        file_analyzed_track << std::to_string(pred.mjdt.datetime()) <<";";
-        file_analyzed_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.az, 7, 4) <<";";
-        file_analyzed_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.el, 7, 4) <<";";
-        file_analyzed_track << track_az <<";";
-        file_analyzed_track << track_el <<";";
-        file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
-        file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
+
     }
     //
     // Close the file.

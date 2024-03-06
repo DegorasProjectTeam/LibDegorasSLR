@@ -60,6 +60,16 @@ template <class T> using Optional = std::experimental::optional<T>;
 
 using StringV = std::vector<std::string>;
 
+#define DEF_COPY_MOVE(CLASS) \
+CLASS(const CLASS&) = default; \
+CLASS(CLASS&&) = default; \
+CLASS& operator=(const CLASS&) = default; \
+CLASS& operator=(CLASS&&) = default;
+
+#define DEF_COPY_MOVE_DEFAULT(CLASS) \
+CLASS() = default; \
+DEF_COPY_MOVE(CLASS)
+
 // =====================================================================================================================
 
 } // END NAMESPACES
