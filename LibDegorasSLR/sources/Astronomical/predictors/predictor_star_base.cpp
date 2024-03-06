@@ -36,6 +36,7 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <omp.h>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
@@ -89,9 +90,7 @@ StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDa
     return results;
 }
 
-PredictorStarBase::~PredictorStarBase()
-{}
-
+PredictorStarBase::~PredictorStarBase(){}
 
 }} // END NAMESPACES
 // =====================================================================================================================

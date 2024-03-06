@@ -89,7 +89,6 @@ struct LIBDPSLR_EXPORT SunPrediction
     GeocentricPoint geo_pos;   ///< Sun predicted geocentric position in meters.
 
     // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
-
 };
 
 /// Alias for a vector of SunPrediction.
@@ -126,7 +125,11 @@ public:
         return std::static_pointer_cast<PredictorSunBase>(std::make_shared<T>(std::forward<Args>(args)...));
     }
 
-    virtual ~PredictorSunBase() = default;
+    template <typename T>
+    static std::shared_ptr<T> specialization(std::shared_ptr<PredictorSunBase> base)
+    {
+        return std::static_pointer_cast<T>(base);
+    }
 
     /**
      * @brief Predicts the position of the Sun at a specific time.
@@ -149,39 +152,16 @@ public:
      * @throws std::invalid_argument If the interval is invalid.
      */
     virtual SunPredictionV predict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
-                                   const MillisecondsU& step, bool refraction) const
-    {
-        // Container and auxiliar.
-        J2000DateTimeV interp_times;
-        Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
+                                   const MillisecondsU& step, bool refraction) const;
 
-        // Check for valid time interval.
-        if(!(j2000_start <= j2000_end))
-            throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::predict] Invalid interval.");
-
-        // Calculates all the interpolation times.
-        interp_times = J2000DateTime::linspaceStep(j2000_start, j2000_end, step_sec);
-
-        // Results container.
-        SunPredictionV results(interp_times.size());
-
-        // Parallel calculation.
-        #pragma omp parallel for
-        for(size_t i = 0; i<interp_times.size(); i++)
-        {
-            results[i] = this->predict(interp_times[i], refraction);
-        }
-
-        // Return the container.
-        return results;
-    }
+    virtual ~PredictorSunBase();
 
 protected:
 
     GeodeticPoint<Radians> obs_geo_pos_;  ///< Geodetic observer position (radians and meters).
 };
 
-/// Alias for PredictorSun unique smart pointer.
+/// Alias for PredictorSunBase shared smart pointer.
 using PredictorSunPtr = std::shared_ptr<PredictorSunBase>;
 
 }} // END NAMESPACES.

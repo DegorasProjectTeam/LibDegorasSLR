@@ -40,6 +40,7 @@
 
 // C++ INCLUDES
 //======================================================================================================================
+#include <memory>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
@@ -101,6 +102,18 @@ public:
     PredictorStarBase& operator=(const PredictorStarBase&) = default;
     PredictorStarBase& operator=(PredictorStarBase&&) = default;
 
+    template <typename T, typename... Args>
+    static std::shared_ptr<PredictorStarBase> factory(Args&&... args)
+    {
+        return std::static_pointer_cast<PredictorStarBase>(std::make_shared<T>(std::forward<Args>(args)...));
+    }
+
+    template <typename T>
+    static std::shared_ptr<T> specialization(std::shared_ptr<PredictorStarBase> base)
+    {
+        return std::static_pointer_cast<T>(base);
+    }
+
     /**
      * @brief Predicts the position of a star at a specific time
      *
@@ -131,6 +144,9 @@ protected:
     int leap_secs_;
     double ut1_utc_diff_;
 };
+
+/// Alias for PredictorStarBase shared smart pointer.
+using PredictorStarPtr = std::shared_ptr<PredictorStarBase>;
 
 }} // END NAMESPACES.
 // =====================================================================================================================

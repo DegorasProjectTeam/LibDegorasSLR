@@ -312,7 +312,7 @@ private:
 
 };
 
-/// Alias for PredictorSlr unique smart pointer.
+/// Alias for PredictorSlrBase shared smart pointer.
 using PredictorSlrPtr = std::shared_ptr<PredictorSlrBase>;
 
 }} // END NAMESPACES
