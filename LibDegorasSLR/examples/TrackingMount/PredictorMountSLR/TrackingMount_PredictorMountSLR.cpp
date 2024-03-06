@@ -247,8 +247,8 @@ int main()
     // generate a preview mount track in the steps indicated by step_ms.
     // Store the configuration data.
     TrackingConfig config;
-    config.mjdt_start = mjd_start;
-    config.mjdt_end = mjd_end;
+    config.mjdt_start = mjd_pass_start;
+    config.mjdt_end = mjd_pass_end;
     config.min_elev = min_el;
     config.max_elev = max_el;
     config.time_delta = step;

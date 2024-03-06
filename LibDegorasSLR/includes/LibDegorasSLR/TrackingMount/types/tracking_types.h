@@ -40,17 +40,13 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
 #include "LibDegorasSLR/Helpers/common_aliases.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/prediction_data_slr.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
-// =====================================================================================================================
-
-// C++ INCLUDES
-// =====================================================================================================================
-#include <memory>
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -68,8 +64,8 @@ using dpslr::utils::SLRPrediction;
 using dpslr::utils::SLRPredictionV;
 using dpslr::astro::SunPrediction;
 using dpslr::astro::SunPredictionV;
-using dpslr::astro::PredictorSun;
-using dpslr::utils::PredictorSLR;
+using dpslr::astro::PredictorSunPtr;
+using dpslr::utils::PredictorSlrPtr;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // LIBDEGORASSLR NAMESPACES
@@ -321,7 +317,7 @@ struct MountTrackingMove
     MountMovePredictionV::iterator tracking_end_;   ///< Iterator to tracking end
 
     // Predictors.
-    std::shared_ptr<PredictorSun> predictor_sun;   ///< Internal Sun predictor.
+    PredictorSunPtr predictor_sun;   ///< Internal Sun predictor.
 };
 
 /**
@@ -343,8 +339,8 @@ struct MountTrackingSLR
     MountSLRPredictionV::iterator tracking_end_;   ///< Iterator to tracking end
 
     // Predictors.
-    std::shared_ptr<PredictorSLR> predictor_slr;   ///< Internal PredictorSLR predictor.
-    std::shared_ptr<PredictorSun> predictor_sun;   ///< Internal Sun predictor.
+    PredictorSlrPtr predictor_slr;   ///< Internal PredictorSLR predictor.
+    PredictorSunPtr predictor_sun;   ///< Internal Sun predictor.
 };
 
 

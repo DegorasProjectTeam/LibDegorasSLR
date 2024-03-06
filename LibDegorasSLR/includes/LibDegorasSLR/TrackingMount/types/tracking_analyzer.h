@@ -41,7 +41,6 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
@@ -58,14 +57,14 @@ namespace mount{
 using timing::types::MJDateTime;
 using timing::types::MJDate;
 using timing::types::SoD;
-using astro::PredictorSun;
+using astro::PredictorSunBase;
 using astro::types::AltAzPos;
 using astro::types::AltAzPosV;
 using math::units::DegreesU;
 using math::units::Degrees;
 using math::units::MillisecondsU;
 using math::units::Meters;
-using utils::PredictorSLR;
+using utils::PredictorSlrBase;
 using utils::SLRPrediction;
 using utils::SLRPredictionV;
 using astro::SunPrediction;

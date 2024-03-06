@@ -56,8 +56,8 @@ using namespace astro::types;
 using math::units::Milliseconds;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr,
-                                     std::shared_ptr<PredictorSun> pred_sun,
+PredictorMountSLR::PredictorMountSLR(PredictorSlrPtr pred_slr,
+                                     PredictorSunPtr pred_sun,
                                      const TrackingConfig& config) :
     tr_analyzer_(config)
 {
@@ -78,14 +78,12 @@ PredictorMountSLR::PredictorMountSLR(std::shared_ptr<PredictorSLR> pred_slr,
                                     "configured minimum and maximum elevations.");
 
     // Configure predictor slr in instant vector mode.
-    pred_slr->setPredictionMode(PredictorSLR::PredictionMode::INSTANT_VECTOR);
+    pred_slr->setPredictionMode(PredictorSlrBase::PredictionMode::INSTANT_VECTOR);
 
     // Analyze the tracking.
     this->analyzeTracking();
 }
 
-
-}
 
 bool PredictorMountSLR::isReady() const
 {
