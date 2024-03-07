@@ -94,7 +94,7 @@ TrackingPredictionV::const_iterator TrackingAnalyzer::trackingEnd() const
 void TrackingAnalyzer::analyzePrediction(TrackingPrediction &pred) const
 {
     // Check if requested position is inside valid tracking time. Otherwise return out of tracking error.
-    if (pred.mjdt < this->config_.mjdt_start || pred.mjdt > this->config_.mjdt_end)
+    if (pred.mjdt < this->track_info_.mjdt_start || pred.mjdt > this->track_info_.mjdt_end)
     {
         pred.status =  PositionStatus::OUT_OF_TRACK;
     }
@@ -165,8 +165,8 @@ void TrackingAnalyzer::analyzeTracking(const TrackingPredictionV &predictions)
         return;
     // --------------------------------------------------------------
 
-    this->track_info_.mjdt_start = this->config_.mjdt_start;
-    this->track_info_.mjdt_end = this->config_.mjdt_end;
+    this->track_info_.mjdt_start = predictions.front().mjdt;
+    this->track_info_.mjdt_end = predictions.back().mjdt;
     this->track_info_.start_coord = predictions.front().pos.altaz_coord;
     this->track_info_.end_coord = predictions.back().pos.altaz_coord;
     
@@ -201,8 +201,7 @@ bool TrackingAnalyzer::analyzeTrackingStart()
 
     // Get the first valid position due to minimum and maximum elevations.
     while (it_pred != this->predictions_.end() &&
-           it_pred->pos.altaz_coord.el < min_el &&
-           it_pred->pos.altaz_coord.el > max_el)
+            (it_pred->pos.altaz_coord.el < min_el || it_pred->pos.altaz_coord.el > max_el))
     {
         it_pred->status = PositionStatus::OUT_OF_TRACK;
         it_pred++;
@@ -283,8 +282,7 @@ bool TrackingAnalyzer::analyzeTrackingEnd()
 
     // Get the first valid position due to minimum and maximum elevations.
     while (it_pred != this->predictions_.rend() &&
-           it_pred->pos.altaz_coord.el < min_el &&
-           it_pred->pos.altaz_coord.el > max_el)
+          (it_pred->pos.altaz_coord.el < min_el || it_pred->pos.altaz_coord.el > max_el))
     {
         it_pred->status = PositionStatus::OUT_OF_TRACK;
         it_pred++;
@@ -458,7 +456,6 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
             max_elev = it->pos.altaz_coord.el;
             max_elev_mjdt = it->mjdt;
         }
-
     }
 
     // Finally update the track information.
@@ -558,15 +555,15 @@ bool TrackingAnalyzer::setSunSectorRotationDirection(SunCollisionSector &sector,
                                this->config_.sun_avoid_angle * std::sin(ccw_angle);
 
         long double cfg_max_el = static_cast<long double>(this->config_.max_elev);
+        long double cfg_min_el = static_cast<long double>(this->config_.min_elev);
 
         // Check if elevation is required to be below minimum or above 90 in each way. If that is the case,
         // that way will not be valid and the other must be used.
-        if (elev_cw >= cfg_max_el || elev_cw < 0.0L)
+        if (elev_cw >= cfg_max_el || elev_cw <= cfg_min_el)
             valid_cw = false;
 
-        if (elev_ccw >= cfg_max_el || elev_ccw < 0.0L)
+        if (elev_ccw >= cfg_max_el || elev_ccw <= cfg_min_el)
             valid_ccw = false;
-
     }
 
     // If no way is valid, then tracking is not valid. If one of the ways is not valid, use the other.
@@ -631,9 +628,8 @@ bool TrackingAnalyzer::setSunSectorRotationDirection(SunCollisionSector &sector,
         sector.cw = std::abs(cw_angle) < std::abs(ccw_angle) ?
                         SunCollisionSector::RotationDirection::CLOCKWISE :
                         SunCollisionSector::RotationDirection::COUNTERCLOCKWISE;
-
     }
-
+    // All ok.
     return true;
 }
 

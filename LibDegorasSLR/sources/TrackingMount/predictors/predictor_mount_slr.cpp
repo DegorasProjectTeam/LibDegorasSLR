@@ -56,26 +56,36 @@ using namespace astro::types;
 using math::units::Milliseconds;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(PredictorSlrPtr pred_slr,
-                                     PredictorSunPtr pred_sun,
+PredictorMountSLR::PredictorMountSLR(const MJDateTime& pass_start, const MJDateTime& pass_end,
+                                     PredictorSlrPtr pred_slr, PredictorSunPtr pred_sun,
                                      const TrackingAnalyzerConfig& config) :
     tr_analyzer_(config)
 {
     // Check Degoras initialization.
     DegorasInit::checkMandatoryInit();
 
+    // TODO: First generate the pass and store this info.
+    this->mount_track_.pass_mjdt_start = pass_start;
+    this->mount_track_.pass_mjdt_end = pass_end;
+
+    // Store the data.
     this->mount_track_.predictor_slr = pred_slr;
     this->mount_track_.predictor_sun = pred_sun;
     this->mount_track_.config = config;
 
     // Check configured elevations.
-    if(config.min_elev >= config.max_elev || config.min_elev > 90 || config.max_elev > 90 || config.sun_avoid_angle > 90)
+    if(config.min_elev >= config.max_elev || config.min_elev > 90 ||
+       config.max_elev > 90 || config.sun_avoid_angle > 90)
+    {
         throw std::invalid_argument("[LibDegorasSLR,TrackingMount,PredictorMountSLR] Invalid angles configuration.");
+    }
 
     // Check too high values for the sun avoid angle, so the algorithm can fail.
     if((config.sun_avoid_angle*2) + config.min_elev >= 90 || (config.sun_avoid_angle*2)+(90 - config.max_elev) >= 90)
+    {
         throw std::invalid_argument("[LibDegorasSLR,TrackingMount,PredictorMountSLR] Sun avoid angle too high for the "
                                     "configured minimum and maximum elevations.");
+    }
 
     // Configure predictor slr in instant vector mode.
     pred_slr->setPredictionMode(PredictorSlrBase::PredictionMode::INSTANT_VECTOR);
@@ -168,7 +178,7 @@ void PredictorMountSLR::analyzeTracking()
     // TODO MOVE TO PASS GENERATOR
     // Parallel calculation of all SLR positions.
     results_slr = this->mount_track_.predictor_slr->predict(
-        this->mount_track_.config.mjdt_start, this->mount_track_.config.mjdt_end, step_ms);
+        this->mount_track_.pass_mjdt_start, this->mount_track_.pass_mjdt_end, step_ms);
 
     // Check if we have prediction results.
     if(results_slr.empty())
@@ -188,8 +198,8 @@ void PredictorMountSLR::analyzeTracking()
 
     // Time transformations with milliseconds precision.
     // TODO Move to the Sun predictor class.
-    J2000DateTime j2000_start = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.config.mjdt_start);
-    J2000DateTime j2000_end = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.config.mjdt_end);
+    J2000DateTime j2000_start = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.pass_mjdt_start);
+    J2000DateTime j2000_end = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.pass_mjdt_end);
 
     // Parallel calculation of all Sun positions.
     results_sun = this->mount_track_.predictor_sun->predict(

@@ -97,22 +97,24 @@ using dpslr::mount::TrackingAnalyzerConfig;
 
 struct ExampleData
 {
-    ExampleData(PredictorSunPtr sun_pred, const std::string& alias, const std::string& cpf,
-                const Iso8601Str& start, const Iso8601Str& end):
+    ExampleData(PredictorSunPtr sun_pred, const TrackingAnalyzerConfig& cfg, const std::string& alias,
+                const std::string& cpf, const Iso8601Str& start, const Iso8601Str& end):
         example_alias(alias),
         cpf_name(cpf),
-        predictor_sun(sun_pred)
+        predictor_sun(sun_pred),
+        analyzer_cfg(cfg)
     {
         this->mjdt_start = timePointToModifiedJulianDateTime(iso8601DatetimeToTimePoint(start));
         this->mjdt_end = timePointToModifiedJulianDateTime(iso8601DatetimeToTimePoint(end));
     }
 
     // Specific example data.
-    std::string example_alias;      // Example alias for file generation.
-    std::string cpf_name;           // CPF ephemeris namefile.
-    MJDateTime mjdt_start;          // Space object pass fragment start Modified Julian Datetime.
-    MJDateTime mjdt_end;            // Space object pass fragment end Modified Julian Datetime.
-    PredictorSunPtr predictor_sun;  // Predictor Sun that will be used.
+    std::string example_alias;            // Example alias for file generation.
+    std::string cpf_name;                 // CPF ephemeris namefile.
+    MJDateTime mjdt_start;                // Space object pass fragment start Modified Julian Datetime.
+    MJDateTime mjdt_end;                  // Space object pass fragment end Modified Julian Datetime.
+    PredictorSunPtr predictor_sun;        // Predictor Sun that will be used.
+    TrackingAnalyzerConfig analyzer_cfg;  // Analyzer configuration.
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -127,7 +129,7 @@ int main()
     // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
 
     // Example selector.
-    size_t example_selector = 4;  // Select the example to process (between reals and sintetics).
+    size_t example_selector = 6;  // Select the example to process (between reals and sintetics).
     bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).
@@ -141,9 +143,9 @@ int main()
     Meters y = -555110.526L;
     Meters z = 3769892.958L;
 
-    // TrackingSLR configuration.
+    // Generic config for SLR tracks.
     MillisecondsU step = 500;         // Steps into which the algorithm will divide the pass for initial analysis.
-    DegreesU min_el = 15;             // Minimum acceptable elevation for the mount.
+    DegreesU min_el = 10;             // Minimum acceptable elevation for the mount.
     DegreesU max_el = 85;             // Maximum acceptable elevation for the mount.
     DegreesU sun_avoid_angle = 15;    // Sun avoidance angle to make Sun the security sectors.
     bool avoid_sun = true;            // Flag for enable or disable the Sun avoidance utility.
@@ -169,6 +171,12 @@ int main()
     GeocentricPoint stat_geoc(x,y,z);
     GeodeticPoint<Degrees> stat_geod(latitude, longitude, alt);
 
+    // Prepare the different tracking analyzer configurations. The first will be the generic for SLR trackings.
+    TrackingAnalyzerConfig analyzer_cfg_1(step, sun_avoid_angle, min_el, max_el, avoid_sun);
+    TrackingAnalyzerConfig analyzer_cfg_2(step, sun_avoid_angle, 18, 70, avoid_sun);
+    TrackingAnalyzerConfig analyzer_cfg_3(100, sun_avoid_angle, 0, 90, avoid_sun);
+    TrackingAnalyzerConfig analyzer_cfg_4(step, sun_avoid_angle, min_el, max_el, false);
+
     // Prepare the Sun predictors to be used. For this example, the PredictorMount class needs the shared smart
     // pointers with the Sun and SLR inherited predictors, so it is neccesary to use the factories (the smart pointers
     // can also be created manually). This is not necessary when using the Sun and SLR predictors independently, as
@@ -187,44 +195,52 @@ int main()
     std::vector<ExampleData> examples =
     {
         // Example 0: Lares | Sun at beginning | SW-N_CW
-        {pred_sun_real, "Lares_SunBeg", "38077_cpf_240128_02901.sgf",
-            "2024-01-31T15:45:25Z", "2024-01-31T16:02:35Z"},
+        {pred_sun_real, analyzer_cfg_1,
+            "Lares_SunBeg", "38077_cpf_240128_02901.sgf", "2024-01-31T15:45:25Z", "2024-01-31T16:02:35Z"},
 
         // Example 1: Jason 3 | Sun at middle | NW-SE-CCW
-        {pred_sun_real, "Jason3_SunMid", "41240_cpf_240128_02801.hts",
+        {pred_sun_real, analyzer_cfg_1,
+         "Jason3_SunMid", "41240_cpf_240128_02801.hts",
             "2024-01-31T11:42:20Z", "2024-01-31T11:59:10Z"},
 
         // Example 2: Explorer 27 | Sun at end | El deviation | WW-ESE-CCW
-        {pred_sun_real, "Explorer27_SunEnd", "1328_cpf_240128_02901.sgf",
+        {pred_sun_real, analyzer_cfg_1,
+            "Explorer27_SunEnd", "1328_cpf_240128_02901.sgf",
             "2024-01-31T08:31:27Z", "2024-01-31T08:44:27Z"},
 
         // Example 3: Jason 3 | No Sun | N-E-CW
-        {pred_sun_real, "Jason3_NoSun", "41240_cpf_240128_02801.hts",
+        {pred_sun_real, analyzer_cfg_1,
+            "Jason3_NoSun", "41240_cpf_240128_02801.hts",
             "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z"},
 
         // Example 4: Jason 3 | Sun at middle | N-E-CW
-        {pred_sun_sin_1, "Jason3_SunMid_Sintetic_1", "41240_cpf_240128_02801.hts",
-            "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z"},
+        {pred_sun_sin_1, analyzer_cfg_1,
+            "Jason3_SunMid_Sintetic_1", "41240_cpf_240128_02801.hts", "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z"},
 
-        // Example 5: Jason 3 | Sun at middle in high el | NW-SE-CCW
-        {pred_sun_sin_2, "Jason3_SunMid_Sintetic_1", "41240_cpf_240128_02801.hts",
-            "2024-01-31T11:42:20Z", "2024-01-31T11:59:10Z"},
+        // Example 4: Jason 3 | Sun at middle | N-E-CW
+        {pred_sun_sin_1, analyzer_cfg_2,
+            "Jason3_SunMid_Sintetic_2", "41240_cpf_240128_02801.hts", "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z"},
 
-        // Example 6: Jason 3 | Sun at beginning | NE-E-CW
-        {pred_sun_sin_1, "Jason3_SunMid_Sintetic_2", "41240_cpf_240128_02801.hts",
-            "2024-01-31T09:51:00Z", "2024-01-31T10:01:00Z"},
+        // Example 6: Jason 3 | Sun at middle in high el | NW-SE-CCW
+        {pred_sun_sin_2, analyzer_cfg_1,
+            "Jason3_SunMid_Sintetic_3", "41240_cpf_240128_02801.hts", "2024-01-31T11:42:20Z", "2024-01-31T11:59:10Z"},
 
-        // Example 7: Jason 3 | Sun at end | N-ENE-CW
-        {pred_sun_sin_3, "Jason3_SunMid_Sintetic_3", "41240_cpf_240128_02801.hts",
-            "2024-01-31T09:47:30Z", "2024-01-31T09:59:00Z"}
+        // Example 7: Jason 3 | Sun at beginning | NE-E-CW
+        {pred_sun_sin_1, analyzer_cfg_1,
+            "Jason3_SunMid_Sintetic_4", "41240_cpf_240128_02801.hts", "2024-01-31T09:51:00Z", "2024-01-31T10:01:00Z"},
+
+        // Example 8: Jason 3 | Sun at end | N-ENE-CW
+        {pred_sun_sin_3, analyzer_cfg_1,
+            "Jason3_SunMid_Sintetic_5", "41240_cpf_240128_02801.hts", "2024-01-31T09:47:30Z", "2024-01-31T09:59:00Z"}
     };
 
     // Get band store the example data.
     std::string cpf_path = input_dir + "/" + examples[example_selector].cpf_name;
-    MJDateTime mjd_pass_start = examples[example_selector].mjdt_start;
-    MJDateTime mjd_pass_end = examples[example_selector].mjdt_end;
+    MJDateTime pass_start = examples[example_selector].mjdt_start;
+    MJDateTime pass_end = examples[example_selector].mjdt_end;
     std::string example_alias = examples[example_selector].example_alias;
     PredictorSunPtr predictor_sun = examples[example_selector].predictor_sun;
+    TrackingAnalyzerConfig analyzer_cfg = examples[example_selector].analyzer_cfg;
     std::string track_csv_filename = example_alias + "_track.csv";
 
     // -------------------- PREDICTOR MOUNT PREPARATION  ---------------------------------------------------------------
@@ -245,19 +261,8 @@ int main()
         return -1;
     }
 
-    // Configure the SLR predictor_mount. The class will process the pass automatically and will
-    // generate a preview mount track in the steps indicated by step_ms.
-    // Store the configuration data.
-    TrackingConfig config;
-    config.mjdt_start = mjd_pass_start;
-    config.mjdt_end = mjd_pass_end;
-    config.min_elev = min_el;
-    config.max_elev = max_el;
-    config.time_delta = step;
-    config.sun_avoid_angle = sun_avoid_angle;
-    config.sun_avoid = avoid_sun;
-
-    PredictorMountSLR predictor_mount(predictor_cpf, predictor_sun, config);
+    // Prepare the mount slr predictor.
+    PredictorMountSLR predictor_mount(pass_start, pass_end, predictor_cpf, predictor_sun, analyzer_cfg);
 
     // Check if the tracking is ready.
     if (!predictor_mount.isReady())

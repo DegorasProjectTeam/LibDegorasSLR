@@ -84,8 +84,15 @@ struct TrackingAnalyzerConfig
 {
     DEF_COPY_MOVE_DEFAULT(TrackingAnalyzerConfig)
 
-    MJDateTime mjdt_start;
-    MJDateTime mjdt_end;
+    TrackingAnalyzerConfig(const MillisecondsU& time_delta, const DegreesU& sun_avoid_angle,
+                           const DegreesU& min_elev, const DegreesU& max_elev, bool sun_avoid) :
+        time_delta(time_delta),
+        sun_avoid_angle(sun_avoid_angle),
+        min_elev(min_elev),
+        max_elev(max_elev),
+        sun_avoid(sun_avoid)
+    {}
+
     MillisecondsU time_delta;  ///< Time delta fo calculations in milliseconds.
     DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
     DegreesU min_elev;         ///< Configured minimum elevation (degrees).
@@ -277,8 +284,8 @@ struct TrackingInfo
     DEF_COPY_MOVE(TrackingInfo)
 
     // Time data.
-    MJDateTime mjdt_start;
-    MJDateTime mjdt_end;
+    MJDateTime mjdt_start;     ///< Tracking start Modified Julian Datetime.
+    MJDateTime mjdt_end;       ///< Tracking end Modified Julian Datetime.
 
     // Position data.
     AltAzPos start_coord;         ///< Track start altazimuth coordinates.
@@ -328,6 +335,10 @@ struct MountTrackingSLR
 {
 
     DEF_COPY_MOVE_DEFAULT(MountTrackingSLR)
+
+    // TODO THIS MUST BE STORED IN PASSINFO class.
+    MJDateTime pass_mjdt_start;
+    MJDateTime pass_mjdt_end;
 
     // Tracking data
     TrackingAnalyzerConfig config;                         ///< Contains the tracking user configuration.
