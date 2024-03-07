@@ -200,18 +200,15 @@ int main()
 
         // Example 1: Jason 3 | Sun at middle | NW-SE-CCW
         {pred_sun_real, analyzer_cfg_1,
-         "Jason3_SunMid", "41240_cpf_240128_02801.hts",
-            "2024-01-31T11:42:20Z", "2024-01-31T11:59:10Z"},
+            "Jason3_SunMid", "41240_cpf_240128_02801.hts", "2024-01-31T11:42:20Z", "2024-01-31T11:59:10Z"},
 
         // Example 2: Explorer 27 | Sun at end | El deviation | WW-ESE-CCW
         {pred_sun_real, analyzer_cfg_1,
-            "Explorer27_SunEnd", "1328_cpf_240128_02901.sgf",
-            "2024-01-31T08:31:27Z", "2024-01-31T08:44:27Z"},
+            "Explorer27_SunEnd", "1328_cpf_240128_02901.sgf", "2024-01-31T08:31:27Z", "2024-01-31T08:44:27Z"},
 
         // Example 3: Jason 3 | No Sun | N-E-CW
         {pred_sun_real, analyzer_cfg_1,
-            "Jason3_NoSun", "41240_cpf_240128_02801.hts",
-            "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z"},
+            "Jason3_NoSun", "41240_cpf_240128_02801.hts", "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z"},
 
         // Example 4: Jason 3 | Sun at middle | N-E-CW
         {pred_sun_sin_1, analyzer_cfg_1,
