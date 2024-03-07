@@ -107,24 +107,26 @@ const MountTrackingSLR& PredictorMountSLR::getMountTrackingSLR() const
 
 
 PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
-                                                 MountSLRPrediction &tracking_result) const
+                                                 MountPredictionSLR &tracking_result) const
 {
     MJDateTime mjdt = timing::timePointToModifiedJulianDateTime(tp_time);
     return predict(mjdt, tracking_result);
 }
 
-PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountSLRPrediction &tracking_result) const
+PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountPredictionSLR &tracking_result) const
 {
     // Auxiliar.
     const long double cfg_max_el = static_cast<long double>(this->mount_track_.config.max_elev);
 
+    // TODO CHECK ELEVATIONS
+
 
     // Calculates the Sun position.
     long double j2000 = dpslr::timing::modifiedJulianDateToJ2000DateTime(mjdt).datetime();
-    SunPrediction sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
+    PredictionSun sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
 
     // Calculates the space object position.
-    SLRPrediction prediction_result;
+    PredictionSLR prediction_result;
     auto pred_error = this->mount_track_.predictor_slr->predict(mjdt, prediction_result);
 
     // Store the info at result.
@@ -167,8 +169,8 @@ PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountSLRPredic
 void PredictorMountSLR::analyzeTracking()
 {
     // Results container and auxiliar.
-    SLRPredictionV results_slr;
-    SunPredictionV results_sun;
+    PredictionSLRV results_slr;
+    PredictionSunV results_sun;
     Milliseconds step_ms = static_cast<long double>(this->mount_track_.config.time_delta);
 
     // Update flag.
@@ -187,7 +189,7 @@ void PredictorMountSLR::analyzeTracking()
     // Check that the predictions correspond to a pass.
     // Tracking is not valid if there are errors
     auto it = std::find_if(results_slr.begin(), results_slr.end(),
-    [](const SLRPrediction& pred)
+    [](const PredictionSLR& pred)
     {
         return pred.error != 0;
     });
@@ -228,7 +230,7 @@ void PredictorMountSLR::analyzeTracking()
     this->mount_track_.predictions.resize(results_slr.size());
     for (std::size_t i = 0; i < results_slr.size(); i++)
     {
-        MountSLRPrediction tr;
+        MountPredictionSLR tr;
         tr.mjdt = results_slr[i].instant_data->mjdt;
         tr.status = this->tr_analyzer_.getPredictions()[i].status;
         if (tr.status == PositionStatus::OUTSIDE_SUN ||

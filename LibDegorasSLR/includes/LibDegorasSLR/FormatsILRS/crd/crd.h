@@ -407,14 +407,7 @@ public:
      */
     explicit CRD(const std::string& crd_filepath, OpenOption open_option);
 
-    // Default destructor
-    ~CRD() = default;
-
-    // Copy and movement constructors and assign operators
-    CRD(const CRD&) = default;
-    CRD(CRD&&) = default;
-    CRD& operator = (const CRD&) = default;
-    CRD& operator = (CRD&&) = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CRD)
 
     // Clear methods.
     /**

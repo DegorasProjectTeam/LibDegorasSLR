@@ -29,9 +29,8 @@
 /** ********************************************************************************************************************
  * @file predictor_sun_fast.h
  * @brief
- * @author Degoras Project Team.
+ * @author Degoras Project Team
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -87,10 +86,7 @@ public:
      */
     PredictorSunFast(const GeodeticPoint<Degrees>& obs_geod);
 
-    PredictorSunFast(const PredictorSunFast&) = default;
-    PredictorSunFast(PredictorSunFast&&) = default;
-    PredictorSunFast& operator =(const PredictorSunFast&) = default;
-    PredictorSunFast& operator =(PredictorSunFast&&) = default;
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunFast)
 
     /**
      * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
@@ -101,11 +97,11 @@ public:
      *
      * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted SunPrediction.
+     * @return The predicted PredictionSun.
      *
      * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
      */
-    SunPrediction predict(const J2000DateTime& j2000, bool refraction) const override;
+    PredictionSun predict(const J2000DateTime& j2000, bool refraction) const override;
 
 };
 

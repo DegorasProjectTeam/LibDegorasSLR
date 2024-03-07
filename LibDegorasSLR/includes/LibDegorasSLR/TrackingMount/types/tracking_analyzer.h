@@ -65,10 +65,10 @@ using math::units::Degrees;
 using math::units::MillisecondsU;
 using math::units::Meters;
 using utils::PredictorSlrBase;
-using utils::SLRPrediction;
-using utils::SLRPredictionV;
-using astro::SunPrediction;
-using astro::SunPredictionV;
+using utils::PredictionSLR;
+using utils::PredictionSLRV;
+using astro::PredictionSun;
+using astro::PredictionSunV;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // TODO LIST:

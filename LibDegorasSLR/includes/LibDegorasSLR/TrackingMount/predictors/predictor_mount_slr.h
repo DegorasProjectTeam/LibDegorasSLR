@@ -78,10 +78,10 @@ using math::units::MillisecondsU;
 using math::units::Meters;
 using utils::PredictorSlrBase;
 using utils::PredictorSlrPtr;
-using utils::SLRPrediction;
-using utils::SLRPredictionV;
-using astro::SunPrediction;
-using astro::SunPredictionV;
+using utils::PredictionSLR;
+using utils::PredictionSLRV;
+using astro::PredictionSun;
+using astro::PredictionSunV;
 using ilrs::cpf::CPF;
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -144,7 +144,7 @@ public:
      *
      * @warning Nanoseconds resolution for the prediction.
      */
-    PositionStatus predict(const timing::HRTimePointStd& tp_time, MountSLRPrediction &tracking_result) const;
+    PositionStatus predict(const timing::HRTimePointStd& tp_time, MountPredictionSLR &tracking_result) const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -152,7 +152,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(const MJDateTime &mjd, MountSLRPrediction &tracking_result) const;
+    PositionStatus predict(const MJDateTime &mjd, MountPredictionSLR &tracking_result) const;
 
 private:
 

@@ -40,22 +40,6 @@ add_custom_command(TARGET "${EXAMPLE_FULL_NAME}" PRE_BUILD
                    "${EXAMPLE_DIR}/python_scripts/" "$<TARGET_FILE_DIR:${EXAMPLE_FULL_NAME}>/python_scripts")
 
 # ----------------------------------------------------------------------------------------------------------------------
-# CONFIGURE THE COMPILERS
-
-# Configure the compilers.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0 -fopenmp")
-    else()
-        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -m64 -O3 -pthread -fopenmp")
-    endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    message(FATAL_ERROR "Compiler not supported by default.")
-else()
-    message(FATAL_ERROR "Compiler not supported by default.")
-endif()
-
-# ----------------------------------------------------------------------------------------------------------------------
 # INSTALLATION PROCESS
 
 # Prepare the external library search folders.

@@ -27,11 +27,10 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file
+ * @file predictor_sun_fixed.h
  * @brief
- * @author Degoras Project Team.
+ * @author Degoras Project Team
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -67,8 +66,8 @@ class LIBDPSLR_EXPORT PredictorSunFixed final : public PredictorSunBase
 public:
 
     PredictorSunFixed(const AltAzPos& fixed_coord);
-
-    SunPrediction predict(const J2000DateTime& j2000, bool) const final;
+    
+    PredictionSun predict(const J2000DateTime& j2000, bool) const final;
 
 private:
 

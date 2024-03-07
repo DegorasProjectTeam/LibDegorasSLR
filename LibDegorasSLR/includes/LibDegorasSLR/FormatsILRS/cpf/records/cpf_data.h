@@ -242,17 +242,7 @@ public:
         std::string generateLine(float version) const;
     };
 
-    // Constructor.
-    CPFData() = default;
-
-    // Copy and movement constructors and assign operators
-    CPFData(const CPFData&) = default;
-    CPFData(CPFData&&) = default;
-    CPFData& operator = (const CPFData&) = default;
-    CPFData& operator = (CPFData&&) = default;
-
-    // Destructor.
-    ~CPFData() = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CPFData)
 
     // ALIASES
     // -----------------------------------------------------------------------------------------------------------------
@@ -315,7 +305,6 @@ public:
     OffsetFromCenterRecordV& offsetFromCenterRecords();
     RotationAngleRecordV& rotationAngleRecords();
     EarthOrientationRecordV& earthOrientationRecords();
-
 
     // Setter methods
     void setPositionRecords(const PositionRecordV&);
@@ -439,7 +428,6 @@ public:
     common::RecordReadError readOffsetFromCenterRecord(const common::ConsolidatedRecord&, float);
     common::RecordReadError readRotationAngleRecord(const common::ConsolidatedRecord&, float);
     common::RecordReadError readEarthOrientationRecord(const common::ConsolidatedRecord&, float);
-
 
 private:
 

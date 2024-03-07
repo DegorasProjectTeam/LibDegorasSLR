@@ -126,7 +126,7 @@ bool PredictorSlrBase::isInsideTimeWindow(const MJDateTime& start, const MJDateT
     return start >= predict_mjd_start && end <= predict_mjd_end;
 }
 
-SLRPredictionV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJDateTime &mjdt_end,
+PredictionSLRV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJDateTime &mjdt_end,
                                          const Milliseconds &step) const
 {
     // Container and auxiliar.
@@ -136,13 +136,13 @@ SLRPredictionV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJD
 
     // Check the validity of the predictor and the inputs.
     if(!this->isInsideTimeWindow(mjdt_start, mjdt_end) || math::isFloatingZeroOrMinor(step_sec))
-        return SLRPredictionV();
+        return PredictionSLRV();
 
     // Generate the interpolation times lineal space.
     interp_times = MJDateTime::linspaceStep(mjdt_start, mjdt_end, step_sec);
 
     // Results container.
-    SLRPredictionV results(interp_times.size());
+    PredictionSLRV results(interp_times.size());
 
     // Parallel calculation.
     //#pragma omp parallel for
@@ -155,7 +155,7 @@ SLRPredictionV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJD
     return results;
 }
 
-Meters PredictorSlrBase::applyCorrections(Meters& range, SLRPrediction& result, bool cali, Degrees el) const
+Meters PredictorSlrBase::applyCorrections(Meters& range, PredictionSLR& result, bool cali, Degrees el) const
 {
     // Auxiliar provisional range.
     Meters provisional_range = range;

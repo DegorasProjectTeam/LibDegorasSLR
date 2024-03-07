@@ -357,7 +357,7 @@ bool TrackingAnalyzer::analyzeTrackingEnd()
 
 bool TrackingAnalyzer::analyzeTrackingMiddle()
 {
-    //MountSLRPrediction tr;
+    //MountPredictionSLR tr;
     bool in_sun_sector = false;
     bool inside_sun = false;
     bool sun_collision = false;

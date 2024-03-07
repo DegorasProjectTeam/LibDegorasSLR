@@ -120,6 +120,7 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
         if(NOT IGNORE_FILE)
             list(APPEND FILTERED_TESTS_SOURCES ${SOURCE_PATH})
         endif()
+
     endforeach()
 
     # Prepare the external library search folders.

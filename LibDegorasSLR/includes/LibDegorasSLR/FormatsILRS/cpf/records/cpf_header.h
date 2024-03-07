@@ -44,7 +44,7 @@
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Helpers/common_aliases.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/Timing/time_utils.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
@@ -249,19 +249,7 @@ public:
      */
     explicit CPFHeader(float cpf_version);
 
-    /**
-     * @brief CPFHeader default constructor. Version is not filled.
-     */
-    explicit CPFHeader() = default;
-
-    // Copy and movement constructors and assign operators
-    CPFHeader(const CPFHeader&) = default;
-    CPFHeader(CPFHeader&&) = default;
-    CPFHeader& operator = (const CPFHeader&) = default;
-    CPFHeader& operator = (CPFHeader&&) = default;
-
-    // Destructor.
-    ~CPFHeader() = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CPFHeader)
 
     // Clear methods.
     /**

@@ -46,6 +46,7 @@
 #include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -112,15 +113,7 @@ public:
      */
     DateTime(long double datetime);
 
-    DateTime(const DateTime& other) = default;
-
-    DateTime(DateTime&& other) = default;
-
-    DateTime& operator=(const DateTime&) = default;
-
-    DateTime& operator=(DateTime&&) = default;
-
-    virtual ~DateTime() = default;
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(DateTime)
 
     /**
      * @brief Date getter.
@@ -166,6 +159,8 @@ public:
     DateTime operator+(const Seconds& seconds) const;
 
     static std::vector<DateTime> linspaceStep(const DateTime& start,  const DateTime& end, const Seconds& step);
+
+    virtual ~DateTime() = default;
 
 private:
 

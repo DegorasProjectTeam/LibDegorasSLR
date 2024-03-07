@@ -40,7 +40,7 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Helpers/common_aliases.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
@@ -60,10 +60,10 @@ using dpslr::math::units::MillisecondsU;
 using dpslr::math::units::Meters;
 using dpslr::astro::types::AltAzPos;
 using dpslr::astro::types::AltAzPosV;
-using dpslr::utils::SLRPrediction;
-using dpslr::utils::SLRPredictionV;
-using dpslr::astro::SunPrediction;
-using dpslr::astro::SunPredictionV;
+using dpslr::utils::PredictionSLR;
+using dpslr::utils::PredictionSLRV;
+using dpslr::astro::PredictionSun;
+using dpslr::astro::PredictionSunV;
 using dpslr::astro::PredictorSunPtr;
 using dpslr::utils::PredictorSlrPtr;
 // ---------------------------------------------------------------------------------------------------------------------
@@ -81,9 +81,7 @@ namespace mount{
  * @todo Max speeds.
  */
 struct TrackingAnalyzerConfig
-{
-    DEF_COPY_MOVE_DEFAULT(TrackingAnalyzerConfig)
-
+{    
     TrackingAnalyzerConfig(const MillisecondsU& time_delta, const DegreesU& sun_avoid_angle,
                            const DegreesU& min_elev, const DegreesU& max_elev, bool sun_avoid) :
         time_delta(time_delta),
@@ -92,6 +90,8 @@ struct TrackingAnalyzerConfig
         max_elev(max_elev),
         sun_avoid(sun_avoid)
     {}
+
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(TrackingAnalyzerConfig)
 
     MillisecondsU time_delta;  ///< Time delta fo calculations in milliseconds.
     DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
@@ -141,7 +141,7 @@ struct MountPosition
         diff_el(0.0L)
     {}
 
-    DEF_COPY_MOVE(MountPosition)
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(MountPosition)
 
     AltAzPos altaz_coord;  ///< Altazimuth coordinate for the tracking mount in degrees.
     Degrees diff_az;       ///< Azimuth difference between space object prediction position and tracking position.
@@ -154,11 +154,11 @@ using MountPositionV = std::vector<MountPosition>;
 
 struct TrackingPrediction
 {
-    DEF_COPY_MOVE_DEFAULT(TrackingPrediction)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(TrackingPrediction)
 
     MJDateTime mjdt;
     MountPosition pos;
-    SunPrediction sun_pred;
+    PredictionSun sun_pred;
 
     // Status.
     PositionStatus status;  ///< The current postion status.
@@ -186,13 +186,13 @@ using TrackingPredictionV = std::vector<TrackingPrediction>;
  */
 struct MountMovePrediction
 {
-    DEF_COPY_MOVE_DEFAULT(MountMovePrediction)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountMovePrediction)
 
     // Datetime members.
     MJDateTime mjdt;         ///< Modified Julian DateTime.
 
     // Result members.
-    Optional<SunPrediction> sun_pred;  ///< Optional Sun position container.
+    Optional<PredictionSun> sun_pred;  ///< Optional Sun position container.
     Optional<MountPosition> mount_pos; ///< Optional tracking mount position container.
 
     // Status.
@@ -216,16 +216,16 @@ using MountMovePredictionV = std::vector<MountMovePrediction>;
  * - If `status` is `PREDICTION_ERROR` or `CANT_AVOID_SUN`, both `prediction_result` and `sun_pos` are provided to
  *   detail the prediction outcome and solar interference, respectively.
  */
-struct MountSLRPrediction
+struct MountPredictionSLR
 {
-    DEF_COPY_MOVE_DEFAULT(MountSLRPrediction)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountPredictionSLR)
 
     // Datetime members.
     MJDateTime mjdt;         ///< Modified Julian DateTime.
 
     // Result members.
-    Optional<SLRPrediction> slr_pred;  ///< Optional SLR prediction with the object pass position.
-    Optional<SunPrediction> sun_pred;  ///< Optional Sun position container.
+    Optional<PredictionSLR> slr_pred;  ///< Optional SLR prediction with the object pass position.
+    Optional<PredictionSun> sun_pred;  ///< Optional Sun position container.
     Optional<MountPosition> mount_pos; ///< Optional tracking mount position container.
 
     // Status.
@@ -233,7 +233,7 @@ struct MountSLRPrediction
 };
 
 /// Alias for mount slr predictions vector.
-using MountSLRPredictionV = std::vector<MountSLRPrediction>;
+using MountPredictionSLRV = std::vector<MountPredictionSLR>;
 
 
 
@@ -251,7 +251,7 @@ struct SunCollisionSector
         COUNTERCLOCKWISE
     };
 
-    DEF_COPY_MOVE_DEFAULT(SunCollisionSector)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(SunCollisionSector)
 
     AltAzPosV altaz_sun_coords;  ///< Altazimuth coordinates of the Sun during the collision time in degrees.
     AltAzPos altaz_entry;        ///< Sun sector altazimuth entry point coordinate in degrees.
@@ -281,7 +281,7 @@ struct TrackingInfo
         valid_pass(false)
     {}
 
-    DEF_COPY_MOVE(TrackingInfo)
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(TrackingInfo)
 
     // Time data.
     MJDateTime mjdt_start;     ///< Tracking start Modified Julian Datetime.
@@ -304,7 +304,7 @@ struct TrackingInfo
     bool trim_at_end;             ///< Flag indicating if the pass was trimmed due to elevation or Sun at end.
     bool el_deviation;            ///< Flag indicating if the track was deviated from pass due to max elevation.
 
-    // Flags.
+    // Validation flags.
     bool valid_pass;              ///< Flag indicating if the pass is valid.
 };
 
@@ -313,10 +313,10 @@ struct TrackingInfo
  */
 struct MountTrackingMove
 {
-    DEF_COPY_MOVE_DEFAULT(MountTrackingMove)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountTrackingMove)
 
     // Tracking data
-    TrackingAnalyzerConfig config;                         ///< Contains the tracking user configuration.
+    TrackingAnalyzerConfig config;                 ///< Contains the tracking user configuration.
     TrackingInfo track_info;                       ///< Contains the analyzed tracking information.
     MountMovePredictionV predictions;
 
@@ -334,7 +334,7 @@ struct MountTrackingMove
 struct MountTrackingSLR
 {
 
-    DEF_COPY_MOVE_DEFAULT(MountTrackingSLR)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountTrackingSLR)
 
     // TODO THIS MUST BE STORED IN PASSINFO class.
     MJDateTime pass_mjdt_start;
@@ -343,12 +343,12 @@ struct MountTrackingSLR
     // Tracking data
     TrackingAnalyzerConfig config;                         ///< Contains the tracking user configuration.
     TrackingInfo track_info;                       ///< Contains the analyzed tracking information.
-    MountSLRPredictionV predictions;               ///< Predicted data for the required time interval.
+    MountPredictionSLRV predictions;               ///< Predicted data for the required time interval.
 
 
     // Begin and end iterators.
-    MountSLRPredictionV::iterator tracking_begin_; ///< Iterator to tracking begining
-    MountSLRPredictionV::iterator tracking_end_;   ///< Iterator to tracking end
+    MountPredictionSLRV::iterator tracking_begin_; ///< Iterator to tracking begining
+    MountPredictionSLRV::iterator tracking_end_;   ///< Iterator to tracking end
 
     // Predictors.
     PredictorSlrPtr predictor_slr;   ///< Internal PredictorSLR predictor.

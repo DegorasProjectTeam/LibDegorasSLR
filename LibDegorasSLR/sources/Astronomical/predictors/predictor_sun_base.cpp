@@ -59,7 +59,7 @@ dpslr::astro::PredictorSunBase::PredictorSunBase(const geo::types::GeodeticPoint
 {
 }
 
-SunPredictionV PredictorSunBase::predict(const J2000DateTime &j2000_start, const J2000DateTime &j2000_end, const MillisecondsU &step, bool refraction) const
+PredictionSunV PredictorSunBase::predict(const J2000DateTime &j2000_start, const J2000DateTime &j2000_end, const MillisecondsU &step, bool refraction) const
 {
     // Container and auxiliar.
     J2000DateTimeV interp_times;
@@ -73,7 +73,7 @@ SunPredictionV PredictorSunBase::predict(const J2000DateTime &j2000_start, const
     interp_times = J2000DateTime::linspaceStep(j2000_start, j2000_end, step_sec);
 
     // Results container.
-    SunPredictionV results(interp_times.size());
+    PredictionSunV results(interp_times.size());
 
     // Parallel calculation.
     #pragma omp parallel for

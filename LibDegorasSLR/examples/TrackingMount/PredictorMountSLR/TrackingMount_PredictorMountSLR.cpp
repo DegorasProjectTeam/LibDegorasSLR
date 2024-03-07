@@ -69,7 +69,7 @@ using dpslr::math::units::Meters;
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPoint;
 // Astronomical containers.
-using dpslr::astro::SunPrediction;
+using dpslr::astro::PredictionSun;
 using dpslr::astro::AltAzPos;
 // ILRS related.
 using dpslr::ilrs::cpf::CPF;
@@ -385,7 +385,7 @@ int main()
     // tracking time window (determined by tracking start and tracking end). For the example, we will ask
     // predictions from start to end with a step of 0.5 s.
     MJDateTime mjd = mjd_start;
-    PredictorMountSLR::MountSLRPredictions results;
+    PredictorMountSLR::MountPredictionSLRs results;
 
     while (mjd < mjd_end)
     {

@@ -27,11 +27,10 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_star.h
+ * @file predictor_star_base.h
  * @brief
- * @author Degoras Project Team.
+ * @author Degoras Project Team
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -47,8 +46,10 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/Astronomical/types/star.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -66,15 +67,15 @@ using astro::types::Star;
 using geo::types::SurfaceLocation;
 // ---------------------------------------------------------------------------------------------------------------------
 
-struct LIBDPSLR_EXPORT StarPrediction
+struct LIBDPSLR_EXPORT PredictionStar
 {
     // Containers.
     JDateTime jdt;         ///< Julian datetime used to generate the star prediction data.
     AltAzPos altaz_coord;  ///< Star predicted altazimuth coordinates referenced to an observer (degrees).
 };
 
-/// Alias for a vector of SunPrediction.
-using StarPredictionV = std::vector<StarPrediction>;
+/// Alias for a vector of PredictionSun.
+using StarPredictionV = std::vector<PredictionStar>;
 
 /**
  * @brief The PredictorStar class provides functionality to predict the position of a star.
@@ -97,10 +98,7 @@ public:
     PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
                       int leap_secs = 0, double ut1_utc_diff = 0);
 
-    PredictorStarBase(const PredictorStarBase&) = default;
-    PredictorStarBase(PredictorStarBase&&) = default;
-    PredictorStarBase& operator=(const PredictorStarBase&) = default;
-    PredictorStarBase& operator=(PredictorStarBase&&) = default;
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorStarBase)
 
     template <typename T, typename... Args>
     static std::shared_ptr<PredictorStarBase> factory(Args&&... args)
@@ -118,9 +116,9 @@ public:
      * @brief Predicts the position of a star at a specific time
      *
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
-     * @return The resulting StarPrediction.
+     * @return The resulting PredictionStar.
      */
-    virtual StarPrediction predict(const JDateTime& jdt) const = 0;
+    virtual PredictionStar predict(const JDateTime& jdt) const = 0;
 
     /**
      * @brief Predicts star positions within a time range with a specified time step.

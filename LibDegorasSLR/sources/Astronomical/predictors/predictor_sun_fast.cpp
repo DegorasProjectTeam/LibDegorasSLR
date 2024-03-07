@@ -60,7 +60,7 @@ dpslr::astro::PredictorSunFast::PredictorSunFast(const geo::types::GeodeticPoint
 {
 }
 
-SunPrediction PredictorSunFast::predict(const J2000DateTime& j2000, bool refraction) const
+PredictionSun PredictorSunFast::predict(const J2000DateTime& j2000, bool refraction) const
 {
     long double lon_rad = this->obs_geo_pos_.lon;
     long double lat_rad = this->obs_geo_pos_.lat;
@@ -109,7 +109,7 @@ SunPrediction PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
     }
 
     // Final data.
-    SunPrediction prediction;
+    PredictionSun prediction;
     prediction.altaz_coord.az = azimuth;
     prediction.altaz_coord.el = elevation;
     prediction.j2dt = j2000;

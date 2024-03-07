@@ -145,7 +145,7 @@ bool PredictorSlrCPF::isReady() const
     return !this->pos_times_.empty();
 }
 
-int PredictorSlrCPF::predict(const MJDateTime& mjdt, SLRPrediction& result) const
+int PredictorSlrCPF::predict(const MJDateTime& mjdt, PredictionSLR& result) const
 {
 
  /*
@@ -570,7 +570,7 @@ PredictorSlrCPF::InterpFunction PredictorSlrCPF::getInterpFunction() const
 }
 
 
-void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, SLRPrediction &result) const
+void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, PredictionSLR &result) const
 {
     // Auxiliar error container.
     PredictorSlrCPF::PredictionError error = PredictorSlrCPF::PredictionError::UNKNOWN_INTERPOLATOR;

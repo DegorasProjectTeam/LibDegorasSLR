@@ -110,7 +110,7 @@ std::string InboundData::toJsonStr() const
 
 InstantData::InstantData(InstantRange &&instant_range) : InstantRange(std::move(instant_range)){}
 
-std::string SLRPrediction::toJsonStr() const
+std::string PredictionSLR::toJsonStr() const
 {
     // Result
     std::ostringstream oss;

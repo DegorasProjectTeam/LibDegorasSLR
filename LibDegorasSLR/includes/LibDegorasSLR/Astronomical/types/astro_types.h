@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -24,10 +28,9 @@
 
 /** ********************************************************************************************************************
  * @file astro_types.h
- * @author Degoras Project Team.
- * @brief This file contains several astronomical definitions.
+ * @brief
+ * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -45,6 +48,7 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -64,14 +68,14 @@ using math::units::Degrees;
 
 struct LIBDPSLR_EXPORT RA
 {
-    RA() = default;
+    RA() :
+        hour(0), min(0), sec(0), ra(0)
+    {}
+
     RA(int hour, int min, double sec);
     RA(double ra);
 
-    RA(const RA&) = default;
-    RA(RA&&) = default;
-    RA& operator=(const RA&) = default;
-    RA& operator=(RA&&) = default;
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(RA)
 
     operator double () const;
 
@@ -102,26 +106,6 @@ struct LIBDPSLR_EXPORT Dec
     int min;
     double sec;
     double dec;
-};
-
-struct LIBDPSLR_EXPORT Star
-{
-    Star() = default;
-    Star(const Star&) = default;
-    Star(Star&&) = default;
-    Star& operator =(const Star&) = default;
-    Star& operator =(Star&&) = default;
-
-    RA ra;
-    Dec dec;
-    std::string star_name;
-    std::string catalog_name;
-    int catalog_num;
-    int id;
-    double pm_ra;
-    double pm_dec;
-    double parallax;
-    double rad_vel;
 };
 
 struct LIBDPSLR_EXPORT AltAzPos

@@ -47,11 +47,11 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/Astronomical/types/star.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
-#include "LibDegorasSLR/Timing/types/datetime.h"
 // =====================================================================================================================
 
 // NAMESPACES

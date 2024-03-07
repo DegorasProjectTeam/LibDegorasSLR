@@ -29,9 +29,8 @@
 /** ********************************************************************************************************************
  * @file predictor_sun.h
  * @brief
- * @author Degoras Project Team.
+ * @author Degoras Project Team
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -51,6 +50,7 @@
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -74,12 +74,12 @@ using math::units::Radians;
 using astro::types::AltAzPos;
 // ---------------------------------------------------------------------------------------------------------------------
 
-struct LIBDPSLR_EXPORT SunPrediction
+struct LIBDPSLR_EXPORT PredictionSun
 {
     // Default constructor.
-    SunPrediction() = default;
+    PredictionSun() = default;
 
-    SunPrediction(const J2000DateTime& j2000, const AltAzPos& altaz_coord, const GeocentricPoint& geo_pos) :
+    PredictionSun(const J2000DateTime& j2000, const AltAzPos& altaz_coord, const GeocentricPoint& geo_pos) :
         j2dt(j2000), altaz_coord(altaz_coord), geo_pos(geo_pos)
     {}
 
@@ -91,8 +91,8 @@ struct LIBDPSLR_EXPORT SunPrediction
     // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
 };
 
-/// Alias for a vector of SunPrediction.
-using SunPredictionV = std::vector<SunPrediction>;
+/// Alias for a vector of PredictionSun.
+using PredictionSunV = std::vector<PredictionSun>;
 
 
 /**
@@ -114,10 +114,7 @@ public:
      */
     PredictorSunBase(const GeodeticPoint<Degrees>& obs_geod);
 
-    PredictorSunBase(const PredictorSunBase&) = default;
-    PredictorSunBase(PredictorSunBase&&) = default;
-    PredictorSunBase& operator =(const PredictorSunBase&) = default;
-    PredictorSunBase& operator =(PredictorSunBase&&) = default;
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunBase)
 
     template <typename T, typename... Args>
     static std::shared_ptr<PredictorSunBase> factory(Args&&... args)
@@ -136,9 +133,9 @@ public:
      *
      * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted SunPrediction.
+     * @return The predicted PredictionSun.
      */
-    virtual SunPrediction predict(const J2000DateTime& j2000, bool refraction) const = 0;
+    virtual PredictionSun predict(const J2000DateTime& j2000, bool refraction) const = 0;
 
     /**
      * @brief Predicts Sun positions within a time range with a specified time step.
@@ -147,11 +144,11 @@ public:
      * @param j2000_end The J2000 end datetime of the prediction range.
      * @param step The time step in milliseconds between predictions.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return A vector of SunPrediction objects representing predicted sun positions at each step.
+     * @return A vector of PredictionSun objects representing predicted sun positions at each step.
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    virtual SunPredictionV predict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
+    virtual PredictionSunV predict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
                                    const MillisecondsU& step, bool refraction) const;
 
     virtual ~PredictorSunBase();

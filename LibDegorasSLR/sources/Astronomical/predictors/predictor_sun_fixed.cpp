@@ -57,7 +57,7 @@ PredictorSunFixed::PredictorSunFixed(const AltAzPos &fixed_coord) :
     fixed_coord_(fixed_coord)
 {}
 
-SunPrediction PredictorSunFixed::predict(const J2000DateTime &j2000, bool) const
+PredictionSun PredictorSunFixed::predict(const J2000DateTime &j2000, bool) const
 {
     return {j2000, this->fixed_coord_, GeocentricPoint()};
 }

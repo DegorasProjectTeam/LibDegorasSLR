@@ -81,43 +81,18 @@ using math::units::Picoseconds;
  * The distance and flight time values may include corrections such as the eccentricity correction at the object and
  * at the ground, the signal delay (station calibration), and the systematic and random observation errors. If the
  * corrections are not included, the corresponding optional parameters will not be accessible in the higher level
- * structure (`SLRPrediction`).
+ * structure (`PredictionSLR`).
  *
  * @warning In this case, the tropospheric correction is never included becaouse the algorithm not calculates the
  * altazimuth position of the object related to the local observer position. However, the precision is enought for
  * real time systems like range gate generator devices.
  *
  * @see Enumeration `PredictorSLR::PredictionMode`.
- * @see Struct `SLRPrediction`.
+ * @see Struct `PredictionSLR`.
  */
 struct LIBDPSLR_EXPORT InstantRange
 {
-    /**
-     * @brief Default constructor.
-     */
-    InstantRange() = default;
-
-    /**
-     * @brief Default copy constructor.
-     */
-    InstantRange(const InstantRange&) = default;
-
-    /**
-     * @brief Default movement constructor.
-     */
-    InstantRange(InstantRange&&) = default;
-
-    /**
-     * @brief Default copy assingment operator.
-     * @return Reference to itself.
-     */
-    InstantRange& operator=(const InstantRange&) = default;
-
-    /**
-     * @brief Default move assignment operator.
-     * @return Reference to itself.
-     */
-    InstantRange& operator=(InstantRange&&) = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(InstantRange)
 
     /**
      * @brief Represents the InstantRange struct as a JSON-formatted string.
@@ -144,37 +119,12 @@ struct LIBDPSLR_EXPORT InstantRange
  */
 struct LIBDPSLR_EXPORT InstantData : public InstantRange
 {
-    /**
-     * @brief Default constructor.
-     */
-    InstantData() = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(InstantData)
 
     /**
      * @brief Constructor.
      */
     InstantData(InstantRange&&);
-
-    /**
-     * @brief Default copy constructor.
-     */
-    InstantData(const InstantData&) = default;
-
-    /**
-     * @brief Default movement constructor.
-     */
-    InstantData(InstantData&&) = default;
-
-    /**
-     * @brief Default copy assingment operator.
-     * @return Reference to itself.
-     */
-    InstantData& operator=(const InstantData&) = default;
-
-    /**
-     * @brief Default move assignment operator.
-     * @return Reference to itself.
-     */
-    InstantData& operator=(InstantData&&) = default;
 
     // Associated object geocentric vectors.
     // TODO
@@ -202,10 +152,7 @@ struct LIBDPSLR_EXPORT InstantData : public InstantRange
  */
 struct LIBDPSLR_EXPORT OutboundData : public InstantData
 {
-    /**
-     * @brief Default constructor.
-     */
-    OutboundData() = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(OutboundData)
 };
 
 /**
@@ -220,32 +167,7 @@ struct LIBDPSLR_EXPORT OutboundData : public InstantData
  */
 struct LIBDPSLR_EXPORT InboundData
 {
-    /**
-     * @brief Default constructor.
-     */
-    InboundData() = default;
-
-    /**
-     * @brief Default copy constructor.
-     */
-    InboundData(const InboundData&) = default;
-
-    /**
-     * @brief Default movement constructor.
-     */
-    InboundData(InboundData&&) = default;
-
-    /**
-     * @brief Default copy assingment operator.
-     * @return Reference to itself.
-     */
-    InboundData& operator=(const InboundData&) = default;
-
-    /**
-     * @brief Default move assignment operator.
-     * @return Reference to itself.
-     */
-    InboundData& operator=(InboundData&&) = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(InboundData)
 
     // Datetime members.
     MJDateTime mjdt;          ///< Modified julian datetime.
@@ -270,16 +192,16 @@ struct LIBDPSLR_EXPORT InboundData
  * applied by accessing the corresponding parameters.
  *
  */
-struct LIBDPSLR_EXPORT SLRPrediction
+struct LIBDPSLR_EXPORT PredictionSLR
 {
     // Constructors.
-    SLRPrediction() = default;
-    SLRPrediction(const SLRPrediction&) = default;
-    SLRPrediction(SLRPrediction&&) = default;
+    PredictionSLR() = default;
+    PredictionSLR(const PredictionSLR&) = default;
+    PredictionSLR(PredictionSLR&&) = default;
 
     // Operators.
-    SLRPrediction& operator=(const SLRPrediction&) = default;
-    SLRPrediction& operator=(SLRPrediction&&) = default;
+    PredictionSLR& operator=(const PredictionSLR&) = default;
+    PredictionSLR& operator=(PredictionSLR&&) = default;
 
     // Result containers for the different modes.
     InstantRange instant_range;           ///< Result range for the instant time in the ONLY_INSTANT_RANGE mode.
@@ -307,8 +229,8 @@ struct LIBDPSLR_EXPORT SLRPrediction
     std::string toJsonStr() const;
 };
 
-/// Alias for SLRPrediction vector.
-using SLRPredictionV = std::vector<SLRPrediction>;
+/// Alias for PredictionSLR vector.
+using PredictionSLRV = std::vector<PredictionSLR>;
 
 }} // END NAMESPACES
 // =====================================================================================================================

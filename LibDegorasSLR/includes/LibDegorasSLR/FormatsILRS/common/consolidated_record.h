@@ -45,7 +45,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
-#include "LibDegorasSLR/Helpers/common_aliases.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES

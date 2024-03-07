@@ -59,9 +59,9 @@ PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<D
     PredictorStarBase(star, loc, leap_secs, ut1_utc_diff)
 {}
 
-StarPrediction PredictorStarNovas::predict(const timing::types::JDateTime &jdt) const
+PredictionStar PredictorStarNovas::predict(const timing::types::JDateTime &jdt) const
 {
-    StarPrediction pred;
+    PredictionStar pred;
     pred.jdt = jdt;
 
     astro::novas::getStarAltAzPos(this->star_, this->loc_, jdt, pred.altaz_coord,

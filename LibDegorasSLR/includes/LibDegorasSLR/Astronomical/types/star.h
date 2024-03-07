@@ -27,9 +27,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file geocentric_point.h
- * @author Degoras Project Team.
+ * @file star.h
  * @brief
+ * @author Degoras Project Team
  * @copyright EUPL License
 ***********************************************************************************************************************/
 
@@ -38,61 +38,50 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-// =====================================================================================================================
-#include <array>
+//======================================================================================================================
+#include <vector>
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace geo{
+namespace astro{
 namespace types{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using math::types::Vector3D;
-using math::units::Meters;
+using timing::types::MJDate;
+using timing::types::SoD;
+using timing::types::MJDateTime;
+using math::units::Degrees;
 // ---------------------------------------------------------------------------------------------------------------------
 
-/**
- */
-struct LIBDPSLR_EXPORT GeocentricPoint
+struct LIBDPSLR_EXPORT Star
 {
-    GeocentricPoint(const Meters& x = Meters(), const Meters& y = Meters(), const Meters& z = Meters()) :
-        x(x), y(y), z(z)
-    {}
+    Star() = default;
+    Star(const Star&) = default;
+    Star(Star&&) = default;
+    Star& operator =(const Star&) = default;
+    Star& operator =(Star&&) = default;
 
-    GeocentricPoint(std::array<Meters,3> a) :
-        x(a[0]), y(a[1]), z(a[2])
-    {}
-
-    GeocentricPoint(Vector3D<Meters> v) :
-        x(v.getX()), y(v.getY()), z(v.getZ())
-    {}
-
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(GeocentricPoint)
-
-    Vector3D<Meters> toVector3D() const {return Vector3D<Meters>(x,y,z);}
-
-    std::vector<Meters> toStdVector() const {return this->toVector3D().toVector();}
-
-    std::string toJsonStr() const {return this->toVector3D().toJsonStr();}
-
-    template<typename Container = std::array<Meters, 3>>
-    inline constexpr Container store() const {return Container{x,y,z};}
-
-    Meters x;
-    Meters y;
-    Meters z;
+    RA ra;
+    Dec dec;
+    std::string star_name;
+    std::string catalog_name;
+    int catalog_num;
+    int id;
+    double pm_ra;
+    double pm_dec;
+    double parallax;
+    double rad_vel;
 };
 
-}}} // END NAMESPACES.
+
+}}} // END NAMESPACES
 // =====================================================================================================================

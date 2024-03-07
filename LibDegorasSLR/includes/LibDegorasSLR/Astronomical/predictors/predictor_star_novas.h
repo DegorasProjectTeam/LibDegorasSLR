@@ -27,11 +27,10 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_star.h
+ * @file predictor_star_novas.h
  * @brief
- * @author Degoras Project Team.
+ * @author Degoras Project Team
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -78,9 +77,9 @@ public:
      * @brief Predicts the position of a star at a specific time
      *
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
-     * @return The resulting StarPrediction.
+     * @return The resulting PredictionStar.
      */
-    StarPrediction predict(const timing::types::JDateTime& jdt) const override;
+    PredictionStar predict(const timing::types::JDateTime& jdt) const override;
 };
 
 }} // END NAMESPACES.
