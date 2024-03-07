@@ -89,7 +89,7 @@ using dpslr::mount::PredictorMountSLR;
 using dpslr::helpers::strings::numberToStr;
 using dpslr::mount::PositionStatus;
 using dpslr::mount::MountTrackingSLR;
-using dpslr::mount::TrackingConfig;
+using dpslr::mount::TrackingAnalyzerConfig;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------------------------------

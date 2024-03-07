@@ -58,7 +58,7 @@ using math::units::Milliseconds;
 
 PredictorMountSLR::PredictorMountSLR(PredictorSlrPtr pred_slr,
                                      PredictorSunPtr pred_sun,
-                                     const TrackingConfig& config) :
+                                     const TrackingAnalyzerConfig& config) :
     tr_analyzer_(config)
 {
     // Check Degoras initialization.

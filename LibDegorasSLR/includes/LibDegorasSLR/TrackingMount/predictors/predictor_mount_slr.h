@@ -124,7 +124,7 @@ class LIBDPSLR_EXPORT PredictorMountSLR
 {
 public:
 
-    PredictorMountSLR(PredictorSlrPtr pred_slr, PredictorSunPtr pred_sun, const TrackingConfig &config);
+    PredictorMountSLR(PredictorSlrPtr pred_slr, PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
 
 
     /**

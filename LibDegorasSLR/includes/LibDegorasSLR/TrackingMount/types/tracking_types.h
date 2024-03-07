@@ -80,9 +80,9 @@ namespace mount{
  *
  * @todo Max speeds.
  */
-struct TrackingConfig
+struct TrackingAnalyzerConfig
 {
-    DEF_COPY_MOVE_DEFAULT(TrackingConfig)
+    DEF_COPY_MOVE_DEFAULT(TrackingAnalyzerConfig)
 
     MJDateTime mjdt_start;
     MJDateTime mjdt_end;
@@ -309,7 +309,7 @@ struct MountTrackingMove
     DEF_COPY_MOVE_DEFAULT(MountTrackingMove)
 
     // Tracking data
-    TrackingConfig config;                         ///< Contains the tracking user configuration.
+    TrackingAnalyzerConfig config;                         ///< Contains the tracking user configuration.
     TrackingInfo track_info;                       ///< Contains the analyzed tracking information.
     MountMovePredictionV predictions;
 
@@ -330,7 +330,7 @@ struct MountTrackingSLR
     DEF_COPY_MOVE_DEFAULT(MountTrackingSLR)
 
     // Tracking data
-    TrackingConfig config;                         ///< Contains the tracking user configuration.
+    TrackingAnalyzerConfig config;                         ///< Contains the tracking user configuration.
     TrackingInfo track_info;                       ///< Contains the analyzed tracking information.
     MountSLRPredictionV predictions;               ///< Predicted data for the required time interval.
 

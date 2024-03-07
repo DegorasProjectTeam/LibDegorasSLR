@@ -117,7 +117,7 @@ class LIBDPSLR_EXPORT TrackingAnalyzer
 {
 public:
 
-    TrackingAnalyzer(const TrackingConfig &config);
+    TrackingAnalyzer(const TrackingAnalyzerConfig &config);
 
     /**
      * @brief This function checks if there is a valid tracking. You should check this, before requesting positions.
@@ -173,7 +173,7 @@ private:
                          const SunCollisionSector &sector) const;
 
     // Private members.
-    TrackingConfig config_;                         ///< Contains the tracking user configuration.
+    TrackingAnalyzerConfig config_;                         ///< Contains the tracking user configuration.
     TrackingInfo track_info_;                       ///< Contains the analyzed tracking information.
     TrackingPredictionV predictions_;
     TrackingPredictionV::iterator begin_;

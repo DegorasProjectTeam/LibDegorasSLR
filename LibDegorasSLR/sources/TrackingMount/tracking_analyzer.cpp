@@ -54,7 +54,7 @@ namespace mount{
 using dpslr::mount::TrackingAnalyzer;
 // ---------------------------------------------------------------------------------------------------------------------
 
-TrackingAnalyzer::TrackingAnalyzer(const TrackingConfig &config) :
+TrackingAnalyzer::TrackingAnalyzer(const TrackingAnalyzerConfig &config) :
 
     config_(config)
 {
