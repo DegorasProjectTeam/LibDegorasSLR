@@ -233,8 +233,6 @@ struct MountPredictionSLR
 /// Alias for mount slr predictions vector.
 using MountPredictionSLRV = std::vector<MountPredictionSLR>;
 
-
-
 /**
  * @brief The SunCollisionSector struct contains data of a sector where the space object real pass
  * crosses a Sun security sector.
