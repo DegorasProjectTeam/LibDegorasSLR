@@ -400,21 +400,41 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
             // // Update maximum elevations if the Sun is too high. In this case, the maximum el
             if(inside_sun && sun_high)
             {
+                bool stop = false;
                 long double limit_el = it->sun_pred.altaz_coord.el - sun_avoid_angle;
                 limit_el = (limit_el < cfg_max_el) ? limit_el : cfg_max_el;
+                this->track_info_.sun_deviation = true;
 
-                for (auto it = this->begin_; it != this->end_; it++)
+                // Check backward.
+                for (auto it_internal = it; it_internal != this->begin_ || !stop; it_internal--)
                 {
-                    if(it->pos.altaz_coord.el >= limit_el)
+                    if(it_internal->pos.altaz_coord.el >= limit_el)
                     {
-                        it->pos.altaz_coord.el = limit_el;
-                        it->status = PositionStatus::AVOIDING_SUN;
+                        it_internal->pos.altaz_coord.el = limit_el;
+                        it_internal->status = PositionStatus::AVOIDING_SUN;
+                    }
+                    else
+                        stop = true;
+                }
 
-                       // Update sun deviation flag.
-                       this->track_info_.sun_deviation = true;
+                // Update stop flag.
+                stop = false;
+
+                // Check forward.
+                for (auto it_internal = it; it_internal != this->end_ || !stop; it_internal++)
+                {
+                    if(it_internal->pos.altaz_coord.el >= limit_el)
+                    {
+                        it_internal->pos.altaz_coord.el = limit_el;
+                        it_internal->status = PositionStatus::AVOIDING_SUN;
+                    }
+                    else
+                    {
+                        // Stop and recover iterator.
+                        stop = true;
+                        it = it_internal;
                     }
                 }
-                break;
             }
 
             // If sun avoid is applied we have to store the data for each sector  where the tracking goes through a sun
