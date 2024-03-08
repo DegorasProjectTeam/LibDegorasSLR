@@ -53,6 +53,11 @@ namespace dpslr{
 namespace mount{
 // =====================================================================================================================
 
+// CONSTANTS
+// =====================================================================================================================
+const math::units::Degrees kAvoidAngleOffset = 0.5L;   ///< Offset to apply to avoid the Sun sector.
+// =====================================================================================================================
+
 // ---------------------------------------------------------------------------------------------------------------------
 using timing::types::MJDateTime;
 using timing::types::MJDate;
@@ -70,6 +75,7 @@ using utils::PredictionSLRV;
 using astro::PredictionSun;
 using astro::PredictionSunV;
 // ---------------------------------------------------------------------------------------------------------------------
+
 
 // TODO LIST:
 // If a not tracking movement (absolute, relative, continuous) starts at sun, the mount must go to error state.

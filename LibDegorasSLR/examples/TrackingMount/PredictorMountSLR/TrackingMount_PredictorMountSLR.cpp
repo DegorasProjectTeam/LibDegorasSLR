@@ -129,7 +129,7 @@ int main()
     // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
 
     // Example selector.
-    size_t example_selector = 6;  // Select the example to process (between reals and sintetics).
+    size_t example_selector = 1;  // Select the example to process (between reals and sintetics).
     bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).

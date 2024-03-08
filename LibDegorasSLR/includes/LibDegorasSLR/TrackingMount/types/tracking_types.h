@@ -271,6 +271,7 @@ struct TrackingInfo
     TrackingInfo() :
         sun_deviation(false),
         sun_collision(false),
+        sun_collision_high_el(false),
         sun_collision_at_middle(false),
         sun_collision_at_start(false),
         sun_collision_at_end(false),
@@ -296,6 +297,7 @@ struct TrackingInfo
     // Tracking alterations.
     bool sun_deviation;           ///< Flag indicating if the track was deviated from pass due to Sun.
     bool sun_collision;           ///< Flag indicating if the pass has a collision with the Sun.
+    bool sun_collision_high_el;   ///< Flag indicating if the pass has a collision with the Sun at high elevation.
     bool sun_collision_at_middle; ///< Flag indicating if the pass has a collision at middle with the Sun.
     bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
     bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.

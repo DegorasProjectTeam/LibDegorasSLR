@@ -399,7 +399,7 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
     MJDateTime max_elev_mjdt = 0;
     long double max_elev = -1.0L;
     const long double cfg_max_el = static_cast<long double>(this->config_.max_elev);
-    const long double sun_avoid_angle = static_cast<long double>(this->config_.sun_avoid_angle);
+    long double sun_avoid_angle = static_cast<long double>(this->config_.sun_avoid_angle) + kAvoidAngleOffset;
     TrackingPredictionV::iterator sun_sector_start;
 
     // Check the tracking maximum altitudes. Positions that trespasses will be clipped to maximum elevation.
@@ -435,13 +435,15 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
             if(inside_sun && sun_high)
             {
                 bool stop = false;
-                long double limit_el = it->sun_pred.altaz_coord.el - sun_avoid_angle;
+                auto sun_min_el_it = std::min_element(this->begin_, this->end_,
+                    [](const auto& a, const auto& b){return a.sun_pred.altaz_coord.el < b.sun_pred.altaz_coord.el;});
+                long double limit_el = sun_min_el_it->sun_pred.altaz_coord.el - sun_avoid_angle;
                 // TODO: if cfg_max_el is less than limit_el, then this position should not be called AVOIDING_SUN
                 // Maybe there should be a position status LIMITED_ELEVATION or similar for this case and for the
                 // case when elevation is clipped to max_el.
                 limit_el = (limit_el < cfg_max_el) ? limit_el : cfg_max_el;
                 this->track_info_.sun_deviation = true;
-                this->track_info_.sun_collision_high = true;
+                this->track_info_.sun_collision_high_el = true;
 
                 // Check backward.
                 for (auto it_internal = it; it_internal != this->begin_ || !stop; it_internal--)
@@ -474,35 +476,32 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
                     }
                 }
             }
-
             // If sun avoid is applied we have to store the data for each sector  where the tracking goes through a sun
             // security sector.This data will be used for calculating an alternative trajetctory at those sectors.
             else if (inside_sun)
             {
-                // If there is a sun collision, start saving sun positions for this sector.
-                // The first position is the first position before entering
-                // the sector, i.e., it is ouside sun security sector.
+                // If there is a sun collision, start saving sun positions for this sector. The first position is the
+                // first position before entering the sector, i.e., it is ouside sun security sector.
                 if (!in_sun_sector)
                 {
                     in_sun_sector = true;
                     sun_sector_start = it-1;
                     sun_sector.altaz_entry = sun_sector_start->pos.altaz_coord;
                     sun_sector.mjdt_entry = sun_sector_start->mjdt;
-
                 }
             }
             else if (!inside_sun && in_sun_sector)
             {
-                // If we were inside a sun sector, and we are going out of it,
-                // check sun sector rotation direction and positions within the sector and store the sector.
-                // The last position stored is the first position after exiting the sector,
-                // i.e., it is outside sun security sector.
+                // If we were inside a sun sector, and we are going out of it, check sun sector rotation direction and
+                // positions within the sector and store the sector. The last position stored is the first position
+                // after exiting the sector, i.e., it is outside sun security sector.
                 in_sun_sector = false;
                 sun_sector.altaz_exit = it->pos.altaz_coord;
                 sun_sector.mjdt_exit = it->mjdt;
                 // If sector has no valid rotation direction, mark tracking as not valid, since sun cannot be avoided.
                 if (!this->setSunSectorRotationDirection(sun_sector, sun_sector_start, it))
                     return false;
+                // Check the Sun sector positions.
                 this->checkSunSectorPositions(sun_sector, sun_sector_start, it);
                 this->sun_sectors_.push_back(std::move(sun_sector));
                 sun_sector = {};
@@ -527,13 +526,13 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
 
 bool TrackingAnalyzer::insideSunSector(const AltAzPos& pass_pos, const AltAzPos& sun_pos) const
 {
-
     long double diff_az = pass_pos.az - sun_pos.az;
     // If azimuth difference is greater than 180, then take the shorter way
     if (diff_az > 180.L)
         diff_az = 360.L - diff_az;
     long double diff_el = pass_pos.el - sun_pos.el;
-    return std::sqrt(diff_az * diff_az + diff_el * diff_el) < this->config_.sun_avoid_angle;
+    long double sun_avoid_angle = static_cast<long double>(this->config_.sun_avoid_angle) + kAvoidAngleOffset;
+    return std::sqrt(diff_az * diff_az + diff_el * diff_el) < sun_avoid_angle;
 }
 
 bool TrackingAnalyzer::setSunSectorRotationDirection(SunCollisionSector &sector,
@@ -607,10 +606,10 @@ bool TrackingAnalyzer::setSunSectorRotationDirection(SunCollisionSector &sector,
         cw_angle = entry_angle + time_perc * cw_angle;
         ccw_angle = entry_angle + time_perc * ccw_angle;
 
-        long double elev_cw = it->sun_pred.altaz_coord.el +
-                              this->config_.sun_avoid_angle * std::sin(cw_angle);
-        long double elev_ccw = it->sun_pred.altaz_coord.el +
-                               this->config_.sun_avoid_angle * std::sin(ccw_angle);
+        long double sun_avoid_angle = static_cast<long double>(this->config_.sun_avoid_angle) + kAvoidAngleOffset;
+
+        long double elev_cw = it->sun_pred.altaz_coord.el + sun_avoid_angle * std::sin(cw_angle);
+        long double elev_ccw = it->sun_pred.altaz_coord.el + sun_avoid_angle * std::sin(ccw_angle);
 
         long double cfg_max_el = static_cast<long double>(this->config_.max_elev);
         long double cfg_min_el = static_cast<long double>(this->config_.min_elev);
@@ -768,17 +767,19 @@ long double TrackingAnalyzer::calcSunAvoidTrajectory(const MJDateTime &mjdt,
 void TrackingAnalyzer::calcSunAvoidPos(TrackingPrediction &pred,
                                        const SunCollisionSector &sector) const
 {
+    long double sun_avoid_angle = static_cast<long double>(this->config_.sun_avoid_angle) + kAvoidAngleOffset;
+
     // Get the trajectory avoid angle.
     long double angle_avoid = this->calcSunAvoidTrajectory(pred.mjdt, sector, pred.sun_pred.altaz_coord);
     // Calculate new azimuth and elevation using trajectory avoid angle
-    Degrees new_az = pred.sun_pred.altaz_coord.az + this->config_.sun_avoid_angle * std::cos(angle_avoid);
+    Degrees new_az = pred.sun_pred.altaz_coord.az + sun_avoid_angle * std::cos(angle_avoid);
     // Normalize new azimuth
     if (new_az < 0.L)
         new_az += 360.L;
     if (new_az > 360.L)
         new_az -= 360.L;
 
-    Degrees new_el = pred.sun_pred.altaz_coord.el + this->config_.sun_avoid_angle * std::sin(angle_avoid);
+    Degrees new_el = pred.sun_pred.altaz_coord.el + sun_avoid_angle * std::sin(angle_avoid);
 
     // Store difference between original position and new position
     pred.pos.diff_az = pred.pos.altaz_coord.az - new_az;
