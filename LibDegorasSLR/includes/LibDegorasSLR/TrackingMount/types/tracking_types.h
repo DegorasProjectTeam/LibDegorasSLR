@@ -108,6 +108,7 @@ struct TrackingAnalyzerConfig
  */
 enum class PositionStatus
 {
+    ELEVATION_CLIPPED,  ///< The final mount position was clipped due to maximum elevation configuration.
     OUTSIDE_SUN,        ///< The final mount position is outside the sun.
     INSIDE_SUN,         ///< The final mount position is in the Sun and is configured for not avoiding.
     AVOIDING_SUN,       ///< The final mount position is avoiding sun security sector.
@@ -343,14 +344,9 @@ struct MountTrackingSLR
     MJDateTime pass_mjdt_end;
 
     // Tracking data
-    TrackingAnalyzerConfig config;                         ///< Contains the tracking user configuration.
-    TrackingInfo track_info;                       ///< Contains the analyzed tracking information.
-    MountPredictionSLRV predictions;               ///< Predicted data for the required time interval.
-
-
-    // Begin and end iterators.
-    MountPredictionSLRV::iterator tracking_begin_; ///< Iterator to tracking begining
-    MountPredictionSLRV::iterator tracking_end_;   ///< Iterator to tracking end
+    TrackingAnalyzerConfig config;           ///< Contains the tracking user configuration.
+    TrackingInfo track_info;                 ///< Contains the analyzed tracking information.
+    MountPredictionSLRV predictions;         ///< Predicted data for the required time interval.
 
     // Predictors.
     PredictorSlrPtr predictor_slr;   ///< Internal PredictorSLR predictor.

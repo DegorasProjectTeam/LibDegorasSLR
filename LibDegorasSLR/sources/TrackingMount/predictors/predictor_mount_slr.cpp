@@ -115,7 +115,6 @@ PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
 
 PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountPredictionSLR &tracking_result) const
 {
-
     // Calculates the Sun position.
     long double j2000 = dpslr::timing::modifiedJulianDateToJ2000DateTime(mjdt).datetime();
     PredictionSun sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
@@ -160,7 +159,6 @@ PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountPredictio
     }
 
     return tracking_result.status;
-
 }
 
 void PredictorMountSLR::analyzeTracking()
@@ -204,7 +202,6 @@ void PredictorMountSLR::analyzeTracking()
     results_sun = this->mount_track_.predictor_sun->predict(
         j2000_start, j2000_end, this->mount_track_.config.time_delta, false);
     
-
     // Create tracking predictions for TrackingAnalyzer
     TrackingPredictionV tr_predictions(results_slr.size());
     for (std::size_t i = 0; i < results_slr.size(); i++)

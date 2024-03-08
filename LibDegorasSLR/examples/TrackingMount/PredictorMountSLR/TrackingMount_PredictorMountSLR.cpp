@@ -63,6 +63,7 @@ using dpslr::timing::timePointToModifiedJulianDateTime;
 using dpslr::math::units::Angle;
 using dpslr::math::units::DegreesU;
 using dpslr::math::units::Degrees;
+using dpslr::math::units::Seconds;
 using dpslr::math::units::MillisecondsU;
 using dpslr::math::units::Meters;
 // Geocentric and geodetic containers.
@@ -85,11 +86,12 @@ using dpslr::utils::PredictorSlrPtr;
 using dpslr::utils::PredictorSlrCPFPtr;
 // Mount predictor related.
 using dpslr::mount::PredictorMountSLR;
-// Helpers.
-using dpslr::helpers::strings::numberToStr;
-using dpslr::mount::PositionStatus;
+using dpslr::mount::MountPredictionSLRV;
 using dpslr::mount::MountTrackingSLR;
 using dpslr::mount::TrackingAnalyzerConfig;
+using dpslr::mount::PositionStatus;
+// Helpers.
+using dpslr::helpers::strings::numberToStr;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -159,7 +161,6 @@ int main()
     std::string python_plot_analysis(current_dir+"/python_scripts/Helper_Plotting_Analysis.py");
     std::string python_plot_track(current_dir+"/python_scripts/Helper_Plotting_Track.py");
     std::string python_cmd_analysis = "python \"" + python_plot_analysis + "\" ";
-    std::string python_cmd_track = "python \"" + python_plot_track + "\" ";
 
     // Create the ouput directory.
     if (!dpslr::helpers::files::directoryExists(output_dir))
@@ -238,7 +239,8 @@ int main()
     std::string example_alias = examples[example_selector].example_alias;
     PredictorSunPtr predictor_sun = examples[example_selector].predictor_sun;
     TrackingAnalyzerConfig analyzer_cfg = examples[example_selector].analyzer_cfg;
-    std::string track_csv_filename = example_alias + "_track.csv";
+    std::string track_csv_filename = example_alias + "_track_analyzed.csv";
+    std::string realtime_csv_filename = example_alias + "_track_realtime.csv";
 
     // -------------------- PREDICTOR MOUNT PREPARATION  ---------------------------------------------------------------
 
@@ -275,9 +277,6 @@ int main()
 
     // Get the specializated SLR predictor to get useful information.
     PredictorSlrCPFPtr pred_cpf_recover = PredictorSlrBase::specialization<PredictorSlrCPF>(predictor_cpf);
-
-    // Get the new tracking start and end date. If there is sun overlapping at start or end, the affected date
-    // is changed so the tracking will start or end after/before the sun security sector.
 
     // Get the analyzed mount track with all the relevant data. You can use this data for example to print
     // a polar plot with the space object pass, the mount track and the Sun position. In the example folder,
@@ -356,8 +355,6 @@ int main()
             file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
             file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
         }
-        //
-
     }
     //
     // Close the file.
@@ -367,8 +364,7 @@ int main()
     if(plot_data)
     {
         std::cout<<"Plotting analyzed data using Python helpers..."<<std::endl;
-        python_cmd_analysis += (output_dir + "/" + track_csv_filename);
-        if(system(python_cmd_analysis.c_str()))
+        if(system(std::string(python_cmd_analysis + output_dir + "/" + track_csv_filename).c_str()))
             std::cout<<"Plotting failed!!"<<std::endl;
     }
 
@@ -377,34 +373,50 @@ int main()
     // TODO
     // We have some issues at this momment in the real time predictor.
 
-    /*
+    // Get the new tracking start and end date. If there is sun overlapping at start or end, the affected date
+    // is changed so the tracking will start or end after/before the sun security sector.
+    MJDateTime track_start = predictor_mount.getMountTrackingSLR().track_info.mjdt_start;
+    MJDateTime track_end = predictor_mount.getMountTrackingSLR().track_info.mjdt_end;
 
-    // Real time.
+    // Store the real time track data into a CSV file (only part of the data for easy usage).
+    // TODO: Store the full track data as JSON.
+    // --
+    // Create the file and header.
+    std::ofstream file_realtime_track(output_dir + "/" + realtime_csv_filename, std::ios_base::out);
+    file_realtime_track << data.str();
+    file_realtime_track << "mjd;sod;pass_az;pass_el;track_az;track_el;sun_az;sun_el";
 
-    // Now, we have the tracking configured, so we can ask the tracking to predict any position within the valid
-    // tracking time window (determined by tracking start and tracking end). For the example, we will ask
-    // predictions from start to end with a step of 0.5 s.
-    MJDateTime mjd = mjd_start;
-    PredictorMountSLR::MountPredictionSLRs results;
+    // Now, we are simulating real time prediction operations. We can now predict any position within the valid
+    // tracking time window (stored in TrackingInfo struct). For the example, we will ask predictions from start to
+    // end with a step of 0.1 (simulating real time operations at 10 Hz in the tracking mount).
 
-    while (mjd < mjd_end)
+    // Containers.
+    MJDateTime mjd = track_start;
+    MountPredictionSLRV results;
+
+    while (mjd < track_end)
     {
         // Store the resulting prediction
         results.push_back({});
         auto status = predictor_mount.predict(mjd, results.back());
 
-        if (status == PredictorMountSLR::PositionStatus::INSIDE_SUN)
+        if (status == PositionStatus::ELEVATION_CLIPPED)
+        {
+            //
+        }
+        else if (status == PositionStatus::OUTSIDE_SUN)
+        {
+            // In this case the position predicted is valid and it is going outside a sun security sector. This is the
+            // normal case.
+        }
+        else if (status == PositionStatus::INSIDE_SUN)
         {
             // In this case the position predicted is valid, but it is going through a sun security sector.
             // This case is only possible if sun avoid algorithm is disabled.
             // BEWARE. If the mount points directly to this position it could be dangerous.
         }
-        else if (status == PredictorMountSLR::PositionStatus::OUTSIDE_SUN)
-        {
-            // In this case the position predicted is valid and it is going outside a sun security sector. This is the
-            // normal case.
-        }
-        else if (status == PredictorMountSLR::PositionStatus::AVOIDING_SUN)
+
+        else if (status == PositionStatus::AVOIDING_SUN)
         {
             // In this case the position predicted is valid and it is going through an alternative way to avoid a sun
             // security sector. While the tracking returns this status, the tracking_position member in result
@@ -412,17 +424,76 @@ int main()
             // the true position of the object (not secure).
 
         }
-        else
+        else if (status == PositionStatus::CANT_AVOID_SUN)
         {
-            //std::cout << "Error at getting position " << status;
+            // In this case the position predicted is valid and it is going through an alternative way to avoid a sun
+            // security sector. While the tracking returns this status, the tracking_position member in result
+            // represents the position used to avoid the sun (the secure position), while prediction_result contains
+            // the true position of the object (not secure).
+
+        }
+        else if (status == PositionStatus::OUT_OF_TRACK)
+        {
+            // Bad situation, the prediction time requested is out of track. Stop the tracking and notify to client.
+            // However, this should not happen if all is ok in the mount tracking controller software. Maybe if
+            // something is wrong with the CPF or in the timing tracking mount subsystem or in the SLR station system.
+            std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
+            std::cerr << "Error: The requested position is in OUT_OF_TRACK state." << std::endl;
+            std::cerr << "Example finished. Press Enter to exit..." << std::endl;
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return -1;
+        }
+        else if (status == PositionStatus::PREDICTION_ERROR)
+        {
+            // Bad situation, stop the tracking and notify to client. However, this should not happen if all is ok in
+            // the mount tracking controller software. Maybe if something is wrong with the with the CPF or in the
+            // timing tracking mount subsystem or in the SLR station system.
+            std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
+            std::cerr << "Error: The requested position is in PREDICTION_ERROR state." << std::endl;
+            std::cerr << "Example finished. Press Enter to exit..." << std::endl;
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             return -1;
         }
 
         // Advance to next position
-        mjd.add(0.5L);
+        mjd.add(Seconds(0.1L));
     }
 
-    */
+    // Iterate the real time simulated predictions.
+    for(const auto& pred : results)
+    {
+        // Auxiliar container for track data.
+        std::string track_az = "";
+        std::string track_el = "";
+        //
+        // At this point, you only must check if the prediction is outside track. This is becaouse, for example,
+        // the beginning of the real satellite pass may coincide with the Sun sector, so at those points there
+        // would be no data from the mount's track, only the real pass.
+        if(pred.status != PositionStatus::OUT_OF_TRACK)
+        {
+            track_az = numberToStr(pred.mount_pos->altaz_coord.az,7, 4);
+            track_el = numberToStr(pred.mount_pos->altaz_coord.el,7, 4);
+
+            // Store the data.
+            file_realtime_track <<'\n';
+            file_realtime_track << std::to_string(pred.mjdt.datetime()) <<";";
+            file_realtime_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.az, 7, 4) <<";";
+            file_realtime_track << numberToStr(pred.slr_pred->instant_data->altaz_coord.el, 7, 4) <<";";
+            file_realtime_track << track_az <<";";
+            file_realtime_track << track_el <<";";
+            file_realtime_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
+            file_realtime_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
+        }
+    }
+    // Close the file.
+    file_realtime_track.close();
+
+    if(plot_data)
+    {
+        std::cout<<"Plotting real time simulated data using Python helpers..."<<std::endl;
+        if(system(std::string(python_cmd_analysis + output_dir + "/" + realtime_csv_filename).c_str()))
+            std::cout<<"Plotting failed!!"<<std::endl;
+    }
 
     // Final wait.
     std::cout << "Example finished. Press Enter to exit..." << std::endl;

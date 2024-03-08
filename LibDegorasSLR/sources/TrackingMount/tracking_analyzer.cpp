@@ -408,6 +408,7 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
         if(it->pos.altaz_coord.el > cfg_max_el)
         {
             it->pos.altaz_coord.el = cfg_max_el;
+            it->status = PositionStatus::ELEVATION_CLIPPED;
             this->track_info_.el_deviation = true;
             this->track_info_.max_el = cfg_max_el;
         }
@@ -438,9 +439,6 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
                 auto sun_min_el_it = std::min_element(this->begin_, this->end_,
                     [](const auto& a, const auto& b){return a.sun_pred.altaz_coord.el < b.sun_pred.altaz_coord.el;});
                 long double limit_el = sun_min_el_it->sun_pred.altaz_coord.el - sun_avoid_angle;
-                // TODO: if cfg_max_el is less than limit_el, then this position should not be called AVOIDING_SUN
-                // Maybe there should be a position status LIMITED_ELEVATION or similar for this case and for the
-                // case when elevation is clipped to max_el.
                 limit_el = (limit_el < cfg_max_el) ? limit_el : cfg_max_el;
                 this->track_info_.sun_deviation = true;
                 this->track_info_.sun_collision_high_el = true;
