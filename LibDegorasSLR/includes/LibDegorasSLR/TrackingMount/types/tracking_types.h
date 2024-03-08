@@ -125,8 +125,6 @@ enum class PositionStatus
  * other obstructions can result in these differences.
  *
  */
-
-// TODO: Add mjdt and status. Tracking analyzer works with this class. The subclasses or users, have the other structs.
 struct MountPosition
 {
     MountPosition(const AltAzPos& pos) :
@@ -245,10 +243,13 @@ using MountPredictionSLRV = std::vector<MountPredictionSLR>;
  */
 struct SunCollisionSector
 {
+    /**
+     * @brief Enumerates the possible rotation direction during a maneuver.
+     */
     enum class RotationDirection
     {
-        CLOCKWISE,
-        COUNTERCLOCKWISE
+        CLOCKWISE,            ///< Clockwise rotation maneuver.
+        COUNTERCLOCKWISE      ///< Counterclockwise rotation maneuver
     };
 
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(SunCollisionSector)
@@ -300,6 +301,7 @@ struct TrackingInfo
     bool sun_collision_at_middle; ///< Flag indicating if the pass has a collision at middle with the Sun.
     bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
     bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
+    bool sun_collision_high;      ///< Flag indicating if the pass has a collision with a high sun sector.
     bool trim_at_start;           ///< Flag indicating if the pass was trimmed due to elevation or Sun at start.
     bool trim_at_end;             ///< Flag indicating if the pass was trimmed due to elevation or Sun at end.
     bool el_deviation;            ///< Flag indicating if the track was deviated from pass due to max elevation.

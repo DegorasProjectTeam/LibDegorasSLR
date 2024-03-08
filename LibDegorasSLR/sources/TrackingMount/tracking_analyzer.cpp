@@ -101,30 +101,58 @@ void TrackingAnalyzer::analyzePrediction(TrackingPrediction &pred) const
 
     bool inside_sun = this->insideSunSector(pred.pos.altaz_coord, pred.sun_pred.altaz_coord);
 
-
     // If sun avoidance is applied and position for requested time is inside a sun security sector, map the point
     // to its corresponding point in the sun security sector circumference.
     // Otherwise, return calculated position.
     if (this->config_.sun_avoid )
     {
-        auto sector_it = std::find_if(this->sun_sectors_.begin(), this->sun_sectors_.end(),
-        [&mjdt = pred.mjdt](const auto& sector)
+        // If sun avoidance is applied
+        if (this->track_info_.sun_collision_high)
         {
-            return mjdt > sector.mjdt_entry && mjdt < sector.mjdt_exit;
-        });
-
-        if (sector_it == this->sun_sectors_.end())
-        {
-            pred.status =  PositionStatus::CANT_AVOID_SUN;
-            return;
+            // If there was a collision with a high sun sector
+            if (pred.pos.altaz_coord.el > this->track_info_.max_el)
+            {
+                // If the elevation of this position is greater than the maximum,
+                // clip the elevation to the maximum. Position is avoiding high sun sector.
+                pred.pos.altaz_coord.el = this->track_info_.max_el;
+                pred.status = PositionStatus::AVOIDING_SUN;
+            }
+            else
+            {
+                // Otherwise return position as is. It is outside sun sector.
+                pred.status = PositionStatus::OUTSIDE_SUN;
+            }
         }
+        else if (inside_sun)
+        {
+            // If this position is inside a sun security sector then calculate
+            // the avoiding trajectory position if it is possible.
+            auto sector_it = std::find_if(this->sun_sectors_.begin(), this->sun_sectors_.end(),
+            [&mjdt = pred.mjdt](const auto& sector)
+            {
+                return mjdt > sector.mjdt_entry && mjdt < sector.mjdt_exit;
+            });
 
-        // Calculate new position avoiding sun
-        this->calcSunAvoidPos(pred, *sector_it);
+            if (sector_it == this->sun_sectors_.end())
+            {
+                // Position is inside sun security sector, but no sector was found. It is impossible
+                // to avoid sun. This should not happen.
+                pred.status =  PositionStatus::CANT_AVOID_SUN;
+            }
+            else
+            {
+                // Calculate new position avoiding sun
+                this->calcSunAvoidPos(pred, *sector_it);
 
-
-        // Return the status.
-        pred.status =  PositionStatus::AVOIDING_SUN;
+                // Return the status.
+                pred.status = PositionStatus::AVOIDING_SUN;
+            }
+        }
+        else
+        {
+            // If this position is not within the previous cases, then it is outside any sun security sector.
+            pred.status = PositionStatus::OUTSIDE_SUN;
+        }
     }
     else
     {
@@ -141,6 +169,12 @@ void TrackingAnalyzer::analyzePrediction(TrackingPrediction &pred) const
         {
             pred.status =  PositionStatus::OUTSIDE_SUN;
         }
+    }
+
+    // TODO: position status for clipped elevation? See high sun sector todo.
+    if (pred.pos.altaz_coord.el > this->config_.max_elev)
+    {
+        pred.pos.altaz_coord.el = static_cast<long double>(this->config_.max_elev);
     }
 }
 
@@ -402,8 +436,12 @@ bool TrackingAnalyzer::analyzeTrackingMiddle()
             {
                 bool stop = false;
                 long double limit_el = it->sun_pred.altaz_coord.el - sun_avoid_angle;
+                // TODO: if cfg_max_el is less than limit_el, then this position should not be called AVOIDING_SUN
+                // Maybe there should be a position status LIMITED_ELEVATION or similar for this case and for the
+                // case when elevation is clipped to max_el.
                 limit_el = (limit_el < cfg_max_el) ? limit_el : cfg_max_el;
                 this->track_info_.sun_deviation = true;
+                this->track_info_.sun_collision_high = true;
 
                 // Check backward.
                 for (auto it_internal = it; it_internal != this->begin_ || !stop; it_internal--)

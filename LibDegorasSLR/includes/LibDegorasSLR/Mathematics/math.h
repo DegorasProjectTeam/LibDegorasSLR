@@ -129,7 +129,7 @@ types::EuclideanDivResult<T> euclidDivLL(T a, T b)
     res.r = static_cast<typename types::EuclideanDivResult<T>::UnsignedT>(r);
     res.q = q;
     return res;
-};
+}
 
 /**
  * @brief Compare floating points arguments a and b.
@@ -156,7 +156,7 @@ std::enable_if_t<
     bool>
 isFloatingZeroOrMinor(T a, T epsilon = std::numeric_limits<T>::epsilon())
 {
-    return (compareFloating(a, static_cast<T>(0.0L)) <= 0);
+    return (compareFloating(a, static_cast<T>(0.0L), epsilon) <= 0);
 }
 
 template <typename T>

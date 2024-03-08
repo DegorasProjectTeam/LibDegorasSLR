@@ -115,11 +115,6 @@ PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
 
 PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountPredictionSLR &tracking_result) const
 {
-    // Auxiliar.
-    const long double cfg_max_el = static_cast<long double>(this->mount_track_.config.max_elev);
-
-    // TODO CHECK ELEVATIONS
-
 
     // Calculates the Sun position.
     long double j2000 = dpslr::timing::modifiedJulianDateToJ2000DateTime(mjdt).datetime();
@@ -150,6 +145,8 @@ PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountPredictio
     this->tr_analyzer_.analyzePrediction(tp);
 
     tracking_result.status = tp.status;
+    tracking_result.mount_pos = tp.pos;
+
     if (tracking_result.status == PositionStatus::OUT_OF_TRACK)
     {
         tracking_result.slr_pred.reset();
