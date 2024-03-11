@@ -356,6 +356,27 @@ MJDateTime timePointToModifiedJulianDateTime(const HRTimePointStd &tp)
     return MJDateTime(mjd, seconds);
 }
 
+J2000DateTime timePointToJ2000DateTime(const types::HRTimePointStd &tp)
+{
+    // Calculate total nanoseconds since the Unix epoch.
+    auto ns_since_epoch = std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch()).count();
+
+    // Calculate total days from the Unix epoch to the Julian date.
+    long long days_since_epoch = ns_since_epoch / (kNsPerSecond * kSecsPerDayLL);
+
+    // Convert Unix days to Julian Date.
+    J2000Date j2000 = static_cast<long long>(days_since_epoch + kPosixEpochToJulian + kJulianToJ2000);
+
+    // Calculate the remainder to find the nanoseconds for the current day.
+    long long ns_in_current_day = ns_since_epoch % (kNsPerSecond * kSecsPerDayLL);
+
+    // Calculate the seconds.
+    SoD seconds = static_cast<SoD>(ns_in_current_day) / kNsPerSecond;
+
+    // Return the Julian Datetime.
+    return J2000DateTime(j2000, seconds);
+}
+
 
 
 
@@ -668,6 +689,8 @@ long long nsDayTohhmmssns(long long ns_in, unsigned int& hour, unsigned int& min
     ns = ns_in % 1000000000ll;
     return  result.q;
 }
+
+
 
 
 

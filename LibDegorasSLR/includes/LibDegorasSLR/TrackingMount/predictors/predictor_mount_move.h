@@ -27,9 +27,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_mount_slr.h
+ * @file predictor_mount_move.h
  * @author Degoras Project Team.
- * @brief This file contains the definition of the PredictorMountSLR class.
+ * @brief This file contains the definition of the PredictorMountMove class.
  * @copyright EUPL License
  * @version
 ***********************************************************************************************************************/
@@ -45,7 +45,6 @@
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/TrackingMount/types/tracking_types.h"
 #include "LibDegorasSLR/TrackingMount/types/tracking_analyzer.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
 // =====================================================================================================================
 
 // C++ INCLUDES
@@ -62,54 +61,50 @@ namespace mount{
 using timing::types::HRTimePointStd;
 using timing::types::MJDateTime;
 using astro::PredictorSunPtr;
-using utils::PredictorSlrPtr;
+using mount::MountPredictionMove;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
- * @brief The PredictorMountSLR class implements a mount predictor for SLR trackings. This predictor calculates the
- * mount position at each timestamp within a valid SLR tracking, controlling the elevation limits and the existence of
- * sectors where the tracking passes through the sun, giving an alternative way if requested.
- *
- * @todo Checking other limits, like speed
+ * @brief The PredictorMountMove class implements a simple predictor that receives the positions of a mount movement
+ * and analyzes them. After this analyze it can be used to predict new positions within the time window of the movement.
+ * This positions will also avoid sun if requested.
  */
-class LIBDPSLR_EXPORT PredictorMountSLR
+class LIBDPSLR_EXPORT PredictorMountMove
 {
 public:
 
     /**
-     * @brief PredictorMountSLR constructor.
-     * @param pass_start, the modified julian datetime for pass start.
-     * @param pass_end, the modified julian datetime for pass end.
-     * @param pred_slr, the SLR predictor to be used for SLR object predictions.
+     * @brief The MovePosition struct contains the time and position of a mount movement.
+     */
+    struct MovePosition
+    {
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(MovePosition)
+
+        HRTimePointStd tp;
+        AltAzPos pos;
+    };
+    using MovePositionV = std::vector<MovePosition>;
+
+    /**
+     * @brief PredictorMountMove constructor.
+     * @param positions, the positions of the movement.
      * @param pred_sun, the sun predictor to be used for sun position predictions.
      * @param config, the configuration parameters for the tracking analysis.
      */
-    PredictorMountSLR(const MJDateTime& pass_start, const MJDateTime& pass_end, PredictorSlrPtr pred_slr,
-                      PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
-
-    /**
-     * @brief PredictorMountSLR constructor.
-     * @param pass_start, the modified julian datetime for pass start.
-     * @param pass_end, the modified julian datetime for pass end.
-     * @param pred_slr, the SLR predictor to be used for SLR object predictions.
-     * @param pred_sun, the sun predictor to be used for sun position predictions.
-     * @param config, the configuration parameters for the tracking analysis.
-     */
-    PredictorMountSLR(const HRTimePointStd& pass_start, const HRTimePointStd& pass_end, PredictorSlrPtr pred_slr,
-                      PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
+    PredictorMountMove(MovePositionV positions, PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
 
 
     /**
-     * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
-     * @return true if there is a valid tracking, false otherwise.
+     * @brief This function checks if the predictor has a valid movement and is ready for predicting.
+     * @return true if there is a valid movement, false otherwise.
      */
     bool isReady() const;
 
     /**
-     * @brief This function returns the mount tracking information.
-     * @return the struct containing all the info about the mount tracking.
+     * @brief This function returns the mount tracking information for this movement.
+     * @return the struct containing all the info about the mount tracking movement.
      */
-    const MountTrackingSLR& getMountTrackingSLR() const;
+    const MountTrackingMove& getMountTrackingMove() const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -119,15 +114,8 @@ public:
      *
      * @warning Nanoseconds resolution for the prediction.
      */
-    PositionStatus predict(const timing::HRTimePointStd& tp_time, MountPredictionSLR &tracking_result) const;
+    PositionStatus predict(const HRTimePointStd& tp_time, MountPredictionMove &tracking_result) const;
 
-    /**
-     * @brief This function returns the object's position at a given time.
-     * @param mjd, the modified julian datetime.
-     * @param tracking_result, the returned TrackingResult struct.
-     * @return the result of the operation. Must be checked to ensure the position is valid.
-     */
-    PositionStatus predict(const MJDateTime &mjd, MountPredictionSLR &tracking_result) const;
 
 private:
 
@@ -136,10 +124,15 @@ private:
     /// Helper to analyze the track.
     void analyzeTracking();
 
+    bool checkPositions(const MovePositionV &positions) const;
+
+    AltAzPos interpPos(const HRTimePointStd &tp) const;
+
 
     // Private members.
-    MountTrackingSLR mount_track_;                     ///< Mount track analyzed data.
-    TrackingAnalyzer tr_analyzer_;                     ///< Tracking analyzer used.
+    MovePositionV positions_;
+    MountTrackingMove mount_track_;                     ///< Mount track analyzed data.
+    TrackingAnalyzer tr_analyzer_;                      ///< Tracking analyzer used.
 };
 
 }} // END NAMESPACES

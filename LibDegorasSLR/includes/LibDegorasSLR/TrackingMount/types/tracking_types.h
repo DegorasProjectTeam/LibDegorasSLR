@@ -183,23 +183,23 @@ using TrackingPredictionV = std::vector<TrackingPrediction>;
  * - If `status` is `PREDICTION_ERROR` or `CANT_AVOID_SUN`, `sun_pos` and `mount_pos` provided to
  *   detail the prediction outcome and solar interference, respectively.
  */
-struct MountMovePrediction
+struct MountPredictionMove
 {
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountMovePrediction)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountPredictionMove)
 
     // Datetime members.
-    MJDateTime mjdt;         ///< Modified Julian DateTime.
+    HRTimePointStd tp;                 ///< Timepoint of positions.
 
     // Result members.
     Optional<PredictionSun> sun_pred;  ///< Optional Sun position container.
     Optional<MountPosition> mount_pos; ///< Optional tracking mount position container.
 
     // Status.
-    PositionStatus status;  ///< The current postion status.
+    PositionStatus status;             ///< The current postion status.
 };
 
 /// Alias for mount slr predictions vector.
-using MountMovePredictionV = std::vector<MountMovePrediction>;
+using MountPredictionMoveV = std::vector<MountPredictionMove>;
 
 /**
  * @brief Represents the result of a tracking prediction operation for a SLR tracking,
@@ -321,11 +321,7 @@ struct MountTrackingMove
     // Tracking data
     TrackingAnalyzerConfig config;                 ///< Contains the tracking user configuration.
     TrackingInfo track_info;                       ///< Contains the analyzed tracking information.
-    MountMovePredictionV predictions;
-
-    // Begin and end iterators.
-    MountMovePredictionV::iterator tracking_begin_; ///< Iterator to tracking begining
-    MountMovePredictionV::iterator tracking_end_;   ///< Iterator to tracking end
+    MountPredictionMoveV predictions;
 
     // Predictors.
     PredictorSunPtr predictor_sun;   ///< Internal Sun predictor.

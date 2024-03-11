@@ -399,6 +399,9 @@ LIBDPSLR_EXPORT JDateTime timePointToJulianDateTime(const HRTimePointStd &tp);
 LIBDPSLR_EXPORT MJDateTime timePointToModifiedJulianDateTime(const HRTimePointStd &tp);
 
 
+LIBDPSLR_EXPORT J2000DateTime timePointToJ2000DateTime(const HRTimePointStd &tp);
+
+
 
 LIBDPSLR_EXPORT HRTimePointStd julianDateTimeToTimePoint(const JDateTime& jdt);
 
