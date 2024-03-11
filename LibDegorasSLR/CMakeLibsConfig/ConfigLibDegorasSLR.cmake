@@ -10,6 +10,9 @@ MACRO(macro_configure_libdegorasslr_default version version_mode extra_search_pa
     # Log.
     message(STATUS "Configuring LibDegorasSLR...")
 
+    # Setup the find package config.
+    set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+
     # Configure extra things if neccesary.
     # ...
 
@@ -43,9 +46,17 @@ MACRO(macro_link_libdegorasslr_default target visibility)
     target_link_libraries(${target} ${visibility} LibDegorasSLR::LibDegorasSLR)
 
     if(MODULES_GLOBAL_SHOW_EXTERNALS)
+
+        # LibDegorasSLR
         get_target_property(LibDegorasSLR_INCLUDES LibDegorasSLR::LibDegorasSLR INTERFACE_INCLUDE_DIRECTORIES)
         file(GLOB_RECURSE EXTERNAL_HEADERS ${LibDegorasSLR_INCLUDES}/*)
         target_sources(${target} ${visibility} ${EXTERNAL_HEADERS})
+
+        # LibNovasCpp
+        get_target_property(LibNovasCpp_INCLUDES LibNovasCpp::LibNovasCpp INTERFACE_INCLUDE_DIRECTORIES)
+        file(GLOB_RECURSE EXTERNAL_HEADERS ${LibNovasCpp_INCLUDES}/*)
+        target_sources(${target} ${visibility} ${EXTERNAL_HEADERS})
+
     endif()
 
 ENDMACRO()

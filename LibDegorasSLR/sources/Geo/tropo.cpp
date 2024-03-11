@@ -74,7 +74,7 @@ double refractionCorrection(double el, double ht)
     double refr, p, t, r;
     double zd_obs = 90 - el;
 
-    if ((zd_obs < 0.1) || (zd_obs > 91.0))
+    if ((zd_obs < 0.1) || (zd_obs > 90.0))
         refr = 0.0;
     else
     {
@@ -93,7 +93,7 @@ double refractionCorrection(double el, double pres, double temp)
     double refr, r;
     double zd_obs = 90 - el;
 
-    if ((zd_obs < 0.1) || (zd_obs > 91.0))
+    if ((zd_obs < 0.1) || (zd_obs > 90.0))
         refr = 0.0;
     else
     {
