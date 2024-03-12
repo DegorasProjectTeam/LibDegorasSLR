@@ -137,7 +137,7 @@ int main()
     Meters z = 3769892.958L;
 
     // Generic config.
-    MillisecondsU step = 500;         // Steps into which the algorithm will divide the pass for initial analysis.
+    MillisecondsU step = 100;         // Steps into which the algorithm will divide the pass for initial analysis.
     DegreesU min_el = 0;             // Minimum acceptable elevation for the mount.
     DegreesU max_el = 85;             // Maximum acceptable elevation for the mount.
     DegreesU sun_avoid_angle = 15;    // Sun avoidance angle to make Sun the security sectors.
@@ -238,6 +238,8 @@ int main()
             long long mjd = static_cast<long long>(std::stold(tokens[0]));
             long double sod = std::stold(tokens[1]);
             Degrees az = std::stold(tokens[2]);
+            if (az < 0 )
+                az += 360.L;
             Degrees el = std::stold(tokens[3]);
 
             auto tp = modifiedJulianDateTimeToTimePoint({static_cast<MJDate>(mjd), static_cast<SoD>(sod)});
@@ -455,7 +457,7 @@ int main()
         }
 
         // Advance to next position
-        mjd.add(Seconds(0.1L));
+        mjd.add(Seconds(0.01L));
     }
 
     // Iterate the real time simulated predictions.

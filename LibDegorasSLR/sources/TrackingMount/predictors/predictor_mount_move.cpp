@@ -245,17 +245,37 @@ AltAzPos PredictorMountMove::interpPos(const timing::types::HRTimePointStd &tp) 
 
     auto it_lower = it_upper - 1;
 
-    auto time_fract = (tp - it_lower->tp) / (it_upper->tp - it_lower->tp);
+    auto time_fract = static_cast<long double>((tp - it_lower->tp).count()) /
+                      static_cast<long double>((it_upper->tp - it_lower->tp).count());
 
     const auto &pos_lower = it_lower->pos;
     const auto &pos_upper = it_upper->pos;
 
+    Degrees diff_az = pos_upper.az - pos_lower.az;
+
+    // TODO: not working at 0.
+    if (diff_az > 180.L)
+    {
+        diff_az = diff_az - 360.L;
+    }
+    else if (diff_az < -180.L)
+    {
+        diff_az = diff_az + 360.L;
+    }
+
     AltAzPos intp_pos;
 
     intp_pos.az = pos_lower.az + (pos_upper.az - pos_lower.az) * time_fract;
+
+    if (intp_pos.az > 360.L)
+        intp_pos.az -= 360.L;
+    else if (intp_pos.az < 0.L)
+        intp_pos.az += 360.L;
+
+    // TODO: check normalization for elevation
     intp_pos.el = pos_lower.el + (pos_upper.el - pos_lower.el) * time_fract;
 
-    return {};
+    return intp_pos;
 }
 
 
