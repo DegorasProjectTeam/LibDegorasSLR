@@ -233,6 +233,8 @@ bool PredictorMountMove::checkPositions(const MovePositionV &positions) const
         it++;
     }
 
+    // TODO: ensure positions are normalized 0-360 azimuth
+
     return valid;
 }
 
@@ -253,7 +255,6 @@ AltAzPos PredictorMountMove::interpPos(const timing::types::HRTimePointStd &tp) 
 
     Degrees diff_az = pos_upper.az - pos_lower.az;
 
-    // TODO: not working at 0.
     if (diff_az > 180.L)
     {
         diff_az = diff_az - 360.L;
@@ -265,7 +266,7 @@ AltAzPos PredictorMountMove::interpPos(const timing::types::HRTimePointStd &tp) 
 
     AltAzPos intp_pos;
 
-    intp_pos.az = pos_lower.az + (pos_upper.az - pos_lower.az) * time_fract;
+    intp_pos.az = pos_lower.az + (diff_az) * time_fract;
 
     if (intp_pos.az > 360.L)
         intp_pos.az -= 360.L;
