@@ -214,7 +214,7 @@ void PredictorMountMove::analyzeTracking()
             tr.sun_pred = results_sun[i];
         }
 
-        this->mount_track_.predictions[i] = std::move(tr);
+        this->mount_track_.predictions[i] = tr;
     }
 
 }

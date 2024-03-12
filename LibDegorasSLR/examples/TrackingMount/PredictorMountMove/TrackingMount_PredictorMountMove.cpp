@@ -56,6 +56,7 @@ using dpslr::timing::types::MJDateTime;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::HRTimePointStd;
 using dpslr::timing::types::J2000DateTime;
+using dpslr::timing::types::MJDate;
 using dpslr::timing::iso8601DatetimeToTimePoint;
 using dpslr::timing::timePointToModifiedJulianDateTime;
 using dpslr::timing::modifiedJulianDateTimeToTimePoint;
@@ -246,7 +247,6 @@ int main()
 
             AltAzPos pos{az, el};
             positions.push_back({tp, pos});
-
         }
         catch (...)
         {
@@ -257,8 +257,6 @@ int main()
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             return -1;
         }
-
-
     }
 
     // Prepare the mount slr predictor.

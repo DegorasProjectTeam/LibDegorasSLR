@@ -140,39 +140,6 @@ struct TrackingPrediction
 /// Alias for tracking predictions vector.
 using TrackingPredictionV = std::vector<TrackingPrediction>;
 
-/**
- * @brief Represents the result of a tracking prediction operation, including azimuth and elevation position that
- * the tracking mount must use at a specific time of a tracking.
- * If status is either OUTSIDE_SUN, INSIDE_SUN OR AVOIDING_SUN, all result members are available.
- * This structure is designed to encapsulate the outcome of a tracking prediction operation.
- * It includes timing information, tracking position, prediction results, and sun
- * position, depending on the position `status` information. See the **Note** section for more details.
- *
-
- *
- * @note The presence of optional members is contingent upon the PositionStatus `status` member:
- * - If `status` is `OUT_OF_TRACK`, the optional members (`tracking_position`, `sun_pos`)
- *   are not populated.
- * - If `status` is `PREDICTION_ERROR` or `CANT_AVOID_SUN`, `sun_pos` and `mount_pos` provided to
- *   detail the prediction outcome and solar interference, respectively.
- */
-struct MountMovePrediction
-{
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountMovePrediction)
-
-    // Datetime members.
-    timing::types::MJDateTime mjdt;         ///< Modified Julian DateTime.
-
-    // Result members.
-    Optional<astro::PredictionSun> sun_pred;  ///< Optional Sun position container.
-    Optional<MountPosition> mount_pos; ///< Optional tracking mount position container.
-
-    // Status.
-    PositionStatus status;  ///< The current postion status.
-};
-
-/// Alias for mount slr predictions vector.
-using MountMovePredictionV = std::vector<MountMovePrediction>;
 
 /**
  * @brief Represents the result of a tracking prediction operation for a SLR tracking,
@@ -285,6 +252,41 @@ struct TrackingInfo
 };
 
 /**
+ * @brief Represents the result of a tracking prediction operation, including azimuth and elevation position that
+ * the tracking mount must use at a specific time of a tracking.
+ * If status is either OUTSIDE_SUN, INSIDE_SUN OR AVOIDING_SUN, all result members are available.
+ * This structure is designed to encapsulate the outcome of a tracking prediction operation.
+ * It includes timing information, tracking position, prediction results, and sun
+ * position, depending on the position `status` information. See the **Note** section for more details.
+ *
+
+ *
+ * @note The presence of optional members is contingent upon the PositionStatus `status` member:
+ * - If `status` is `OUT_OF_TRACK`, the optional members (`tracking_position`, `sun_pos`)
+ *   are not populated.
+ * - If `status` is `PREDICTION_ERROR` or `CANT_AVOID_SUN`, `sun_pos` and `mount_pos` provided to
+ *   detail the prediction outcome and solar interference, respectively.
+ */
+struct MountPredictionMove
+{
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPredictionMove)
+
+    // Datetime members.
+    timing::types::HRTimePointStd tp;       ///< Timepoint of positions.
+    timing::types::MJDateTime mjdt;         ///< Modified Julian DateTime.
+
+    // Result members.
+    Optional<astro::PredictionSun> sun_pred;  ///< Optional Sun position container.
+    Optional<MountPosition> mount_pos; ///< Optional tracking mount position container.
+
+    // Status.
+    PositionStatus status;             ///< The current postion status.
+};
+
+/// Alias for mount slr predictions vector.
+using MountPredictionMoveV = std::vector<MountPredictionMove>;
+
+/**
  * @brief The MountTrackingMove struct contanis all tracking data for a movement tracking.
  */
 struct MountTrackingMove
@@ -294,15 +296,17 @@ struct MountTrackingMove
     // Tracking data
     TrackingAnalyzerConfig config;                 ///< Contains the tracking user configuration.
     TrackingInfo track_info;                       ///< Contains the analyzed tracking information.
-    MountMovePredictionV predictions;
+    MountPredictionMoveV predictions;
 
     // Begin and end iterators.
-    MountMovePredictionV::iterator tracking_begin_; ///< Iterator to tracking begining
-    MountMovePredictionV::iterator tracking_end_;   ///< Iterator to tracking end
+    MountPredictionMoveV::iterator tracking_begin_; ///< Iterator to tracking begining
+    MountPredictionMoveV::iterator tracking_end_;   ///< Iterator to tracking end
 
     // Predictors.
     astro::PredictorSunPtr predictor_sun;   ///< Internal Sun predictor.
 };
+
+
 
 /**
  * @brief The MountTrackingSLR struct contains all the tracking data and the predictors used for a SLR tracking.

@@ -114,12 +114,12 @@ private:
 
     // Private functions.
 
-    /// Helper to analyze the track.
+    // Helper to analyze the track.
     void analyzeTracking();
 
-    bool checkPositions(const MovePositionV &positions) const;
+    bool checkPositions(const MovePositionV& positions) const;
 
-    AltAzPos interpPos(const HRTimePointStd &tp) const;
+    astro::types::AltAzPos interpPos(const timing::types::HRTimePointStd &tp) const;
 
 
     // Private members.
