@@ -31,7 +31,6 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the class TrackingAnalyzer.
  * @copyright EUPL License
- * @version 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
