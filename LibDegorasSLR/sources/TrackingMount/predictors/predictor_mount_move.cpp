@@ -238,15 +238,23 @@ bool PredictorMountMove::checkPositions(const MovePositionV &positions) const
 
 AltAzPos PredictorMountMove::interpPos(const timing::types::HRTimePointStd &tp) const
 {
-    /*
-    auto it = this->positions_.cbegin() + 1;
 
-    while (tp > it->tp) it++;
+    auto it_upper = this->positions_.cbegin() + 1;
+
+    while (tp > it_upper->tp) it_upper++;
+
+    auto it_lower = it_upper - 1;
+
+    auto time_fract = (tp - it_lower->tp) / (it_upper->tp - it_lower->tp);
+
+    const auto &pos_lower = it_lower->pos;
+    const auto &pos_upper = it_upper->pos;
 
     AltAzPos intp_pos;
 
-    intp_pos.az = it->pos.az + it->pos.az
-*/
+    intp_pos.az = pos_lower.az + (pos_upper.az - pos_lower.az) * time_fract;
+    intp_pos.el = pos_lower.el + (pos_upper.el - pos_lower.el) * time_fract;
+
     return {};
 }
 

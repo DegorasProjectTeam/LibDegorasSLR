@@ -143,6 +143,7 @@ struct MountPosition
     M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(MountPosition)
 
     AltAzPos altaz_coord;  ///< Altazimuth coordinate for the tracking mount in degrees.
+    // Substract these differences to get the original position.
     Degrees diff_az;       ///< Azimuth difference between space object prediction position and tracking position.
     Degrees diff_el;       ///< Elevation difference between space object prediction position and tracking position.
 

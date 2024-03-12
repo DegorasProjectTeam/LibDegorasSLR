@@ -78,8 +78,6 @@ public:
      */
     struct MovePosition
     {
-        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(MovePosition)
-
         HRTimePointStd tp;
         AltAzPos pos;
     };

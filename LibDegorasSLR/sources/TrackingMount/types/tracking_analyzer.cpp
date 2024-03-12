@@ -780,8 +780,8 @@ void TrackingAnalyzer::calcSunAvoidPos(TrackingPrediction &pred,
     Degrees new_el = pred.sun_pred.altaz_coord.el + sun_avoid_angle * std::sin(angle_avoid);
 
     // Store difference between original position and new position
-    pred.pos.diff_az = pred.pos.altaz_coord.az - new_az;
-    pred.pos.diff_el = pred.pos.altaz_coord.el - new_el;
+    pred.pos.diff_az = new_az - pred.pos.altaz_coord.az;
+    pred.pos.diff_el = new_el - pred.pos.altaz_coord.el;
 
     // Store new position
     pred.pos.altaz_coord.az = new_az;
