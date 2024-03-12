@@ -1,7 +1,5 @@
-#include <LibDegorasSLR/Helpers/types/numeric_strong_type.h>
-#include <LibDegorasSLR/Helpers/types/streamable_type.h>
-#include <LibDegorasSLR/Helpers/types/type_traits.h>
 #include <LibDegorasSLR/Helpers/common_aliases_macros.h>
 #include <LibDegorasSLR/Helpers/container_helpers.h>
 #include <LibDegorasSLR/Helpers/filedir_helpers.h>
 #include <LibDegorasSLR/Helpers/string_helpers.h>
+#include <LibDegorasSLR/Helpers/type_traits.h>

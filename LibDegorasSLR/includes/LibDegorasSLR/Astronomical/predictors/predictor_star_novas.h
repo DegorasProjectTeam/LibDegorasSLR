@@ -53,12 +53,6 @@ namespace dpslr{
 namespace astro{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using math::units::Degrees;
-using astro::types::Star;
-using geo::types::SurfaceLocation;
-// ---------------------------------------------------------------------------------------------------------------------
-
 /**
  * @brief The PredictorStar class provides functionality to predict the position of a star.
  *
@@ -70,8 +64,8 @@ class LIBDPSLR_EXPORT PredictorStarNovas : public PredictorStarBase
 
 public:
 
-    PredictorStarNovas(const Star &star, const SurfaceLocation<Degrees> &loc, int leap_secs = 0,
-                       double ut1_utc_diff = 0);
+    PredictorStarNovas(const astro::types::Star& star, const geo::types::SurfaceLocation<math::units::Degrees> &loc,
+                       int leap_secs = 0, double ut1_utc_diff = 0);
 
     /**
      * @brief Predicts the position of a star at a specific time

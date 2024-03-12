@@ -40,47 +40,24 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_velocity.h"
-#include "LibDegorasSLR/Geophysics/meteo.h"
-#include "LibDegorasSLR/Mathematics/types/matrix.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace utils{
+namespace slr{
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-using geo::types::GeocentricPoint;
-using geo::types::GeocentricVelocity;
-using geo::types::GeodeticPoint;
-using ilrs::cpf::CPF;
-using geo::meteo::WtrVapPressModel;
-using timing::MJDate;
-using timing::SoD;
-using timing::MJDateTime;
-using math::types::Matrix;
-using math::types::Vector3D;
-using math::units::Meters;
-using math::units::Seconds;
-using astro::types::AltAzPos;
-using math::units::Degrees;
-using math::units::Picoseconds;
-// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * This struct contains the computed data when applying the `PredictorSLR::PredictionMode::ONLY_INSTANT_RANGE` mode.
  * The distance and flight time values may include corrections such as the eccentricity correction at the object and
  * at the ground, the signal delay (station calibration), and the systematic and random observation errors. If the
- * corrections are not included, the corresponding optional parameters will not be accessible in the higher level
+ * corrections are not included, the corresponding optional paramath::units::Meters will not be accessible in the higher level
  * structure (`PredictionSLR`).
  *
  * @warning In this case, the tropospheric correction is never included becaouse the algorithm not calculates the
@@ -101,16 +78,16 @@ struct LIBDPSLR_EXPORT InstantRange
     std::string toJsonStr() const;
 
     // Struct data.
-    MJDateTime mjdt;          ///< Modified julian datetime asociated to the data.
-    Meters range_1w;          ///< One way range in meters (mm precision -> 3 decimals).
-    Seconds tof_2w;           ///< Two way flight time in seconds (ps precision -> 12 decimals).
-    GeocentricPoint geo_pos;  ///< Object geocentric interpolated positions in meters (x, y, z).
+    timing::types::MJDateTime mjdt;          ///< Modified julian datetime asociated to the data.
+    math::units::Meters range_1w;          ///< One way range in math::units::Meters (mm precision -> 3 decimals).
+    math::units::Seconds tof_2w;           ///< Two way flight time in math::units::Seconds (ps precision -> 12 decimals).
+    geo::types::GeocentricPoint geo_pos;  ///< Object geocentric interpolated positions in math::units::Meters (x, y, z).
 };
 
 /**
  * This struct contains the computed data when applying the PredictionMode::INSTANT_VECTOR mode. The distance
  * and flight time values may include all types of corrections. If they are not included, the corresponding
- * optional parameters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
+ * optional paramath::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
  *
  * @warning In this case, all the correction could be included.
  *
@@ -128,10 +105,10 @@ struct LIBDPSLR_EXPORT InstantData : public InstantRange
 
     // Associated object geocentric vectors.
     // TODO
-    GeocentricVelocity geo_vel;   ///< Geocentric interpolated velocity in meters/second.
+    geo::types::GeocentricVelocity geo_vel;   ///< Geocentric interpolated velocity in meters/second.
 
     // Azimuth and elevation for the instant vector.
-    AltAzPos altaz_coord;        ///< Local computed altazimuth coordinates in degrees (4 decimals).
+    astro::types::AltAzPos altaz_coord;        ///< Local computed altazimuth coordinates in degrees (4 decimals).
 
     /**
      * @brief Represents the InstantData struct as a JSON-formatted string.
@@ -143,7 +120,7 @@ struct LIBDPSLR_EXPORT InstantData : public InstantRange
 /**
  * This struct contains the computed data when applying the PredictionMode::OUTBOUND_VECTOR mode. The distance
  * and flight time values may include all types of corrections. If they are not included, the corresponding
- * optional parameters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
+ * optional paramath::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
  *
  * @warning In this case, all the correction could be included.
  *
@@ -158,7 +135,7 @@ struct LIBDPSLR_EXPORT OutboundData : public InstantData
 /**
  * This struct contains the computed data when applying the PredictionMode::INBOUND_VECTOR mode. The distance
  * and flight time values may include all types of corrections. If they are not included, the corresponding
- * optional parameters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
+ * optional paramath::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
  *
  * @warning In this case, all the correction could be included.
  *
@@ -170,11 +147,11 @@ struct LIBDPSLR_EXPORT InboundData
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(InboundData)
 
     // Datetime members.
-    MJDateTime mjdt;          ///< Modified julian datetime.
+    timing::types::MJDateTime mjdt;          ///< Modified julian datetime.
 
     // Range (1 way) and time of flight (2 way).
-    Meters range_1w;          ///< One way range in meters (mm precission -> 3 decimals).
-    Seconds tof_2w;           ///< Two way flight time in seconds (ps precission -> 12 decimals).
+    math::units::Meters range_1w;          ///< One way range in math::units::Meters (mm precission -> 3 decimals).
+    math::units::Seconds tof_2w;           ///< Two way flight time in math::units::Seconds (ps precission -> 12 decimals).
 
     /**
      * @brief Represents the InboundData struct as a JSON-formatted string.
@@ -187,9 +164,9 @@ struct LIBDPSLR_EXPORT InboundData
  * @brief
  * This container has all the data returned by the predictor. The InstantRange always will be disponible. The
  * rest of the data will be available or not depending on the selected computing mode. The azimuth and elevation
- * difference between receive and transmit direction at instant time parameters will only be available in
+ * difference between receive and transmit direction at instant time paramath::units::Meters will only be available in
  * the PredictionMode::OUTBOUND_VECTOR and PredictionMode::INBOUND_VECTOR modes. You can check the corrections
- * applied by accessing the corresponding parameters.
+ * applied by accessing the corresponding paramath::units::Meters.
  *
  */
 struct LIBDPSLR_EXPORT PredictionSLR
@@ -210,15 +187,15 @@ struct LIBDPSLR_EXPORT PredictionSLR
     Optional<InboundData> inbound_data;   ///< Result data for the arrival time (inbound vector).
 
     // Difference between receive and transmit direction at instant time.
-    Optional<Degrees> diff_az;   ///< Azimuth difference between outbound and instant vectors (4 decimals).
-    Optional<Degrees> diff_el;   ///< Elevation difference between outbound and instant vectors (4 decimals).
+    Optional<math::units::Degrees> diff_az;   ///< Azimuth difference between outbound and instant vectors (4 decimals).
+    Optional<math::units::Degrees> diff_el;   ///< Elevation difference between outbound and instant vectors (4 decimals).
 
     // Corrections applied.
-    Optional<Picoseconds> cali_del_corr; ///< Station calibration delay correction (picoseconds, 2 way).
-    Optional<Meters> objc_ecc_corr;      ///< Eccentricity correction at the object (meters, 1 way, usually CoM).
-    Optional<Meters> grnd_ecc_corr;      ///< Eccentricity correction at the ground (meters, usually not used).
-    Optional<Meters> corr_tropo;         ///< Tropospheric path delay correction (meters, 1 way).
-    Optional<Meters> syst_rnd_corr;      ///< Other systematic and random error corrections (meters, 1 way).
+    Optional<math::units::Picoseconds> cali_del_corr; ///< Station calibration delay correction (picomath::units::Seconds, 2 way).
+    Optional<math::units::Meters> objc_ecc_corr;      ///< Eccentricity correction at the object (math::units::Meters, 1 way, usually CoM).
+    Optional<math::units::Meters> grnd_ecc_corr;      ///< Eccentricity correction at the ground (math::units::Meters, usually not used).
+    Optional<math::units::Meters> corr_tropo;         ///< Tropospheric path delay correction (math::units::Meters, 1 way).
+    Optional<math::units::Meters> syst_rnd_corr;      ///< Other systematic and random error corrections (math::units::Meters, 1 way).
 
     // Error code.
     int error;  ///< Error that may have occurred. Zero is always reserved for NOT_ERROR.

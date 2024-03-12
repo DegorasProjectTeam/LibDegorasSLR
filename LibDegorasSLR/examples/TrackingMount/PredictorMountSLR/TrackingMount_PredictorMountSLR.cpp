@@ -52,8 +52,8 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::MJDateTime;
-using dpslr::timing::SoD;
+using dpslr::timing::types::MJDateTime;
+using dpslr::timing::types::SoD;
 using dpslr::timing::types::HRTimePointStd;
 using dpslr::timing::types::J2000DateTime;
 using dpslr::timing::types::Iso8601Str;
@@ -80,10 +80,10 @@ using dpslr::astro::PredictorSunFast;
 using dpslr::astro::PredictorSunFixed;
 using dpslr::astro::PredictorSunPtr;
 // SLR preditor related.
-using dpslr::utils::PredictorSlrBase;
-using dpslr::utils::PredictorSlrCPF;
-using dpslr::utils::PredictorSlrPtr;
-using dpslr::utils::PredictorSlrCPFPtr;
+using dpslr::slr::PredictorSlrBase;
+using dpslr::slr::PredictorSlrCPF;
+using dpslr::slr::PredictorSlrPtr;
+using dpslr::slr::PredictorSlrCPFPtr;
 // Mount predictor related.
 using dpslr::mount::PredictorMountSLR;
 using dpslr::mount::MountPredictionSLRV;

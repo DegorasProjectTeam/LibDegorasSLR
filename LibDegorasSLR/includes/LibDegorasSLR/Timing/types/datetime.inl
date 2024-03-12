@@ -57,13 +57,6 @@ namespace timing{
 namespace types{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::SoD;
-using timing::kSecsPerDayL;
-using math::compareFloating;
-using math::isFloatingZeroOrMinor;
-// ---------------------------------------------------------------------------------------------------------------------
-
 template <typename DateType>
 DateTime<DateType>::DateTime() :
     date_(DateType()),
@@ -84,7 +77,7 @@ template<typename DateType>
 DateTime<DateType>::DateTime(long double dt)
 {
     long double day;
-    this->sod_ = std::modf(dt, &day) * kSecsPerDayL;
+    this->sod_ = std::modf(dt, &day) * timing::kSecsPerDayL;
     this->date_ = day;
 
     this->normalize();
@@ -115,18 +108,19 @@ long double DateTime<DateType>::datetime() const
 }
 
 template <typename DateType>
-void DateTime<DateType>::add(const Seconds& seconds)
+void DateTime<DateType>::add(const math::units::Seconds& seconds)
 {
     sod_ += seconds;
     normalize();
 }
 
 template <typename DateType>
-DateTimeV<DateType> DateTime<DateType>::linspaceStep(const DateTime& start, const DateTime& end, const Seconds& step)
+DateTimeV<DateType> DateTime<DateType>::linspaceStep(const DateTime& start, const DateTime& end,
+                                                     const math::units::Seconds& step)
 {
     DateTimeV<DateType> result;
 
-    if (isFloatingZeroOrMinor(step))
+    if (math::isFloatingZeroOrMinor(step))
         return result;
 
     size_t num = static_cast<size_t>(std::ceil((end - start) / step));
@@ -146,39 +140,39 @@ DateTimeV<DateType> DateTime<DateType>::linspaceStep(const DateTime& start, cons
 template <typename DateType>
 bool DateTime<DateType>::operator==(const DateTime &other) const
 {
-    return this->date_ == other.date() && compareFloating(this->sod_, other.sod()) == 0;
+    return this->date_ == other.date() && math::compareFloating(this->sod_, other.sod()) == 0;
 }
 
 template <typename DateType>
 bool DateTime<DateType>::operator<(const DateTime& other) const
 {
     return (this->date() < other.date()) ||
-           (this->date() == other.date() && compareFloating(this->sod(), other.sod()) < 0);
+           (this->date() == other.date() && math::compareFloating(this->sod(), other.sod()) < 0);
 }
 
 template <typename DateType>
 bool DateTime<DateType>::operator<=(const DateTime &other) const
 {
     return (this->date() < other.date()) ||
-           (this->date() == other.date() && compareFloating(this->sod(), other.sod()) <= 0);
+           (this->date() == other.date() && math::compareFloating(this->sod(), other.sod()) <= 0);
 }
 
 template <typename DateType>
 bool DateTime<DateType>::operator>(const DateTime &other) const
 {
     return (this->date() > other.date()) ||
-           (this->date() == other.date() && compareFloating(this->sod(), other.sod()) > 0);
+           (this->date() == other.date() && math::compareFloating(this->sod(), other.sod()) > 0);
 }
 
 template <typename DateType>
 bool DateTime<DateType>::operator>=(const DateTime &other) const
 {
     return (this->date() > other.date()) ||
-           (this->date() == other.date() && compareFloating(this->sod(), other.sod()) >= 0);
+           (this->date() == other.date() && math::compareFloating(this->sod(), other.sod()) >= 0);
 }
 
 template <typename DateType>
-DateTime<DateType> DateTime<DateType>::operator+(const Seconds &seconds) const
+DateTime<DateType> DateTime<DateType>::operator+(const math::units::Seconds &seconds) const
 {
     DateTime result = *this;
     result.add(seconds);
@@ -189,14 +183,14 @@ template <typename DateType>
 void DateTime<DateType>::normalize()
 {
     // Normalize the second of day input (decrement).
-    while(compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) < 0)
+    while(math::compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) < 0)
     {
         this->sod_ += timing::kSecsPerDayL;
         this->date_--;
     }
 
     // Normalize the second of day input (increment).
-    while(compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) >= 0)
+    while(math::compareFloating(this->sod_, SoD(timing::kSecsPerDayL)) >= 0)
     {
         this->sod_ -= timing::kSecsPerDayL;
         this->date_++;
@@ -208,18 +202,18 @@ void DateTime<DateType>::normalize()
 
 
 template <typename DateType>
-Seconds operator-(const DateTime<DateType> &a, const DateTime<DateType> &b)
+math::units::Seconds operator-(const DateTime<DateType> &a, const DateTime<DateType> &b)
 {
-    Seconds result;
-    result = (a.date()-b.date()) * Seconds(kSecsPerDayL) + (a.sod() - b.sod());
+    math::units::Seconds result;
+    result = (a.date()-b.date()) * math::units::Seconds(kSecsPerDayL) + (a.sod() - b.sod());
     return result;
 }
 
 template <typename DateType>
-Seconds operator+(const DateTime<DateType> &a, const DateTime<DateType> &b)
+math::units::Seconds operator+(const DateTime<DateType> &a, const DateTime<DateType> &b)
 {
-    Seconds result;
-    result = (a.date()+b.date()) * Seconds(kSecsPerDayL) + (a.sod() + b.sod());
+    math::units::Seconds result;
+    result = (a.date()+b.date()) * math::units::Seconds(kSecsPerDayL) + (a.sod() + b.sod());
     return result;
 }
 

@@ -51,7 +51,9 @@ namespace mount{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using dpslr::mount::TrackingAnalyzer;
+using namespace math::units;
+using namespace timing::types;
+using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 TrackingAnalyzer::TrackingAnalyzer(const TrackingAnalyzerConfig &config) :
@@ -788,10 +790,6 @@ void TrackingAnalyzer::calcSunAvoidPos(TrackingPrediction &pred,
     pred.pos.altaz_coord.el = new_el;
 
 }
-
-
-
-
 
 }} // END NAMESPACES
 // =====================================================================================================================

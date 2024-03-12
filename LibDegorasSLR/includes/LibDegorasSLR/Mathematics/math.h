@@ -47,8 +47,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/Mathematics/math.tpp"
 #include "LibDegorasSLR/Mathematics/types/math_types.h"
-#include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
-#include "LibDegorasSLR/Helpers/types/type_traits.h"
+#include "LibDegorasSLR/Helpers/type_traits.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -139,10 +138,7 @@ types::EuclideanDivResult<T> euclidDivLL(T a, T b)
  * @return 1 if a > b, 0 if a == b, -1 a < b.
  */
 template <typename T>
-std::enable_if_t<
-    std::is_floating_point<T>::value ||
-    (helpers::types::is_numeric_strong_type<T>::value && helpers::types::is_strong_float<T>::value),
-    int>
+std::enable_if_t<helpers::traits::is_floating_v<T>, int>
 compareFloating(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
 {
     T aux = a - b;
@@ -150,21 +146,14 @@ compareFloating(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
 }
 
 template <typename T>
-std::enable_if_t<
-    std::is_floating_point<T>::value ||
-    (helpers::types::is_numeric_strong_type<T>::value && helpers::types::is_strong_float<T>::value),
-    bool>
+std::enable_if_t<helpers::traits::is_floating_v<T>, bool>
 isFloatingZeroOrMinor(T a, T epsilon = std::numeric_limits<T>::epsilon())
 {
     return (compareFloating(a, static_cast<T>(0.0L), epsilon) <= 0);
 }
 
 template <typename T>
-std::enable_if_t<
-    std::is_floating_point<T>::value ||
-    (helpers::types::is_numeric_strong_type<T>::value &&
-        helpers::types::is_strong_float<T>::value),
-    std::vector<T>>
+std::enable_if_t<helpers::traits::is_floating_v<T>, std::vector<T>>
 linspaceStep(const T& start, const T& end, const T& step)
 {
     std::vector<T> result;
@@ -186,44 +175,44 @@ linspaceStep(const T& start, const T& end, const T& step)
     return result;
 }
 
-/**
- * @brief Generate a 3D euclidean rotation matrix. To apply the rotation just multiply by the matrix.
- * @param axis, the axis in which the rotation is applied.
- * @param angle, the angle of rotation applied.
- * @param matrix, the generated rotation matrix
- */
-template <typename T, typename U>
-typename std::enable_if_t<
-    (std::is_floating_point_v<T> && std::is_floating_point_v<U>) ||
-    (std::is_integral_v<T> && std::is_integral_v<U>) ||
-    (helpers::types::is_strong_integral<T>::value && std::is_integral_v<U>) ||
-    (helpers::types::is_strong_float<T>::value && std::is_floating_point_v<U>) ||
-    (std::is_integral_v<T> && helpers::types::is_strong_integral<U>::value) ||
-    (std::is_floating_point_v<T> && helpers::types::is_strong_float<U>::value),
-    void>
-euclid3DRotMat(unsigned axis, const U& angle, types::Matrix<T>& matrix)
-{
-    double s, c;
-    unsigned int caxis = static_cast<unsigned>(axis - 1);
-    matrix.fill(3,3,0);
-    s= std::sin(angle);
-    c= std::cos(angle);
-    matrix[0][0]=c;
-    matrix[1][1]=c;
-    matrix[2][2]=c;
-    matrix[0][1]=-s;
-    matrix[1][2]=-s;
-    matrix[2][0]=-s;
-    matrix[1][0]=s;
-    matrix[2][1]=s;
-    matrix[0][2]=s;
-    for (unsigned i=0; i<3; i++)
-    {
-        matrix[i][caxis] = 0.0;
-        matrix[caxis][i] = 0.0;
-    }
-    matrix[caxis][caxis]= 1.0;
-}
+// /**
+//  * @brief Generate a 3D euclidean rotation matrix. To apply the rotation just multiply by the matrix.
+//  * @param axis, the axis in which the rotation is applied.
+//  * @param angle, the angle of rotation applied.
+//  * @param matrix, the generated rotation matrix
+//  */
+// template <typename T, typename U>
+// typename std::enable_if_t<
+//     (std::is_floating_point_v<T> && std::is_floating_point_v<U>) ||
+//     (std::is_integral_v<T> && std::is_integral_v<U>) ||
+//     (helpers::types::is_strong_integral<T>::value && std::is_integral_v<U>) ||
+//     (helpers::types::is_strong_float<T>::value && std::is_floating_point_v<U>) ||
+//     (std::is_integral_v<T> && helpers::types::is_strong_integral<U>::value) ||
+//     (std::is_floating_point_v<T> && helpers::types::is_strong_float<U>::value),
+//     void>
+// euclid3DRotMat(unsigned axis, const U& angle, types::Matrix<T>& matrix)
+// {
+//     double s, c;
+//     unsigned int caxis = static_cast<unsigned>(axis - 1);
+//     matrix.fill(3,3,0);
+//     s= std::sin(angle);
+//     c= std::cos(angle);
+//     matrix[0][0]=c;
+//     matrix[1][1]=c;
+//     matrix[2][2]=c;
+//     matrix[0][1]=-s;
+//     matrix[1][2]=-s;
+//     matrix[2][0]=-s;
+//     matrix[1][0]=s;
+//     matrix[2][1]=s;
+//     matrix[0][2]=s;
+//     for (unsigned i=0; i<3; i++)
+//     {
+//         matrix[i][caxis] = 0.0;
+//         matrix[caxis][i] = 0.0;
+//     }
+//     matrix[caxis][caxis]= 1.0;
+// }
 
 } // END NAMESPACE MATH
 // =====================================================================================================================

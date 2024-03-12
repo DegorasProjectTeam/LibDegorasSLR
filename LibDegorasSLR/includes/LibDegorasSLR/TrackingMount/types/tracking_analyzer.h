@@ -58,24 +58,6 @@ namespace mount{
 const math::units::Degrees kAvoidAngleOffset = 0.5L;   ///< Offset to apply to avoid the Sun sector.
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::MJDateTime;
-using timing::types::MJDate;
-using timing::types::SoD;
-using astro::PredictorSunBase;
-using astro::types::AltAzPos;
-using astro::types::AltAzPosV;
-using math::units::DegreesU;
-using math::units::Degrees;
-using math::units::MillisecondsU;
-using math::units::Meters;
-using utils::PredictorSlrBase;
-using utils::PredictionSLR;
-using utils::PredictionSLRV;
-using astro::PredictionSun;
-using astro::PredictionSunV;
-// ---------------------------------------------------------------------------------------------------------------------
-
 
 // TODO LIST:
 // If a not tracking movement (absolute, relative, continuous) starts at sun, the mount must go to error state.
@@ -159,7 +141,7 @@ private:
     bool analyzeTrackingMiddle();
 
     /// Helper to check if the predicted position is inside a sun sector.
-    bool insideSunSector(const AltAzPos& pass_pos, const AltAzPos& sun_pos) const;
+    bool insideSunSector(const astro::types::AltAzPos& pass_pos, const astro::types::AltAzPos& sun_pos) const;
 
     /// Helper to set the rotation direction of a sun sector.
     bool setSunSectorRotationDirection(SunCollisionSector &sector,
@@ -171,9 +153,9 @@ private:
                                  TrackingPredictionV::iterator sun_start,
                                  TrackingPredictionV::iterator sun_end);
 
-    long double calcSunAvoidTrajectory(const MJDateTime& mjdt,
+    long double calcSunAvoidTrajectory(const timing::types::MJDateTime& mjdt,
                                        const SunCollisionSector &sector,
-                                       const AltAzPos &sun_pos) const;
+                                       const astro::types::AltAzPos &sun_pos) const;
 
     void calcSunAvoidPos(TrackingPrediction& pred,
                          const SunCollisionSector &sector) const;

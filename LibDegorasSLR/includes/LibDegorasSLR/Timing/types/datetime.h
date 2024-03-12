@@ -43,7 +43,6 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Helpers/types/numeric_strong_type.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
@@ -55,15 +54,6 @@ namespace dpslr{
 namespace timing{
 namespace types{
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-using helpers::types::NumericStrongType;
-using math::units::Seconds;
-using timing::types::JDate;
-using timing::types::MJDate;
-using timing::types::J2000Date;
-using timing::types::RJDate;
-// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Class for handle generic datetimes epochs (date, second of day and decimal fraction).
@@ -144,7 +134,7 @@ public:
      * @brief Function to add some seconds to this datetime.
      * @param seconds, the seconds that will be added to the datetime. If negative, the time is decremented.
      */
-    void add(const Seconds& seconds);
+    void add(const math::units::Seconds& seconds);
 
     bool operator==(const DateTime& other) const;
 
@@ -156,9 +146,10 @@ public:
 
     bool operator>=(const DateTime& other) const;
 
-    DateTime operator+(const Seconds& seconds) const;
+    DateTime operator+(const math::units::Seconds& seconds) const;
 
-    static std::vector<DateTime> linspaceStep(const DateTime& start,  const DateTime& end, const Seconds& step);
+    static std::vector<DateTime> linspaceStep(const DateTime& start,  const DateTime& end,
+                                              const math::units::Seconds& step);
 
     virtual ~DateTime() = default;
 
@@ -177,17 +168,16 @@ private:
 // ---------------------------------------------------------------------------------------------------------------------
 
 template <typename DateType>
-Seconds operator-(const DateTime<DateType>& a, const DateTime<DateType>& b);
+math::units::Seconds operator-(const DateTime<DateType>& a, const DateTime<DateType>& b);
 
 template <typename DateType>
-Seconds operator+(const DateTime<DateType> &a, const DateTime<DateType> &b);
+math::units::Seconds operator+(const DateTime<DateType> &a, const DateTime<DateType> &b);
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Aliases.
 // ---------------------------------------------------------------------------------------------------------------------
-template <typename DateType>
-using DateTimeV = std::vector<DateTime<DateType>>;
+template <typename DateType> using DateTimeV = std::vector<DateTime<DateType>>;
 // ---------------------------------------------------------------------------------------------------------------------
 
 

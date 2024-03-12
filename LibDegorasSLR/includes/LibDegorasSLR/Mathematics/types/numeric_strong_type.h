@@ -46,13 +46,12 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "type_traits.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace helpers{
+namespace math{
 namespace types{
 // =====================================================================================================================
 
@@ -80,18 +79,14 @@ public:
     NumericStrongType& operator=(const NumericStrongType& other)
     {
         if (this != &other)
-        {
             this->value_ = other.value_;
-        }
         return *this;
     }
 
     NumericStrongType& operator=(NumericStrongType&& other) noexcept
     {
         if (this != &other)
-        {
             this->value_ = std::move(other.value_);
-        }
         return *this;
     }
 
@@ -160,24 +155,6 @@ public:
     T get() const { return this->value_; }
 };
 
-// Type traits.
-
-template<typename T, typename Tag>
-struct is_strong_float<NumericStrongType<T, Tag>> : std::is_floating_point<T> {};
-
-template<typename T, typename Tag>
-struct is_strong_integral<NumericStrongType<T, Tag>> : std::is_integral<T> {};
-
-// Trait to check if a type is a NumericStrongType
-template<typename T>
-struct is_numeric_strong_type : std::false_type {};
-
-template<typename T, class Tag>
-struct is_numeric_strong_type<NumericStrongType<T, Tag>> : std::true_type {};
-
-template<typename T, class Tag>
-struct underlying_type<NumericStrongType<T, Tag>> {using type = T;};
-
 }}} // END NAMESPACES.
 // =====================================================================================================================
 
@@ -186,7 +163,7 @@ namespace std
 {
 
 template<typename T, class Tag>
-class numeric_limits<dpslr::helpers::types::NumericStrongType<T, Tag>>
+class numeric_limits<dpslr::math::types::NumericStrongType<T, Tag>>
 {
 public:
     static constexpr bool is_specialized = std::numeric_limits<T>::is_specialized;

@@ -41,11 +41,8 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/TrackingMount/types/tracking_types.h"
 #include "LibDegorasSLR/TrackingMount/types/tracking_analyzer.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
 // =====================================================================================================================
 
 // C++ INCLUDES
@@ -57,13 +54,6 @@
 namespace dpslr{
 namespace mount{
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::HRTimePointStd;
-using timing::types::MJDateTime;
-using astro::PredictorSunPtr;
-using utils::PredictorSlrPtr;
-// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief The PredictorMountSLR class implements a mount predictor for SLR trackings. This predictor calculates the
@@ -84,9 +74,9 @@ public:
      * @param pred_sun, the sun predictor to be used for sun position predictions.
      * @param config, the configuration parameters for the tracking analysis.
      */
-    PredictorMountSLR(const MJDateTime& pass_start, const MJDateTime& pass_end, PredictorSlrPtr pred_slr,
-                      PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
-
+    PredictorMountSLR(const timing::types::MJDateTime& pass_start, const timing::types::MJDateTime& pass_end,
+                      slr::PredictorSlrPtr pred_slr, astro::PredictorSunPtr pred_sun,
+                      const TrackingAnalyzerConfig& config);
     /**
      * @brief PredictorMountSLR constructor.
      * @param pass_start, the modified julian datetime for pass start.
@@ -95,9 +85,9 @@ public:
      * @param pred_sun, the sun predictor to be used for sun position predictions.
      * @param config, the configuration parameters for the tracking analysis.
      */
-    PredictorMountSLR(const HRTimePointStd& pass_start, const HRTimePointStd& pass_end, PredictorSlrPtr pred_slr,
-                      PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
-
+    PredictorMountSLR(const timing::types::HRTimePointStd& pass_start, const timing::types::HRTimePointStd& pass_end,
+                      slr::PredictorSlrPtr pred_slr, astro::PredictorSunPtr pred_sun,
+                      const TrackingAnalyzerConfig &config);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
@@ -119,7 +109,7 @@ public:
      *
      * @warning Nanoseconds resolution for the prediction.
      */
-    PositionStatus predict(const timing::HRTimePointStd& tp_time, MountPredictionSLR &tracking_result) const;
+    PositionStatus predict(const timing::types::HRTimePointStd& tp_time, MountPredictionSLR &tracking_result) const;
 
     /**
      * @brief This function returns the object's position at a given time.
@@ -127,7 +117,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(const MJDateTime &mjd, MountPredictionSLR &tracking_result) const;
+    PositionStatus predict(const timing::types::MJDateTime &mjd, MountPredictionSLR &tracking_result) const;
 
 private:
 

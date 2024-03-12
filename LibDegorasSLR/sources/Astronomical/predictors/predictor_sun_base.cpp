@@ -52,14 +52,17 @@ namespace astro{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace timing::types;
+using namespace geo::types;
+using namespace math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorSunBase::PredictorSunBase(const geo::types::GeodeticPoint<Degrees> &obs_geod) :
-    obs_geo_pos_(obs_geod.convertAngles<math::units::Radians>())
+dpslr::astro::PredictorSunBase::PredictorSunBase(const GeodeticPoint<Degrees> &obs_geod) :
+    obs_geo_pos_(obs_geod.convertAngles<Radians>())
 {
 }
 
-PredictionSunV PredictorSunBase::predict(const J2000DateTime &j2000_start, const J2000DateTime &j2000_end, const MillisecondsU &step, bool refraction) const
+PredictionSunV PredictorSunBase::predict(const J2000DateTime &j2000_start, const J2000DateTime &j2000_end,
+                                         const MillisecondsU &step, bool refraction) const
 {
     // Container and auxiliar.
     J2000DateTimeV interp_times;

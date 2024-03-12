@@ -47,9 +47,9 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -59,34 +59,20 @@ namespace dpslr{
 namespace astro{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::J2000DateTime;
-using timing::types::J2000DateTimeV;
-using timing::types::MJDate;
-using timing::types::SoD;
-using timing::types::MJDateTime;
-using timing::types::Seconds;
-using geo::types::GeodeticPoint;
-using geo::types::GeocentricPoint;
-using math::units::MillisecondsU;
-using math::units::Degrees;
-using math::units::Radians;
-using astro::types::AltAzPos;
-// ---------------------------------------------------------------------------------------------------------------------
-
 struct LIBDPSLR_EXPORT PredictionSun
 {
     // Default constructor.
     PredictionSun() = default;
 
-    PredictionSun(const J2000DateTime& j2000, const AltAzPos& altaz_coord, const GeocentricPoint& geo_pos) :
+    PredictionSun(const timing::types::J2000DateTime& j2000, const astro::types::AltAzPos& altaz_coord,
+                  const geo::types::GeocentricPoint& geo_pos) :
         j2dt(j2000), altaz_coord(altaz_coord), geo_pos(geo_pos)
     {}
 
     // Containers.
-    J2000DateTime j2dt;        ///< J2000 datetime used to generate the Sun prediction data.
-    AltAzPos altaz_coord;      ///< Sun predicted altazimuth coordinates referenced to an observer (degrees).
-    GeocentricPoint geo_pos;   ///< Sun predicted geocentric position in meters.
+    timing::types::J2000DateTime j2dt;   ///< J2000 datetime used to generate the Sun prediction data.
+    astro::types::AltAzPos altaz_coord;  ///< Sun predicted altazimuth coordinates referenced to an observer (degrees).
+    geo::types::GeocentricPoint geo_pos; ///< Sun predicted geocentric position (meters).
 
     // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
 };
@@ -112,16 +98,39 @@ public:
      * @brief Constructs a PredictorSunBase object with the given observer's geodetic coordinates.
      * @param obs_geod The geodetic coordinates of the observer.
      */
-    PredictorSunBase(const GeodeticPoint<Degrees>& obs_geod);
+    PredictorSunBase(const geo::types::GeodeticPoint<math::units::Degrees>& obs_geod);
 
     M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunBase)
 
+    /**
+     * @brief Creates a shared pointer that internally is an object of type T, derived from PredictorSunBase.
+     *
+     * This function template dynamically creates an instance of type T. It then returns a shared pointer to the base
+     * class PredictorSunBase by using a static pointer cast. This is useful for creating instances of derived classes
+     * when only the base class type is known at compile time.
+     *
+     * @tparam T The type of the derived class to instantiate. Must be a subclass of PredictorSunBase.
+     * @tparam Args The types of the arguments to forward to the constructor of T.
+     * @param args The arguments to forward to the constructor of T.
+     * @return A shared pointer to the newly created instance of T, cast to a shared pointer of type PredictorSunBase.
+     */
     template <typename T, typename... Args>
     static std::shared_ptr<PredictorSunBase> factory(Args&&... args)
     {
         return std::static_pointer_cast<PredictorSunBase>(std::make_shared<T>(std::forward<Args>(args)...));
     }
 
+    /**
+     * @brief Casts a shared pointer of the base class PredictorSunBase to a shared pointer of a derived class T.
+     *
+     * This function template takes a shared pointer to an instance of the base class PredictorSunBase and performs a
+     * static cast to convert it into a shared pointer of type T, where T is a derived class of PredictorSunBase. This
+     * is useful for downcasting shared pointers when the type of the derived class is known.
+     *
+     * @tparam T The target type to which the shared pointer should be cast. Must be a subclass of PredictorSunBase.
+     * @param base A shared pointer to an instance of PredictorSunBase.
+     * @return A shared pointer to the base instance, cast to type T.
+     */
     template <typename T>
     static std::shared_ptr<T> specialization(std::shared_ptr<PredictorSunBase> base)
     {
@@ -130,32 +139,30 @@ public:
 
     /**
      * @brief Predicts the position of the Sun at a specific time.
-     *
      * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
      * @return The predicted PredictionSun.
      */
-    virtual PredictionSun predict(const J2000DateTime& j2000, bool refraction) const = 0;
+    virtual PredictionSun predict(const timing::types::J2000DateTime& j2000, bool refraction) const = 0;
 
     /**
-     * @brief Predicts Sun positions within a time range with a specified time step.
-     *
+     * @brief Predicts the position of the Sun within a time range with a specified time step.
      * @param j2000_start The J2000 start datetime of the prediction range.
      * @param j2000_end The J2000 end datetime of the prediction range.
      * @param step The time step in milliseconds between predictions.
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
      * @return A vector of PredictionSun objects representing predicted sun positions at each step.
-     *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    virtual PredictionSunV predict(const J2000DateTime& j2000_start, const J2000DateTime& j2000_end,
-                                   const MillisecondsU& step, bool refraction) const;
+    virtual PredictionSunV predict(const timing::types::J2000DateTime& j2000_start,
+                                   const timing::types::J2000DateTime& j2000_end,
+                                   const math::units::MillisecondsU& step, bool refraction) const;
 
     virtual ~PredictorSunBase();
 
 protected:
 
-    GeodeticPoint<Radians> obs_geo_pos_;  ///< Geodetic observer position (radians and meters).
+    geo::types::GeodeticPoint<math::units::Radians> obs_geo_pos_; ///< Geodetic observer point (radians and meters).
 };
 
 /// Alias for PredictorSunBase shared smart pointer.

@@ -49,6 +49,7 @@
 #include "LibDegorasSLR/Astronomical/types/star.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -58,20 +59,11 @@ namespace dpslr{
 namespace astro{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using math::units::Degrees;
-using math::units::MillisecondsU;
-using timing::types::JDateTime;
-using astro::types::AltAzPos;
-using astro::types::Star;
-using geo::types::SurfaceLocation;
-// ---------------------------------------------------------------------------------------------------------------------
-
 struct LIBDPSLR_EXPORT PredictionStar
 {
     // Containers.
-    JDateTime jdt;         ///< Julian datetime used to generate the star prediction data.
-    AltAzPos altaz_coord;  ///< Star predicted altazimuth coordinates referenced to an observer (degrees).
+    timing::types::JDateTime jdt;       ///< Julian datetime used to generate the star prediction data.
+    astro::types::AltAzPos altaz_coord; ///< Star predicted altazimuth coordinates referenced to an observer (degrees).
 };
 
 /// Alias for a vector of PredictionSun.
@@ -95,7 +87,8 @@ public:
      * @param leap_secs The leap seconds to apply.
      * @param ut1_utc_diff The difference between UT1 and UTC time systems to apply.
      */
-    PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
+    PredictorStarBase(const astro::types::Star& star,
+                      const geo::types::SurfaceLocation<math::units::Degrees>& loc,
                       int leap_secs = 0, double ut1_utc_diff = 0);
 
     M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorStarBase)
@@ -118,7 +111,7 @@ public:
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
      * @return The resulting PredictionStar.
      */
-    virtual PredictionStar predict(const JDateTime& jdt) const = 0;
+    virtual PredictionStar predict(const timing::types::JDateTime& jdt) const = 0;
 
     /**
      * @brief Predicts star positions within a time range with a specified time step.
@@ -130,15 +123,16 @@ public:
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    StarPredictionV predict(const JDateTime& jdt_start, const JDateTime& jdt_end,
-                            const MillisecondsU& step) const;
+    StarPredictionV predict(const timing::types::JDateTime& jdt_start,
+                            const timing::types::JDateTime& jdt_end,
+                            const math::units::MillisecondsU& step) const;
 
     virtual ~PredictorStarBase();
 
 protected:
 
-    Star star_;
-    SurfaceLocation<Degrees> loc_;
+    astro::types::Star star_;
+    geo::types::SurfaceLocation<math::units::Degrees> loc_;
     int leap_secs_;
     double ut1_utc_diff_;
 };

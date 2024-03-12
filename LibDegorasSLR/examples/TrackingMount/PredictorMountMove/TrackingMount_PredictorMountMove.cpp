@@ -52,8 +52,8 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::MJDateTime;
-using dpslr::timing::SoD;
+using dpslr::timing::types::MJDateTime;
+using dpslr::timing::types::SoD;
 using dpslr::timing::types::HRTimePointStd;
 using dpslr::timing::types::J2000DateTime;
 using dpslr::timing::iso8601DatetimeToTimePoint;

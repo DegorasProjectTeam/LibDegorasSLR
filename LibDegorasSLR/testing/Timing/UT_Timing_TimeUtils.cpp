@@ -40,7 +40,7 @@
 // NAMESPACES
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace dpslr;
-using namespace dpslr::timing;
+using namespace dpslr::timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // UNIT TEST DECLARATIONS
@@ -100,7 +100,7 @@ M_DEFINE_UNIT_TEST(daysFromCivil)
 M_DEFINE_UNIT_TEST(timePointToString)
 {
     // Inputs.
-    std::chrono::nanoseconds in_1(167253349123456789LL);
+    NsStd in_1(167253349123456789LL);
     std::chrono::seconds in_2(1707131464LL);
     std::chrono::seconds in_3(0LL);
 
@@ -122,9 +122,9 @@ M_DEFINE_UNIT_TEST(timePointToString)
     std::string res_1, res_2, res_3, res_4, res_5, res_6, res_7, res_8, res_9, res_10, res_11;
 
     // Time points.
-    timing::HRTimePointStd tp_1(in_1);
-    timing::HRTimePointStd tp_2(in_2);
-    timing::HRTimePointStd tp_3(in_3);
+    HRTimePointStd tp_1(in_1);
+    HRTimePointStd tp_2(in_2);
+    HRTimePointStd tp_3(in_3);
 
     // Conversions.
     res_1 = timing::timePointToString(tp_1, "%Y-%m-%dT%H:%M:%S", TimeResolution::SECONDS);
@@ -157,7 +157,7 @@ M_DEFINE_UNIT_TEST(timePointToString)
 M_DEFINE_UNIT_TEST(timePointToIso8601)
 {
     // Inputs.
-    std::chrono::nanoseconds in_1(167253349123456789LL);
+    NsStd in_1(167253349123456789LL);
     std::chrono::seconds in_2(1707141363LL);
 
     // Expected outputs.
@@ -169,8 +169,8 @@ M_DEFINE_UNIT_TEST(timePointToIso8601)
     std::string res_1, res_2, res_3, res_4;
 
     // Time points.
-    timing::HRTimePointStd tp_1(in_1);
-    timing::HRTimePointStd tp_2(in_2);
+    HRTimePointStd tp_1(in_1);
+    HRTimePointStd tp_2(in_2);
 
     // Conversion to ISO 8601 format.
     res_1 = timing::timePointToIso8601(tp_1, TimeResolution::MILLISECONDS, true);
@@ -255,7 +255,7 @@ M_DEFINE_UNIT_TEST(millisecondsToISO8601Duration)
     // Do the checks.
     for (const auto& [input, output] : test_cases)
     {
-        std::chrono::milliseconds msecs(input);
+        MsStd msecs(input);
         std::string result = timing::millisecondsToISO8601Duration(msecs);
         M_EXPECTED_EQ(result, output)
         M_CUSTOM_CHECK(checkISO8601DurationFormat, result)
@@ -306,21 +306,21 @@ M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
     std::chrono::seconds secs_2(1707164728LL);
 
     // Test valid ISO 8601 datetime strings using extended format.
-    std::vector<std::pair<std::string, std::chrono::nanoseconds>> valid_cases_extended =
+    std::vector<std::pair<std::string, NsStd>> valid_cases_extended =
     {
-        {"1975-04-20T19:15:49Z", std::chrono::nanoseconds(secs_1)},
-        {"1975-04-20T19:15:49.123Z", std::chrono::nanoseconds(secs_1 + std::chrono::milliseconds(123LL))},
-        {"1975-04-20T19:15:49.123456Z", std::chrono::nanoseconds(secs_1 + std::chrono::microseconds(123456LL))},
-        {"1975-04-20T19:15:49.123456789Z",  std::chrono::nanoseconds(secs_1 + std::chrono::nanoseconds(123456789LL))}
+        {"1975-04-20T19:15:49Z", NsStd(secs_1)},
+        {"1975-04-20T19:15:49.123Z", NsStd(secs_1 + MsStd(123LL))},
+        {"1975-04-20T19:15:49.123456Z", NsStd(secs_1 + UsStd(123456LL))},
+        {"1975-04-20T19:15:49.123456789Z",  NsStd(secs_1 + NsStd(123456789LL))}
     };
 
     // Test valid ISO 8601 datetime strings using basic format.
-    std::vector<std::pair<std::string, std::chrono::nanoseconds>> valid_cases_basic =
+    std::vector<std::pair<std::string, NsStd>> valid_cases_basic =
         {
-            {"20240205T202528Z", std::chrono::nanoseconds(secs_2)},
-            {"20240205T202528.123Z", std::chrono::nanoseconds(secs_2 + std::chrono::milliseconds(123LL))},
-            {"20240205T202528.123456Z", std::chrono::nanoseconds(secs_2 + std::chrono::microseconds(123456LL))},
-            {"20240205T202528.123456789Z",  std::chrono::nanoseconds(secs_2 + std::chrono::nanoseconds(123456789LL))}
+            {"20240205T202528Z", NsStd(secs_2)},
+            {"20240205T202528.123Z", NsStd(secs_2 + MsStd(123LL))},
+            {"20240205T202528.123456Z", NsStd(secs_2 + UsStd(123456LL))},
+            {"20240205T202528.123456789Z",  NsStd(secs_2 + NsStd(123456789LL))}
         };
 
     // Test invalid ISO 8601 datetime strings
@@ -376,7 +376,7 @@ M_DEFINE_UNIT_TEST(win32TicksToTimePoint)
         "[LibDegorasSLR,Timing,win32TicksToTimePoint] The ticks represent a time before the Unix epoch.";
 
     // Valid cases.
-    std::vector<std::pair<timing::Windows32Ticks, std::string>> valid_cases =
+    std::vector<std::pair<Windows32Ticks, std::string>> valid_cases =
         {
             // Windows ticks - Result.
             {116444736000000000ULL, "1970-01-01T00:00:00Z"},   // Unix epoch.
@@ -392,7 +392,7 @@ M_DEFINE_UNIT_TEST(win32TicksToTimePoint)
         };
 
     // Invalid cases.
-    std::vector<timing::Windows32Ticks> invalid_cases = {0ULL, 123456789123ULL, 116444735999999999ULL};
+    std::vector<Windows32Ticks> invalid_cases = {0ULL, 123456789123ULL, 116444735999999999ULL};
 
     // Do the exception checks.
     for (const auto& input : invalid_cases)
@@ -412,7 +412,7 @@ M_DEFINE_UNIT_TEST(win32TicksToTimePoint)
     // Do the valid checks.
     for (const auto& [input, expected] : valid_cases)
     {
-        auto result_tp = win32TicksToTimePoint(input);
+        auto result_tp = timing::win32TicksToTimePoint(input);
         std::string result_str = timing::timePointToIso8601(result_tp, TimeResolution::NANOSECONDS);
         M_EXPECTED_EQ(expected, result_str)
     }
@@ -424,12 +424,12 @@ M_DEFINE_UNIT_TEST(timePointToJulianDatetime)
 {
     auto epoch_start = std::chrono::system_clock::from_time_t(0LL); // 1970-01-01 00:00:00 UTC
     auto one_day_ns = std::chrono::hours(24LL);
-    auto example_1 = std::chrono::nanoseconds(1677589965123456789LL);
-    auto example_2 = std::chrono::nanoseconds(4105803825987654321LL);
-    auto example_3 = std::chrono::nanoseconds(1707386592000123000LL);
+    auto example_1 = NsStd(1677589965123456789LL);
+    auto example_2 = NsStd(4105803825987654321LL);
+    auto example_3 = NsStd(1707386592000123000LL);
 
     // Setup test cases
-    std::vector<std::pair<timing::HRTimePointStd, JDateTime>> test_cases =
+    std::vector<std::pair<HRTimePointStd, JDateTime>> test_cases =
         {
             // Pair of time since epoch and expected Julian Datetime
             {epoch_start, 2440587.5L}, // Unix epoch start
@@ -442,8 +442,8 @@ M_DEFINE_UNIT_TEST(timePointToJulianDatetime)
     // Do the checks.
     for (const auto& [input, output] : test_cases)
     {
-        timing::JDateTime jdt = timePointToJulianDateTime(input);
-        timing::HRTimePointStd jdt_tp = julianDateTimeToTimePoint(jdt);
+        JDateTime jdt = timing::timePointToJulianDateTime(input);
+        HRTimePointStd jdt_tp = timing::julianDateTimeToTimePoint(jdt);
         std::string str_result = timing::timePointToIso8601(jdt_tp, TimeResolution::MILLISECONDS);
         std::string str_expected = timing::timePointToIso8601(input, TimeResolution::MILLISECONDS);
 
@@ -459,16 +459,16 @@ M_DEFINE_UNIT_TEST(julianDatetimeToTimePoint)
                                 "The Julian DateTime represents a time before the Unix epoch.";
 
     // Valid cases.
-    std::vector<std::pair<timing::JDateTime, timing::HRTimePointStd>> valid_cases =
+    std::vector<std::pair<JDateTime, HRTimePointStd>> valid_cases =
         {
             {2440587.5L, HRClock::from_time_t(0)},
             {2440588.5L, HRClock::from_time_t(86400LL)},
-            {2460349.0092144L, HRClock::from_time_t(1707394396LL) + std::chrono::milliseconds(124)},
-            {2496964.259213947L, HRClock::from_time_t(4870951996LL) + std::chrono::milliseconds(85)}
+            {2460349.0092144L, HRClock::from_time_t(1707394396LL) + MsStd(124)},
+            {2496964.259213947L, HRClock::from_time_t(4870951996LL) + MsStd(85)}
         };
 
     // Invalid cases.
-    std::vector<timing::JDateTime> invalid_cases = {2440586.5L, 2040588.5L, 1840890.12345L};
+    std::vector<JDateTime> invalid_cases = {2440586.5L, 2040588.5L, 1840890.12345L};
 
     // Do the exception checks.
     for (const auto& input : invalid_cases)
@@ -489,7 +489,7 @@ M_DEFINE_UNIT_TEST(julianDatetimeToTimePoint)
     for (const auto& [input, expected] : valid_cases)
     {
         // Up to ms resolution.
-        timing::HRTimePointStd result_tp = julianDateTimeToTimePoint(input);
+        HRTimePointStd result_tp = timing::julianDateTimeToTimePoint(input);
         std::string str_result = timing::timePointToIso8601(result_tp, TimeResolution::MILLISECONDS);
         std::string str_expected = timing::timePointToIso8601(expected, TimeResolution::MILLISECONDS);
         M_EXPECTED_EQ(str_expected, str_result)
@@ -504,12 +504,12 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate_fract)
     auto one_day_ns = std::chrono::hours(24LL);                             // 1970-01-02T00:00:00Z
     auto first_half = std::chrono::hours(48LL) + std::chrono::hours(8LL);     // 1970-01-03T08:00:00Z
     auto second_half = std::chrono::hours(48LL) + std::chrono::hours(18LL);   // 1970-01-03T18:00:00Z
-    auto example_1 = std::chrono::nanoseconds(1677589965123456789LL);       // 2023-02-28T13:12:45.123456789Z
-    auto example_2 = std::chrono::nanoseconds(4105803825987654321LL);       // 2100-02-08T21:03:45.987654321Z
-    auto example_3 = std::chrono::nanoseconds(1707386592000123000LL);       // 2024-02-08T10:03:12.000123Z
+    auto example_1 = NsStd(1677589965123456789LL);       // 2023-02-28T13:12:45.123456789Z
+    auto example_2 = NsStd(4105803825987654321LL);       // 2100-02-08T21:03:45.987654321Z
+    auto example_3 = NsStd(1707386592000123000LL);       // 2024-02-08T10:03:12.000123Z
 
     // Setup test cases
-    std::vector<std::tuple<timing::HRTimePointStd, JDate, DayFraction, std::string>> test_cases =
+    std::vector<std::tuple<HRTimePointStd, JDate, DayFraction, std::string>> test_cases =
         {
             // Pair of time since epoch and expected Julian Datetime
             {epoch_start, 2440587LL, 0.5L, "1970-01-01T00:00:00Z"},
@@ -524,17 +524,14 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate_fract)
     // Do the checks.
     for (const auto& [input, output_jdate, output_frac, string] : test_cases)
     {
-        // Conversion and reverse conversion.
-        JDateTime jdt = timePointToJulianDateTime(input);
+        // Conversions.
+        JDateTime jdt = timing::timePointToJulianDateTime(input);
+        std::string out_str = timing::timePointToIso8601(input, TimeResolution::NANOSECONDS);
 
-
-        std::string out_str = timePointToIso8601(input, TimeResolution::NANOSECONDS);
-
-
-        // Nanoseconds preccision (in day fraction sense, approx 17 decimals).
+        // Nanoseconds preccision (in day fraction sense, ~16 decimals).
         M_EXPECTED_EQ(jdt.date(), output_jdate)
         M_EXPECTED_EQ(out_str, string)
-        M_EXPECTED_EQ_F(jdt.fract(), output_frac, 0.00000000000000001L)
+        M_EXPECTED_EQ_F(jdt.fract(), output_frac, 0.0000000000000001L)
     }
 }
 
@@ -544,12 +541,12 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate)
     auto one_day_ns = std::chrono::hours(24LL);                               // 1970-01-02T00:00:00Z
     auto first_half = std::chrono::hours(48LL) + std::chrono::hours(8LL);     // 1970-01-03T08:00:00Z
     auto second_half = std::chrono::hours(48LL) + std::chrono::hours(18LL);   // 1970-01-03T18:00:00Z
-    auto example_1 = std::chrono::nanoseconds(1677589965123456789LL);       // 2023-02-28T13:12:45.123456789Z
-    auto example_2 = std::chrono::nanoseconds(4105803825987654321LL);       // 2100-02-08T21:03:45.987654321Z
-    auto example_3 = std::chrono::nanoseconds(1707386592000123000LL);       // 2024-02-08T10:03:12.000123Z
+    auto example_1 = NsStd(1677589965123456789LL);       // 2023-02-28T13:12:45.123456789Z
+    auto example_2 = NsStd(4105803825987654321LL);       // 2100-02-08T21:03:45.987654321Z
+    auto example_3 = NsStd(1707386592000123000LL);       // 2024-02-08T10:03:12.000123Z
 
     // Setup test cases
-    std::vector<std::tuple<timing::HRTimePointStd, JDate, std::string>> test_cases =
+    std::vector<std::tuple<HRTimePointStd, JDate, std::string>> test_cases =
         {
             // Pair of time since epoch and expected Julian Datetime
             {epoch_start, 2440587LL, "1970-01-01"},
@@ -564,7 +561,7 @@ M_DEFINE_UNIT_TEST(timePointToJulianDate)
     // Do the checks.
     for (const auto& [input, output_jdate, string] : test_cases)
     {
-        JDateTime jdt = timePointToJulianDateTime(input);
+        JDateTime jdt = timing::timePointToJulianDateTime(input);
 
         M_EXPECTED_EQ(jdt.date(), output_jdate)
     }

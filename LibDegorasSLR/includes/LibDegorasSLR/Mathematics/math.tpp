@@ -40,7 +40,6 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Mathematics/types/matrix.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
@@ -48,8 +47,6 @@
 namespace dpslr {
 namespace math_private{
 // =====================================================================================================================
-
-
 
 template<typename T>
 double truncToDouble(T x, unsigned int prec, unsigned int dec_places)
@@ -68,12 +65,6 @@ template <typename T>
 T normalizeVal(T x, T x_min, T x_max)
 {
     return std::fmod(((std::fmod((x - x_min),(x_max - x_min)))+(x_max - x_min)), (x_max - x_min)) + x_min;
-}
-
-template <typename T, typename U>
-void euclid3DRotMat(unsigned axis, U angle, dpslr::math::types::Matrix<T> &matrix)
-{
-
 }
 
 }} // END NAMESPACES.

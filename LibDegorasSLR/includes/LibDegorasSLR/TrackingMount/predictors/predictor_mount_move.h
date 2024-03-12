@@ -57,12 +57,6 @@ namespace dpslr{
 namespace mount{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::HRTimePointStd;
-using timing::types::MJDateTime;
-using astro::PredictorSunPtr;
-using mount::MountPredictionMove;
-// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief The PredictorMountMove class implements a simple predictor that receives the positions of a mount movement
@@ -78,9 +72,10 @@ public:
      */
     struct MovePosition
     {
-        HRTimePointStd tp;
-        AltAzPos pos;
+        timing::types::HRTimePointStd tp;
+        astro::types::AltAzPos pos;
     };
+
     using MovePositionV = std::vector<MovePosition>;
 
     /**
@@ -89,7 +84,7 @@ public:
      * @param pred_sun, the sun predictor to be used for sun position predictions.
      * @param config, the configuration parameters for the tracking analysis.
      */
-    PredictorMountMove(MovePositionV positions, PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
+    PredictorMountMove(MovePositionV positions, astro::PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
 
 
     /**
@@ -112,7 +107,7 @@ public:
      *
      * @warning Nanoseconds resolution for the prediction.
      */
-    PositionStatus predict(const HRTimePointStd& tp_time, MountPredictionMove &tracking_result) const;
+    PositionStatus predict(const timing::types::HRTimePointStd& tp_time, MountPredictionMove &tracking_result) const;
 
 
 private:

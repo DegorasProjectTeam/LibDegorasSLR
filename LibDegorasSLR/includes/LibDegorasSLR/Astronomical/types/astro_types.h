@@ -44,9 +44,7 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
@@ -57,14 +55,6 @@ namespace dpslr{
 namespace astro{
 namespace types{
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::MJDate;
-using timing::types::SoD;
-using timing::types::MJDateTime;
-using math::units::Degrees;
-// ---------------------------------------------------------------------------------------------------------------------
-
 
 struct LIBDPSLR_EXPORT RA
 {
@@ -112,8 +102,7 @@ struct LIBDPSLR_EXPORT AltAzPos
 {
     AltAzPos();
 
-    AltAzPos(const Degrees& az, const Degrees& el);
-
+    AltAzPos(const math::units::Degrees& az, const math::units::Degrees& el);
 
     AltAzPos(const AltAzPos& pos) = default;
     AltAzPos(AltAzPos&& pos) = default;
@@ -129,10 +118,8 @@ struct LIBDPSLR_EXPORT AltAzPos
 
     //size_t serializedSize() const final
 
-
-
-    Degrees az;     ///< Azimuth of the altazimuth coordinate in degrees.
-    Degrees el;     ///< Altitude (elevation) of the altazimuth coordinate in degrees.
+    math::units::Degrees az;     ///< Azimuth of the altazimuth coordinate in degrees.
+    math::units::Degrees el;     ///< Altitude (elevation) of the altazimuth coordinate in degrees.
 };
 
 /// Alias for altaz corrections.
@@ -143,8 +130,6 @@ using AltAzPosV = std::vector<AltAzPos>;
 
 /// Alias for a vector of AltAzCorrection.
 using AltAzCorrectionV = std::vector<AltAzCorrection>;
-
-
 
 }}} // END NAMESPACES
 // =====================================================================================================================

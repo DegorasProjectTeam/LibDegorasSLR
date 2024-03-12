@@ -36,6 +36,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/Testing/unit_test/unit_test.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -43,6 +44,10 @@
 namespace dpslr{
 namespace testing{
 // =====================================================================================================================
+
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace timing::types;
+// ---------------------------------------------------------------------------------------------------------------------
 
 UnitTest &UnitTest::instance()
 {
@@ -82,8 +87,8 @@ bool UnitTest::runTests()
     std::cout<<"\033[38;2;255;128;0m"<<sep<<"=                                              ";
     std::cout<<"EXECUTING UNIT TEST SESSION                                             =\n";
     std::cout<<"\033[38;2;255;128;0m"<<sep;
-    auto now_t = timing::HRTimePointStd::clock::now();
-    std::string now_str = timing::timePointToIso8601(now_t, timing::TimeResolution::MILLISECONDS, true, false);
+    auto now_t = HRTimePointStd::clock::now();
+    std::string now_str = timing::timePointToIso8601(now_t, TimeResolution::MILLISECONDS, true, false);
     std::cout<<"\033[38;2;255;128;0m"<<"["<<now_str<<"]"<<"\033[038;2;0;210;0m";
     std::cout<<" Starting the session: "<<this->session_<<"\033[38;2;255;128;0m"<<std::endl;
 
@@ -105,31 +110,30 @@ bool UnitTest::runTests()
             long long elapsed = 0;
             bool result;
 
-            auto now_t = timing::HRTimePointStd::clock::now();
-            std::string now_str = timing::timePointToIso8601(now_t, timing::TimeResolution::MILLISECONDS, true, false);
+            auto now_t = HRTimePointStd::clock::now();
+            std::string now_str = timing::timePointToIso8601(now_t, TimeResolution::MILLISECONDS, true, false);
 
             // Log.
             std::cout<<"\033[38;2;255;128;0m"<<"["<<now_str<<"] "<<"\033[038;2;0;140;255m"
                       <<c_module << " | " << submodule << " | " << test->test_name_<<std::endl;
 
             // Async execution.
-            std::future<long long> future =
-                std::async(std::launch::async, [test, &result, this]()
-                           {
-                               // Configure the base test.
-                               test->setForceStreamData(this->force_show_results_);
-                               // Start time.
-                               auto start = std::chrono::steady_clock::now();
-                               // Run the test.
-                               test->runTest();
-                               // End time.
-                               auto stop = std::chrono::steady_clock::now();
-                               // Get the elapsed time.
-                               auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-                               // Store the result.
-                               result = test->result_;
-                               return duration.count();
-                           });
+            auto future = std::async(std::launch::async, [test, &result, this]()
+            {
+                // Configure the base test.
+                test->setForceStreamData(this->force_show_results_);
+                // Start time.
+                auto start = std::chrono::steady_clock::now();
+                // Run the test.
+                test->runTest();
+                // End time.
+                auto stop = std::chrono::steady_clock::now();
+                // Get the elapsed time.
+                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+                // Store the result.
+                result = test->result_;
+                return static_cast<long long>(duration.count());
+            });
 
             // Wait for the asynchronous task to complete.
             future.wait();
@@ -157,8 +161,8 @@ bool UnitTest::runTests()
     }
 
     // Log.
-    now_t = timing::HRTimePointStd::clock::now();
-    now_str = timing::timePointToIso8601(now_t, timing::TimeResolution::MILLISECONDS, true, false);
+    now_t = HRTimePointStd::clock::now();
+    now_str = timing::timePointToIso8601(now_t, TimeResolution::MILLISECONDS, true, false);
     std::cout<<"\033[38;2;255;128;0m"<<"["<<now_str<<"]";
     std::cout<<"\033[038;2;0;210;0m"<<" All registerted unit tests executed!"<<std::endl;
     std::cout<<"\033[38;2;255;128;0m"<<sep<<std::endl;
@@ -169,10 +173,6 @@ bool UnitTest::runTests()
     // Return the final result.
     return final_res;
 }
-
-
-
-
 
 void UnitTest::setForceShowResults(bool enable)
 {

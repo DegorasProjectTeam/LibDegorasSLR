@@ -49,7 +49,7 @@
 // LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================namespace dpslr{
 namespace dpslr{
-namespace utils{
+namespace slr{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -58,6 +58,9 @@ using namespace helpers::strings;
 using namespace math;
 using namespace math::units;
 using namespace math::types;
+using namespace geo::types;
+using namespace geo::meteo;
+using namespace timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorSlrBase::PredictorSlrBase(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :

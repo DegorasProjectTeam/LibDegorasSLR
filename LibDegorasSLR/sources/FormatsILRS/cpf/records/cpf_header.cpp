@@ -44,16 +44,17 @@
 #include <LibDegorasSLR/Timing/time_utils.h>
 // =====================================================================================================================
 
-// =====================================================================================================================
-using namespace dpslr::ilrs::common;
-// =====================================================================================================================
-
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace ilrs{
 namespace cpf{
 // =====================================================================================================================
+
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace common;
+using namespace timing::types;
+// ---------------------------------------------------------------------------------------------------------------------
 
 // --- CPF HEADER CONST EXPRESSIONS ------------------------------------------------------------------------------------
 const std::array<unsigned, 2> CPFHeader::CPFVersions {1, 2};  // Add new main versions here.
@@ -508,7 +509,7 @@ std::string CPFHeader::BasicInfo1Header::generateLine()
 
     // Get the creation time (UTC).
     std::tm *time;
-    timing::HRTimePointStd timepoint = timing::HRTimePointStd::clock::now();
+    HRTimePointStd timepoint = HRTimePointStd::clock::now();
     std::time_t datetime = std::chrono::system_clock::to_time_t(timepoint);
     time = std::gmtime(&datetime);
 

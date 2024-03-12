@@ -46,9 +46,6 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -56,18 +53,6 @@
 namespace dpslr{
 namespace astro{
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::J2000DateTime;
-using timing::types::J2000DateTimeV;
-using timing::types::MJDate;
-using timing::types::SoD;
-using timing::types::MJDateTime;
-using geo::types::GeodeticPoint;
-using math::units::MillisecondsU;
-using math::types::Vector3D;
-using astro::types::AltAzPos;
-// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief The PredictorSunFast class provides functionality to predict the position of the Sun using a fast algorithm.
@@ -84,7 +69,7 @@ public:
      * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
      * @param obs_geod The geodetic coordinates of the observer.
      */
-    PredictorSunFast(const GeodeticPoint<Degrees>& obs_geod);
+    PredictorSunFast(const geo::types::GeodeticPoint<math::units::Degrees>& obs_geod);
 
     M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunFast)
 
@@ -101,7 +86,7 @@ public:
      *
      * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
      */
-    PredictionSun predict(const J2000DateTime& j2000, bool refraction) const override;
+    PredictionSun predict(const timing::types::J2000DateTime& j2000, bool refraction) const override;
 
 };
 

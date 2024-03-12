@@ -45,17 +45,17 @@
 #include <LibDegorasSLR/Helpers/filedir_helpers.h>
 // =====================================================================================================================
 
-// =====================================================================================================================
-using namespace dpslr::ilrs::common;
-using namespace dpslr::timing::types;
-// =====================================================================================================================
-
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace ilrs{
 namespace cpf{
 // =====================================================================================================================
+
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace ilrs::common;
+using namespace timing::types;
+// ---------------------------------------------------------------------------------------------------------------------
 
 CPF::CPF(float version) :
     empty_(false)
@@ -143,11 +143,11 @@ math::types::Interval<long double> CPF::getAvailableTimeInterval() const
     if (!this->empty_)
     {
         // Get the start time.
-        timing::MJDateTime mjdt_start(
+        MJDateTime mjdt_start(
             this->getData().positionRecords().front().mjd,
             this->getData().positionRecords().front().sod);
         // Get the stop time.
-        timing::MJDateTime mjdt_stop(
+        MJDateTime mjdt_stop(
             this->getData().positionRecords().back().mjd,
             this->getData().positionRecords().back().sod);
         // Update the interval.
@@ -195,7 +195,7 @@ std::string CPF::getStandardFilename(TargetIdOptionEnum option) const
     filename.append("_cpf_");
 
     // Append the starting date of the pass from H4.
-    std::time_t time = timing::HRTimePointStd::clock::to_time_t(this->header_.basicInfo2Header()->start_time);
+    std::time_t time = HRTimePointStd::clock::to_time_t(this->header_.basicInfo2Header()->start_time);
     std::tm* tm = gmtime(&time);
     char start_date[7];
     std::strftime(start_date, 7, "%y%m%d", tm);

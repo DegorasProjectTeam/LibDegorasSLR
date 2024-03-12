@@ -51,11 +51,6 @@ namespace dpslr{
 namespace stats{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using math::types::Matrix;
-using math::types::Vector3D;
-// ---------------------------------------------------------------------------------------------------------------------
-
 /**
  * @brief Performs Lagrange polynomial interpolation on the given data points and degree.
  *
@@ -73,20 +68,14 @@ using math::types::Vector3D;
  * @return The LagrangeError indicating the result of the interpolation.
  */
 template <typename T, typename U>
-typename std::enable_if_t<
-    (std::is_floating_point_v<T> || helpers::types::is_strong_float<T>::value) &&
-        (std::is_floating_point_v<U> || helpers::types::is_strong_float<U>::value),
-    types::LagrangeError>
-lagrangeInterpol(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, const T& x_interp,
-                 std::vector<U>& y_interp);
+typename std::enable_if_t<helpers::traits::both_floating_v<T,U>, types::LagrangeError>
+lagrangeInterpol(const std::vector<T>& x, const math::types::Matrix<U>& Y, unsigned degree,
+                 const T& x_interp, std::vector<U>& y_interp);
 
 template <typename T, typename U>
-typename std::enable_if_t<
-    (std::is_floating_point_v<T> || helpers::types::is_strong_float<T>::value) &&
-    (std::is_floating_point_v<U> || helpers::types::is_strong_float<U>::value),
-    types::LagrangeError>
-lagrangeInterpol3DVec(const std::vector<T>& x, const Matrix<T>& Y, unsigned degree, const T& x_interp,
-                      Vector3D<U>& y_interp);
+typename std::enable_if_t<helpers::traits::both_floating_v<T,U>, types::LagrangeError>
+lagrangeInterpol3DVec(const std::vector<T>& x, const math::types::Matrix<U>& Y, unsigned degree,
+                      const T& x_interp, math::types::Vector3D<U>& y_interp);
 
 /**
  * @brief Computes the robust bisquare weights (Tukey bisquare) for robust regression or outlier detection.

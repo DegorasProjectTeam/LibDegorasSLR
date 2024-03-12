@@ -51,43 +51,11 @@
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 // =====================================================================================================================
 
-// DEFINITIONS
-// =====================================================================================================================
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#define MKGMTIME _mkgmtime
-#else
-#define MKGMTIME timegm
-#endif
-// =====================================================================================================================
-
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace timing{
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::Iso8601Str;
-using timing::types::HRClock;
-using timing::types::HRTimePointStd;
-using timing::types::TimeResolution;
-using timing::types::Windows32Ticks;
-
-
-using timing::types::JDate;
-using timing::types::MJDate;
-using timing::types::J2000Date;
-using timing::types::J2000DateTime;
-
-using timing::types::DayFraction;
-using timing::types::SoD;
-
-
-using dpslr::timing::types::JDateTime;
-using dpslr::timing::types::MJDateTime;
-using dpslr::timing::types::RJDateTime;
-
-// ---------------------------------------------------------------------------------------------------------------------
 
 // HELPER FUNCTIONS
 //======================================================================================================================
@@ -137,9 +105,9 @@ LIBDPSLR_EXPORT long long daysFromCivil(int y, unsigned m, unsigned d);
  *
  * @throws std::runtime_error If there's an error during formatting.
  */
-LIBDPSLR_EXPORT std::string timePointToString(const HRTimePointStd& tp,
+LIBDPSLR_EXPORT std::string timePointToString(const types::HRTimePointStd& tp,
                                               const std::string& format = "%Y-%m-%dT%H:%M:%S",
-                                              TimeResolution resolution = TimeResolution::MILLISECONDS,
+                                              types::TimeResolution resolution = types::TimeResolution::MILLISECONDS,
                                               bool utc = true, bool rm_trailing_zeros = true);
 
 /**
@@ -163,14 +131,14 @@ LIBDPSLR_EXPORT std::string timePointToString(const HRTimePointStd& tp,
  *
  * @throws std::runtime_error If there's an error during formatting.
  */
-LIBDPSLR_EXPORT Iso8601Str timePointToIso8601(const HRTimePointStd& tp,
-                                              TimeResolution resolution = TimeResolution::MILLISECONDS,
-                                              bool utc = true, bool rm_trailing_zeros = true);
+LIBDPSLR_EXPORT types::Iso8601Str timePointToIso8601(const types::HRTimePointStd& tp,
+                                        types::TimeResolution resolution = types::TimeResolution::MILLISECONDS,
+                                        bool utc = true, bool rm_trailing_zeros = true);
 
 
-LIBDPSLR_EXPORT Iso8601Str modifiedJulianDateTimeToIso8601(const MJDateTime &mjdt,
-                                                           TimeResolution resolution = TimeResolution::MILLISECONDS,
-                                                           bool utc = true, bool rm_trailing_zeros = true);
+LIBDPSLR_EXPORT types::Iso8601Str modifiedJulianDateTimeToIso8601(const types::MJDateTime& mjdt,
+                                        types::TimeResolution resolution = types::TimeResolution::MILLISECONDS,
+                                        bool utc = true, bool rm_trailing_zeros = true);
 
 /**
  * @brief Generates the current date and time as a string formatted according to ISO 8601.
@@ -192,7 +160,7 @@ LIBDPSLR_EXPORT Iso8601Str modifiedJulianDateTimeToIso8601(const MJDateTime &mjd
  * the output string does not include timezone information, and users must be aware of
  * the local timezone context.
  */
-LIBDPSLR_EXPORT std::string currentISO8601Date(TimeResolution resolution = TimeResolution::MILLISECONDS,
+LIBDPSLR_EXPORT std::string currentISO8601Date(types::TimeResolution resolution = types::TimeResolution::MILLISECONDS,
                                                bool utc = true, bool rm_trailing_zeros = true);
 
 /**
@@ -263,7 +231,7 @@ LIBDPSLR_EXPORT std::string secondsToISO8601Duration(const std::chrono::seconds&
  * @warning This function uses regular expressions, which may not be fully supported or performant on some older
  * compiler versions. Ensure compatibility with your compiler's regex implementation when using this function.
  */
-LIBDPSLR_EXPORT HRTimePointStd iso8601DatetimeToTimePoint(const Iso8601Str& datetime);
+LIBDPSLR_EXPORT types::HRTimePointStd iso8601DatetimeToTimePoint(const types::Iso8601Str& datetime);
 
 //======================================================================================================================
 
@@ -289,7 +257,7 @@ LIBDPSLR_EXPORT HRTimePointStd iso8601DatetimeToTimePoint(const Iso8601Str& date
  *
  * @see common::kNsPerWin32Tick, common::kWin32EpochToPosixEpoch for constants used in conversions.
  */
-LIBDPSLR_EXPORT HRTimePointStd win32TicksToTimePoint(Windows32Ticks ticks);
+LIBDPSLR_EXPORT types::HRTimePointStd win32TicksToTimePoint(types::Windows32Ticks ticks);
 
 /**
  * @brief Converts a HRTimePointStd to Julian Datetime with precision up to milliseconds.
@@ -318,7 +286,7 @@ LIBDPSLR_EXPORT HRTimePointStd win32TicksToTimePoint(Windows32Ticks ticks);
  *
  * @see julianDatetimeToTimePoint for the reverse conversion.
  */
-LIBDPSLR_EXPORT JDateTime timePointToJulianDateTime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT types::JDateTime timePointToJulianDateTime(const types::HRTimePointStd &tp);
 
 /**
  * @brief Converts JDateTime to a HRTimePointStd with precision up to milliseconds.
@@ -393,17 +361,17 @@ LIBDPSLR_EXPORT JDateTime timePointToJulianDateTime(const HRTimePointStd &tp);
  * @see timePointToJulianDate(const HRTimePointStd &tp, DayFraction& fraction) for a version of this function that
  *      also returns the fractional part of the Julian day.
  */
-LIBDPSLR_EXPORT JDateTime timePointToJulianDateTime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT types::JDateTime timePointToJulianDateTime(const types::HRTimePointStd &tp);
 
 
-LIBDPSLR_EXPORT MJDateTime timePointToModifiedJulianDateTime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT types::MJDateTime timePointToModifiedJulianDateTime(const types::HRTimePointStd &tp);
 
 
-LIBDPSLR_EXPORT J2000DateTime timePointToJ2000DateTime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT types::J2000DateTime timePointToJ2000DateTime(const types::HRTimePointStd &tp);
 
 
 
-LIBDPSLR_EXPORT HRTimePointStd julianDateTimeToTimePoint(const JDateTime& jdt);
+LIBDPSLR_EXPORT types::HRTimePointStd julianDateTimeToTimePoint(const types::JDateTime& jdt);
 
 
 
@@ -413,12 +381,12 @@ LIBDPSLR_EXPORT HRTimePointStd julianDateTimeToTimePoint(const JDateTime& jdt);
  * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
  * @return A TimePoint.
  */
-LIBDPSLR_EXPORT HRTimePointStd modifiedJulianDateTimeToTimePoint(const MJDateTime &mjdt);
+LIBDPSLR_EXPORT types::HRTimePointStd modifiedJulianDateTimeToTimePoint(const types::MJDateTime &mjdt);
 
 
 
 
-LIBDPSLR_EXPORT J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDateTime &mjdt);
+LIBDPSLR_EXPORT types::J2000DateTime modifiedJulianDateToJ2000DateTime(const types::MJDateTime &mjdt);
 
 /**
  * @brief Convert a modified julian datetime to a J2000 datetime
@@ -453,7 +421,7 @@ LIBDPSLR_EXPORT J2000DateTime modifiedJulianDateToJ2000DateTime(const MJDateTime
 
 
 // TLE time (year and fractional point) to C++ time point.
-LIBDPSLR_EXPORT HRTimePointStd tleDateToTimePoint(unsigned int cent_year, long double day_with_fract);
+LIBDPSLR_EXPORT types::HRTimePointStd tleDateToTimePoint(unsigned int cent_year, long double day_with_fract);
 
 
 
@@ -466,7 +434,7 @@ LIBDPSLR_EXPORT HRTimePointStd tleDateToTimePoint(unsigned int cent_year, long d
 
 
 
-LIBDPSLR_EXPORT long double timePointToSecsDay(const HRTimePointStd& tp);
+LIBDPSLR_EXPORT long double timePointToSecsDay(const types::HRTimePointStd& tp);
 
 
 
@@ -557,7 +525,7 @@ LIBDPSLR_EXPORT void ydtomd(int year, unsigned int yday, unsigned int& month, un
 
 
 // C++ time point to TLE date (year and fractional day).
-LIBDPSLR_EXPORT void timePointToTLEDate(const HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
+LIBDPSLR_EXPORT void timePointToTLEDate(const types::HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
 
 //======================================================================================================================
 

@@ -43,8 +43,9 @@ project(_)
 
 # Set path to additional CMake modules.
 set(CMAKE_MODULE_PATH
-    ${CMAKE_SOURCE_DIR}/CMakeModules ${CMAKE_MODULE_PATH}
-    ${CMAKE_SOURCE_DIR}/CMakeLibsConfig ${CMAKE_MODULE_PATH})
+    ${CMAKE_MODULE_PATH}
+    ${CMAKE_SOURCE_DIR}/CMakeModules
+    ${CMAKE_SOURCE_DIR}/CMakeLibsConfig)
 
 # Init CMake modules.
 include(CMakeMacrosGlobals)
@@ -88,7 +89,7 @@ set(LIB_SOURCES_DIR ${CMAKE_SOURCE_DIR}/sources)
 
 # Configure the LibNovasCPP package.
 include(ConfigLibNovasCpp)
-macro_configure_libnovascpp_default("3.1" EXACT "" "")
+macro_configure_libnovascpp_default("3.1.1" EXACT "" "")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # SETUP THE SHARED LIBRARY

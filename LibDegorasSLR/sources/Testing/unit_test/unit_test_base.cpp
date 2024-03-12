@@ -54,32 +54,40 @@ void UnitTestBase::runTest(){}
 
 bool UnitTestBase::forceFail()
 {
+    std::cout<<"                           ";
+    std::cout<<"- Force test fail"<<std::endl;
     this->updateCheckResults(false);
     return false;
 }
 
 bool UnitTestBase::forcePass()
 {
+    std::cout<<"                           ";
+    std::cout<<"- Force test pass"<<std::endl;
     this->updateCheckResults(true);
     return false;
 }
 
 bool UnitTestBase::expectTrue(bool result)
 {
-    std::cout<<"                           - Expecting true result"<<std::endl;
+    std::cout<<"                           ";
+    std::cout<<"- Expecting true result"<<std::endl;
     this->updateCheckResults(result);
     return result;
 }
 
 bool UnitTestBase::expectFalse(bool result)
 {
-    std::cout<<"                           - Expecting false result"<<std::endl;
+    std::cout<<"                           ";
+    std::cout<<"- Expecting false result"<<std::endl;
     this->updateCheckResults(!result);
     return !result;
 }
 
 bool UnitTestBase::expectEQ(const std::string &str1, const std::string &str2)
 {
+    std::cout<<"                           ";
+    std::cout<<"- Comparing strings equality"<<std::endl;
     bool result = (str1 == str2);
     this->updateCheckResults(result, str1, str2);
     return result;
@@ -87,6 +95,8 @@ bool UnitTestBase::expectEQ(const std::string &str1, const std::string &str2)
 
 bool UnitTestBase::expectEQ(const char *str1, const char *str2)
 {
+    std::cout<<"                           ";
+    std::cout<<"- Comparing chars equality"<<std::endl;
     bool result = (std::string(str1) == std::string(str2));
     this->updateCheckResults(result, str1, str2);
     return result;

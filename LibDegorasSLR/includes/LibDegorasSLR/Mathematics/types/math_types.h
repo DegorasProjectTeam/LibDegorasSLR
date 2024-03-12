@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -25,9 +29,8 @@
 /** ********************************************************************************************************************
  * @file math_types.h
  * @author Degoras Project Team.
- * @brief This file contains several mathematical definitions.
+ * @brief
  * @copyright EUPL License
- * @version 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -41,22 +44,42 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/helpers/types/type_traits.h>
+#include <LibDegorasSLR/helpers/type_traits.h>
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace math{
 namespace types{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using helpers::types::TypeSigns;
-// ---------------------------------------------------------------------------------------------------------------------
+/**
+ * @brief Provides signed and unsigned type equivalents for a given type T.
+ *
+ * This struct template generates type aliases for both the signed and unsigned versions of a given integral type T.
+ * It is intended to be used in contexts where you need to explicitly work with both the signed and unsigned variants
+ * of a numeric type.
+ *
+ * @tparam T The base type for which signed and unsigned versions are to be derived.
+ */
+template <typename T>
+struct TypeSigns
+{
+    using SignedT = typename std::make_signed<T>::type;
+    using UnsignedT = typename std::make_unsigned<T>::type;
+};
 
-// Strcut for storing the euclidean division result.
-template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+/**
+ * @brief Stores the result of an euclidean division, including quotient and remainder.
+ *
+ * This struct extends TypeSigns<T> to include two members, q and r, which represent the quotient and remainder of
+ * an euclidean division, respectively. The quotient is stored as a signed type, and the remainder is stored as an
+ * unsigned type. This struct is constrained to be used only with numeric types.
+ *
+ * @tparam T The base numeric type for the division.
+ */
+template <typename T, typename = typename std::enable_if<helpers::traits::is_numeric_v<T>>::type>
 struct EuclideanDivResult : public TypeSigns<T>
 {
     typename TypeSigns<T>::SignedT q;

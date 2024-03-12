@@ -9,6 +9,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/Testing/unit_test/unit_test_summary.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR INCLUDES
@@ -50,7 +51,7 @@ void UnitTestSummary::makeSummary(bool force_show) const
     std::string keys_str = "= Modules:  " + helpers::strings::join(keys, " | ");
     std::string filename = this->session_;
     std::string date_file = timing::timePointToString(std::chrono::high_resolution_clock::now(),
-                                                      "%Y%m%d_%H%M%S", timing::TimeResolution::SECONDS);
+                                                      "%Y%m%d_%H%M%S", timing::types::TimeResolution::SECONDS);
     filename = helpers::strings::replaceStr(filename, " ", "-");
     filename = helpers::strings::replaceStr(filename, ":", "");
     filename = helpers::strings::replaceStr(filename, "_", "-");

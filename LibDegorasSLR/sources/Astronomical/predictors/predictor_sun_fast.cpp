@@ -53,12 +53,13 @@ namespace astro{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace timing::types;
+using namespace geo::types;
+using namespace math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorSunFast::PredictorSunFast(const geo::types::GeodeticPoint<Degrees> &obs_geod) :
+dpslr::astro::PredictorSunFast::PredictorSunFast(const GeodeticPoint<Degrees> &obs_geod) :
     PredictorSunBase(obs_geod)
-{
-}
+{}
 
 PredictionSun PredictorSunFast::predict(const J2000DateTime& j2000, bool refraction) const
 {
@@ -117,8 +118,6 @@ PredictionSun PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
     // Retur the final position.
     return prediction;
 }
-
-
 
 }} // END NAMESPACES
 // =====================================================================================================================

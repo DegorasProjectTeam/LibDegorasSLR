@@ -38,14 +38,13 @@
 //======================================================================================================================
 #include <array>
 #include <string>
-#include <vector>
 // =====================================================================================================================
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 // =====================================================================================================================
@@ -143,13 +142,13 @@ public:
     {
         // Members and functions.
 
-        float cpf_version;                              ///< CPF version. We store the subversion, for example 2.1
-        std::string cpf_source;                         ///< Ephemeris source.
-        timing::HRTimePointStd cpf_production_date;     ///< File production date. Will update if we call generate line.
-        std::string target_name;                        ///< Target name from official ILRS list.
-        std::string cpf_notes;                          ///< Notes with NO SPACES.
-        int cpf_sequence_number;                        ///< Ephemeris sequence number.
-        int cpf_subsequence_number;                     ///< Ephemeris sub-daily sequence number.               [For v2]
+        float cpf_version;                                  ///< CPF version. We store the subversion, for example 2.1
+        std::string cpf_source;                             ///< Ephemeris source.
+        timing::types::HRTimePointStd cpf_production_date;  ///< File production date (update if we generate the line).
+        std::string target_name;                            ///< Target name from official ILRS list.
+        std::string cpf_notes;                              ///< Notes with NO SPACES.
+        int cpf_sequence_number;                            ///< Ephemeris sequence number.
+        int cpf_subsequence_number;                         ///< Ephemeris sub-daily sequence number.           [For v2]
 
         /**
          * @brief Generate the line for this record. Also regenerate the cpf_production_date.
@@ -169,8 +168,8 @@ public:
         std::string id;                                 ///< It is always ILRS ID, based on COSPAR ID.
         Optional<std::string> sic;                      ///< SIC provided by ILRS. Set to -1 if target has no SIC.
         std::string norad;                              ///< NORAD ID.
-        timing::HRTimePointStd start_time;              ///< Ephemeris start time.
-        timing::HRTimePointStd end_time;                ///< Ephemeris end time.
+        timing::types::HRTimePointStd start_time;       ///< Ephemeris start time.
+        timing::types::HRTimePointStd end_time;         ///< Ephemeris end time.
         std::chrono::seconds total_seconds;             ///< TODO: what is this? non-standard.
         std::chrono::seconds time_between_entries;      ///< Time between two table entries in seconds. 0 if variable.
         bool tiv_compatible;                            ///< Compatible with TIVs.

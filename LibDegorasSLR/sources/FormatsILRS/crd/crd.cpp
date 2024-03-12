@@ -57,12 +57,16 @@ namespace ilrs{
 namespace crd{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace timing::types;
+// ---------------------------------------------------------------------------------------------------------------------
+
 CRD::CRD(float version):
     empty_(false)
 {
     // Set the version and creation time at Format Header
     this->header.formatHeader()->crd_version = version;
-    this->header.formatHeader()->crd_production_date = timing::HRTimePointStd::clock::now();
+    this->header.formatHeader()->crd_production_date = HRTimePointStd::clock::now();
 }
 
 CRD::CRD(const std::string &crd_filepath, OpenOption option)

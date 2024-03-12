@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -27,7 +31,6 @@
  * @brief This file contains the declaration of several astronomical functions from NOVAS software.
  * @author C version: U.S. Naval Observatory - C++ revamp: Degoras Project Team
  * @copyright EUPL License
- * @version 2307.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -51,15 +54,8 @@
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
-// =====================================================================================================================
-
-// NAMESPACES
-// =====================================================================================================================
-using novas::make_on_surface;
-using novas::make_cat_entry;
-using novas::on_surface;
-using novas::cat_entry;
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Timing/types/datetime_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -69,36 +65,26 @@ namespace astro{
 namespace novas{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using math::units::Degrees;
-// ---------------------------------------------------------------------------------------------------------------------
-
-
-LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
-                                    const geo::types::SurfaceLocation<Degrees> &loc,
-                                    const timing::types::HRTimePointStd &tp,
-                                    types::AltAzPos &pos,
+LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
+                                    const geo::types::SurfaceLocation<math::units::Degrees>& loc,
+                                    const timing::types::HRTimePointStd& tp,
+                                    types::AltAzPos& pos,
                                     int leap_secs = 0,
                                     double ut1_utc_diff = 0);
 
-LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star &star,
-                                    const geo::types::SurfaceLocation<Degrees> &loc,
-                                    const timing::types::JDateTime &jdt,
-                                    types::AltAzPos &pos,
+LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
+                                    const geo::types::SurfaceLocation<math::units::Degrees>& loc,
+                                    const timing::types::JDateTime& jdt,
+                                    types::AltAzPos& pos,
                                     int leap_secs = 0,
                                     double ut1_utc_diff = 0);
 
-LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::SurfaceLocation<Degrees> &loc);
+LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::SurfaceLocation<math::units::Degrees>& loc);
 
-LIBDPSLR_EXPORT on_surface makeOnSurface(const geo::types::GeodeticPoint<Degrees>& geod,
-                                         const geo::types::MeteoData& meteo);
+LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::GeodeticPoint<math::units::Degrees>& geod,
+                                                  const geo::types::MeteoData& meteo);
 
-LIBDPSLR_EXPORT int makeCatEntry(const astro::types::Star &star, cat_entry &entry);
-
-// TODO make cat entry de novas recibiendo una estructura "start" de libdegorasslr (TODO)
-
-// Wrapper equ2hor utilizando nuestros tiempos (internamente se utilizara jd_ut1).
-
+LIBDPSLR_EXPORT int makeCatEntry(const astro::types::Star& star, ::novas::cat_entry& entry);
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

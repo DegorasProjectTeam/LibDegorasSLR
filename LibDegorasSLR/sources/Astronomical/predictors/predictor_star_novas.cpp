@@ -51,7 +51,11 @@ namespace astro{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
+using namespace novas;
 using namespace timing::types;
+using namespace astro::types;
+using namespace geo::types;
+using namespace math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<Degrees> &loc,
@@ -64,8 +68,7 @@ PredictionStar PredictorStarNovas::predict(const timing::types::JDateTime &jdt) 
     PredictionStar pred;
     pred.jdt = jdt;
 
-    astro::novas::getStarAltAzPos(this->star_, this->loc_, jdt, pred.altaz_coord,
-                                  this->leap_secs_, this->ut1_utc_diff_);
+    novas::getStarAltAzPos(this->star_, this->loc_, jdt, pred.altaz_coord, this->leap_secs_, this->ut1_utc_diff_);
 
     return pred;
 }

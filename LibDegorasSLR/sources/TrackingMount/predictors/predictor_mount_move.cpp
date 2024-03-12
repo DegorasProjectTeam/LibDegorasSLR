@@ -41,6 +41,7 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_init.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 #include "LibDegorasSLR/TrackingMount/predictors/predictor_mount_move.h"
 // =====================================================================================================================
 
@@ -53,7 +54,9 @@ namespace mount{
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace timing::types;
 using namespace astro::types;
-using math::units::Milliseconds;
+using namespace math::types;
+using namespace math::units;
+using namespace astro;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorMountMove::PredictorMountMove(MovePositionV positions,
@@ -123,7 +126,7 @@ PositionStatus PredictorMountMove::predict(const HRTimePointStd &tp_time, MountP
     }
 
     // Calculates the Sun position.
-    J2000DateTime j2000 = dpslr::timing::timePointToJ2000DateTime(tp_time);
+    J2000DateTime j2000 = timing::timePointToJ2000DateTime(tp_time);
     PredictionSun sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
 
     AltAzPos interp_pos = this->interpPos(tp_time);

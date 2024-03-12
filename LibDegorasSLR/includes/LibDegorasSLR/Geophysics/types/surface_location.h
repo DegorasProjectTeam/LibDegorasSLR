@@ -59,25 +59,17 @@ namespace geo{
 namespace types{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using math::units::Degrees;
-using math::units::Radians;
-// ---------------------------------------------------------------------------------------------------------------------
-
 template <typename AngleType,
          typename = typename std::enable_if<
-         std::is_same<AngleType, Degrees>::value ||
-         std::is_same<AngleType, Radians>::value>::type>
+         std::is_same<AngleType, math::units::Degrees>::value ||
+         std::is_same<AngleType, math::units::Radians>::value>::type>
 struct LIBDPSLR_EXPORT SurfaceLocation
 {
-    SurfaceLocation(const SurfaceLocation&) = default;
-    SurfaceLocation(SurfaceLocation&&) = default;
-    SurfaceLocation& operator=(const SurfaceLocation&) = default;
-    SurfaceLocation& operator=(SurfaceLocation&&) = default;
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(SurfaceLocation)
 
     MeteoData meteo;
     GeodeticPoint<AngleType> geodetic;
-    GeocentricPoint geocentric;  ///<
+    GeocentricPoint geocentric;
 };
 
 }}} // END NAMESPACES.

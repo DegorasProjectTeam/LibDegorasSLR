@@ -52,6 +52,9 @@ namespace astro{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace timing::types;
+using namespace geo::types;
+using namespace astro::types;
+using namespace math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
 dpslr::astro::PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
@@ -71,7 +74,7 @@ StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDa
 
     // Check for valid time interval.
     if(!(jdt_start <= jdt_end))
-        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
+        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorStarBase::predict] Invalid interval.");
 
     // Calculates all the interpolation times.
     interp_times = JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);

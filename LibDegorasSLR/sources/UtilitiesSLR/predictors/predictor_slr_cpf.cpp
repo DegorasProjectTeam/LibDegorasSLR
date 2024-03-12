@@ -51,16 +51,16 @@
 // LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================namespace dpslr{
 namespace dpslr{
-namespace utils{
+namespace slr{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace astro;
 using namespace helpers::strings;
-using namespace math;
 using namespace math::units;
 using namespace math::types;
-using stats::lagrangeInterpol3DVec;
+using namespace geo::types;
+using namespace timing::types;
+using namespace ilrs::cpf;
 // ---------------------------------------------------------------------------------------------------------------------
 
 const std::array<std::string, 10> PredictorSlrCPF::PredictorErrorStr =
@@ -110,11 +110,11 @@ bool PredictorSlrCPF::setCPF(const std::string &cpf_path)
     // Auxiliar variables.
     MJDate mjd_start = this->cpf_.getData().positionRecords().front().mjd;
     SoD sod_start = this->cpf_.getData().positionRecords().front().sod;
-    long double s_lon = this->getGeodeticLocation<Radians>().lon;
-    long double s_lat = this->getGeodeticLocation<Radians>().lat;
+    Radians s_lon = this->getGeodeticLocation<Radians>().lon;
+    Radians s_lat = this->getGeodeticLocation<Radians>().lat;
 
     // Rotation matrices.
-    Matrix<long double> rot_long, rot_lat, rot_long_pi;
+    Matrix<Meters> rot_long, rot_lat, rot_long_pi;
 
     // Get position records and position times for interpolation calculations.
     for (const auto& pos_record : this->cpf_.getData().positionRecords())
@@ -125,14 +125,14 @@ bool PredictorSlrCPF::setCPF(const std::string &cpf_path)
     }
 
     // Prepare the identity matrix.
-    this->rotm_topo_local_ = Matrix<long double>::I(3);
+    this->rotm_topo_local_ = Matrix<Meters>::I(3);
 
     // Computation of rotation matrices.
     // Rotations: rot_long around longitude, rot_lat around pi/2-latitude, rot_long_pi around pi
-    math::euclid3DRotMat(3, s_lon, rot_long);
-    math::euclid3DRotMat(2, static_cast<long double>(kPi/2) - s_lat, rot_lat);
-    math::euclid3DRotMat(3, static_cast<long double>(kPi), rot_long_pi);
-    this->rotm_topo_local_ *= rot_long * rot_lat * rot_long_pi;
+    this->rotm_topo_local_.euclidian3DRotation(3, s_lon);
+    this->rotm_topo_local_.euclidian3DRotation(2, static_cast<long double>(math::kPi/2) - s_lat);
+    this->rotm_topo_local_.euclidian3DRotation(3, static_cast<long double>(math::kPi));
+    //this->rotm_topo_local_ *= rot_long * rot_lat * rot_long_pi;
 
     // All ok.
     return true;
@@ -272,7 +272,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     Matrix<Meters> rotatedm_topo_s_o_outbound;
 
     // Rotation and rotated matrices for the Earth rotation.
-    Matrix<long double> rotm_earth_rotation;
+    Matrix<Meters> rotm_earth_rotation;
     Matrix<Meters> rotatedm_earth;
 
     // Topocentric-horizon vectors (SEZ).
@@ -309,7 +309,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
     // Generate the relative times.
     long long day_relative = mjdt.date() - this->cpf_.getData().positionRecords().front().mjd;
-    x_instant = (day_relative*kSecsSolDay) + mjdt.sod() - this->cpf_.getData().positionRecords().front().sod;
+    x_instant = (day_relative*astro::kSecsSolDay) + mjdt.sod() - this->cpf_.getData().positionRecords().front().sod;
 
     // Check if the interpolation times are valid in the cpf data interval.
     if((x_instant - kTMargin)   < 0 || (x_instant + kTMargin) > this->pos_times_.back())
@@ -343,7 +343,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.instant_range.mjdt = mjdt;
     result.instant_range.geo_pos = y_instant;
     result.instant_range.range_1w = prov_range_1w;
-    result.instant_range.tof_2w = 2*result.instant_range.range_1w/kC;
+    result.instant_range.tof_2w = 2*result.instant_range.range_1w/astro::kC;
 
     // WARNING: At this point, <range_1w_instant> only include the system delay correction, but in the result container
     // <PredictionResult> the range include the eccentricity corrections and the systematic errors.
@@ -387,7 +387,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.instant_data.value().altaz_coord.az = az_instant;
     result.instant_data.value().altaz_coord.el = el_instant;
     result.instant_data.value().range_1w = prov_range_1w;
-    result.instant_data.value().tof_2w = 2*result.instant_data.value().range_1w/kC;
+    result.instant_data.value().tof_2w = 2*result.instant_data.value().range_1w/astro::kC;
 
     // If the mode is only instant vector, return here.
     if (this->getPredictionMode() == PredictionMode::INSTANT_VECTOR)
@@ -408,7 +408,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.outbound_data.emplace();
 
     // Calculate the time to reach the satellite.
-    aux_tof_1w = range_1w_instant/kC;
+    aux_tof_1w = range_1w_instant/astro::kC;
 
     // Prepare the matrix to rotate the ECEF coordinate system (with the rotation of the Earth).
     rotatedm_earth.pushBackRow(this->getGeocentricLocation().toStdVector());
@@ -434,12 +434,12 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         range_1w_outbound = topo_s_o_outbound.magnitude();
 
         // Outbound flight time (sec)
-        aux_tof_1w = range_1w_outbound/kC;
+        aux_tof_1w = range_1w_outbound/astro::kC;
 
         // Rotate station during flight time (radians)
-        earth_rot_angle = kEarthRotSolDay * (aux_tof_1w/kSecsSolDay);
-        math::euclid3DRotMat(3, earth_rot_angle, rotm_earth_rotation);
-        rotatedm_earth *= rotm_earth_rotation;
+        earth_rot_angle = astro::kEarthRotSolDay * (aux_tof_1w/astro::kSecsSolDay);
+        rotatedm_earth.euclidian3DRotation(3, earth_rot_angle);
+        //rotatedm_earth *= rotm_earth_rotation;
     }
 
     // WARNING: At this moment, we have the station and the satellite both at the bounce time moment. This is a good
@@ -461,7 +461,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     az_outbound = radToDegree(atan2l(-topo_s_o_local_outbound[1], topo_s_o_local_outbound[0]));
 
     // Check 90 degrees elevation case (pag 263 fundamental of astrodinamic and applications A. Vallado).
-    if(compareFloating(el_outbound, Degrees(90.0L)) == 0)
+    if(math::compareFloating(el_outbound, Degrees(90.0L)) == 0)
         el_outbound -= 0.0001L;
 
     // Check the negative azimuth case.
@@ -494,7 +494,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     result.outbound_data.value().altaz_coord.el = el_outbound;
     result.outbound_data.value().geo_pos = y_outbound;
     result.outbound_data.value().range_1w = range_1w_average;
-    result.outbound_data.value().tof_2w = 2 * result.outbound_data->range_1w/kC;
+    result.outbound_data.value().tof_2w = 2 * result.outbound_data->range_1w/astro::kC;
 
     // coger del xbound relativo y pasarlo a mjd mjdt y seconds.
     result.outbound_data.value().mjdt = mjdt;

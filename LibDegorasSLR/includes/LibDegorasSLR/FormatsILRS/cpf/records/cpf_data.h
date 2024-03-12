@@ -39,7 +39,6 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <array>
 #include <string>
 #include <vector>
 // =====================================================================================================================
@@ -61,16 +60,6 @@
 namespace dpslr{
 namespace ilrs{
 namespace cpf{
-// =====================================================================================================================
-
-// =====================================================================================================================
-using geo::types::GeocentricPoint;
-using geo::types::GeocentricVelocity;
-using timing::types::MJDate;
-using timing::types::SoD;
-using math::types::Vector3D;
-using math::units::Meters;
-using math::units::Nanoseconds;
 // =====================================================================================================================
 
 // CPF DATA
@@ -120,11 +109,11 @@ public:
     struct PositionRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;     ///< Direction flag.
-        MJDate mjd;                 ///< Modified Julian Date.
-        SoD sod;                    ///< Second of day (UTC).
-        int leap_second;            ///< Leap second flag (0 or the value of new leap second).
-        GeocentricPoint geo_pos;    ///< Object geocentric position in meters (x, y, z).
+        DirectionFlag dir_flag;                ///< Direction flag.
+        timing::types::MJDate mjd;             ///< Modified Julian Date.
+        timing::types::SoD sod;                ///< Second of day (UTC).
+        int leap_second;                       ///< Leap second flag (0 or the value of new leap second).
+        geo::types::GeocentricPoint geo_pos;   ///< Object geocentric position in meters (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -141,8 +130,8 @@ public:
     struct VelocityRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;        ///< Direction flag.
-        GeocentricVelocity geo_vel;    ///< Geocentric velocity in m/s (x, y, z).
+        DirectionFlag dir_flag;                    ///< Direction flag.
+        geo::types::GeocentricVelocity geo_vel;    ///< Geocentric velocity in m/s (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -159,9 +148,9 @@ public:
     struct CorrectionsRecord : common::ConsolidatedRecord
     {
         // Members.
-        DirectionFlag dir_flag;                     ///<< Direction flag.
-        Vector3D<Meters> aberration_correction;     ///<< Stellar aberration correction in meters (x, y, z).
-        Nanoseconds range_correction;               ///<< Relativistic range correction in nanoseconds (positive).
+        DirectionFlag dir_flag; ///<< Direction flag.
+        math::types::Vector3D<math::units::Meters> aberration_correction; ///<< Stellar aberration correction (meters).
+        math::units::Nanoseconds range_correction; ///<< Relativistic range correction in nanoseconds (positive).
 
         /**
          * @brief Generate the line for this record.

@@ -47,8 +47,6 @@
 namespace dpslr{
 // =====================================================================================================================
 
-static long double kFloatingCompEpsilon = 0.000000001L;
-
 class LIBDPSLR_EXPORT DegorasInit
 {
 
@@ -58,11 +56,6 @@ public:
     {
         int n_th = n == 0 ? omp_get_max_threads() : n;
         omp_set_num_threads(n_th);
-    }
-
-    static void setFloatingComparationEpsilon(long double epsilon = 0.000000001L)
-    {
-        kFloatingCompEpsilon = epsilon;
     }
 
     static void init()

@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -48,9 +52,10 @@
 
 // LIBDPSLR INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Mathematics/math.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/libdegorasslr_init.h"
-#include "LibDegorasSLR/Helpers/types/type_traits.h"
+#include "LibDegorasSLR/Helpers/type_traits.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -59,7 +64,6 @@ namespace dpslr{
 namespace math{
 namespace types{
 // =====================================================================================================================
-
 
 /**
  * @class Matrix
@@ -375,30 +379,23 @@ public:
     }
 
     template<typename U>
-    Matrix<std::common_type_t<T,U>> operator*(const U& scalar) const
+    typename std::enable_if_t<helpers::traits::is_numeric_v<U>, Matrix<T>>
+    operator*(const U& scalar) const
     {
-        using ResultType = std::common_type_t<T, U>;
-        Matrix<ResultType> result(rowSize(), columnsSize());
+        Matrix<T> result(rowSize(), columnsSize());
 
         #pragma omp parallel for
         for (size_t i = 0; i < rowSize(); i++)
         {
             for (size_t j = 0; j < columnsSize(); j++)
-                result(i, j) = static_cast<ResultType>(this->data_[i][j]) * scalar;
+                result(i, j) = static_cast<T>(this->data_[i][j]) * static_cast<T>(scalar);
         }
 
         return result;
     }
 
     template<typename U>
-    typename std::enable_if_t<
-        (std::is_floating_point_v<T> && std::is_floating_point_v<U>) ||
-        (std::is_integral_v<T> && std::is_integral_v<U>) ||
-        (helpers::types::is_strong_integral<T>::value && std::is_integral_v<U>) ||
-        (helpers::types::is_strong_float<T>::value && std::is_floating_point_v<U>) ||
-        (std::is_integral_v<T> && helpers::types::is_strong_integral<U>::value) ||
-        (std::is_floating_point_v<T> && helpers::types::is_strong_float<U>::value),
-        Matrix<T>>
+    typename std::enable_if_t<helpers::traits::same_arithmetic_category_v<T,U>,Matrix<T>>
     operator*(const Matrix<U>& B) const
     {
         // Check dimensions.
@@ -408,8 +405,10 @@ public:
         // Transpose the rhs matrix for more efficient multiplication.
         Matrix<U> B_transposed = B.transpose();
 
+        // Prepare the result container.
         Matrix<T> result(this->rowSize(), B.columnsSize());
 
+        // Do the multiplication.
         #pragma omp parallel for
         for (std::size_t i = 0; i < this->rowSize(); ++i)
         {
@@ -419,12 +418,14 @@ public:
                 #pragma omp parallel for reduction(+:sum)
                 for (std::size_t k = 0; k < this->columnsSize(); ++k)
                 {
-                    sum += this->data_[i][k] * B_transposed.getElement(j,k);
+                    sum += static_cast<long double>(this->data_[i][k]) *
+                           static_cast<long double>(B_transposed.getElement(j,k));
                 }
                 result(i, j) = static_cast<T>(sum);
             }
         }
 
+        // Return the result matrix.
         return result;
     }
 
@@ -582,7 +583,7 @@ public:
     }
 
     template<typename U>
-    Matrix<std::common_type_t<T, U>> operator+(const Matrix<U>& B) const
+    Matrix<T> operator+(const Matrix<U>& B) const
     {
         // Check dimensions.
         if (this->rowSize() != B.rowSize() || this->columnsSize() != B.columnsSize())
@@ -637,6 +638,56 @@ public:
         return res;
     }
 
+    /**
+     * @brief Performs a 3D Euclidean rotation on the matrix.
+     *
+     * This function generates a rotation matrix based on the provided axis and angle, then applies this rotation to
+     * the current matrix. It is templated to work with floating point types directly or types defined as strong
+     * floating point types via a helper structure. An exception is thrown if an invalid axis is provided.
+     *
+     * @param axis The axis of rotation. Must be greater than 1.
+     * @param angle The angle of rotation in radians.
+     *
+     * @throws std::invalid_argument If the provided axis is < 1.
+     *
+     * @warning This rotation is only suitable for floating point types.
+     */
+    typename std::enable_if_t<helpers::traits::is_floating_v<T>, void>
+    euclidian3DRotation(unsigned axis, const math::units::Radians& angle)
+    {
+        // Checks.
+        if (axis < 1)
+        {
+            std::string submodule("[LibDegorasSLR,Mathematics,Matrix]");
+            std::string error("Invalid axis for 3D rotation, axis must be > 1.");
+            throw std::invalid_argument(submodule + " " + error);
+        }
+        // Generate the rotation matrix.
+        Matrix<T> rotation;
+        T s, c;
+        unsigned caxis = axis - 1;
+        rotation.fill(3,3,0);
+        s = std::sin(angle);
+        c = std::cos(angle);
+        rotation[0][0]=c;
+        rotation[1][1]=c;
+        rotation[2][2]=c;
+        rotation[0][1]=-s;
+        rotation[1][2]=-s;
+        rotation[2][0]=-s;
+        rotation[1][0]=s;
+        rotation[2][1]=s;
+        rotation[0][2]=s;
+        for (unsigned i=0; i<3; i++)
+        {
+            rotation[i][caxis] = static_cast<T>(0);
+            rotation[caxis][i] = static_cast<T>(0);
+        }
+        rotation[caxis][caxis]= static_cast<T>(1);
+        // Do the rotation.
+        *this *= rotation;
+    }
+
 private:
 
     std::vector<std::vector<T>> data_;
@@ -658,7 +709,7 @@ bool operator==(const Matrix<T>& A, const Matrix<U>& B)
     // Check element-wise equality
     for (size_t i = 0; i < A.rowSize() && res; ++i)
         for (size_t j = 0; j < A.columnsSize() && res; ++j)
-            if (std::fabs(A(i, j)-B(i, j) >= kFloatingCompEpsilon))
+            if(math::compareFloating(A(i, j), B(i, j)) != 0)
                 res = false;
 
     return res;

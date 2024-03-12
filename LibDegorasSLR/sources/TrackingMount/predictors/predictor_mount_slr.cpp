@@ -31,7 +31,6 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the class PredictorMountSLR.
  * @copyright EUPL License
- * @version 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -41,6 +40,7 @@
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_init.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 #include "LibDegorasSLR/TrackingMount/predictors/predictor_mount_slr.h"
 // =====================================================================================================================
 
@@ -52,8 +52,10 @@ namespace mount{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace timing::types;
+using namespace astro;
 using namespace astro::types;
-using math::units::Milliseconds;
+using namespace math::units;
+using namespace slr;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorMountSLR::PredictorMountSLR(const MJDateTime& pass_start, const MJDateTime& pass_end,
@@ -137,9 +139,7 @@ const MountTrackingSLR& PredictorMountSLR::getMountTrackingSLR() const
     return this->mount_track_;
 }
 
-
-PositionStatus PredictorMountSLR::predict(const timing::HRTimePointStd& tp_time,
-                                                 MountPredictionSLR &tracking_result) const
+PositionStatus PredictorMountSLR::predict(const HRTimePointStd& tp_time, MountPredictionSLR &tracking_result) const
 {
     MJDateTime mjdt = timing::timePointToModifiedJulianDateTime(tp_time);
     return predict(mjdt, tracking_result);
