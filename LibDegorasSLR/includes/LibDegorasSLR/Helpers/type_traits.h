@@ -65,11 +65,12 @@ namespace traits{
  * This trait is primarily intended to be specialized for custom types that have an underlying type, such as strong
  * type wrappers or enums. By default, it provides the type itself as the underlying type.
  *
- * @tparam T The type for which to determine the underlying type.
+ * @tparam T The type for check.
  */
 template<typename T, typename = void>
 struct underlying_type {using type = T;};
 
+/// Type trait underlying_type specialization for NumericStrongType type.
 template<typename T, class Tag>
 struct underlying_type<math::types::NumericStrongType<T, Tag>> {using type = T;};
 
@@ -77,18 +78,16 @@ struct underlying_type<math::types::NumericStrongType<T, Tag>> {using type = T;}
 template<typename T>
 using underlying_type_t = typename underlying_type<T>::type;
 
-
-
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Type trait to check if a type is a NumericStrongType type.
- * @tparam T The type for which to determine if is a NumericStrongType type.
+ * @tparam T The type for check.
  */
 template<typename T, typename = void>
 struct is_numeric_strong_type : std::false_type {};
 
-
+/// True case for is_numeric_strong_type type trait.
 template<typename T, class Tag>
 struct is_numeric_strong_type<math::types::NumericStrongType<T, Tag>> : std::true_type {};
 
@@ -96,10 +95,12 @@ struct is_numeric_strong_type<math::types::NumericStrongType<T, Tag>> : std::tru
 template<typename T>
 inline constexpr bool is_numeric_strong_type_v = is_numeric_strong_type<T>::value;
 
-
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// Type trait to check if a type is a NumericStrongType with a floating point underlying type.
+/**
+ * @brief Type trait to check if a type is a NumericStrongType type with a floating point underlying type.
+ * @tparam T The type for check.
+ */
 template<typename T, typename = void>
 struct is_strong_floating : std::false_type {};
 

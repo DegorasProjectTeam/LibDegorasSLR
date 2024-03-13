@@ -186,5 +186,5 @@ template <typename DateType> using DateTimeV = std::vector<DateTime<DateType>>;
 
 // TEMPLATES INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Timing/types/datetime.inl"
+#include <LibDegorasSLR/Timing/types/datetime.inl>
 // =====================================================================================================================

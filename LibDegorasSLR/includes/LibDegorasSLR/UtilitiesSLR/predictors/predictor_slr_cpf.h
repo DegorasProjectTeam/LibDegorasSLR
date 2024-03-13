@@ -110,13 +110,12 @@ public:
     /**
      *  @enum InterpFunction
      *  @brief This enum represents the different interpolators that can be used.
-     *  @todo Hermite interpolation function. Other future functions.
+     *  @todo Other future functions.
      */
     enum class InterpFunction
     {
         LAGRANGE_16,
-        LAGRANGE_9,
-        HERMITE
+        LAGRANGE_9
     };
 
     /**
@@ -132,6 +131,7 @@ public:
 
     PredictorSlrCPF(const geo::types::GeodeticPointDeg& geod, const geo::types::GeocentricPoint& geoc);
 
+    // Copy and movement constructors and operators.
     M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSlrCPF)
 
     /**

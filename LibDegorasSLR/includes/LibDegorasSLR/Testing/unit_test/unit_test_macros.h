@@ -34,6 +34,7 @@
 // =====================================================================================================================
 #include <LibDegorasSLR/Testing/unit_test/unit_test.h>
 #include <LibDegorasSLR/Helpers/type_traits.h>
+#include <LibDegorasSLR/Mathematics/types/numeric_strong_type.h>
 // =====================================================================================================================
 
 // MACROS

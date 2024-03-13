@@ -44,10 +44,11 @@
 
 // LIBDEGORASSLR INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Timing/time_constants.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
-#include "LibDegorasSLR/Mathematics/math.h"
 //#include "LibDegorasSLR/Timing/types/datetime.h"
+#include <LibDegorasSLR/Timing/time_constants.h>
+#include <LibDegorasSLR/Timing/types/base_time_types.h>
+#include <LibDegorasSLR/Mathematics/math.h>
+#include <LibDegorasSLR/Mathematics/types/numeric_strong_type.h>
 // =====================================================================================================================
 
 // DPSLR NAMESPACES

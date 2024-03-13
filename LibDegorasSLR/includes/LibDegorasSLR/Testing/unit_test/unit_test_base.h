@@ -45,7 +45,6 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
-#include "LibDegorasSLR/Mathematics/types/numeric_strong_type.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -213,8 +212,7 @@ public:
     // TODO UPDATE THE NEXT CASES TO USE STRONG TYPES.
 
     template<typename T>
-    typename std::enable_if_t<
-        !std::is_floating_point_v<T>, bool>
+    typename std::enable_if_t<!std::is_floating_point_v<T>, bool>
     expectEQ(const std::vector<T>& v1, const std::vector<T>& v2)
     {
         if (v1.size() != v2.size())
@@ -312,8 +310,7 @@ public:
 private:
 
     // Fallback for non-streamable types, could be adjusted based on needs.
-    template<typename T>
-    static std::enable_if_t<!helpers::traits::is_streamable_v<T>, std::string>
+    template<typename T> static std::enable_if_t<!helpers::traits::is_streamable_v<T>, std::string>
     valueToString(const T&)
     {
         return "<NON STREAMABLE TYPE>";
@@ -330,8 +327,7 @@ private:
     }
 
     // Specialization for floating-point types using numberToMaxDecStr
-    template<typename T>
-    typename std::enable_if_t<helpers::traits::is_floating_v<T>, std::string>
+    template<typename T> static std::enable_if_t<helpers::traits::is_floating_v<T>, std::string>
     valueToString(const T& value)
     {
         return helpers::strings::numberToMaxDecStr(value);
