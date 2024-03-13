@@ -57,30 +57,6 @@ namespace dpslr{
 namespace timing{
 // =====================================================================================================================
 
-// HELPER FUNCTIONS
-//======================================================================================================================
-
-/**
- * @brief Calculates the number of days since the civil date of 1970-01-01.
- *
- * This function computes the number of days from the Gregorian calendar date
- * specified by the year (y), month (m), and day (d) parameters to the epoch date
- * of 1970-01-01. Negative return values indicate dates prior to 1970-01-01. The
- * input date must be in the civil (Gregorian) calendar.
- *
- * @param y The year of the date, can be any integer representing the year.
- * @param m The month of the date, must be in the range [1, 12].
- * @param d The day of the month, must be in the valid range for the given month and year.
- *
- * @return The number of days since 1970-01-01. Negative values indicate dates before 1970-01-01.
- *
- * @warning The function uses static_assert to ensure that the size of unsigned and int types
- * meets the minimum requirements for the calculation.
- */
-LIBDPSLR_EXPORT long long daysFromCivil(int y, unsigned m, unsigned d);
-
-//======================================================================================================================
-
 // TIME STRING FUNCTIONS
 //======================================================================================================================
 
@@ -235,30 +211,8 @@ LIBDPSLR_EXPORT types::HRTimePointStd iso8601DatetimeToTimePoint(const types::Is
 
 //======================================================================================================================
 
-// TIME CONVERSION FUNCTIONS
+// TIMEPOINT CONVERSION FUNCTIONS
 //======================================================================================================================
-
-/**
- * @brief Converts Windows32Ticks to a HRTimePointStd with nanosecond precision.
- *
- * Windows32Ticks ticks are defined as the number of 100-nanosecond intervals since January 1, 1601 (UTC). This
- * function converts those ticks into a `std::chrono::time_point` of the high-resolution clock, which represents the
- * corresponding time in the POSIX epoch (i.e., the number of seconds that have elapsed since January 1, 1970, UTC).
- * The conversion provides nanosecond precision, suitable for high-resolution time measurements.
- *
- * @param ticks The number of Windows32Ticks ticks to convert.
- * @return A HRTimePointStd representing the time in the POSIX epoch, with nanosecond precision.
- *
- * @throws std::invalid_argument If the calculated time point is before the Unix epoch, indicating an error in
- *         conversion or an out-of-range input value.
- *
- * @note This function assumes that the ticks are based on the Win32 epoch starting from January 1, 1601 (UTC). It is
- * important to ensure that input tick values are within a reasonable range to prevent erroneous conversions.
- *
- * @see common::kNsPerWin32Tick, common::kWin32EpochToPosixEpoch for constants used in conversions.
- */
-LIBDPSLR_EXPORT types::HRTimePointStd win32TicksToTimePoint(types::Windows32Ticks ticks);
-
 /**
  * @brief Converts a HRTimePointStd to Julian Datetime with precision up to milliseconds.
  *
@@ -287,40 +241,6 @@ LIBDPSLR_EXPORT types::HRTimePointStd win32TicksToTimePoint(types::Windows32Tick
  * @see julianDatetimeToTimePoint for the reverse conversion.
  */
 LIBDPSLR_EXPORT types::JDateTime timePointToJulianDateTime(const types::HRTimePointStd &tp);
-
-/**
- * @brief Converts JDateTime to a HRTimePointStd with precision up to milliseconds.
- *
- * This function converts a given Julian Date Time (JDT) to a high-resolution time point (HRTimePointStd),
- * represented as the number of nanoseconds since the Unix epoch (1970-01-01T00:00:00Z). The precision of the time
- * point returned by this function is limited by the precision of the 'long double' type used in the calculation.
- * Typically provide precision up to milliseconds approximately but deppends how far is the date from the epoch. See
- * the **Note** and **Warning** sections for more details and how to avoid this limitation.
- *
- * @param jdt The Julian Date Time to be converted.
- * @return A HRTimePointStd The time in terms of nanoseconds since the Unix epoch (it can loss precision).
- *
- * @throws std::invalid_argument If the calculated time point is before the Unix epoch, indicating an error in
- *         conversion or an out-of-range input value.
- *
- * @note The precision of the time point returned by this function is limited by the precision of the 'long double'
- * type used in the calculation. On systems where 'std::numeric_limits<long double>::digits10' reports 18, this
- * function can typically provide precision up to milliseconds. However, the precision may degrade for time points
- * representing dates far from the Unix epoch, due to the limits in floating-point representation of large numbers
- * combined with small fractional parts.
- *
- * @warning This function typically offers precision up to milliseconds under usual circumstances. For applications
- * requiring full nanosecond precision under usual use circumstances, you can use the function
- * 'modifiedJulianDatetimeToTimePoint' and work with Modified Julian Date Time (that usually fits in long double types)
- * or the function 'julianDateToTimePoint' to separately handle integer and fractional parts of the Julian Date Time.
- * These approaches can help mitigate precision limitations by dividing the calculation into parts that can be more
- * accurately represented within the available precision.
- *
- * @see timePointToJulianDatetime for the reverse conversion.
- */
-
-
-
 
 /**
  * @brief Converts a HRTimePointStd to Julian Date and the fractional part of the day.
@@ -363,19 +283,68 @@ LIBDPSLR_EXPORT types::JDateTime timePointToJulianDateTime(const types::HRTimePo
  */
 LIBDPSLR_EXPORT types::JDateTime timePointToJulianDateTime(const types::HRTimePointStd &tp);
 
-
+/**
+ * @brief Converts a timepoint to a Modified Julian DateTime.
+ * @param tp, the timepoint.
+ * @return a MJDateTime representing tp.
+ */
 LIBDPSLR_EXPORT types::MJDateTime timePointToModifiedJulianDateTime(const types::HRTimePointStd &tp);
 
 
+/**
+ * @brief Converts a timepoint to a J2000 DateTime.
+ * @param tp, the timepoint.
+ * @return a J2000DateTime representing tp.
+ */
 LIBDPSLR_EXPORT types::J2000DateTime timePointToJ2000DateTime(const types::HRTimePointStd &tp);
 
+/**
+ * @brief Get seconds of day from timepoint
+ * @param tp, the timepoint.
+ * @return the seconds elapsed since day start with fraction.
+ */
+LIBDPSLR_EXPORT long double timePointToSecsDay(const types::HRTimePointStd& tp);
 
+//======================================================================================================================
+
+// JULIAN DATETIME CONVERSION FUNCTIONS
+//======================================================================================================================
+/**
+ * @brief Converts JDateTime to a HRTimePointStd with precision up to milliseconds.
+ *
+ * This function converts a given Julian Date Time (JDT) to a high-resolution time point (HRTimePointStd),
+ * represented as the number of nanoseconds since the Unix epoch (1970-01-01T00:00:00Z). The precision of the time
+ * point returned by this function is limited by the precision of the 'long double' type used in the calculation.
+ * Typically provide precision up to milliseconds approximately but deppends how far is the date from the epoch. See
+ * the **Note** and **Warning** sections for more details and how to avoid this limitation.
+ *
+ * @param jdt The Julian Date Time to be converted.
+ * @return A HRTimePointStd The time in terms of nanoseconds since the Unix epoch (it can loss precision).
+ *
+ * @throws std::invalid_argument If the calculated time point is before the Unix epoch, indicating an error in
+ *         conversion or an out-of-range input value.
+ *
+ * @note The precision of the time point returned by this function is limited by the precision of the 'long double'
+ * type used in the calculation. On systems where 'std::numeric_limits<long double>::digits10' reports 18, this
+ * function can typically provide precision up to milliseconds. However, the precision may degrade for time points
+ * representing dates far from the Unix epoch, due to the limits in floating-point representation of large numbers
+ * combined with small fractional parts.
+ *
+ * @warning This function typically offers precision up to milliseconds under usual circumstances. For applications
+ * requiring full nanosecond precision under usual use circumstances, you can use the function
+ * 'modifiedJulianDatetimeToTimePoint' and work with Modified Julian Date Time (that usually fits in long double types)
+ * or the function 'julianDateToTimePoint' to separately handle integer and fractional parts of the Julian Date Time.
+ * These approaches can help mitigate precision limitations by dividing the calculation into parts that can be more
+ * accurately represented within the available precision.
+ *
+ * @see timePointToJulianDatetime for the reverse conversion.
+ */
 
 LIBDPSLR_EXPORT types::HRTimePointStd julianDateTimeToTimePoint(const types::JDateTime& jdt);
+//======================================================================================================================
 
-
-
-
+// MODIFIED JULIAN DATETIME CONVERSIONS
+//======================================================================================================================
 /**
  * @brief Converts a Modified Julian Datetime to a TimePoint.
  * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
@@ -383,61 +352,60 @@ LIBDPSLR_EXPORT types::HRTimePointStd julianDateTimeToTimePoint(const types::JDa
  */
 LIBDPSLR_EXPORT types::HRTimePointStd modifiedJulianDateTimeToTimePoint(const types::MJDateTime &mjdt);
 
-
-
-
+/**
+ * @brief Converts a Modified Julian Datetime to a J2000 Datetime.
+ * @param mjdt, Modified Julian Datetime in days. Precission up to ns.
+ * @return A J2000DateTime.
+ */
 LIBDPSLR_EXPORT types::J2000DateTime modifiedJulianDateToJ2000DateTime(const types::MJDateTime &mjdt);
+//======================================================================================================================
+
+// WIN32 TICKS CONVERSION FUNCTIONS
+//======================================================================================================================
+/**
+ * @brief Converts Windows32Ticks to a HRTimePointStd with nanosecond precision.
+ *
+ * Windows32Ticks ticks are defined as the number of 100-nanosecond intervals since January 1, 1601 (UTC). This
+ * function converts those ticks into a `std::chrono::time_point` of the high-resolution clock, which represents the
+ * corresponding time in the POSIX epoch (i.e., the number of seconds that have elapsed since January 1, 1970, UTC).
+ * The conversion provides nanosecond precision, suitable for high-resolution time measurements.
+ *
+ * @param ticks The number of Windows32Ticks ticks to convert.
+ * @return A HRTimePointStd representing the time in the POSIX epoch, with nanosecond precision.
+ *
+ * @throws std::invalid_argument If the calculated time point is before the Unix epoch, indicating an error in
+ *         conversion or an out-of-range input value.
+ *
+ * @note This function assumes that the ticks are based on the Win32 epoch starting from January 1, 1601 (UTC). It is
+ * important to ensure that input tick values are within a reasonable range to prevent erroneous conversions.
+ *
+ * @see common::kNsPerWin32Tick, common::kWin32EpochToPosixEpoch for constants used in conversions.
+ */
+LIBDPSLR_EXPORT types::HRTimePointStd win32TicksToTimePoint(types::Windows32Ticks ticks);
+//======================================================================================================================
+
+// TLE DATE CONVERSION FUNCTIONS
+//======================================================================================================================
+/**
+ * @brief Converts a timepoint to a TLE Date.
+ * @param tp, the timepoint.
+ * @param cent_year, the last two digits of the year.
+ * @param day_with_fract, the day of the year with the fraction
+ */
+LIBDPSLR_EXPORT void timePointToTLEDate(const types::HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
 
 /**
- * @brief Convert a modified julian datetime to a J2000 datetime
- * @param mjdt    The Modified Julian datetime in days.
- * @return The J2000 Datetime in days.
- * @warning Using this function can make your timestamp inaccurate. Use only to
- *          work with times where nanoseconds are not important.
+ * @brief Converts a TLE date to a timepoint.
+ * @param cent_year, the last two digits of the year
+ * @param day_with_fract
+ * @return
  */
-//LIBDPSLR_EXPORT long double mjdtToJ2000Datetime(MJDateTime mjdt);
-
-
-
-/**
- * @brief Convert a given date and time to a HRTimePointStd.
- *
- * This function converts the provided date and time components to a HRTimePointStd
- * based on the high_resolution_clock clock.
- *
- * @param y   The year.
- * @param m   The month (1-12).
- * @param d   The day of the month.
- * @param h   The hour of the day.
- * @param min The minute of the hour.
- * @param s   The second of the minute.
- * @return The HRTimePointStd representing the specified date and time.
- */
-//LIBDPSLR_EXPORT HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h=0, int min=0, int s=0);
-
-
-
-
-
-
-// TLE time (year and fractional point) to C++ time point.
 LIBDPSLR_EXPORT types::HRTimePointStd tleDateToTimePoint(unsigned int cent_year, long double day_with_fract);
+//======================================================================================================================
 
 
-
-//LIBDPSLR_EXPORT long double jdtToGmst(long double jd);
-
-
-//LIBDPSLR_EXPORT long double jdtToLmst(long double jdt, long double lon);
-
-
-
-
-
-LIBDPSLR_EXPORT long double timePointToSecsDay(const types::HRTimePointStd& tp);
-
-
-
+// HELPER FUNCTIONS
+//======================================================================================================================
 // Transforms hours, mins, seconds and nanoseconds to day nanoseconds.
 LIBDPSLR_EXPORT long long hhmmssnsToNsDay(unsigned int hour, unsigned int min, unsigned int sec, unsigned int ns);
 
@@ -473,8 +441,8 @@ LIBDPSLR_EXPORT void ydtomd(int year, unsigned int yday, unsigned int& month, un
  *
  * @warning Not works with the 2100, etc year (but we will be dead xD).
  */
-//LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute,
-//                          unsigned int sec, long long &jd_day, long double &jd_fract);
+LIBDPSLR_EXPORT void grtojd(int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute,
+                            unsigned int sec, long long &jd_day, long double &jd_fract);
 
 /**
  * @brief Converts a Julian Date to Gregorian
@@ -490,32 +458,52 @@ LIBDPSLR_EXPORT void ydtomd(int year, unsigned int yday, unsigned int& month, un
  *
  * @warning Not works with the 2100, etc year (but we will be dead xD).
  */
-//LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, unsigned int &month,
-//                          unsigned int &day, unsigned int &hour, unsigned int &minute, unsigned int &second);
-
-/**
- * @brief Convert a TimePoint to Modified Julian Date
- * @param tp, TimePoint to convert. Input param.
- * @param mjd, Modified Julian day. Output param.
- * @param second_day, Modified Julian second of day. Output param.
- * @param second_fract, Fraction of second. Precission up to ns. Output param.
- */
-//LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd,
-//                                                   unsigned int& second_day, long double& second_fract);
-
-//LIBDPSLR_EXPORT void timePointToModifiedJulianDate(const HRTimePointStd &tp, MJDate &mjd, SoD& second_day_fract);
-
+LIBDPSLR_EXPORT void jdtogr(long long jd_day, long double jd_fract,int &year, unsigned int &month,
+                            unsigned int &day, unsigned int &hour, unsigned int &minute, unsigned int &second);
 
 
 /**
- * @brief Converts a TimePoint to J2000 Datetime
- * @param tp, TimePoint to convert.
- * @return A floating point value representing J2000 Datetime in days. Precission up to ns.
+ * @brief Calculates the number of days since the civil date of 1970-01-01.
+ *
+ * This function computes the number of days from the Gregorian calendar date
+ * specified by the year (y), month (m), and day (d) parameters to the epoch date
+ * of 1970-01-01. Negative return values indicate dates prior to 1970-01-01. The
+ * input date must be in the civil (Gregorian) calendar.
+ *
+ * @param y The year of the date, can be any integer representing the year.
+ * @param m The month of the date, must be in the range [1, 12].
+ * @param d The day of the month, must be in the valid range for the given month and year.
+ *
+ * @return The number of days since 1970-01-01. Negative values indicate dates before 1970-01-01.
+ *
+ * @warning The function uses static_assert to ensure that the size of unsigned and int types
+ * meets the minimum requirements for the calculation.
  */
-//LIBDPSLR_EXPORT long double timePointToJ2000Datetime(const HRTimePointStd &tp);
+LIBDPSLR_EXPORT long long daysFromCivil(int y, unsigned m, unsigned d);
+
+/**
+ * @brief Convert a given date and time to a HRTimePointStd.
+ *
+ * This function converts the provided date and time components to a HRTimePointStd
+ * based on the high_resolution_clock clock.
+ *
+ * @param y   The year.
+ * @param m   The month (1-12).
+ * @param d   The day of the month.
+ * @param h   The hour of the day.
+ * @param min The minute of the hour.
+ * @param s   The second of the minute.
+ * @return The HRTimePointStd representing the specified date and time.
+ */
+LIBDPSLR_EXPORT types::HRTimePointStd dateAndTimeToTp(int y, int m, int d, int h=0, int min=0, int s=0);
+
+//======================================================================================================================
 
 
+// TODO AND NON-EXPORTED FUNCTIONS
+//======================================================================================================================
 
+// Conversions for RJ DateTime
 /**
  * @brief Converts a high-resolution time point to a reduced Julian datetime.
  * @param tp The high-resolution time point.
@@ -523,9 +511,18 @@ LIBDPSLR_EXPORT void ydtomd(int year, unsigned int yday, unsigned int& month, un
  */
 //LIBDPSLR_EXPORT RJDateTime timePointToReducedJulianDatetime(const HRTimePointStd &tp);
 
+// Astronomical time functions
+//LIBDPSLR_EXPORT long double jdtToGmst(long double jd);
+//LIBDPSLR_EXPORT long double jdtToLmst(long double jdt, long double lon);
 
-// C++ time point to TLE date (year and fractional day).
-LIBDPSLR_EXPORT void timePointToTLEDate(const types::HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
+
+
+
+
+//======================================================================================================================
+
+
+
 
 //======================================================================================================================
 

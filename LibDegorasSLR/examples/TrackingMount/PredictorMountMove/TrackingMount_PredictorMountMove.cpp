@@ -122,8 +122,6 @@ int main()
 
     // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
 
-    // Example selector.
-    size_t example_selector = 0;  // Select the example to process (between reals and sintetics).
     bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).
@@ -188,9 +186,38 @@ int main()
     {
         // Example 0: 25,10 - 115,68 - ccw
         {pred_sun_real, analyzer_cfg_1,
-            "25_10-115_ccw", "mount_trajectory_025-010_115-068_12_ccw.csv"},
+         "25_10-115_68_ccw", "mount_trajectory_025-010_115-068_12_ccw.csv"},
+        // Example 1: 25,10 - 115,68 - cw
+        {pred_sun_real, analyzer_cfg_1,
+         "25_10-115_68_cw", "mount_trajectory_025-010_115-068_12_cw.csv"},
+        // Example 2: 10,0 - 220,80 - ccw
+        {pred_sun_real, analyzer_cfg_1,
+         "10_0-220_80_ccw", "mount_trajectory_010-000_220-080_ccw.csv"},
+        // Example 3: 10,0 - 220,80 - cw
+        {pred_sun_real, analyzer_cfg_1,
+         "10_0-220_80_cw", "mount_trajectory_010-000_220-080_cw.csv"},
 
     };
+
+    // Example selector.
+    size_t example_selector = examples.size();  // Select the example to process (between reals and sintetics).
+    std::string input;
+    while (example_selector >= examples.size() )
+    {
+        std::cout << "Select example to execute. (0 - " << examples.size() - 1 <<  ")" << std::endl;
+        std::getline(std::cin, input);
+        try
+        {
+            example_selector = std::stoul(input);
+            if (example_selector >= examples.size())
+                std::cout << "Example not found." << std::endl;
+        }
+        catch(...)
+        {
+            std::cout << "Bad input" << std::endl;
+        }
+
+    }
 
     // Get band store the example data.
     std::string positions_filepath = input_dir + "/" + examples[example_selector].file;
