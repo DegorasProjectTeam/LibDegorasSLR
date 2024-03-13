@@ -65,7 +65,7 @@ template <typename AngleType,
          std::is_same<AngleType, math::units::Radians>::value>::type>
 struct LIBDPSLR_EXPORT SurfaceLocation
 {
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(SurfaceLocation)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(SurfaceLocation)
 
     MeteoData meteo;
     GeodeticPoint<AngleType> geodetic;

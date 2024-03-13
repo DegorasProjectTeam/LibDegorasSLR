@@ -32,3 +32,4 @@
 #include <LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h>
 #include <LibDegorasSLR/Astronomical/predictors/predictor_sun_fast.h>
 #include <LibDegorasSLR/Astronomical/predictors/predictor_sun_fixed.h>
+#include <LibDegorasSLR/Astronomical/predictors/predictor_star_novas.h>
