@@ -27,9 +27,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun_fast.h
- * @brief
+ * @file tracking_analyzer_types.h
  * @author Degoras Project Team
+ * @brief
  * @copyright EUPL License
 ***********************************************************************************************************************/
 
@@ -37,59 +37,102 @@
 #pragma once
 // =====================================================================================================================
 
-// C++ INCLUDES
-//======================================================================================================================
-// =====================================================================================================================
-
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
+#include "LibDegorasSLR/TrackingMount/types/tracking_mount_types.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
-// DPSLR NAMESPACES
+// LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
-namespace predictors{
+namespace mount{
+namespace utils{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace math::units::literals;
+// ---------------------------------------------------------------------------------------------------------------------
+
 /**
- * @brief The PredictorSunFast class provides functionality to predict the position of the Sun using a fast algorithm.
+ * @brief Enumerates the possible status codes for an analyzed tracking position.
  *
- * This class utilizes astronomical algorithms to calculate the azimuth and elevation of the Sun at a given time
- * and observer's geodetic coordinates. This algorithm as a 0.01 degree accuracy.
+ * This enumeration defines the status of a tracking position with respect to the Sun's position and the predictor.
+ * It is used to quickly identify the tracking scenario and take appropriate action based on the status. It prioritizes
+ * Sun-related statuses (CANT_AVOID_SUN, INSIDE_SUN, AVOIDING_SUN) over ELEVATION_CLIPPED when both conditions are met.
  */
-class LIBDPSLR_EXPORT PredictorSunFast : public PredictorSunBase
+enum class AnalyzedPositionStatus
 {
-
-public:
-
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunFast)
-
-    /**
-     * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
-     * @param obs_geod The geodetic coordinates of the observer.
-     */
-    PredictorSunFast(const geo::types::GeodeticPointDeg& obs_geod);
-
-    /**
-     * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
-     *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts the Sun position
-     * with a 0.01 degree accuracy up to 2099. It can perform also a simple atmospheric refraction correction. The
-     * time precision, internally, is decreased to milliseconds (for this type of prediction it is enough).
-     *
-     * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted PredictionSun.
-     *
-     * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
-     */
-    PredictionSun predict(const timing::types::J2000DateTime& j2000, bool refraction) const override;
-
+    NO_MODIFICATION,    ///< No modification to the position was necessary; all is okay with the original position.
+    OUT_OF_TRACK,       ///< The time provided for prediction is outside of tracking.
+    CANT_AVOID_SUN,     ///< Final mount position can't be calculated, since it cannot avoid sun security sector.
+    INSIDE_SUN,         ///< The final mount position is in the Sun and is configured for not avoiding.
+    AVOIDING_SUN,       ///< The final mount position is avoiding sun security sector.
+    ELEVATION_CLIPPED,  ///< The final mount position was clipped due to maximum elevation configuration.
 };
 
-}}} // END NAMESPACES.
+
+/**
+ * @brief The PredictorMountSLRConfig struct contains the configuration parameters associated with a tracking. These
+ * parameters will define the tracking requirements.
+ *
+ * @todo Max speeds analysis.
+ */
+struct LIBDPSLR_EXPORT TrackingAnalyzerConfig
+{
+    // Default constructor and destructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(TrackingAnalyzerConfig)
+
+    TrackingAnalyzerConfig(const math::units::DegreesU& sun_avoid_angle, const math::units::DegreesU& min_elev,
+                           const math::units::DegreesU& max_elev, bool sun_avoid) :
+        sun_avoid_angle(sun_avoid_angle),
+        min_elev(min_elev),
+        max_elev(max_elev),
+        sun_avoid(sun_avoid)
+    {}
+
+    // Data members.
+    math::units::DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
+    math::units::DegreesU min_elev;         ///< Configured minimum elevation (degrees).
+    math::units::DegreesU max_elev;         ///< Configured maximum elevation (degrees).
+    bool sun_avoid;                         ///< Flag indicating if the track is configured for avoid the Sun.
+};
+
+/**
+ * @brief Represents the azimuth and elevation position of a tracking at a specific instant, as well as its status.
+ *
+ * This structure holds the calculated azimuth and elevation angles for the mount at a specific instant.
+ * It also includes the differences between the real predicted position and the
+ * track position. The necessity to deviate from the predicted path to avoid direct line-of-sight with the Sun or
+ * other obstructions can result in these differences.
+ *
+ */
+struct LIBDPSLR_EXPORT MountPositionAnalyzed : types::MountPosition
+{
+    // Default constructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPositionAnalyzed)
+
+
+
+    MountPositionAnalyzed(const types::MountPosition& mount_pos) :
+        types::MountPosition(mount_pos),
+        diff_az(0.0_deg),
+        diff_el(0.0_deg),
+        status(AnalyzedPositionStatus::NO_MODIFICATION)
+    {}
+
+    // Data members.
+    math::units::Degrees diff_az;      ///< Azimuth difference between analyzed position and the original position.
+    math::units::Degrees diff_el;      ///< Elevation difference between analyzed position and the original position.
+
+    // Analyzed position status.
+    AnalyzedPositionStatus status;     ///< The analyzed postion status situation.
+};
+
+/// Alias for tracking predictions vector.
+using MountPositionAnalyzedV = std::vector<MountPositionAnalyzed>;
+
+
+}}} // END NAMESPACES
 // =====================================================================================================================

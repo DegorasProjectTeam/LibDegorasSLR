@@ -35,7 +35,7 @@
 #include <cmath>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Geophysics/tropo.h"
 #include "LibDegorasSLR/Mathematics/units/unit_conversions.h"

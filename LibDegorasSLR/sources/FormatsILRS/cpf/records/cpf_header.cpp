@@ -36,7 +36,7 @@
 #include <sstream>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h>
 #include <LibDegorasSLR/Helpers/container_helpers.h>

@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -23,11 +27,11 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tle.h
- * @brief This file contains the declarations of the class TLE.
+ * @file degoras_time.h
+ * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -36,44 +40,94 @@
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <string>
+#include <chrono>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
-namespace types{
+namespace timing{
 // =====================================================================================================================
 
-// TODO: Mejorar la clase poniendo bien los datos.
-// Podemos usar esto de referencia: https://github.com/FedericoStra/tletools
-
-class LIBDPSLR_EXPORT TLE
+// The internal time point have nanoseconds precision. The internal storaged time, have picoseconds precisions.
+// Dependiendo de que función llames, podrás obtener el tiempo con una precisión u otra.
+class LIBDPSLR_EXPORT DegorasTime
 {
+
 public:
 
-    bool parseLines(const std::string& tle);
+    // Ns precision
+    LIBDPSLR_EXPORT DegorasTime(const types::HRTimePointStd& tp)
+    {
+        // TODO
+    }
 
-    bool isValid() const;
-    std::string getLines() const;
-    const std::string& getTitle() const;
-    const std::string& getFirstLine() const;
-    const std::string& getSecondLine() const;
+    // Ns precision.
+    LIBDPSLR_EXPORT DegorasTime(const std::chrono::nanoseconds& ns)
+    {
+        // TODO
+    }
 
-    const std::string& getNorad() const;
+    // Ns precision.
+    LIBDPSLR_EXPORT DegorasTime(const DegorasTime& dego_time)
+    {
+        this->mjd_ = dego_time.modifiedJulianDate();
+        this->sod_ = dego_time.secondsOfDay();
+        // TODO tp
+    }
+
+    // Ps precision
+    LIBDPSLR_EXPORT static DegorasTime fromModifiedJulianDate(const MJDate& date, const SoD& seconds = 0.0L)
+    {
+
+    }
+
+    // Ns
+    LIBDPSLR_EXPORT static DegorasTime fromSecsSinceUnixEpoch(long long secs)
+    {
+        return(types::HRClock::from_time_t(secs));
+    }
+
+    // Ns
+    LIBDPSLR_EXPORT static DegorasTime fromWin32Ticks(types::Windows32Ticks ticks)
+    {
+        return DegorasTime(timing::win32TicksToTimePoint(ticks));
+    }
+
+    types::MJDate modifiedJulianDate() const
+    {
+        return this->mjd_;
+    }
+
+    void modifiedJulianDate(types::MJDate& date, types::SoD& sod) const
+    {
+        date = this->mjd_;
+        sod = this->sod_;
+    }
+
+    const types::SoD& secondsOfDay() const
+    {
+        return this->sod_;
+    }
+
+    const types::HRTimePointStd& highResolutionTimePointSTD() const
+    {
+        //return timing::modif
+    }
 
 private:
-    std::string title;
-    std::string first_line;
-    std::string second_line;
-    std::string norad_;
+
+    types::MJDate mjd_;              ///< Modified julian date in days.
+    types::SoD sod_;                 ///< Second of day in that MJD (ps precission -> 12 decimals).
+
 };
 
-}}} // END NAMESPACES
+
+}} // END NAMESPACES.
 // =====================================================================================================================

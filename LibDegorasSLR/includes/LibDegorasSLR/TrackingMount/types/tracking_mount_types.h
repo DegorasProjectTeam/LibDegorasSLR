@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -23,57 +27,43 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tle.h
- * @brief This file contains the declarations of the class TLE.
- * @author Degoras Project Team
+ * @file tracking_types.h
+ * @author Degoras Project Team.
+ * @brief This file contains the definition of types related with trackings.
  * @copyright EUPL License
- * @version 2305.1
+ * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
-// C++ INCLUDES
-//======================================================================================================================
-#include <string>
-// =====================================================================================================================
-
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
+namespace mount{
 namespace types{
 // =====================================================================================================================
 
-// TODO: Mejorar la clase poniendo bien los datos.
-// Podemos usar esto de referencia: https://github.com/FedericoStra/tletools
-
-class LIBDPSLR_EXPORT TLE
+struct MountPosition
 {
-public:
+    // Default constructor and destructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPosition)
 
-    bool parseLines(const std::string& tle);
-
-    bool isValid() const;
-    std::string getLines() const;
-    const std::string& getTitle() const;
-    const std::string& getFirstLine() const;
-    const std::string& getSecondLine() const;
-
-    const std::string& getNorad() const;
-
-private:
-    std::string title;
-    std::string first_line;
-    std::string second_line;
-    std::string norad_;
+    // Data members.
+    timing::types::MJDateTime mjdt;         ///< Modified Julian Datetime associated to the tracking mount position.
+    astro::types::AltAzPos altaz_coord;     ///< Altazimuth absolute coordinate for the tracking mount in degrees.
 };
+
+/// Alias for tracking predictions vector.
+using MountPositionV = std::vector<MountPosition>;
 
 }}} // END NAMESPACES
 // =====================================================================================================================

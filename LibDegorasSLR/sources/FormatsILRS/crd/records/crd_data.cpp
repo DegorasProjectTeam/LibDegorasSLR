@@ -41,7 +41,7 @@
 #include <array>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/FormatsILRS/crd/records/crd_data.h>
 #include <LibDegorasSLR/Helpers/container_helpers.h>

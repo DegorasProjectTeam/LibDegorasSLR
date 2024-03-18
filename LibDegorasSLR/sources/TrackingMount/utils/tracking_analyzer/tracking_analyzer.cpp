@@ -37,67 +37,142 @@
 // =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/TrackingMount/types/tracking_analyzer.h"
-#include "LibDegorasSLR/libdegorasslr_init.h"
+#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/tracking_analyzer.h"
+#include "LibDegorasSLR/Timing/time_utils.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace mount{
+namespace utils{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace math::units;
+using namespace timing;
 using namespace timing::types;
-using namespace astro::types;
+using namespace astro::predictors;
+using namespace mount::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-TrackingAnalyzer::TrackingAnalyzer(const TrackingAnalyzerConfig &config) :
-
+TrackingAnalyzer::TrackingAnalyzer(const TrackingAnalyzerConfig& config) :
     config_(config)
 {
-    // Check Degoras initialization.
-    DegorasInit::checkMandatoryInit();
-
     // Check configured elevations.
-    if(config.min_elev >= config.max_elev || config.min_elev > 90 || config.max_elev > 90 || config.sun_avoid_angle > 90)
-        throw std::invalid_argument("[LibDegorasSLR,TrackingMount,TrackingAnalyzer] Invalid angles configuration.");
+    if(config.min_elev >= config.max_elev || config.min_elev > 90 ||
+        config.max_elev > 90 || config.sun_avoid_angle > 90)
+    {
+        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer]");
+        std::string error("Invalid angles configuration.");
+        throw std::invalid_argument(submodule + " " + error);
+    }
 
     // Check too high values for the sun avoid angle, so the algorithm can fail.
     if((config.sun_avoid_angle*2) + config.min_elev >= 90 || (config.sun_avoid_angle*2)+(90 - config.max_elev) >= 90)
-        throw std::invalid_argument("[LibDegorasSLR,TrackingMount,TrackingAnalyzer] Sun avoid angle too high for the "
-                                    "configured minimum and maximum elevations.");
-}
-
-const TrackingPredictionV &TrackingAnalyzer::getPredictions() const
-{
-    return this->predictions_;
-}
-
-const TrackingInfo &TrackingAnalyzer::getTrackingInfo() const
-{
-    return this->track_info_;
-}
-
-TrackingPredictionV::const_iterator TrackingAnalyzer::trackingBegin() const
-{
-    return this->begin_;
-}
-
-TrackingPredictionV::const_iterator TrackingAnalyzer::trackingEnd() const
-{
-    return this->end_;
-}
-
-void TrackingAnalyzer::analyzePrediction(TrackingPrediction &pred) const
-{
-    // Check if requested position is inside valid tracking time. Otherwise return out of tracking error.
-    if (pred.mjdt < this->track_info_.mjdt_start || pred.mjdt > this->track_info_.mjdt_end)
     {
-        pred.status =  PositionStatus::OUT_OF_TRACK;
+        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer]");
+        std::string error("Sun avoid angle too high for the configured minimum and maximum elevations.");
+        throw std::invalid_argument(submodule + " " + error);
+    }
+}
+
+TrackingAnalysis TrackingAnalyzer::analyzeTracking(const MountPositionV& mount_positions,
+                                                   const astro::types::SunPositionV& sun_positions) const
+{
+    // Check if we have data.
+    if(mount_positions.empty() || sun_positions.empty())
+    {
+        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeTracking]");
+        std::string error("Empty input data.");
+        throw std::invalid_argument(submodule + " " + error);
+    }
+
+    // Check if sizes of mount_positions and sun_predictions are the same.
+    if (mount_positions.size() != sun_positions.size())
+    {
+        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeTracking]");
+        std::string error("Inconsistent data sizes between mount positions and sun predictions.");
+        throw std::invalid_argument(submodule + " " + error);
+    }
+
+    // Check if Modified Julian Dates match for each corresponding position and prediction.
+    for (size_t i = 0; i < mount_positions.size(); ++i)
+    {
+        if (modifiedJulianDateToJ2000DateTime(mount_positions[i].mjdt) != sun_positions[i].j2dt)
+        {
+            std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeTracking]");
+            std::string error("Mismatch between mount and sun times at index: " + std::to_string(i) + ".");
+            throw std::invalid_argument(submodule + " " + error);
+        }
+    }
+
+    // Check that the mount elevation positions are valid (>= 0).
+    auto it = std::find_if(mount_positions.begin(), mount_positions.end(),
+                    [](const MountPosition& pos){return math::isFloatingMinorThanZero(pos.altaz_coord.el);});
+    if(it != mount_positions.end())
+    {
+        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeTracking]");
+        std::string error("The mount elevation positions are invalid (minor than 0).");
+        throw std::invalid_argument(submodule + " " + error);
+    }
+
+    // --------------------------------------------------------------
+
+    // Result container.
+    TrackingAnalysis track_analysis;
+
+    // Store initial times and coords. This data could change during the analysis.
+    track_analysis.mjdt_start = mount_positions.front().mjdt;
+    track_analysis.mjdt_end = mount_positions.back().mjdt;
+    track_analysis.start_coord = mount_positions.front().altaz_coord;
+    track_analysis.end_coord = mount_positions.back().altaz_coord;
+
+    // Store all the mount positions data. At this momment, the tracking positions are equal to mount positions.
+    for(const auto& pos : mount_positions)
+        track_analysis.track_positions.push_back(pos);
+
+    // Store all the Sun positions data. This will not change.
+    for(const auto& pos : sun_positions)
+        track_analysis.sun_positions.push_back(pos);
+
+    // Now, after positions have been calculated, check each situation.
+
+    // Check the start and validate at this point.
+    if (!this->analyzeTrackingStart(track_analysis))
+    {
+        track_analysis.empty_track = true;
+        return track_analysis;
+    }
+    // Check the end and validate at this point.
+    if (!this->analyzeTrackingEnd(track_analysis))
+    {
+        track_analysis.empty_track = true;
+        return track_analysis;
+    }
+
+    // Check the middle and validate at this point.
+    if (!this->analyzeTrackingMiddle(track_analysis))
+        track_analysis.empty_track = true;
+
+    // Return the track analysis.
+    return track_analysis;
+}
+
+MountPositionAnalyzed TrackingAnalyzer::analyzePosition(const TrackingAnalysis& analysis,
+                                                        const types::MountPosition& mount_pos,
+                                                        const astro::types::SunPosition& sun_pos) const
+{
+    // Store the position. This data could change during the analysis.
+    MountPositionAnalyzed analyzed_pos(mount_pos);
+
+    // Check if requested position is inside valid tracking time. Otherwise return out of tracking error.
+    if (mount_pos.mjdt < analysis.mjdt_start || mount_pos.mjdt > analysis.mjdt_end)
+    {
+        analyzed_pos.status =  AnalyzedPositionStatus::OUT_OF_TRACK;
+        return analyzed_pos;
     }
 
     bool inside_sun = this->insideSunSector(pred.pos.altaz_coord, pred.sun_pred.altaz_coord);
@@ -180,54 +255,8 @@ void TrackingAnalyzer::analyzePrediction(TrackingPrediction &pred) const
 }
 
 
-void TrackingAnalyzer::analyzeTracking(const TrackingPredictionV &predictions)
-{
-    // Update flag.
-    this->track_info_.valid_pass = false;
 
-    // Check if we have prediction results.
-    if(predictions.empty())
-        return;
-
-    // Check that the predictions correspond to a pass.
-    // Tracking is not valid if there are error or below 0. Minimum elevation will be checked afterwards.
-    auto it = std::find_if(predictions.begin(), predictions.end(),
-        [](const TrackingPrediction& pred)
-        {
-            return pred.pos.altaz_coord.el < 0;
-        });
-    if(it != predictions.end())
-        return;
-    // --------------------------------------------------------------
-
-    this->track_info_.mjdt_start = predictions.front().mjdt;
-    this->track_info_.mjdt_end = predictions.back().mjdt;
-    this->track_info_.start_coord = predictions.front().pos.altaz_coord;
-    this->track_info_.end_coord = predictions.back().pos.altaz_coord;
-    
-    // Store all the generated data. At this momment, the
-    // tracking positions have not been generated.
-    this->predictions_ = predictions;
-
-    // Now, after positions have been calculated, check each situation.
-
-    // Check the start and validate at this point.
-    if (!(this->track_info_.valid_pass = this->analyzeTrackingStart()))
-        return;
-
-    // Check the end and validate at this point.
-    if (!(this->track_info_.valid_pass = this->analyzeTrackingEnd()))
-        return;
-
-    // Check the middle and validate at this point.
-    if (!(this->track_info_.valid_pass = this->analyzeTrackingMiddle()))
-        return;
-
-    // Finally store if a collision exits.
-
-}
-
-bool TrackingAnalyzer::analyzeTrackingStart()
+bool TrackingAnalyzer::analyzeTrackingStart(TrackingAnalysis& analysis) const
 {
     // Get the first prediction and min and max elevations.
     auto it_pred = this->predictions_.begin();
@@ -308,7 +337,7 @@ bool TrackingAnalyzer::analyzeTrackingStart()
     return true;
 }
 
-bool TrackingAnalyzer::analyzeTrackingEnd()
+bool TrackingAnalyzer::analyzeTrackingEnd(TrackingAnalysis& analysis) const
 {
     // Get the first prediction and min and max elevations.
     auto it_pred = this->predictions_.rbegin();
@@ -390,7 +419,7 @@ bool TrackingAnalyzer::analyzeTrackingEnd()
     return true;
 }
 
-bool TrackingAnalyzer::analyzeTrackingMiddle()
+bool TrackingAnalyzer::analyzeTrackingMiddle(TrackingAnalysis &analysis) const
 {
     //MountPredictionSLR tr;
     bool in_sun_sector = false;
@@ -763,7 +792,7 @@ long double TrackingAnalyzer::calcSunAvoidTrajectory(const MJDateTime &mjdt,
     return entry_angle + angle * time_perc;
 }
 
-void TrackingAnalyzer::calcSunAvoidPos(TrackingPrediction &pred,
+void TrackingAnalyzer::calcSunAvoidPos(MountPositionAnalyzed &pred,
                                        const SunCollisionSector &sector) const
 {
     long double sun_avoid_angle = static_cast<long double>(this->config_.sun_avoid_angle) + kAvoidAngleOffset;
@@ -790,5 +819,5 @@ void TrackingAnalyzer::calcSunAvoidPos(TrackingPrediction &pred,
 
 }
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

@@ -8,7 +8,7 @@
 #include <LibNovasCpp/novascpp.h>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/novas_utils.h"
 #include "LibDegorasSLR/Timing/time_utils.h"

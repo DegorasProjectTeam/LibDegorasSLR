@@ -27,69 +27,103 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun_fast.h
- * @brief
- * @author Degoras Project Team
+ * @file tracking_types.h
+ * @author Degoras Project Team.
+ * @brief This file contains the definition of types related with trackings.
  * @copyright EUPL License
+ * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
-// C++ INCLUDES
-//======================================================================================================================
-// =====================================================================================================================
-
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_types.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
 // =====================================================================================================================
 
-// DPSLR NAMESPACES
+// LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
-namespace predictors{
+namespace mount{
+namespace types{
 // =====================================================================================================================
 
 /**
- * @brief The PredictorSunFast class provides functionality to predict the position of the Sun using a fast algorithm.
+ * @brief Represents the result of a tracking prediction operation for a SLR tracking,
+ * including azimuth and elevation position that the tracking mount must use at a specific time.
+ * If status is either OUTSIDE_SUN, INSIDE_SUN OR AVOIDING_SUN, all result members are available.
+ * This structure is designed to encapsulate the outcome of a tracking prediction operation.
+ * It includes timing information, tracking position, prediction results, and sun
+ * position, depending on the position `status` information. See the **Note** section for more details.
  *
- * This class utilizes astronomical algorithms to calculate the azimuth and elevation of the Sun at a given time
- * and observer's geodetic coordinates. This algorithm as a 0.01 degree accuracy.
+ * @note The presence of optional members is contingent upon the PositionStatus `status` member:
+ * - If `status` is `OUT_OF_TRACK`, the optional members (`prediction_result`, `tracking_position`, `sun_pos`)
+ *   are not populated.
+ * - If `status` is `PREDICTION_ERROR` or `CANT_AVOID_SUN`, both `prediction_result` and `sun_pos` are provided to
+ *   detail the prediction outcome and solar interference, respectively.
  */
-class LIBDPSLR_EXPORT PredictorSunFast : public PredictorSunBase
+struct MountPredictionSLR
 {
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountPredictionSLR)
 
-public:
+    // Datetime members.
+    timing::types::MJDateTime mjdt;         ///< Modified Julian DateTime.
 
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunFast)
+    // Result members.
+    Optional<slr::types::PredictionSLR> slr_pred;  ///< Optional SLR prediction with the object pass position.
+    Optional<astro::types::PredictionSun> sun_pred;  ///< Optional Sun position container.
+    Optional<MountPosition> mount_pos; ///< Optional tracking mount position container.
 
-    /**
-     * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
-     * @param obs_geod The geodetic coordinates of the observer.
-     */
-    PredictorSunFast(const geo::types::GeodeticPointDeg& obs_geod);
-
-    /**
-     * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
-     *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts the Sun position
-     * with a 0.01 degree accuracy up to 2099. It can perform also a simple atmospheric refraction correction. The
-     * time precision, internally, is decreased to milliseconds (for this type of prediction it is enough).
-     *
-     * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted PredictionSun.
-     *
-     * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
-     */
-    PredictionSun predict(const timing::types::J2000DateTime& j2000, bool refraction) const override;
-
+    // Status.
+    PositionStatus status;  ///< The current postion status.
 };
 
-}}} // END NAMESPACES.
+/// Alias for mount slr predictions vector.
+using MountPredictionSLRV = std::vector<MountPredictionSLR>;
+
+/**
+ * @brief Represents the result of a tracking prediction operation, including azimuth and elevation position that
+ * the tracking mount must use at a specific time of a tracking.
+ * If status is either OUTSIDE_SUN, INSIDE_SUN OR AVOIDING_SUN, all result members are available.
+ * This structure is designed to encapsulate the outcome of a tracking prediction operation.
+ * It includes timing information, tracking position, prediction results, and sun
+ * position, depending on the position `status` information. See the **Note** section for more details.
+ *
+
+ *
+ * @note The presence of optional members is contingent upon the PositionStatus `status` member:
+ * - If `status` is `OUT_OF_TRACK`, the optional members (`tracking_position`, `sun_pos`)
+ *   are not populated.
+ * - If `status` is `PREDICTION_ERROR` or `CANT_AVOID_SUN`, `sun_pos` and `mount_pos` provided to
+ *   detail the prediction outcome and solar interference, respectively.
+ */
+struct MountPredictionMove
+{
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPredictionMove)
+
+    // Datetime members.
+    timing::types::HRTimePointStd tp;       ///< Timepoint of positions.
+    timing::types::MJDateTime mjdt;         ///< Modified Julian DateTime.
+
+    // Result members.
+    Optional<astro::PredictionSun> sun_pred;  ///< Optional Sun position container.
+    Optional<MountPosition> mount_pos; ///< Optional tracking mount position container.
+
+    // Status.
+    PositionStatus status;             ///< The current postion status.
+};
+
+/// Alias for mount slr predictions vector.
+using MountPredictionMoveV = std::vector<MountPredictionMove>;
+
+
+
+}}} // END NAMESPACES
 // =====================================================================================================================

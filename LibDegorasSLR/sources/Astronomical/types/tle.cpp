@@ -35,7 +35,7 @@
 #include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/types/tle.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"

@@ -38,7 +38,7 @@
 //======================================================================================================================
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_cpf.h"
 #include "LibDegorasSLR/Mathematics/math.h"
@@ -52,6 +52,7 @@
 // =====================================================================================================================namespace dpslr{
 namespace dpslr{
 namespace slr{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -372,7 +373,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     az_instant= radToDegree(atan2l(-topo_s_o_local_instant[1], topo_s_o_local_instant[0]));
 
     // Check 90 degrees elevation case (pag 263 fundamental of astrodinamic and applications A. Vallado).
-    if(math::compareFloating(el_instant, Degrees(90.0L)) == 0)
+    if(math::compareFloating(el_instant, 90.0_deg) == 0)
         el_instant -= 0.0001L;
 
     // Check the negative azimuth case.
@@ -499,13 +500,12 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // coger del xbound relativo y pasarlo a mjd mjdt y seconds.
     result.outbound_data.value().mjdt = mjdt;
 
-
     // If the mode is only outbound vector, return here.
     if (this->getPredictionMode() == PredictionMode::OUTBOUND_VECTOR)
         return result.error;
 
     // Return here if inbound is selected (TODO).
-    result.error = static_cast<int>(PredictionError::OTHER_ERROR);
+    result.error = static_cast<std::uint32_t>(PredictionError::OTHER_ERROR);
     return result.error;
 
     // INBOUND VECTOR MODE ---------------------------------------------------------------------------------------------
@@ -574,7 +574,7 @@ void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, Predicti
 {
     // Auxiliar error container.
     PredictorSlrCPF::PredictionError error = PredictorSlrCPF::PredictionError::UNKNOWN_INTERPOLATOR;
-    result.error = static_cast<int>(error);
+    result.error = static_cast<std::uint32_t>(error);
 
     // Lagrange related interpolators.
     if(this->interp_funct_ == PredictorSlrCPF::InterpFunction::LAGRANGE_9 ||
@@ -593,7 +593,7 @@ void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, Predicti
 
         // Convert the error code.
         error = PredictorSlrCPF::convertLagInterpError(lag_res);
-        result.error = static_cast<int>(error);
+        result.error = static_cast<std::uint32_t>(error);
     }
 
     // TODO Other interpolators.
@@ -616,5 +616,5 @@ PredictorSlrCPF::PredictionError PredictorSlrCPF::convertLagInterpError(stats::t
     return cpf_error;
 }
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

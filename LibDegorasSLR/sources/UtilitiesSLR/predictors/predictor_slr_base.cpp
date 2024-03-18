@@ -38,7 +38,7 @@
 //======================================================================================================================
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
 #include "LibDegorasSLR/Mathematics/math.h"
@@ -50,12 +50,11 @@
 // =====================================================================================================================namespace dpslr{
 namespace dpslr{
 namespace slr{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace astro;
 using namespace helpers::strings;
-using namespace math;
 using namespace math::units;
 using namespace math::types;
 using namespace geo::types;
@@ -166,7 +165,7 @@ Meters PredictorSlrBase::applyCorrections(Meters& range, PredictionSLR& result, 
     // Include the half of the system delay to the range. This will be permanent for the rest of computations.
     if(math::compareFloating(this->cali_del_corr_, Picoseconds(0.0L)) && cali)
     {
-        range += 0.5L*this->cali_del_corr_*kC*kPsToSec;
+        range += 0.5L*this->cali_del_corr_*astro::kC*math::units::kPsToSec;
         result.cali_del_corr = this->cali_del_corr_;
         provisional_range = range;
     }
@@ -198,7 +197,7 @@ Meters PredictorSlrBase::applyCorrections(Meters& range, PredictionSLR& result, 
         if(this->tropo_model_ == PredictorSlrBase::TroposphericModel::MARINI_MURRAY)
         {
             // Get the elevation in radians.
-            long double el_instant_rad = math::units::degToRad(el);
+            Radians el_instant_rad = math::units::degToRad(el);
 
             // Calculate the tropospheric path delay (1 way).
             range += geo::tropo::pathDelayMariniMurray(this->press_, this->temp_, this->rel_hum_, el_instant_rad,
@@ -221,5 +220,5 @@ Meters PredictorSlrBase::applyCorrections(Meters& range, PredictionSLR& result, 
 PredictorSlrBase::~PredictorSlrBase()
 {}
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

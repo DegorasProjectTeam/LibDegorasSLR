@@ -27,9 +27,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file astro_types.h
- * @brief
+ * @file tracking_analysis.h
  * @author Degoras Project Team
+ * @brief
  * @copyright EUPL License
 ***********************************************************************************************************************/
 
@@ -37,134 +37,108 @@
 #pragma once
 // =====================================================================================================================
 
-// C++ INCLUDES
-//======================================================================================================================
-#include <vector>
-// =====================================================================================================================
-
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/tracking_analyzer_types.h"
 // =====================================================================================================================
 
-// DPSLR NAMESPACES
+// LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
-namespace types{
+namespace mount{
+namespace utils{
 // =====================================================================================================================
 
-struct LIBDPSLR_EXPORT AltAzPos
+/**
+ * @brief This struct contains data of a sector where the space object's real pass crosses a Sun security sector.
+ *
+ * This struct encompasses information regarding the collision sector with the Sun, including the altazimuth
+ * coordinates of the Sun, entry and exit points in the Sun sector, the Modified Julian Dates for these entry
+ * and exit points, and the avoidance maneuver direction.
+ */
+struct SunCollisionSector
 {
-    AltAzPos();
-
-    AltAzPos(const math::units::Degrees& az, const math::units::Degrees& el);
-
-    AltAzPos(const AltAzPos& pos) = default;
-    AltAzPos(AltAzPos&& pos) = default;
-
-    AltAzPos& operator =(const AltAzPos& pos) = default;
-    AltAzPos& operator=(AltAzPos&&) = default;
-
-    ~AltAzPos() = default;
-
-    std::string toJsonStr() const
+    /**
+     * @brief Enumerates the possible rotation direction during an avoidance maneuver.
+     *
+     * This enum classifies the rotational maneuvering directions for the tracking mount to avoid a Sun collision,
+     * which can be either clockwise or counterclockwise.
+     */
+    enum class AvoidanceDirection
     {
-        std::ostringstream json;
-        json << "{"
-             << "\"az\": " << this->az.toString() << ", "
-             << "\"el\": " << this->el.toString()
-             << "}";
-        return json.str();
-    }
+        CLOCKWISE,            ///< Clockwise rotation maneuver.
+        COUNTERCLOCKWISE      ///< Counterclockwise rotation maneuver
+    };
 
-    //size_t serialize(zmqutils::utils::BinarySerializer& serializer) const final;
-
-    //void deserialize(zmqutils::utils::BinarySerializer& serializer) final;
-
-    //size_t serializedSize() const final
-
-    math::units::Degrees az;     ///< Azimuth of the altazimuth coordinate in degrees.
-    math::units::Degrees el;     ///< Altitude (elevation) of the altazimuth coordinate in degrees.
-};
-
-/// Alias for altaz corrections.
-using AltAzCorrection = AltAzPos;
-
-/// Alias for a vector of AltAzPosition.
-using AltAzPosV = std::vector<AltAzPos>;
-
-/// Alias for a vector of AltAzCorrection.
-using AltAzCorrectionV = std::vector<AltAzCorrection>;
-
-struct LIBDPSLR_EXPORT SunPosition
-{
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(SunPosition)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(SunCollisionSector)
 
-    SunPosition(const timing::types::J2000DateTime& j2000,
-                  const astro::types::AltAzPos& altaz_coord) :
-        j2dt(j2000),
-        altaz_coord(altaz_coord)
+    // Data members.
+    astro::types::AltAzPosV altaz_sun_coords;  ///< Altazimuth Sun position during the collision time in degrees.
+    astro::types::AltAzPos altaz_entry;        ///< Sun sector altazimuth entry point coordinate in degrees.
+    astro::types::AltAzPos altaz_exit;         ///< Sun sector altazimuth exit point coordinate in degrees.
+    timing::types::MJDateTime mjdt_entry;      ///< Modified Julian Datetime of sun sector entry point.
+    timing::types::MJDateTime mjdt_exit;       ///< Modified Julian Datetime of sun sector exit point.
+    AvoidanceDirection cw;                     ///< Rotation direction of the avoidance manoeuvre.
+};
+
+/// Alias for vector of SunCollisionSector.
+using SunCollisionSectorV = std::vector<SunCollisionSector>;
+
+/**
+ * @brief The TrackingInfo struct contains the information obtained from the tracking analysis.
+ */
+struct TrackingAnalysis
+{
+    // Copy and movement constructor and operators, and default destructor.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(TrackingAnalysis)
+
+    TrackingAnalysis() :
+        empty_track(false),
+        sun_deviation(false),
+        sun_collision(false),
+        sun_collision_high_el(false),
+        sun_collision_at_middle(false),
+        sun_collision_at_start(false),
+        sun_collision_at_end(false),
+        trim_at_start(false),
+        trim_at_end(false),
+        el_deviation(false)
     {}
 
-    // Containers.
-    timing::types::J2000DateTime j2dt;   ///< J2000 Datetime associated to the Sun coordinates.
-    types::AltAzPos altaz_coord;         ///< Sun altazimuth coordinates referenced to an observer (degrees).
+    // Time data.
+    timing::types::MJDateTime mjdt_start;     ///< Tracking start Modified Julian Datetime.
+    timing::types::MJDateTime mjdt_end;       ///< Tracking end Modified Julian Datetime.
+
+    // Position data.
+    astro::types::AltAzPos start_coord;       ///< Track start altazimuth coordinates.
+    astro::types::AltAzPos end_coord;         ///< Track end altazimuth  coordinates.
+    math::units::Degrees max_el;              ///< Track maximum elevation in degrees.
+    // TODO Track Max speed.
+
+    // Data containers.
+    SunCollisionSectorV sun_sectors;            ///< Data for sun collision sectors.
+    MountPositionAnalyzedV track_positions;     ///< Analyzed absolute final mount positions.
+    astro::types::SunPositionV sun_positions;   ///< Sun positions.
+
+    // Validation flag.
+    bool empty_track;             ///< Flag inficating if the track is empty (due to analysis checks).
+
+    // Tracking alterations.
+    bool sun_deviation;           ///< Flag indicating if the track was deviated from pass due to Sun.
+    bool sun_collision;           ///< Flag indicating if the pass has a collision with the Sun.
+    bool sun_collision_high_el;   ///< Flag indicating if the pass has a collision with the Sun at high elevation.
+    bool sun_collision_at_middle; ///< Flag indicating if the pass has a collision at middle with the Sun.
+    bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
+    bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
+    bool sun_collision_high;      ///< Flag indicating if the pass has a collision with a high sun sector.
+    bool trim_at_start;           ///< Flag indicating if the pass was trimmed due to elevation or Sun at start.
+    bool trim_at_end;             ///< Flag indicating if the pass was trimmed due to elevation or Sun at end.
+    bool el_deviation;            ///< Flag indicating if the track was deviated from pass due to max elevation.
 };
-
-/// Alias for a vector of SunPosition.
-using SunPositionV = std::vector<SunPosition>;
-
-
-struct LIBDPSLR_EXPORT RA
-{
-    RA() :
-        hour(0), min(0), sec(0), ra(0)
-    {}
-
-    RA(int hour, int min, double sec);
-    RA(double ra);
-
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(RA)
-
-    operator double () const;
-
-    static bool checkRA(int h, int min, double sec);
-
-    int hour;
-    int min;
-    double sec;
-    double ra;
-};
-
-struct LIBDPSLR_EXPORT Dec
-{
-    Dec() = default;
-    Dec(int deg, int min, double sec);
-    Dec(double dec);
-
-    Dec(const Dec&) = default;
-    Dec(Dec&&) = default;
-    Dec& operator=(const Dec&) = default;
-    Dec& operator=(Dec&&) = default;
-
-    operator double () const;
-
-    static bool checkDec(int deg, int min, double sec);
-
-    int deg;
-    int min;
-    double sec;
-    double dec;
-};
-
-
-
-
 
 }}} // END NAMESPACES
 // =====================================================================================================================

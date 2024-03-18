@@ -27,7 +27,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_star.cpp
+ * @file predictor_star_base.cpp
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
@@ -39,8 +39,9 @@
 #include <omp.h>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/libdegorasslr_init.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_star_base.h"
 // =====================================================================================================================
 
@@ -48,6 +49,7 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -57,8 +59,8 @@ using namespace astro::types;
 using namespace math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
-                                                   int leap_secs, double ut1_utc_diff) :
+PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
+                                     int leap_secs, double ut1_utc_diff) :
     star_(star),
     loc_(loc),
     leap_secs_(leap_secs),
@@ -68,6 +70,9 @@ dpslr::astro::PredictorStarBase::PredictorStarBase(const Star &star, const Surfa
 StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDateTime &jdt_end,
                                            const MillisecondsU& step) const
 {
+    // Initialization guard.
+    DegorasInitGuard guard;
+
     // Container and auxiliar.
     JDateTimeV interp_times;
     math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
@@ -95,5 +100,5 @@ StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDa
 
 PredictorStarBase::~PredictorStarBase(){}
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

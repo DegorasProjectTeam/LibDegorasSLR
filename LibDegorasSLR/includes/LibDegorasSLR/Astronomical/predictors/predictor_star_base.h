@@ -42,11 +42,11 @@
 #include <memory>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Astronomical/types/star.h"
+#include "LibDegorasSLR/Astronomical/predictors/data/prediction_star.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Timing/types/datetime_types.h"
@@ -57,17 +57,8 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
-
-struct LIBDPSLR_EXPORT PredictionStar
-{
-    // Containers.
-    timing::types::JDateTime jdt;       ///< Julian datetime used to generate the star prediction data.
-    astro::types::AltAzPos altaz_coord; ///< Star predicted altazimuth coordinates referenced to an observer (degrees).
-};
-
-/// Alias for a vector of PredictionSun.
-using StarPredictionV = std::vector<PredictionStar>;
 
 /**
  * @brief The PredictorStar class provides functionality to predict the position of a star.
@@ -80,6 +71,9 @@ class LIBDPSLR_EXPORT PredictorStarBase
 
 public:
 
+    // Copy and movement constructors and operators.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorStarBase)
+
     /**
      * @brief Constructs a PredictorStarBase object with the given observer's location.
      * @param star The parameters of the star.
@@ -90,8 +84,6 @@ public:
     PredictorStarBase(const astro::types::Star& star,
                       const geo::types::SurfaceLocation<math::units::Degrees>& loc,
                       int leap_secs = 0, double ut1_utc_diff = 0);
-
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorStarBase)
 
     template <typename T, typename... Args>
     static std::shared_ptr<PredictorStarBase> factory(Args&&... args)
@@ -123,8 +115,7 @@ public:
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    StarPredictionV predict(const timing::types::JDateTime& jdt_start,
-                            const timing::types::JDateTime& jdt_end,
+    StarPredictionV predict(const timing::types::JDateTime& jdt_start, const timing::types::JDateTime& jdt_end,
                             const math::units::MillisecondsU& step) const;
 
     virtual ~PredictorStarBase();
@@ -140,5 +131,5 @@ protected:
 /// Alias for PredictorStarBase shared smart pointer.
 using PredictorStarPtr = std::shared_ptr<PredictorStarBase>;
 
-}} // END NAMESPACES.
+}}} // END NAMESPACES.
 // =====================================================================================================================

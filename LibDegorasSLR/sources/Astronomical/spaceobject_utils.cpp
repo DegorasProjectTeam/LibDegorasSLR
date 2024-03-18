@@ -26,7 +26,7 @@
 #include <array>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/spaceobject_utils.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"

@@ -32,7 +32,7 @@
 #include <iostream>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Testing/unit_test/unit_test.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"

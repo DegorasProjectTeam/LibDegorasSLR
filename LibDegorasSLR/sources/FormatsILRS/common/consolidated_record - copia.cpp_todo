@@ -35,7 +35,7 @@
 #include <sstream>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include <LibDPSLR/ILRSFormats/consolidated_types.h>
 #include <LibDPSLR/Helpers/container_helpers.h>

@@ -27,131 +27,77 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file cpf_interpolator.cpp
- * @author Degoras Project Team.
- * @brief This file contains the implementation of the class CPFInterpolator.
+ * @file prediction_slr.h
+ * @author Degoras Project Team
+ * @brief This file contains the declaration of the struct `PredictionSLR` used by `PredictorSLR` utility.
  * @copyright EUPL License
- * @version 2306.1
 ***********************************************************************************************************************/
 
-// C++ INCLUDES
-//======================================================================================================================
-#include <sstream>
+// =====================================================================================================================
+#pragma once
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_types.h"
-#include "LibDegorasSLR/Helpers/string_helpers.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/data/prediction_slr_data.h"
 // =====================================================================================================================
 
-// LIBDEGORASSLR NAMESPACES
-// =====================================================================================================================namespace dpslr{
+// DPSLR NAMESPACES
+// =====================================================================================================================
 namespace dpslr{
 namespace slr{
+namespace predictors{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using namespace helpers::strings;
-// ---------------------------------------------------------------------------------------------------------------------
-
-std::string InstantRange::toJsonStr() const
+/**
+ * @brief This container has all the data
+ *
+ * This container has all the data returned by the predictor. The InstantRange always will be disponible. The
+ * rest of the data will be available or not depending on the selected computing mode. The azimuth and elevation
+ * difference between receive and transmit direction at instant time paramath::units::Meters will only be available in
+ * the PredictionMode::OUTBOUND_VECTOR and PredictionMode::INBOUND_VECTOR modes. You can check the corrections
+ * applied by accessing the corresponding paramath::units::Meters.
+ *
+ */
+struct LIBDPSLR_EXPORT PredictionSLR
 {
-    // Result
-    std::ostringstream oss;
+    // Aliases.
+    using OptionalPicoseconds = Optional<math::units::Picoseconds>;
+    using OptionalMeters = Optional<math::units::Meters>;
+    using OptionalDegrees = Optional<math::units::Degrees>;
 
-    // Generate the data.
-    oss << "{";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
-    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
-    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
-    oss << "\"geo_pos\":" << this->geo_pos.toJsonStr();
-    oss << "}";
+    // Default constructor and destructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(PredictionSLR)
 
-    // Return the JSON str.
-    return oss.str();
-}
-
-std::string InstantData::toJsonStr() const
-{
-    // Result
-    std::ostringstream oss;
-
-    // Generate the data.
-    oss << "{";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
-    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
-    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
-    oss << "\"geo_pos\":" << this->geo_pos.toJsonStr() << ",";
-    oss << "\"geo_vel\":" << this->geo_vel.toJsonStr() << ",";
-    oss << "\"az\":" << numberToStr(this->altaz_coord.az, 7, 4) << ",";
-    oss << "\"el\":" << numberToStr(this->altaz_coord.el, 7, 4);
-    oss << "}";
-
-    // Return the JSON str.
-    return oss.str();
-}
-
-std::string InboundData::toJsonStr() const
-{
-    // Result
-    std::ostringstream oss;
-
-    // Generate the data.
-    oss << "{";
-    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
-    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
-    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12);
-    oss << "}";
-
-    // Return the JSON str.
-    return oss.str();
-}
-
-InstantData::InstantData(InstantRange &&instant_range) : InstantRange(std::move(instant_range)){}
-
-std::string PredictionSLR::toJsonStr() const
-{
-    // Result
-    std::ostringstream oss;
-    oss << "{";
-
-    // InstantRange
-    oss << "\"instant_range\":" << instant_range.toJsonStr() << ",";
-
-    // InstantData.
-    oss << "\"instant_data\":" << (this->instant_data.has_value() ? this->instant_data->toJsonStr() : "null") << ",";
-
-    // OutboundData.
-    oss << "\"outbound_data\":"<<(this->outbound_data.has_value() ? this->outbound_data->toJsonStr() : "null")<<",";
-
-    // InboundData.
-    oss << "\"inbound_data\":"<<(this->inbound_data.has_value() ? this->inbound_data->toJsonStr() : "null")<<",";
+    // SLR result containers.
+    InstantRange instant_range;           ///< Result range for the instant time, always available if NO_ERROR.
+    Optional<InstantData> instant_data;   ///< Result data for the instant time (instant vectors).
+    Optional<OutboundData> outbound_data; ///< Result data for the bounce time (outbound vectors).
+    Optional<InboundData> inbound_data;   ///< Result data for the arrival time (inbound vectors).
 
     // Difference between receive and transmit direction at instant time.
-    oss << "\"diff_az\":";
-    oss << (this->diff_az.has_value() ? numberToStr(this->diff_az.value(), 4, 4) : "null") << ",";
-    oss << "\"diff_el\":";
-    oss << (this->diff_el.has_value() ? numberToStr(this->diff_el.value(), 4, 4) : "null") << ",";
+    OptionalDegrees diff_az;   ///< Azimuth difference between outbound and instant vectors (4 decimals).
+    OptionalDegrees diff_el;   ///< Elevation difference between outbound and instant vectors (4 decimals).
 
     // Corrections applied.
-    oss << "\"objc_ecc_corr\":";
-    oss <<(this->objc_ecc_corr.has_value() ? std::to_string(this->objc_ecc_corr.value()) : "null") << ",";
-    oss << "\"grnd_ecc_corr\":";
-    oss <<(this->grnd_ecc_corr.has_value() ? std::to_string(this->grnd_ecc_corr.value()) : "null") << ",";
-    oss << "\"cali_del_corr\":";
-    oss <<(this->cali_del_corr.has_value() ? std::to_string(this->cali_del_corr.value()) : "null") << ",";
-    oss << "\"corr_tropo\":";
-    oss <<(this->corr_tropo.has_value() ? std::to_string(this->corr_tropo.value()) : "null") << ",";
-    oss << "\"syst_rnd_corr\":";
-    oss <<(this->syst_rnd_corr.has_value() ? std::to_string(this->syst_rnd_corr.value()) : "null");
+    OptionalPicoseconds cali_del_corr;  ///< Station calibration delay correction (Seconds, 2 way).
+    OptionalMeters objc_ecc_corr;       ///< Eccentricity correction at the object (Meters, 1 way, usually CoM).
+    OptionalMeters grnd_ecc_corr;       ///< Eccentricity correction at the ground (Meters, usually not used).
+    OptionalMeters corr_tropo;          ///< Tropospheric path delay correction (Meters, 1 way).
+    OptionalMeters syst_rnd_corr;       ///< Other systematic and random error corrections (Meters, 1 way).
 
-    // End.
-    oss << "}";
+    // Error code.
+    std::uint32_t error;   ///< Error that may have occurred (zero is always NO_ERROR).
 
-    // Return the JSON str.
-    return oss.str();
-}
+    /**
+     * @brief Represents all the prediction result as a JSON formated string.
+     */
+    std::string toJsonStr() const;
+};
 
-}} // END NAMESPACES
+/// Alias for PredictionSLR vector.
+using PredictionSLRV = std::vector<PredictionSLR>;
+
+}}} // END NAMESPACES
 // =====================================================================================================================

@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -23,57 +27,88 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tle.h
- * @brief This file contains the declarations of the class TLE.
- * @author Degoras Project Team
- * @copyright EUPL License
- * @version 2305.1
+ * @file prediction_slr_data.cpp
+ * @author Degoras Project Team.
+ * @brief This file contains the implementation of the SLR data structs used by PredictionSLR container.
+ * @copyright EUPL License.
 ***********************************************************************************************************************/
-
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
 
 // C++ INCLUDES
 //======================================================================================================================
-#include <string>
+#include <sstream>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/data/prediction_slr_data.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
-// =====================================================================================================================
+// LIBDEGORASSLR NAMESPACES
+// =====================================================================================================================namespace dpslr{
 namespace dpslr{
-namespace astro{
-namespace types{
+namespace slr{
+namespace predictors{
 // =====================================================================================================================
 
-// TODO: Mejorar la clase poniendo bien los datos.
-// Podemos usar esto de referencia: https://github.com/FedericoStra/tletools
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace helpers::strings;
+// ---------------------------------------------------------------------------------------------------------------------
 
-class LIBDPSLR_EXPORT TLE
+std::string InstantRange::toJsonStr() const
 {
-public:
+    // Result
+    std::ostringstream oss;
 
-    bool parseLines(const std::string& tle);
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
+    oss << "\"geo_pos\":" << this->geo_pos.toJsonStr();
+    oss << "}";
 
-    bool isValid() const;
-    std::string getLines() const;
-    const std::string& getTitle() const;
-    const std::string& getFirstLine() const;
-    const std::string& getSecondLine() const;
+    // Return the JSON str.
+    return oss.str();
+}
 
-    const std::string& getNorad() const;
+std::string InstantData::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
 
-private:
-    std::string title;
-    std::string first_line;
-    std::string second_line;
-    std::string norad_;
-};
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12) << ",";
+    oss << "\"geo_pos\":" << this->geo_pos.toJsonStr() << ",";
+    oss << "\"geo_vel\":" << this->geo_vel.toJsonStr() << ",";
+    oss << "\"az\":" << numberToStr(this->altaz_coord.az, 7, 4) << ",";
+    oss << "\"el\":" << numberToStr(this->altaz_coord.el, 7, 4);
+    oss << "}";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
+std::string InboundData::toJsonStr() const
+{
+    // Result
+    std::ostringstream oss;
+
+    // Generate the data.
+    oss << "{";
+    oss << "\"mjdt\":" << std::to_string(this->mjdt.datetime()) << ",";
+    oss << "\"range_1w\":" << numberToStr(this->range_1w, 13, 3) << ",";
+    oss << "\"tof_2w\":" << numberToStr(this->tof_2w, 13, 12);
+    oss << "}";
+
+    // Return the JSON str.
+    return oss.str();
+}
+
+InstantData::InstantData(InstantRange &&instant_range) : InstantRange(std::move(instant_range)){}
 
 }}} // END NAMESPACES
 // =====================================================================================================================

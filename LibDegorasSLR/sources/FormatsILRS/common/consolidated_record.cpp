@@ -35,7 +35,7 @@
 #include <sstream>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
 #include <LibDegorasSLR/Helpers/container_helpers.h>
