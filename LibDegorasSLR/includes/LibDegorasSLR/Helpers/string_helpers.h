@@ -39,7 +39,7 @@
 #include <string>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 // =====================================================================================================================
@@ -120,7 +120,7 @@ std::string join(const Container& strings, const std::string& del = " ");
 
 // Custom number to fixed string conversion.
 template<typename T>
-std::string numberToFixstr(T x, unsigned int prec);
+std::string numberToFixStr(T x, unsigned int prec);
 
 // Custom number to fixed string conversion.
 template<typename T>
@@ -134,5 +134,5 @@ std::string numberToMaxDecStr(const T& x);
 
 // TEMPLATES INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Helpers/string_helpers.tpp"
+#include <LibDegorasSLR/Helpers/string_helpers.tpp>
 // =====================================================================================================================

@@ -42,13 +42,12 @@
 #include <omp.h>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 //#include "LibDegorasSLR/Timing/types/datetime.h"
 #include <LibDegorasSLR/Timing/time_constants.h>
 #include <LibDegorasSLR/Timing/types/base_time_types.h>
 #include <LibDegorasSLR/Mathematics/math.h>
-#include <LibDegorasSLR/Mathematics/types/numeric_strong_type.h>
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -142,6 +141,12 @@ template <typename DateType>
 bool DateTime<DateType>::operator==(const DateTime &other) const
 {
     return this->date_ == other.date() && math::compareFloating(this->sod_, other.sod()) == 0;
+}
+
+template <typename DateType>
+bool DateTime<DateType>::operator!=(const DateTime &other) const
+{
+    return this->date_ != other.date() || math::compareFloating(this->sod_, other.sod()) != 0;
 }
 
 template <typename DateType>

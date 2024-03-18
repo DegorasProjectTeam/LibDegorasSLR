@@ -43,11 +43,9 @@
 #include <omp.h>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Mathematics/math.tpp"
 #include "LibDegorasSLR/Mathematics/types/math_types.h"
-#include "LibDegorasSLR/Helpers/type_traits.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -76,10 +74,7 @@ T pow3(const T& x)
  * @return
  */
 template<typename T>
-double truncToDouble(T x, unsigned int prec, unsigned int dec_places)
-{
-    return dpslr::math_private::truncToDouble(x, prec, dec_places);
-}
+double truncToDouble(T x, unsigned int prec, unsigned int dec_places);
 
 /**
  * @brief Rounds a number with a given numer of decimal places.
@@ -88,10 +83,7 @@ double truncToDouble(T x, unsigned int prec, unsigned int dec_places)
  * @return the number rounded as double.
  */
 template<typename T>
-double roundToDouble(T x, unsigned int dec_places)
-{
-    return dpslr::math_private::roundToDouble(x, dec_places);
-}
+double roundToDouble(T x, unsigned int dec_places);
 
 /**
  * @brief Normalize a value within a specified range.
@@ -101,10 +93,7 @@ double roundToDouble(T x, unsigned int dec_places)
  * @return The normalized value within the specified range.
  */
 template <typename T>
-T normalizeVal(T x, T x_min, T x_max)
-{
-    return dpslr::math_private::normalizeVal(x, x_min, x_max);
-}
+T normalizeVal(T x, T x_min, T x_max);
 
 /**
  * @brief Euclidean division for integral types.
@@ -153,6 +142,13 @@ isFloatingZeroOrMinor(T a, T epsilon = std::numeric_limits<T>::epsilon())
 }
 
 template <typename T>
+std::enable_if_t<helpers::traits::is_floating_v<T>, bool>
+isFloatingMinorThanZero(T a, T epsilon = std::numeric_limits<T>::epsilon())
+{
+    return (compareFloating(a, static_cast<T>(0.0L), epsilon) < 0);
+}
+
+template <typename T>
 std::enable_if_t<helpers::traits::is_floating_v<T>, std::vector<T>>
 linspaceStep(const T& start, const T& end, const T& step)
 {
@@ -175,49 +171,11 @@ linspaceStep(const T& start, const T& end, const T& step)
     return result;
 }
 
-// /**
-//  * @brief Generate a 3D euclidean rotation matrix. To apply the rotation just multiply by the matrix.
-//  * @param axis, the axis in which the rotation is applied.
-//  * @param angle, the angle of rotation applied.
-//  * @param matrix, the generated rotation matrix
-//  */
-// template <typename T, typename U>
-// typename std::enable_if_t<
-//     (std::is_floating_point_v<T> && std::is_floating_point_v<U>) ||
-//     (std::is_integral_v<T> && std::is_integral_v<U>) ||
-//     (helpers::types::is_strong_integral<T>::value && std::is_integral_v<U>) ||
-//     (helpers::types::is_strong_float<T>::value && std::is_floating_point_v<U>) ||
-//     (std::is_integral_v<T> && helpers::types::is_strong_integral<U>::value) ||
-//     (std::is_floating_point_v<T> && helpers::types::is_strong_float<U>::value),
-//     void>
-// euclid3DRotMat(unsigned axis, const U& angle, types::Matrix<T>& matrix)
-// {
-//     double s, c;
-//     unsigned int caxis = static_cast<unsigned>(axis - 1);
-//     matrix.fill(3,3,0);
-//     s= std::sin(angle);
-//     c= std::cos(angle);
-//     matrix[0][0]=c;
-//     matrix[1][1]=c;
-//     matrix[2][2]=c;
-//     matrix[0][1]=-s;
-//     matrix[1][2]=-s;
-//     matrix[2][0]=-s;
-//     matrix[1][0]=s;
-//     matrix[2][1]=s;
-//     matrix[0][2]=s;
-//     for (unsigned i=0; i<3; i++)
-//     {
-//         matrix[i][caxis] = 0.0;
-//         matrix[caxis][i] = 0.0;
-//     }
-//     matrix[caxis][caxis]= 1.0;
-// }
 
-} // END NAMESPACE MATH
+}} // END NAMESPACES
 // =====================================================================================================================
 
-} // END NAMESPACE DPSLR
+// TEMPLATES INCLUDES
 // =====================================================================================================================
-
+#include "LibDegorasSLR/Mathematics/math.tpp"
 // =====================================================================================================================

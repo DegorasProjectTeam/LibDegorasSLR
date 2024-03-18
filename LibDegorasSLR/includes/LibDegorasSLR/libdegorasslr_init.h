@@ -37,7 +37,7 @@
 #include <stdexcept>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 // =====================================================================================================================
@@ -52,33 +52,37 @@ class LIBDPSLR_EXPORT DegorasInit
 
 public:
 
+    static void init()
+    {
+        DegorasInit::setOMPNumThreads();
+        DegorasInit::initialized_ = true;
+    }
+
+    static bool initialized()
+    {
+        return DegorasInit::initialized_;
+    }
+
     static void setOMPNumThreads(int n = 0)
     {
         int n_th = n == 0 ? omp_get_max_threads() : n;
         omp_set_num_threads(n_th);
     }
 
-    static void init()
-    {
-        DegorasInit::setOMPNumThreads();
-        DegorasInit::initialized = true;
-    }
+private:
 
-    static void checkMandatoryInit()
-    {
-        if(!DegorasInit::initialized)
-            throw std::runtime_error("[LibDegorasSLR,DegorasInit] LibDegorasSLR not initialized.");
-    }
-
-    inline static std::atomic<bool> initialized = false;
+    inline static std::atomic<bool> initialized_ = false;
 };
 
-
-
-
-
-
-
+class DegorasInitGuard
+{
+public:
+    DegorasInitGuard()
+    {
+        if (!DegorasInit::initialized())
+            throw std::runtime_error("[LibDegorasSLR,DegorasInitGuard] LibDegorasSLR not initialized.");
+    }
+};
 
 } // END NAMESPACES
 // =====================================================================================================================

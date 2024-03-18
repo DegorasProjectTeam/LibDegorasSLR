@@ -41,10 +41,11 @@
 #include <chrono>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
+#include "LibDegorasSLR/Helpers/type_traits.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES

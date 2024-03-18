@@ -40,21 +40,23 @@
 // C++ INCLUDES
 //======================================================================================================================
 #include <memory>
+#include <cstdint>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/meteo.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_types.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/data/prediction_slr.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace slr{
+namespace predictors{
 // =====================================================================================================================
 
 /**
@@ -92,6 +94,18 @@ public:
         INBOUND_VECTOR
     };
 
+    /**
+     *  @enum PredictionError
+     *  @brief This enum represents the different errors that can happen at interpolation.
+     */
+    enum class PredictionSLRError : std::uint32_t
+    {
+        NO_ERROR = 0,
+        INVALID_INTERVAL,
+        OTHER_ERROR,
+        END_BASE_ERRORS   = 10  ///< Sentinel value indicating the end of the base errors (invalid error).
+    };
+
     /** @enum TroposphericModel
      *  @brief This enum represents the different tropospheric models that can be used.
      *  @todo Mendes-Pavlis tropospheric model (IERS Conventions 2010, IERS Technical Note No. 36).
@@ -102,6 +116,8 @@ public:
         MENDES_PAVLIS
     };
 
+    // Default copy and movement constructor and operators.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSlrBase)
     /**
      * @brief Constructs the interpolator by getting the station location.
      * @param geod Geodetic position of the station (N and E > 0, 8 decimals for ~1 mm).
@@ -109,10 +125,6 @@ public:
      */
     PredictorSlrBase(const geo::types::GeodeticPointDeg& geod, const geo::types::GeocentricPoint& geoc);
 
-    PredictorSlrBase(const PredictorSlrBase&) = default;
-    PredictorSlrBase(PredictorSlrBase&&) = default;
-    PredictorSlrBase& operator=(const PredictorSlrBase&) = default;
-    PredictorSlrBase& operator=(PredictorSlrBase&&) = default;
 
     template <typename T, typename... Args>
     static std::shared_ptr<PredictorSlrBase> factory(Args&&... args)
@@ -125,6 +137,8 @@ public:
     {
         return std::static_pointer_cast<T>(base);
     }
+
+
 
     /**
      * @brief Get the station location of this cpf interpolator as a GeodeticPoint.
@@ -306,5 +320,5 @@ private:
 /// Alias for PredictorSlrBase shared smart pointer.
 using PredictorSlrPtr = std::shared_ptr<PredictorSlrBase>;
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

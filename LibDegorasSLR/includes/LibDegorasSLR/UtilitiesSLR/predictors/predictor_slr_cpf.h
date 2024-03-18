@@ -37,7 +37,7 @@
 #pragma once
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
@@ -47,13 +47,13 @@
 #include "LibDegorasSLR/Mathematics/types/matrix.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace slr{
+namespace predictors{
 // =====================================================================================================================
 
 // CONSTANTS
@@ -93,7 +93,7 @@ public:
      *  @enum PredictionError
      *  @brief This enum represents the different errors that can happen at interpolation.
      */
-    enum class PredictionError : int
+    enum class PredictionError : std::uint32_t
     {
         NO_ERROR,
         CPF_LOAD_ERROR,
@@ -125,7 +125,7 @@ public:
      * @param geod Geodetic ECEF position of the station (meters with mm preccision).
      * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
      */
-    PredictorSlrCPF(const std::string &cpf_path,
+    PredictorSlrCPF(const std::string& cpf_path,
                     const geo::types::GeodeticPointDeg& geod,
                     const geo::types::GeocentricPoint& geoc);
 
@@ -208,5 +208,5 @@ private:
 /// Alias for PredictorSkrCpf unique smart pointer.
 using PredictorSlrCPFPtr = std::shared_ptr<PredictorSlrCPF>;
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

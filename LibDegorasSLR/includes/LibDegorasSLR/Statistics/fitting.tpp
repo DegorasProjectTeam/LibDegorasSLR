@@ -41,7 +41,7 @@
 #include <numeric>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
 #include "LibDegorasSLR/Statistics/measures.h"

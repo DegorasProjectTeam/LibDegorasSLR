@@ -41,10 +41,11 @@
 //======================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Mathematics/math_constants.h"
 #include "LibDegorasSLR/Mathematics/types/numeric_strong_type.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -96,14 +97,26 @@ constexpr long double kLightNsToMm = 299.792458L;
 template <typename T>
 T degToRad(T degree)
 {
-    return (degree*(math::kPi/180.0));
+    return (degree*(math::kPi/180.0L));
 }
 
 template <typename T>
 T radToDegree(T radian)
 {
-    return (radian*(180.0/math::kPi));
+    return (radian*(180.0L/math::kPi));
 }
+
+
+Degrees radToDegree(const Radians& radian)
+{
+    return (radian*(180.0L/math::kPi));
+}
+
+Radians degToRad(const Degrees& degree)
+{
+    return (degree*(math::kPi/180.0L));
+}
+
 
 // =====================================================================================================================
 

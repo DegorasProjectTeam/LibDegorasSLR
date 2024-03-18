@@ -28,10 +28,9 @@
 
 /** ********************************************************************************************************************
  * @file geodetic_point.h
- * @author Degoras Project Team.
- * @brief
+ * @author Degoras Project Team
+ * @brief Definition of the GeodeticPoint template structure.
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -42,58 +41,68 @@
 // =====================================================================================================================
 #include <type_traits>
 #include <array>
+#include <sstream>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/units/unit_conversions.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Mathematics/units/unit_conversions.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
-// LIBDPSLR NAMESPACES
+// DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace geo{
 namespace types{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using math::units::Degrees;
-using math::units::Radians;
-using math::units::Meters;
-// ---------------------------------------------------------------------------------------------------------------------
-
 /**
- * GeodeticCoords is defined as <lat, lon, alt> tuple
+ * @brief A template structure to represent a geodetic point with latitude, longitude, and altitude.
+ *
+ * The GeodeticPoint struct is templated to allow for latitude and longitude angles to be expressed in either degrees
+ * or radians. The altitude is always in meters.
+ *
+ * @tparam AngleType A type that specifies the unit of measurement for the latitude and longitude
+ *         (either math::units::Degrees or math::units::Radians).
  */
-template <typename AngleType,
-         typename = typename std::enable_if<
-         std::is_same<AngleType, Degrees>::value ||
-         std::is_same<AngleType, Radians>::value>::type>
+template <typename AngleType, typename = typename std::enable_if<
+std::is_same_v<AngleType, math::units::Degrees> || std::is_same_v<AngleType, math::units::Radians>>>
 struct LIBDPSLR_EXPORT GeodeticPoint
 {
-    AngleType lat;
-    AngleType lon;
-    Meters alt;
+    // Default constructor and destructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(GeodeticPoint)
 
-    GeodeticPoint(const AngleType& lat = AngleType(),
-                  const AngleType lon = AngleType(),
-                  const Meters alt = Meters()) :
-        lat(lat),
-        lon(lon),
-        alt(alt)
+    /**
+     * @brief Constructs a GeodeticPoint with specified latitude, longitude, and altitude.
+     *
+     * @param lat Latitude of the geodetic point in the specified AngleType units (Degrees or Radians).
+     * @param lon Longitude of the geodetic point in the specified AngleType units (Degrees or Radians).
+     * @param alt Altitude of the geodetic point in meters.
+     */
+    GeodeticPoint(const AngleType& lat, const AngleType lon, const math::units::Meters& alt) :
+        lat(lat), lon(lon), alt(alt)
     {}
 
-    GeodeticPoint(const GeodeticPoint&) = default;
+    std::string toJsonStr() const
+    {
+        std::ostringstream json;
+        json << "{"
+             << "\"lat\": " << this->lat.toString() << ", "
+             << "\"lon\": " << this->lon.toString() << ", "
+             << "\"alt\": " << this->alt.toString()
+             << "}";
+        return json.str();
+    }
 
-    GeodeticPoint(GeodeticPoint&&) = default;
-
-    GeodeticPoint& operator =(const GeodeticPoint&) = default;
-
-    GeodeticPoint& operator =(GeodeticPoint&&) = default;
-
-
+    /**
+     * @brief Converts the angles of the geodetic point to a different angle unit (Degrees <-> Radians).
+     * @tparam NewAngleType The target angle type for the conversion (either Degrees or Radians).
+     * @return A new GeodeticPoint instance with the converted angle units and the same altitude.
+     */
     template<typename NewAngleType>
     inline constexpr GeodeticPoint<NewAngleType> convertAngles() const
     {
@@ -102,29 +111,40 @@ struct LIBDPSLR_EXPORT GeodeticPoint
         {
             return *this;
         }
-        else if constexpr(std::is_same_v<NewAngleType, Radians>)
+        else if constexpr(std::is_same_v<NewAngleType, math::units::Radians>)
         {
-            NewAngleType new_lat = static_cast<Radians>(math::units::degToRad(this->lat));
-            NewAngleType new_lon = static_cast<Radians>(math::units::degToRad(this->lon));
+            NewAngleType new_lat = static_cast<math::units::Radians>(math::units::degToRad(this->lat));
+            NewAngleType new_lon = static_cast<math::units::Radians>(math::units::degToRad(this->lon));
             return GeodeticPoint<NewAngleType>(new_lat, new_lon, this->alt);
         }
-        else if constexpr(std::is_same_v<NewAngleType, Degrees>)
+        else if constexpr(std::is_same_v<NewAngleType, math::units::Degrees>)
         {
-            NewAngleType new_lat = static_cast<Degrees>(math::units::radToDegree(this->lat));
-            NewAngleType new_lon = static_cast<Degrees>(math::units::radToDegree(this->lon));
+            NewAngleType new_lat = static_cast<math::units::Degrees>(math::units::radToDegree(this->lat));
+            NewAngleType new_lon = static_cast<math::units::Degrees>(math::units::radToDegree(this->lon));
             return GeodeticPoint<NewAngleType>(new_lat, new_lon, this->alt);
         }
     }
 
-    template<typename Container = std::array<std::common_type_t<AngleType, Meters>, 3>>
-    inline constexpr Container store() const {return Container{lat, lon, alt};}
+    /**
+     * @brief Stores the geodetic point's latitude, longitude, and altitude in a specified container type.
+     * @tparam Container The type of container to store the geodetic point's data. Defaults to std::array with the
+     *         common type of AngleType and math::units::Meters, size 3.
+     * @return Container A container holding the latitude, longitude, and altitude of the geodetic point.
+     */
+    template<typename Container = std::array<std::common_type_t<AngleType, math::units::Meters>, 3>>
+    inline constexpr Container store() const {return Container{this->lat, this->lon, this->alt};}
+
+    // Members.
+    AngleType lat;               ///< Latitude of the gedoetic point (degrees or radians).
+    AngleType lon;               ///< Longitude of the gedoetic point (degrees or radians).
+    math::units::Meters alt;     ///< Altitude (elevation) of the geodetic point (meters).
 };
 
 /// Alias for degrees GeodeticPoint specialization.
-using GeodeticPointDeg = GeodeticPoint<Degrees>;
+using GeodeticPointDeg = GeodeticPoint<math::units::Degrees>;
 
 /// Alias for radians GeodeticPoint specialization.
-using GeodeticPointRad = GeodeticPoint<Radians>;
+using GeodeticPointRad = GeodeticPoint<math::units::Radians>;
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

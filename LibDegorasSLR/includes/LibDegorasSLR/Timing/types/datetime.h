@@ -41,7 +41,7 @@
 // =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
@@ -137,6 +137,8 @@ public:
     void add(const math::units::Seconds& seconds);
 
     bool operator==(const DateTime& other) const;
+
+    bool operator!=(const DateTime& other) const;
 
     bool operator<(const DateTime& other) const;
 

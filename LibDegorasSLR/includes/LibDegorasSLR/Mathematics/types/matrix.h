@@ -50,7 +50,7 @@
 #include <string.h>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Mathematics/math.h"

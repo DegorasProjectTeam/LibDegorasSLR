@@ -279,7 +279,7 @@
 // =====================================================================================================================
 
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_header.h"

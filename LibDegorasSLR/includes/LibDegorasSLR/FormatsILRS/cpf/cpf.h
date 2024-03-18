@@ -67,7 +67,7 @@
 #include <string>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h"

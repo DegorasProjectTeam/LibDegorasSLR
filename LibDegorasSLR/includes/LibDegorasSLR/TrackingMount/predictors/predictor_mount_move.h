@@ -38,7 +38,7 @@
 #pragma once
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"

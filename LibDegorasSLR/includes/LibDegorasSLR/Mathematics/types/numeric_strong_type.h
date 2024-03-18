@@ -44,8 +44,9 @@
 #include <limits>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -65,25 +66,22 @@ class NumericStrongType
 
 public:
 
-    NumericStrongType()
-    {
-        this->value_ = static_cast<T>(0);
-    }
+    constexpr NumericStrongType(){this->value_ = static_cast<T>(0);}
 
-    NumericStrongType(T const& value) : value_(value) {}
+    constexpr NumericStrongType(const T& value) : value_(value) {}
 
-    NumericStrongType(const NumericStrongType&) = default;
+    constexpr NumericStrongType(const NumericStrongType&) = default;
 
-    NumericStrongType(NumericStrongType&&) = default;
+    constexpr NumericStrongType(NumericStrongType&&) = default;
 
-    NumericStrongType& operator=(const NumericStrongType& other)
+    constexpr NumericStrongType& operator=(const NumericStrongType& other)
     {
         if (this != &other)
             this->value_ = other.value_;
         return *this;
     }
 
-    NumericStrongType& operator=(NumericStrongType&& other) noexcept
+    constexpr NumericStrongType& operator=(NumericStrongType&& other) noexcept
     {
         if (this != &other)
             this->value_ = std::move(other.value_);
@@ -91,35 +89,35 @@ public:
     }
 
     // Overloading += operator
-    NumericStrongType& operator+=(const T& rhs)
+    constexpr NumericStrongType& operator+=(const T& rhs)
     {
         this->value_ += rhs;
         return *this;
     }
 
     // Overloading -= operator
-    NumericStrongType& operator-=(const T& rhs)
+    constexpr NumericStrongType& operator-=(const T& rhs)
     {
         this->value_ -= rhs;
         return *this;
     }
 
     // Overloading += operator for NumericStrongType
-    NumericStrongType& operator+=(const NumericStrongType& rhs)
+    constexpr NumericStrongType& operator+=(const NumericStrongType& rhs)
     {
         this->value_ += rhs.value_;
         return *this;
     }
 
     // Overloading -= operator for NumericStrongType
-    NumericStrongType& operator-=(const NumericStrongType& rhs)
+    constexpr NumericStrongType& operator-=(const NumericStrongType& rhs)
     {
         this->value_ -= rhs.value_;
         return *this;
     }
 
     // Prefix increment operator
-    NumericStrongType& operator++()
+    constexpr NumericStrongType& operator++()
     {
         ++this->value_;
         return *this;
@@ -134,7 +132,7 @@ public:
     }
 
     // Prefix decrement operator
-    NumericStrongType& operator--()
+    constexpr NumericStrongType& operator--()
     {
         --this->value_;
         return *this;
@@ -149,25 +147,31 @@ public:
     }
 
     // Conversion back to the underlying type.
-    operator T() const { return this->value_; }
+    constexpr operator T() const { return this->value_; }
 
     // Getter for the value_.
-    T get() const { return this->value_; }
+    constexpr T get() const { return this->value_; }
+
+    std::string toString() const
+    {
+        return helpers::strings::numberToMaxDecStr(this->value_);
+    }
 };
 
 }}} // END NAMESPACES.
 // =====================================================================================================================
 
-// Specializing std::numeric_limits for NumericStrongType
-namespace std
-{
+// STD NAMESPACES
+// =====================================================================================================================
+namespace std {
+// =====================================================================================================================
 
+// Specializing std::numeric_limits for NumericStrongType
 template<typename T, class Tag>
 class numeric_limits<dpslr::math::types::NumericStrongType<T, Tag>>
 {
 public:
     static constexpr bool is_specialized = std::numeric_limits<T>::is_specialized;
-
     static constexpr auto max_digits10 = std::numeric_limits<T>::max_digits10;
     static constexpr auto digits10 = std::numeric_limits<T>::digits10;
     static constexpr T min() noexcept { return std::numeric_limits<T>::min(); }
@@ -175,6 +179,20 @@ public:
     static constexpr T epsilon() noexcept { return std::numeric_limits<T>::epsilon(); }
 };
 
-}
+} // END NAMESPACES.
+// =====================================================================================================================
+
+// Macros
+// =====================================================================================================================
+
+// Macro to define custom strong types with literals.
+#define M_DEFINE_STRONG_TYPE(TypeName, NumericType) \
+using TypeName = dpslr::math::types::NumericStrongType<NumericType, struct UnitName##Tag>; \
+
+// Macro to define units and create literal operator
+#define M_DEFINE_STRONG_TYPE_WITH_LITERAL(TypeName, NumericType, TypeLiteral) \
+using TypeName = dpslr::math::types::NumericStrongType<NumericType, struct UnitName##Tag>; \
+namespace literals{ TypeName operator ""_##TypeLiteral(NumericType value) \
+{return TypeName(value);}} \
 
 // =====================================================================================================================

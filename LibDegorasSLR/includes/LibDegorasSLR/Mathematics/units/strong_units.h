@@ -38,7 +38,7 @@
 #pragma once
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include"LibDegorasSLR/Mathematics/types/numeric_strong_type.h"
 // =====================================================================================================================
@@ -50,57 +50,53 @@ namespace math{
 namespace units{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using types::NumericStrongType;
-// ---------------------------------------------------------------------------------------------------------------------
-
 // ALIASES FOR STRONG TYPE UNITS
 // ---------------------------------------------------------------------------------------------------------------------
 
 /// Alias for strong type long double representing seconds.
-using Seconds = NumericStrongType<long double, struct SecondsTag>;
+M_DEFINE_STRONG_TYPE_WITH_LITERAL(Seconds, long double, s)
 
 /// Alias for strong type unsigned representing seconds.
-using SecondsU = NumericStrongType<unsigned, struct SecondsUTag>;
+M_DEFINE_STRONG_TYPE(SecondsU, unsigned)
 
 /// Alias for strong type long double representing milliseconds.
-using Milliseconds = NumericStrongType<long double, struct MillisecondsTag>;
+M_DEFINE_STRONG_TYPE_WITH_LITERAL(Milliseconds, long double, ms)
 
 /// Alias for strong type unsigned representing milliseconds.
-using MillisecondsU = NumericStrongType<unsigned, struct MillisecondsUTag>;
+M_DEFINE_STRONG_TYPE(MillisecondsU, unsigned)
 
 /// Alias for strong type long double representing microseconds.
-using Microseconds = NumericStrongType<long double, struct MicrosecondsTag>;
+M_DEFINE_STRONG_TYPE_WITH_LITERAL(Microseconds, long double, us)
 
 /// Alias for strong type unsigned representing microseconds.
-using MicrosecondsU = NumericStrongType<unsigned, struct MicrosecondsUTag>;
+M_DEFINE_STRONG_TYPE(MicrosecondsU, unsigned)
 
 /// Alias for strong type long double representing nanoseconds.
-using Nanoseconds = NumericStrongType<long double, struct NanosecondsTag>;
+M_DEFINE_STRONG_TYPE_WITH_LITERAL(Nanoseconds, long double, ns)
 
 /// Alias for strong type unsigned representing nanoseconds.
-using NanosecondsU = NumericStrongType<unsigned, struct NanosecondsUTag>;
+M_DEFINE_STRONG_TYPE(NanosecondsU, unsigned)
 
 /// Alias for strong type long double representing picoseconds.
-using Picoseconds = NumericStrongType<long double, struct PicosecondsTag>;
+M_DEFINE_STRONG_TYPE_WITH_LITERAL(Picoseconds, long double, ps)
 
 /// Alias for strong type unsigned representing picoseconds.
-using PicosecondsU = NumericStrongType<unsigned, struct PicosecondsUTag>;
+M_DEFINE_STRONG_TYPE(PicosecondsU, unsigned)
 
 /// Alias for strong type long double representing meters.
-using Meters = NumericStrongType<long double, struct MetersTag>;
+M_DEFINE_STRONG_TYPE_WITH_LITERAL(Meters, long double, m)
 
 /// Alias for strong type long double representing degrees.
-using Degrees = NumericStrongType<long double, struct DegreesTag>;
+M_DEFINE_STRONG_TYPE_WITH_LITERAL(Degrees, long double, deg)
 
 /// Alias for strong type unsigned representing degrees.
-using DegreesU = NumericStrongType<unsigned, struct DegreesUTag>;
+M_DEFINE_STRONG_TYPE(DegreesU, unsigned)
 
 /// Alias for strong type long double representing radians.
-using Radians = NumericStrongType<long double, struct RadiansTag>;
+M_DEFINE_STRONG_TYPE_WITH_LITERAL(Radians, long double, rad)
 
 /// Alias for strong type long double representing meters/second.
-using MetersSecond = NumericStrongType<long double, struct MetersSecondTag>;
+using MetersSecond = types::NumericStrongType<long double, struct MetersSecondTag>;
 
 }}} // END NAMESPACES
 // =====================================================================================================================

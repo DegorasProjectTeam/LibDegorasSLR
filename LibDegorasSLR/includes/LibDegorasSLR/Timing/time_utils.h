@@ -44,7 +44,7 @@
 #include <chrono>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
