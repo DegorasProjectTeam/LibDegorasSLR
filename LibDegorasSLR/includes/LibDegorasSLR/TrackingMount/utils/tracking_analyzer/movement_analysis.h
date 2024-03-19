@@ -42,7 +42,11 @@
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/tracking_analyzer_types.h"
+
+#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/mount_position_analyzed.h"
+
+
+#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/movement_analyzer_types.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -53,51 +57,15 @@ namespace utils{
 // =====================================================================================================================
 
 /**
- * @brief This struct contains data of a sector where the space object's real pass crosses a Sun security sector.
- *
- * This struct encompasses information regarding the collision sector with the Sun, including the altazimuth
- * coordinates of the Sun, entry and exit points in the Sun sector, the Modified Julian Dates for these entry
- * and exit points, and the avoidance maneuver direction.
- */
-struct SunCollisionSector
-{
-    /**
-     * @brief Enumerates the possible rotation direction during an avoidance maneuver.
-     *
-     * This enum classifies the rotational maneuvering directions for the tracking mount to avoid a Sun collision,
-     * which can be either clockwise or counterclockwise.
-     */
-    enum class AvoidanceDirection
-    {
-        CLOCKWISE,            ///< Clockwise rotation maneuver.
-        COUNTERCLOCKWISE      ///< Counterclockwise rotation maneuver
-    };
-
-    // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(SunCollisionSector)
-
-    // Data members.
-    astro::types::AltAzPosV altaz_sun_coords;  ///< Altazimuth Sun position during the collision time in degrees.
-    astro::types::AltAzPos altaz_entry;        ///< Sun sector altazimuth entry point coordinate in degrees.
-    astro::types::AltAzPos altaz_exit;         ///< Sun sector altazimuth exit point coordinate in degrees.
-    timing::types::MJDateTime mjdt_entry;      ///< Modified Julian Datetime of sun sector entry point.
-    timing::types::MJDateTime mjdt_exit;       ///< Modified Julian Datetime of sun sector exit point.
-    AvoidanceDirection cw;                     ///< Rotation direction of the avoidance manoeuvre.
-};
-
-/// Alias for vector of SunCollisionSector.
-using SunCollisionSectorV = std::vector<SunCollisionSector>;
-
-/**
  * @brief The TrackingInfo struct contains the information obtained from the tracking analysis.
  */
-struct TrackingAnalysis
+struct LIBDPSLR_EXPORT MovementAnalysis
 {
     // Copy and movement constructor and operators, and default destructor.
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(TrackingAnalysis)
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MovementAnalysis)
 
-    TrackingAnalysis() :
-        empty_track(false),
+    MovementAnalysis() :
+        empty_movement(false),
         sun_deviation(false),
         sun_collision(false),
         sun_collision_high_el(false),
@@ -110,34 +78,39 @@ struct TrackingAnalysis
     {}
 
     // Time data.
-    timing::types::MJDateTime mjdt_start;     ///< Tracking start Modified Julian Datetime.
-    timing::types::MJDateTime mjdt_end;       ///< Tracking end Modified Julian Datetime.
+    timing::types::MJDateTime mjdt_start;     ///< Movement start Modified Julian Datetime.
+    timing::types::MJDateTime mjdt_end;       ///< Movement end Modified Julian Datetime.
 
     // Position data.
-    astro::types::AltAzPos start_coord;       ///< Track start altazimuth coordinates.
-    astro::types::AltAzPos end_coord;         ///< Track end altazimuth  coordinates.
-    math::units::Degrees max_el;              ///< Track maximum elevation in degrees.
+    astro::types::AltAzPos start_coord;       ///< Movement start altazimuth coordinates.
+    astro::types::AltAzPos end_coord;         ///< Movement end altazimuth  coordinates.
+    math::units::Degrees max_el;              ///< Movement maximum elevation in degrees.
     // TODO Track Max speed.
 
     // Data containers.
     SunCollisionSectorV sun_sectors;            ///< Data for sun collision sectors.
-    MountPositionAnalyzedV track_positions;     ///< Analyzed absolute final mount positions.
-    astro::types::SunPositionV sun_positions;   ///< Sun positions.
+    types::MountPositionV original_positions;   ///< Original absolute mount positions.
+    MountPositionAnalyzedV analyzed_positions;  ///< Analyzed absolute final mount positions.
+    astro::types::SunPositionV sun_positions;   ///< Sun altazimuth positions.
+
+    // Iterators with the start and end of the movement.
+    MountPositionAnalyzedV::const_iterator start_mov_it; ///< Const iterator to the real valid start of the movement.
+    MountPositionAnalyzedV::const_iterator end_mov_it;   ///< Const iterator to the real valid end of the movement.
 
     // Validation flag.
-    bool empty_track;             ///< Flag inficating if the track is empty (due to analysis checks).
+    bool empty_movement;          ///< Flag inficating if the movement is empty (due to analysis checks).
 
-    // Tracking alterations.
-    bool sun_deviation;           ///< Flag indicating if the track was deviated from pass due to Sun.
-    bool sun_collision;           ///< Flag indicating if the pass has a collision with the Sun.
-    bool sun_collision_high_el;   ///< Flag indicating if the pass has a collision with the Sun at high elevation.
-    bool sun_collision_at_middle; ///< Flag indicating if the pass has a collision at middle with the Sun.
-    bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
-    bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
-    bool sun_collision_high;      ///< Flag indicating if the pass has a collision with a high sun sector.
-    bool trim_at_start;           ///< Flag indicating if the pass was trimmed due to elevation or Sun at start.
-    bool trim_at_end;             ///< Flag indicating if the pass was trimmed due to elevation or Sun at end.
-    bool el_deviation;            ///< Flag indicating if the track was deviated from pass due to max elevation.
+    // Movement alterations.
+    bool sun_deviation;           ///< Flag indicating if the movement was deviated from pass due to Sun.
+    bool sun_collision;           ///< Flag indicating if the movement has a collision with the Sun.
+    bool sun_collision_high_el;   ///< Flag indicating if the movement has a collision with the Sun at high elevation.
+    bool sun_collision_at_middle; ///< Flag indicating if the movement has a collision at middle with the Sun.
+    bool sun_collision_at_start;  ///< Flag indicating if the movement has a collision at start with the Sun.
+    bool sun_collision_at_end;    ///< Flag indicating if the movement has a collision at end with the Sun.
+    bool sun_collision_high;      ///< Flag indicating if the movement has a collision with a high sun sector.
+    bool trim_at_start;           ///< Flag indicating if the movement was trimmed due to elevation or Sun at start.
+    bool trim_at_end;             ///< Flag indicating if the movement was trimmed due to elevation or Sun at end.
+    bool el_deviation;            ///< Flag indicating if the movement was deviated from pass due to max elevation.
 };
 
 }}} // END NAMESPACES

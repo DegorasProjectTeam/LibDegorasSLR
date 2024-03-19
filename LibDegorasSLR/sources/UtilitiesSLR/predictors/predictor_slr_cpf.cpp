@@ -59,9 +59,11 @@ namespace predictors{
 using namespace helpers::strings;
 using namespace math::units;
 using namespace math::types;
+using namespace math::units::literals;
 using namespace geo::types;
 using namespace timing::types;
 using namespace ilrs::cpf;
+using namespace math::units::literals;
 // ---------------------------------------------------------------------------------------------------------------------
 
 const std::array<std::string, 10> PredictorSlrCPF::PredictorErrorStr =

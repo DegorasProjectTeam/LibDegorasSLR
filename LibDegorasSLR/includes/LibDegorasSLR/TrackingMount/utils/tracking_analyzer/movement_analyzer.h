@@ -27,11 +27,10 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tracking_analyzer.h
- * @author Degoras Project Team.
+ * @file movement_analyzer.h
+ * @author Degoras Project Team
  * @brief This file contains the definition of the TrackingAnalyzer class.
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -42,9 +41,8 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Astronomical/predictors/data/prediction_sun.h"
-#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/tracking_analysis.h"
-#include "LibDegorasSLR/TrackingMount/types/tracking_mount_types.h"
+#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/movement_analysis.h"
+#include "LibDegorasSLR/TrackingMount/types/mount_position.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -83,51 +81,64 @@ constexpr math::units::Degrees kAvoidAngleOffset = 0.5L;   ///< Offset to apply 
  *
  *@todo Max speed analysis.
  */
-class LIBDPSLR_EXPORT TrackingAnalyzer
+class LIBDPSLR_EXPORT MovementAnalyzer
 {
 public:
 
-    TrackingAnalyzer(const TrackingAnalyzerConfig& config);
+    MovementAnalyzer(const MovementAnalyzerConfig& config);
 
-    TrackingAnalysis analyzeTracking(const types::MountPositionV& mount_positions,
-                                     const astro::types::SunPositionV &sun_positions) const;
+    MovementAnalysis analyzeMovement(const types::MountPositionV& mount_positions,
+                                     const astro::types::SunPositionV &sun_positions);
 
-    MountPositionAnalyzed analyzePosition(const TrackingAnalysis& analysis,
+    MountPositionAnalyzed analyzePosition(const MovementAnalysis& analysis,
                                           const types::MountPosition& mount_pos,
                                           const astro::types::SunPosition& sun_pos) const;
 
 private:
 
+    /// Auxiliar structure for handle mount and sun positions at same time.
+    struct Positions
+    {
+        MountPositionAnalyzed& mount_pos;
+        const astro::types::SunPosition& sun_pos;
+    };
+
     /// Helper to check the tracking start.
-    bool analyzeTrackingStart(TrackingAnalysis& analysis) const;
+    bool analyzeTrackingStart(MovementAnalysis& analysis);
 
     /// Helper to check the tracking end.
-    bool analyzeTrackingEnd(TrackingAnalysis& analysis) const;
+    bool analyzeTrackingEnd(MovementAnalysis& analysis);
 
     /// Helper to check the tracking at the middle.
-    bool analyzeTrackingMiddle(TrackingAnalysis& analysis) const;
+    bool analyzeTrackingMiddle(MovementAnalysis& analysis);
 
     /// Helper to check if the predicted position is inside a sun sector.
     bool insideSunSector(const astro::types::AltAzPos& pass_pos, const astro::types::AltAzPos& sun_pos) const;
 
     /// Helper to set the rotation direction of a sun sector.
-    bool setSunSectorRotationDirection(SunCollisionSector &sector,
-                                       MountPositionAnalyzedV::const_iterator sun_start,
-                                       MountPositionAnalyzedV::const_iterator sun_end);
+    bool setSunSectorRotationDirection(SunCollisionSector& sector,
+                                       std::vector<Positions>::const_iterator sun_start,
+                                       std::vector<Positions>::const_iterator sun_end) const;
+
+    /// Helper to calculate the avoidance position.
+    void calcSunAvoidPos(Positions& pos, const SunCollisionSector& sector) const;
+
 
     /// Helper to check positions whithin a sun sector to see if it is possible to avoid sun
-    void checkSunSectorPositions(const SunCollisionSector &sector,
-                                 MountPositionAnalyzedV::iterator sun_start,
-                                 MountPositionAnalyzedV::iterator sun_end);
+    void checkSunSectorPositions(MovementAnalysis &analysis, const SunCollisionSector &sector,
+                                 std::vector<Positions>::iterator sun_start,
+                                 std::vector<Positions>::iterator sun_end) const;
 
     /// Helper to calculate the avoidance trajectory.
-    long double calcSunAvoidTrajectory(const timing::types::MJDateTime& mjdt, const SunCollisionSector& sector,
+    long double calcSunAvoidTrajectory(const timing::types::MJDateTime& mjdt,
+                                       const SunCollisionSector& sector,
                                        const astro::types::AltAzPos& sun_pos) const;
 
-    void calcSunAvoidPos(MountPositionAnalyzed& pred, const SunCollisionSector &sector) const;
-
     // Private data members.
-    TrackingAnalyzerConfig config_; ///< Contains the tracking analyzer user configuration.
+    MovementAnalyzerConfig config_;     ///< Contains the movement analyzer user configuration.
+    std::vector<Positions> positions_;  ///< Auxiliar vector with the Sun and mount position references.
+    std::vector<Positions>::iterator movement_begin_;  ///< Auxiliar iterator with the analyzed movement real start.
+    std::vector<Positions>::iterator movement_end_;    ///< Auxiliar iterator with the analyzed movement real end.
 };
 
 }}} // END NAMESPACES

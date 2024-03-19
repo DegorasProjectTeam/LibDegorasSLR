@@ -40,7 +40,7 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/TrackingMount/types/tracking_mount_types.h"
+#include "LibDegorasSLR/TrackingMount/types/mount_position.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -64,39 +64,12 @@ using namespace math::units::literals;
  */
 enum class AnalyzedPositionStatus
 {
-    NO_MODIFICATION,    ///< No modification to the position was necessary; all is okay with the original position.
-    OUT_OF_TRACK,       ///< The time provided for prediction is outside of tracking.
-    CANT_AVOID_SUN,     ///< Final mount position can't be calculated, since it cannot avoid sun security sector.
-    INSIDE_SUN,         ///< The final mount position is in the Sun and is configured for not avoiding.
-    AVOIDING_SUN,       ///< The final mount position is avoiding sun security sector.
-    ELEVATION_CLIPPED,  ///< The final mount position was clipped due to maximum elevation configuration.
-};
-
-
-/**
- * @brief The PredictorMountSLRConfig struct contains the configuration parameters associated with a tracking. These
- * parameters will define the tracking requirements.
- *
- * @todo Max speeds analysis.
- */
-struct LIBDPSLR_EXPORT TrackingAnalyzerConfig
-{
-    // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(TrackingAnalyzerConfig)
-
-    TrackingAnalyzerConfig(const math::units::DegreesU& sun_avoid_angle, const math::units::DegreesU& min_elev,
-                           const math::units::DegreesU& max_elev, bool sun_avoid) :
-        sun_avoid_angle(sun_avoid_angle),
-        min_elev(min_elev),
-        max_elev(max_elev),
-        sun_avoid(sun_avoid)
-    {}
-
-    // Data members.
-    math::units::DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
-    math::units::DegreesU min_elev;         ///< Configured minimum elevation (degrees).
-    math::units::DegreesU max_elev;         ///< Configured maximum elevation (degrees).
-    bool sun_avoid;                         ///< Flag indicating if the track is configured for avoid the Sun.
+    NO_MODIF_NEEDED,      ///< No modification to the position was needed; all is okay with the original position.
+    OUT_OF_TRACK,         ///< The time provided for prediction is outside of tracking.
+    CANT_AVOID_SUN,       ///< Final mount position can't be calculated, since it cannot avoid sun security sector.
+    INSIDE_SUN,           ///< The final mount position is in the Sun and is configured for not avoiding.
+    AVOIDING_SUN,         ///< The final mount position is avoiding sun security sector.
+    ELEVATION_CLIPPED,    ///< The final mount position was clipped due to maximum elevation configuration.
 };
 
 /**
@@ -113,26 +86,19 @@ struct LIBDPSLR_EXPORT MountPositionAnalyzed : types::MountPosition
     // Default constructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPositionAnalyzed)
 
-
-
     MountPositionAnalyzed(const types::MountPosition& mount_pos) :
         types::MountPosition(mount_pos),
-        diff_az(0.0_deg),
-        diff_el(0.0_deg),
-        status(AnalyzedPositionStatus::NO_MODIFICATION)
+        altaz_diff(0.0_deg, 0.0_deg),
+        status(AnalyzedPositionStatus::NO_MODIF_NEEDED)
     {}
 
     // Data members.
-    math::units::Degrees diff_az;      ///< Azimuth difference between analyzed position and the original position.
-    math::units::Degrees diff_el;      ///< Elevation difference between analyzed position and the original position.
-
-    // Analyzed position status.
-    AnalyzedPositionStatus status;     ///< The analyzed postion status situation.
+    astro::types::AltAzDifference altaz_diff; ///< Difference between analyzed position and the original position.
+    AnalyzedPositionStatus status;            ///< The analyzed postion status situation.
 };
 
 /// Alias for tracking predictions vector.
 using MountPositionAnalyzedV = std::vector<MountPositionAnalyzed>;
-
 
 }}} // END NAMESPACES
 // =====================================================================================================================

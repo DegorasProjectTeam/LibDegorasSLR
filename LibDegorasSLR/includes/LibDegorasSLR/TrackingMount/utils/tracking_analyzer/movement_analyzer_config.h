@@ -27,167 +27,55 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file astro_types.cpp
- * @brief
+ * @file tracking_analyzer_types.h
  * @author Degoras Project Team
+ * @brief
  * @copyright EUPL License
 ***********************************************************************************************************************/
 
-// C++ INCLUDES
-//======================================================================================================================
-#include <cmath>
+// =====================================================================================================================
+#pragma once
 // =====================================================================================================================
 
-// PROJECT INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
-// DPSLR NAMESPACES
+// LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
-namespace types{
+namespace mount{
+namespace utils{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using namespace math::units;
-using namespace math::units::literals;
-// ---------------------------------------------------------------------------------------------------------------------
-
-AltAzPos::AltAzPos():
-    az(0._deg),
-    el(0._deg)
-{}
-
-AltAzPos::AltAzPos(const Degrees &az, const Degrees &el):
-    az(az),
-    el(el)
+/**
+ * @brief The PredictorMountSLRConfig struct contains the configuration parameters associated with a tracking. These
+ * parameters will define the tracking requirements.
+ *
+ * @todo Max speeds analysis.
+ */
+struct LIBDPSLR_EXPORT MovementAnalyzerConfig
 {
-    // Normalize the azimuth and elevation.
-    this->normalize();
-}
+    // Default constructor and destructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MovementAnalyzerConfig)
 
-void AltAzPos::normalize()
-{
-    // Normalize azimuth
-    Degrees az = std::fmod(this->az, 360._deg);
-    if (math::isFloatingMinorThanZero(az))
-        az += 360._deg;
+    MovementAnalyzerConfig(const math::units::DegreesU& sun_avoid_angle, const math::units::DegreesU& min_elev,
+                           const math::units::DegreesU& max_elev, bool sun_avoid) :
+        sun_avoid_angle(sun_avoid_angle),
+        min_elev(min_elev),
+        max_elev(max_elev),
+        sun_avoid(sun_avoid)
+    {}
 
-    // Reduce elevation into the -180 to 180 degree range
-    Degrees el = std::fmod(this->el, 360._deg);
-    if (el > 180._deg)
-        el -= 360._deg;
-    else if (el < -180._deg)
-        el += 360._deg;
-
-    // Normalize elevation within the -90 to 90 degree range
-    if (el > 90._deg)
-        el = 180._deg - el;
-    else if (el < -90._deg)
-        el = -180._deg - el;
-
-    // Store new values.
-    this->az = az;
-    this->el = el;
-}
-
-
-std::string AltAzPos::toJsonStr() const
-{
-    std::ostringstream json;
-    json << "{"
-         << "\"az\": " << this->az.toString() << ", "
-         << "\"el\": " << this->el.toString()
-         << "}";
-    return json.str();
-}
-
-RA::RA(int hour, int min, double sec) :
-    hour(hour),
-    min(min),
-    sec(sec)
-{
-    this->ra = hour + min / 60.0L + sec / 3600.0L;
-}
-
-RA::RA(double ra) :
-    ra(ra)
-{
-    double integer, fract;
-    fract = std::modf(ra, &integer);
-
-    this->hour = static_cast<int>(integer);
-
-    this->sec = std::modf(fract * 60, &integer) * 60;
-
-    this->min = static_cast<int>(integer);
-}
-
-RA::operator double() const
-{
-    return this->ra;
-}
-
-bool RA::checkRA(int h, int min, double sec)
-{
-    return h >= 0 && h <= 23 && min >= 0 && min <= 59 && sec >= 0. && sec < 60.;
-}
-
-Dec::Dec(int deg, int min, double sec):
-    deg(deg),
-    min(min),
-    sec(sec)
-{
-    this->dec = deg + min / 60. + sec / 3600.;
-}
-
-Dec::Dec(double dec) :
-    dec(dec)
-{
-    double integer, fract;
-    fract = std::modf(dec, &integer);
-
-    this->deg = static_cast<int>(integer);
-
-    this->sec = std::modf(fract * 60, &integer) * 60;
-
-    this->min = static_cast<int>(integer);
-}
-
-Dec::operator double() const
-{
-    return this->dec;
-}
-
-bool Dec::checkDec(int deg, int min, double sec)
-{
-    return deg > -90 && deg < 90 && min >= 0 && min <= 59 && sec >= 0. && sec < 60.;
-}
-
-
-/*
-size_t AltAzPos::serialize(zmqutils::utils::BinarySerializer &serializer) const
-{
-    return serializer.write(az, el);
-}
-
-void AltAzPos::deserialize(zmqutils::utils::BinarySerializer &serializer)
-{
-    serializer.read(az, el);
-}
-
-size_t AltAzPos::serializedSize() const
-{
-    return (2*sizeof(uint64_t) + sizeof(double)*2);
-}
-
-AltAzPos::~AltAzPos(){}
-
-*/
-
-// =====================================================================================================================
+    // Data members.
+    math::units::DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
+    math::units::DegreesU min_elev;         ///< Configured minimum elevation (degrees).
+    math::units::DegreesU max_elev;         ///< Configured maximum elevation (degrees).
+    bool sun_avoid;                         ///< Flag indicating if the track is configured for avoid the Sun.
+};
 
 }}} // END NAMESPACES
 // =====================================================================================================================

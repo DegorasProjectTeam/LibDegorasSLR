@@ -55,35 +55,6 @@ namespace mount{
 // =====================================================================================================================
 
 
-
-/**
- * @brief Enumerates the possible status codes for a tracking position.
- *
- * This enumeration defines the status of a tracking position with respect to the Sun's position and the predictor.
- * It is used to quickly identify the tracking scenario and take appropriate action based on the status.
- */
-enum class PositionStatus
-{
-    ELEVATION_CLIPPED,  ///< The final mount position was clipped due to maximum elevation configuration.
-    OUTSIDE_SUN,        ///< The final mount position is outside the sun.
-    INSIDE_SUN,         ///< The final mount position is in the Sun and is configured for not avoiding.
-    AVOIDING_SUN,       ///< The final mount position is avoiding sun security sector.
-    CANT_AVOID_SUN,     ///< Final mount position can't be calculated, since it cannot avoid sun security sector.
-    OUT_OF_TRACK,       ///< The time provided for prediction is outside of tracking.
-    PREDICTION_ERROR    ///< The object position can't be calculated, there was a prediction error.
-};
-
-/**
- * @brief Represents the azimuth and elevation position of a tracking at a specific instant, as well as its status.
- *
- * This structure holds the calculated azimuth and elevation angles for the mount at a specific instant.
- * It also includes the differences between the real predicted position and the
- * track position. The necessity to deviate from the predicted path to avoid direct line-of-sight with the Sun or
- * other obstructions can result in these differences.
- *
- */
-
-
 /// Alias for mount positions vector.
 using MountPositionV = std::vector<MountPosition>;
 
@@ -139,52 +110,6 @@ using MountPredictionSLRV = std::vector<MountPredictionSLR>;
 
 
 
-/**
- * @brief The TrackingInfo struct contains the information obtained from the tracking analysis.
- */
-struct TrackingInfo
-{
-    TrackingInfo() :
-        sun_deviation(false),
-        sun_collision(false),
-        sun_collision_high_el(false),
-        sun_collision_at_middle(false),
-        sun_collision_at_start(false),
-        sun_collision_at_end(false),
-        trim_at_start(false),
-        trim_at_end(false),
-        el_deviation(false),
-        valid_pass(false)
-    {}
-
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(TrackingInfo)
-
-    // Time data.
-    timing::types::MJDateTime mjdt_start;     ///< Tracking start Modified Julian Datetime.
-    timing::types::MJDateTime mjdt_end;       ///< Tracking end Modified Julian Datetime.
-
-    // Position data.
-    astro::types::AltAzPos start_coord;         ///< Track start altazimuth coordinates.
-    astro::types::AltAzPos end_coord;           ///< Track end altazimuth  coordinates.
-    math::units::Degrees max_el;               ///< Track maximum elevation in degrees.
-
-    SunCollisionSectorV sun_sectors;  ///< Data for sun collision sectors
-
-    // Tracking alterations.
-    bool sun_deviation;           ///< Flag indicating if the track was deviated from pass due to Sun.
-    bool sun_collision;           ///< Flag indicating if the pass has a collision with the Sun.
-    bool sun_collision_high_el;   ///< Flag indicating if the pass has a collision with the Sun at high elevation.
-    bool sun_collision_at_middle; ///< Flag indicating if the pass has a collision at middle with the Sun.
-    bool sun_collision_at_start;  ///< Flag indicating if the pass has a collision at start with the Sun.
-    bool sun_collision_at_end;    ///< Flag indicating if the pass has a collision at end with the Sun.
-    bool sun_collision_high;      ///< Flag indicating if the pass has a collision with a high sun sector.
-    bool trim_at_start;           ///< Flag indicating if the pass was trimmed due to elevation or Sun at start.
-    bool trim_at_end;             ///< Flag indicating if the pass was trimmed due to elevation or Sun at end.
-    bool el_deviation;            ///< Flag indicating if the track was deviated from pass due to max elevation.
-
-    // Validation flags.
-    bool valid_pass;              ///< Flag indicating if the pass is valid.
-};
 
 /**
  * @brief Represents the result of a tracking prediction operation, including azimuth and elevation position that

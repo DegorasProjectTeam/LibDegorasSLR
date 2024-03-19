@@ -59,27 +59,16 @@ namespace types{
 
 struct LIBDPSLR_EXPORT AltAzPos
 {
+    // Copy and movement constructor and operators, and default destructor.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(AltAzPos)
+
     AltAzPos();
 
     AltAzPos(const math::units::Degrees& az, const math::units::Degrees& el);
 
-    AltAzPos(const AltAzPos& pos) = default;
-    AltAzPos(AltAzPos&& pos) = default;
+    void normalize();
 
-    AltAzPos& operator =(const AltAzPos& pos) = default;
-    AltAzPos& operator=(AltAzPos&&) = default;
-
-    ~AltAzPos() = default;
-
-    std::string toJsonStr() const
-    {
-        std::ostringstream json;
-        json << "{"
-             << "\"az\": " << this->az.toString() << ", "
-             << "\"el\": " << this->el.toString()
-             << "}";
-        return json.str();
-    }
+    std::string toJsonStr() const;
 
     //size_t serialize(zmqutils::utils::BinarySerializer& serializer) const final;
 
@@ -93,6 +82,9 @@ struct LIBDPSLR_EXPORT AltAzPos
 
 /// Alias for altaz corrections.
 using AltAzCorrection = AltAzPos;
+
+/// Alias for altaz differences.
+using AltAzDifference = AltAzPos;
 
 /// Alias for a vector of AltAzPosition.
 using AltAzPosV = std::vector<AltAzPos>;
