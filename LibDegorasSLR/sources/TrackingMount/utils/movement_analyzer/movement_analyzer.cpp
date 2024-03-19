@@ -39,7 +39,7 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/movement_analyzer.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
 #include "LibDegorasSLR/Timing/time_utils.h"
 #include "LibDegorasSLR/Mathematics/math_constants.h"
 // =====================================================================================================================

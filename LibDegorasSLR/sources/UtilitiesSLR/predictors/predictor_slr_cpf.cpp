@@ -597,8 +597,6 @@ void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, Predicti
         error = PredictorSlrCPF::convertLagInterpError(lag_res);
         result.error = static_cast<std::uint32_t>(error);
     }
-
-    // TODO Other interpolators.
 }
 
 PredictorSlrCPF::PredictionError PredictorSlrCPF::convertLagInterpError(stats::types::LagrangeError error)

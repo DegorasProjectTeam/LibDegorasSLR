@@ -42,11 +42,8 @@
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/Timing/types/datetime_types.h"
 #include "LibDegorasSLR/Astronomical/types/astro_types.h"
-
-#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/mount_position_analyzed.h"
-
-
-#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/movement_analyzer_types.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/mount_position_analyzed.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/sun_collision_sector.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES

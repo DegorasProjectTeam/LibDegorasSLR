@@ -41,8 +41,9 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/TrackingMount/utils/tracking_analyzer/movement_analysis.h"
 #include "LibDegorasSLR/TrackingMount/types/mount_position.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analysis.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer_config.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES

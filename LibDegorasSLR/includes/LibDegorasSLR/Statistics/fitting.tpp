@@ -109,7 +109,7 @@ lagrangeInterpol(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, c
         // Apply Lagrange polynomial interpolation to all variables in Y.
         for (unsigned i = first_point; i <= first_point + degree; i++)
         {
-            std::common_type_t<T,U> pj=1.0;
+            long double pj= 1.0L;
             for(unsigned j = first_point; j <= first_point + degree; j++)
             {
                 if (j != i) pj*=(x_interp-x[j])/(x[i]-x[j]);
