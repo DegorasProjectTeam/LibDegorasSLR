@@ -49,7 +49,7 @@
  * The "CRD Version 2" specification can be found in: https://ilrs.gsfc.nasa.gov/docs/2019/crd_v2.01.pdf
  *
  * @author    Degoras Project Team
- * @version   2011.1
+   2011.1
  * @date      12-11-2020
  * @copyright EUPL License.
  *

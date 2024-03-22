@@ -40,7 +40,7 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
+#include "LibDegorasSLR/Timing/utils/time_utils.h"
 #include "LibDegorasSLR/Mathematics/math_constants.h"
 // =====================================================================================================================
 
@@ -54,10 +54,12 @@ namespace utils{
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace timing;
 using namespace timing::types;
+using namespace timing::dates;
 using namespace mount::types;
 using namespace math::units::literals;
 using namespace math::units;
 using namespace math;
+using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 MovementAnalyzer::MovementAnalyzer(const MovementAnalyzerConfig& config) :
@@ -82,7 +84,7 @@ MovementAnalyzer::MovementAnalyzer(const MovementAnalyzerConfig& config) :
 }
 
 MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_positions,
-                                                   const astro::types::SunPositionV& sun_positions)
+                                                   const astro::types::LocalSunPositionV& sun_positions)
 {
     // Check if we have data.
     if(mount_positions.empty() || sun_positions.empty())
@@ -132,26 +134,15 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
     track_analysis.start_coord = mount_positions.front().altaz_coord;
     track_analysis.end_coord = mount_positions.back().altaz_coord;
 
-    // Store all the mount positions data. At this momment, the tracking positions are equal to mount positions.
-    for(const auto& pos : mount_positions)
+    // Store all the mount positions data. At this momment, the tracking positions are equal to mount
+    // positions. Also store all the Sun positions data (this will not change).
+    for(size_t i = 0; i<mount_positions.size(); i++)
     {
-        track_analysis.analyzed_positions.push_back(pos);
-        track_analysis.original_positions.push_back(pos);
+        MountPositionAnalyzed mount_pos_analyzed(mount_positions[i], sun_positions[i]);
+        track_analysis.analyzed_positions.push_back(mount_pos_analyzed);
+        track_analysis.original_positions.push_back(mount_positions[i]);
+        track_analysis.sun_positions.push_back(sun_positions[i]);
     }
-
-    // Store all the Sun positions data. This will not change.
-    for(const auto& pos : sun_positions)
-        track_analysis.sun_positions.push_back(pos);
-
-    // Store internally in this class the references for handle mount and Sun positions at same time.
-    for(size_t i = 0; i<track_analysis.analyzed_positions.size(); i++)
-    {
-        MountPositionAnalyzed& mount_pos = track_analysis.analyzed_positions[i];
-        const astro::types::SunPosition& sun_pos = track_analysis.sun_positions[i];
-        this->positions_.push_back({mount_pos, sun_pos});
-    }
-
-    // Now, after positions have been calculated, check each situation.
 
     // Check the start and validate at this point.
     if (!this->analyzeTrackingStart(track_analysis))
@@ -176,26 +167,16 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
         return track_analysis;
     }
 
-    // Update the start iterator.
-    track_analysis.start_mov_it = std::find_if(track_analysis.analyzed_positions.begin(),
-        track_analysis.analyzed_positions.end(), [](const MountPositionAnalyzed& pos)
-        {return pos.status != AnalyzedPositionStatus::OUT_OF_TRACK;});
-
-    // Update the end iterator.
-    track_analysis.end_mov_it = std::find_if(track_analysis.analyzed_positions.rbegin(),
-        track_analysis.analyzed_positions.rend(), [](const MountPositionAnalyzed& pos)
-        {return pos.status != AnalyzedPositionStatus::OUT_OF_TRACK;}).base();
-
     // Return the track analysis.
     return track_analysis;
 }
 
 MountPositionAnalyzed MovementAnalyzer::analyzePosition(const MovementAnalysis& analysis,
                                                         const types::MountPosition& mount_pos,
-                                                        const astro::types::SunPosition& sun_pos) const
+                                                        const astro::types::LocalSunPosition& sun_pos) const
 {
     // Store the position. This data could change during the analysis.
-    MountPositionAnalyzed analyzed_pos(mount_pos);
+    MountPositionAnalyzed analyzed_pos(mount_pos, sun_pos);
 
     // Check if requested position is inside valid tracking time. Otherwise return out of tracking error.
     if (analyzed_pos.mjdt < analysis.mjdt_start || analyzed_pos.mjdt > analysis.mjdt_end)
@@ -243,8 +224,7 @@ MountPositionAnalyzed MovementAnalyzer::analyzePosition(const MovementAnalysis& 
             else
             {
                 // Calculate new position avoiding sun
-                Positions aux_pos({analyzed_pos, sun_pos});
-                this->calcSunAvoidPos(aux_pos, *sector_it);
+                this->calcSunAvoidPos(analyzed_pos, *sector_it);
 
                 // Return the status.
                 analyzed_pos.status = AnalyzedPositionStatus::AVOIDING_SUN;
@@ -269,20 +249,20 @@ MountPositionAnalyzed MovementAnalyzer::analyzePosition(const MovementAnalysis& 
 bool MovementAnalyzer::analyzeTrackingStart(MovementAnalysis& analysis)
 { 
     // Get the first position and min and max elevations.
-    auto it_pos = this->positions_.begin();
+    auto it_pos = analysis.analyzed_positions.begin();
     const Degrees min_el = static_cast<Degrees>(this->config_.min_elev);
     const Degrees max_el = static_cast<Degrees>(this->config_.max_elev);
 
     // Get the first valid position due to minimum and maximum elevations.
-    while (it_pos != this->positions_.end() &&
-            (it_pos->mount_pos.altaz_coord.el < min_el || it_pos->mount_pos.altaz_coord.el > max_el))
+    while (it_pos != analysis.analyzed_positions.end() &&
+            (it_pos->altaz_coord.el < min_el || it_pos->altaz_coord.el > max_el))
     {
-        it_pos->mount_pos.status = AnalyzedPositionStatus::OUT_OF_TRACK;
+        it_pos->status = AnalyzedPositionStatus::OUT_OF_TRACK;
         it_pos++;
     }
 
     // If the whole tracking has incorrect elevation, return.
-    if (it_pos == this->positions_.end())
+    if (it_pos == analysis.analyzed_positions.end())
         return false;
 
     // 1 - Check Sun collisions if avoiding is disable.
@@ -291,13 +271,13 @@ bool MovementAnalyzer::analyzeTrackingStart(MovementAnalysis& analysis)
     {
         // Iterate over the predictions. If sun avoid is disabled, check whether position
         // is inside or outside sun security sector without changing start.
-        while (it_pos != this->positions_.end())
+        while (it_pos != analysis.analyzed_positions.end())
         {
-            if (this->insideSunSector(it_pos->mount_pos.altaz_coord, it_pos->sun_pos.altaz_coord))
+            if (this->insideSunSector(it_pos->altaz_coord, it_pos->sun_pos.altaz_coord))
             {
                 analysis.sun_collision = true;
                 analysis.sun_collision_at_start = true;
-                it_pos->mount_pos.status = AnalyzedPositionStatus::INSIDE_SUN;
+                it_pos->status = AnalyzedPositionStatus::INSIDE_SUN;
                 it_pos++;
             }
             else
@@ -308,13 +288,13 @@ bool MovementAnalyzer::analyzeTrackingStart(MovementAnalysis& analysis)
     {
         // Iterate over the predictions. If sun avoid is enable, move the tracking start to the end
         // of the sun sector if possible.
-        while (it_pos != this->positions_.end())
+        while (it_pos != analysis.analyzed_positions.end())
         {
-            if(this->insideSunSector(it_pos->mount_pos.altaz_coord, it_pos->sun_pos.altaz_coord))
+            if(this->insideSunSector(it_pos->altaz_coord, it_pos->sun_pos.altaz_coord))
             {
                 analysis.sun_collision = true;
                 analysis.sun_collision_at_start = true;
-                it_pos->mount_pos.status = AnalyzedPositionStatus::OUT_OF_TRACK;
+                it_pos->status = AnalyzedPositionStatus::OUT_OF_TRACK;
                 it_pos++;
             }
             else
@@ -323,19 +303,19 @@ bool MovementAnalyzer::analyzeTrackingStart(MovementAnalysis& analysis)
     }
 
     // If the whole tracking is in the Sun, return.
-    if (it_pos == this->positions_.end())
+    if (it_pos == analysis.analyzed_positions.end())
         return false;
 
     // If start has been moved, store new start.
-    if (it_pos != this->positions_.begin())
+    if (it_pos != analysis.analyzed_positions.begin())
     {
         analysis.trim_at_start = true;
-        analysis.mjdt_start = it_pos->mount_pos.mjdt;
+        analysis.mjdt_start = it_pos->mjdt;
     }
 
     // Update the start position.
-    analysis.start_coord = it_pos->mount_pos.altaz_coord;
-    this->movement_begin_ = it_pos;
+    analysis.start_coord = it_pos->altaz_coord;
+    analysis.start_mov_it = it_pos;
 
     // All ok, return true.
     return true;
@@ -344,20 +324,20 @@ bool MovementAnalyzer::analyzeTrackingStart(MovementAnalysis& analysis)
 bool MovementAnalyzer::analyzeTrackingEnd(MovementAnalysis& analysis)
 {
     // Get the first prediction and min and max elevations.
-    auto it_pos = this->positions_.rbegin();
+    auto it_pos = analysis.analyzed_positions.rbegin();
     const Degrees min_el = static_cast<Degrees>(this->config_.min_elev);
     const Degrees max_el = static_cast<Degrees>(this->config_.max_elev);
 
     // Get the first valid position due to minimum and maximum elevations.
-    while (it_pos != this->positions_.rend() &&
-          (it_pos->mount_pos.altaz_coord.el < min_el || it_pos->mount_pos.altaz_coord.el > max_el))
+    while (it_pos != analysis.analyzed_positions.rend() &&
+          (it_pos->altaz_coord.el < min_el || it_pos->altaz_coord.el > max_el))
     {
-        it_pos->mount_pos.status = AnalyzedPositionStatus::OUT_OF_TRACK;
+        it_pos->status = AnalyzedPositionStatus::OUT_OF_TRACK;
         it_pos++;
     }
 
     // If the whole tracking has low elevation, return.
-    if (it_pos == this->positions_.rend())
+    if (it_pos == analysis.analyzed_positions.rend())
         return false;
 
     // 1 - Check Sun collisions if avoiding is disable.
@@ -366,13 +346,13 @@ bool MovementAnalyzer::analyzeTrackingEnd(MovementAnalysis& analysis)
     {
         // Iterate over the predictions. If sun avoid is disabled, check whether position
         // is inside or outside sun security sector without changing end.
-        while (it_pos != this->positions_.rend())
+        while (it_pos != analysis.analyzed_positions.rend())
         {
-            if (this->insideSunSector(it_pos->mount_pos.altaz_coord, it_pos->sun_pos.altaz_coord))
+            if (this->insideSunSector(it_pos->altaz_coord, it_pos->sun_pos.altaz_coord))
             {
                 analysis.sun_collision = true;
                 analysis.sun_collision_at_end = true;
-                it_pos->mount_pos.status = AnalyzedPositionStatus::INSIDE_SUN;
+                it_pos->status = AnalyzedPositionStatus::INSIDE_SUN;
                 it_pos++;
             }
             else
@@ -383,13 +363,13 @@ bool MovementAnalyzer::analyzeTrackingEnd(MovementAnalysis& analysis)
     {
         // Iterate over the predictions. If sun avoid is enable, move the tracking end to the end
         // of the sun sector if possible.
-        while (it_pos != this->positions_.rend())
+        while (it_pos != analysis.analyzed_positions.rend())
         {
-            if(this->insideSunSector(it_pos->mount_pos.altaz_coord, it_pos->sun_pos.altaz_coord))
+            if(this->insideSunSector(it_pos->altaz_coord, it_pos->sun_pos.altaz_coord))
             {
                 analysis.sun_collision = true;
                 analysis.sun_collision_at_end = true;
-                it_pos->mount_pos.status = AnalyzedPositionStatus::OUT_OF_TRACK;
+                it_pos->status = AnalyzedPositionStatus::OUT_OF_TRACK;
                 it_pos++;
             }
             else
@@ -398,19 +378,19 @@ bool MovementAnalyzer::analyzeTrackingEnd(MovementAnalysis& analysis)
     }
 
     // If the whole tracking is in the Sun, return.
-    if (it_pos == this->positions_.rend())
+    if (it_pos == analysis.analyzed_positions.rend())
         return false;
 
     // If end has been moved, store new end.
-    if (it_pos != this->positions_.rbegin())
+    if (it_pos != analysis.analyzed_positions.rbegin())
     {
         analysis.trim_at_end = true;
-        analysis.mjdt_end = it_pos->mount_pos.mjdt;
+        analysis.mjdt_end = it_pos->mjdt;
     }
 
     // Update the end elevation and the real track end iterator.
-    analysis.end_coord = it_pos->mount_pos.altaz_coord;
-    this->movement_end_ = it_pos.base();
+    analysis.end_coord = it_pos->altaz_coord;
+    analysis.end_mov_it = it_pos.base();
 
     // All ok, return true.
     return true;
@@ -427,25 +407,25 @@ bool MovementAnalyzer::analyzeTrackingMiddle(MovementAnalysis& analysis)
     Degrees max_elev = -1.0L;
     const Degrees cfg_max_el = static_cast<Degrees>(this->config_.max_elev);
     Degrees sun_avoid_angle = static_cast<Degrees>(this->config_.sun_avoid_angle) + kAvoidAngleOffset;
-    std::vector<Positions>::iterator sun_sector_start;
+    MountPositionAnalyzedV::iterator sun_sector_start;
 
     // Check the tracking maximum altitudes. Positions that trespasses will be clipped to maximum elevation.
-    for (auto it = this->movement_begin_; it != this->movement_end_; it++)
+    for (auto it = analysis.start_mov_it; it != analysis.end_mov_it; it++)
     {
-        if(it->mount_pos.altaz_coord.el > cfg_max_el)
+        if(it->altaz_coord.el > cfg_max_el)
         {
-            it->mount_pos.altaz_coord.el = cfg_max_el;
-            it->mount_pos.status = AnalyzedPositionStatus::ELEVATION_CLIPPED;
+            it->altaz_coord.el = cfg_max_el;
+            it->status = AnalyzedPositionStatus::ELEVATION_CLIPPED;
             analysis.el_deviation = true;
             analysis.max_el = cfg_max_el;
         }
     }
 
     // Check the tracking Sun collision.
-    for (auto it = this->movement_begin_; it != this->movement_end_; it++)
+    for (auto it = analysis.start_mov_it; it != analysis.end_mov_it; it++)
     {
         // Check if this position is inside sun security sector and store it.
-        inside_sun = this->insideSunSector(it->mount_pos.altaz_coord, it->sun_pos.altaz_coord);
+        inside_sun = this->insideSunSector(it->altaz_coord, it->sun_pos.altaz_coord);
 
         // Update sun collision variable.
         sun_collision |= inside_sun;
@@ -453,7 +433,7 @@ bool MovementAnalyzer::analyzeTrackingMiddle(MovementAnalysis& analysis)
         // Store whether position is inside or outside sun. Later, if sun avoid algorithm is applied, those positions
         // which are inside sun will be checked to see if it is possible or not to avoid sun.
         if(inside_sun)
-            it->mount_pos.status = AnalyzedPositionStatus::INSIDE_SUN;
+            it->status = AnalyzedPositionStatus::INSIDE_SUN;
 
         // If we need avoid the Sun, calculate the deviation.
         if (this->config_.sun_avoid)
@@ -465,7 +445,7 @@ bool MovementAnalyzer::analyzeTrackingMiddle(MovementAnalysis& analysis)
             if(inside_sun && sun_high)
             {
                 bool stop = false;
-                auto sun_min_el_it = std::min_element(this->movement_begin_, this->movement_end_,
+                auto sun_min_el_it = std::min_element(analysis.start_mov_it, analysis.end_mov_it,
                     [](const auto& a, const auto& b){return a.sun_pos.altaz_coord.el < b.sun_pos.altaz_coord.el;});
                 Degrees limit_el = sun_min_el_it->sun_pos.altaz_coord.el - sun_avoid_angle;
                 limit_el = (limit_el < cfg_max_el) ? limit_el : cfg_max_el;
@@ -473,12 +453,12 @@ bool MovementAnalyzer::analyzeTrackingMiddle(MovementAnalysis& analysis)
                 analysis.sun_collision_high_el = true;
 
                 // Check backward.
-                for (auto it_internal = it; it_internal != this->movement_begin_ || !stop; it_internal--)
+                for (auto it_internal = it; it_internal != analysis.start_mov_it || !stop; it_internal--)
                 {
-                    if(it_internal->mount_pos.altaz_coord.el >= limit_el)
+                    if(it_internal->altaz_coord.el >= limit_el)
                     {
-                        it_internal->mount_pos.altaz_coord.el = limit_el;
-                        it_internal->mount_pos.status = AnalyzedPositionStatus::AVOIDING_SUN;
+                        it_internal->altaz_coord.el = limit_el;
+                        it_internal->status = AnalyzedPositionStatus::AVOIDING_SUN;
                     }
                     else
                         stop = true;
@@ -488,12 +468,12 @@ bool MovementAnalyzer::analyzeTrackingMiddle(MovementAnalysis& analysis)
                 stop = false;
 
                 // Check forward.
-                for (auto it_internal = it; it_internal != this->movement_end_ || !stop; it_internal++)
+                for (auto it_internal = it; it_internal != analysis.end_mov_it || !stop; it_internal++)
                 {
-                    if(it_internal->mount_pos.altaz_coord.el >= limit_el)
+                    if(it_internal->altaz_coord.el >= limit_el)
                     {
-                        it_internal->mount_pos.altaz_coord.el = limit_el;
-                        it_internal->mount_pos.status = AnalyzedPositionStatus::AVOIDING_SUN;
+                        it_internal->altaz_coord.el = limit_el;
+                        it_internal->status = AnalyzedPositionStatus::AVOIDING_SUN;
                     }
                     else
                     {
@@ -513,8 +493,8 @@ bool MovementAnalyzer::analyzeTrackingMiddle(MovementAnalysis& analysis)
                 {
                     in_sun_sector = true;
                     sun_sector_start = it-1;
-                    sun_sector.altaz_entry = sun_sector_start->mount_pos.altaz_coord;
-                    sun_sector.mjdt_entry = sun_sector_start->mount_pos.mjdt;
+                    sun_sector.altaz_entry = sun_sector_start->altaz_coord;
+                    sun_sector.mjdt_entry = sun_sector_start->mjdt;
                 }
             }
             else if (!inside_sun && in_sun_sector)
@@ -523,8 +503,8 @@ bool MovementAnalyzer::analyzeTrackingMiddle(MovementAnalysis& analysis)
                 // positions within the sector and store the sector. The last position stored is the first position
                 // after exiting the sector, i.e., it is outside sun security sector.
                 in_sun_sector = false;
-                sun_sector.altaz_exit = it->mount_pos.altaz_coord;
-                sun_sector.mjdt_exit = it->mount_pos.mjdt;
+                sun_sector.altaz_exit = it->altaz_coord;
+                sun_sector.mjdt_exit = it->mjdt;
                 // If sector has no valid rotation direction, mark tracking as not valid, since sun cannot be avoided.
                 if (!this->setSunSectorRotationDirection(sun_sector, sun_sector_start, it))
                     return false;
@@ -535,10 +515,10 @@ bool MovementAnalyzer::analyzeTrackingMiddle(MovementAnalysis& analysis)
             }
         }
 
-        if (it->mount_pos.altaz_coord.el > max_elev)
+        if (it->altaz_coord.el > max_elev)
         {
-            max_elev = it->mount_pos.altaz_coord.el;
-            max_elev_mjdt = it->mount_pos.mjdt;
+            max_elev = it->altaz_coord.el;
+            max_elev_mjdt = it->mjdt;
         }
     }
 
@@ -564,8 +544,8 @@ bool MovementAnalyzer::insideSunSector(const astro::types::AltAzPos& pass_pos,
 }
 
 bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
-                                                     std::vector<Positions>::const_iterator sun_start,
-                                                     std::vector<Positions>::const_iterator sun_end) const
+                                                     MountPositionAnalyzedV::const_iterator pos_start,
+                                                     MountPositionAnalyzedV::const_iterator pos_end) const
 {
     bool valid_cw = true;
     bool valid_ccw = true;
@@ -578,9 +558,9 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
     // then we have to choose the counterclockwise trajectory and viceversa.
     // If both trajectories are valid, we will choose the shorter one.
 
-    for (auto it = sun_start; it <= sun_end; it++)
+    for (auto it = pos_start; it <= pos_end; it++)
     {
-        long double time_perc = (it->mount_pos.mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
+        long double time_perc = (it->mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 
         Degrees diff_az_entry = sector.altaz_entry.az - it->sun_pos.altaz_coord.az;
         if (diff_az_entry > 180._deg)
@@ -664,7 +644,7 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
     else
     {
         // Calculate angle between start and end to see which is shorter.
-        Degrees diff_az_entry = sector.altaz_entry.az - sun_start->sun_pos.altaz_coord.az;
+        Degrees diff_az_entry = sector.altaz_entry.az - pos_start->sun_pos.altaz_coord.az;
         if (diff_az_entry > 180._deg)
         {
             diff_az_entry = -(360._deg - diff_az_entry);
@@ -674,7 +654,7 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
             diff_az_entry = 360._deg + diff_az_entry;
         }
 
-        long double diff_az_exit = sector.altaz_exit.az - sun_end->sun_pos.altaz_coord.az;
+        long double diff_az_exit = sector.altaz_exit.az - pos_end->sun_pos.altaz_coord.az;
         if (diff_az_exit > 180._deg)
         {
             diff_az_exit = -(360._deg - diff_az_exit);
@@ -684,8 +664,8 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
             diff_az_exit = 360._deg + diff_az_exit;
         }
 
-        long double entry_angle = std::atan2(sector.altaz_entry.el - sun_start->sun_pos.altaz_coord.el, diff_az_entry);
-        long double exit_angle = std::atan2(sector.altaz_exit.el - sun_end->sun_pos.altaz_coord.el, diff_az_exit);
+        long double entry_angle = std::atan2(sector.altaz_entry.el - pos_start->sun_pos.altaz_coord.el, diff_az_entry);
+        long double exit_angle = std::atan2(sector.altaz_exit.el - pos_end->sun_pos.altaz_coord.el, diff_az_exit);
 
         // Normalize angle between 0, 2pi
         if (entry_angle < 0)
@@ -720,11 +700,11 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
     return true;
 }
 
-void MovementAnalyzer::calcSunAvoidPos(Positions& pos, const SunCollisionSector& sector) const
+void MovementAnalyzer::calcSunAvoidPos(MountPositionAnalyzed &pos, const SunCollisionSector& sector) const
 {
     // Get data.
     const Degrees sun_avoid_angle = static_cast<Degrees>(this->config_.sun_avoid_angle) + kAvoidAngleOffset;
-    long double angle_avoid = this->calcSunAvoidTrajectory(pos.mount_pos.mjdt, sector, pos.sun_pos.altaz_coord);
+    long double angle_avoid = this->calcSunAvoidTrajectory(pos.mjdt, sector, pos.sun_pos.altaz_coord);
 
     // Calculate new azimuth using trajectory avoid angle
     Degrees new_az = pos.sun_pos.altaz_coord.az + sun_avoid_angle * std::cos(angle_avoid);
@@ -739,26 +719,26 @@ void MovementAnalyzer::calcSunAvoidPos(Positions& pos, const SunCollisionSector&
     Degrees new_el = pos.sun_pos.altaz_coord.el + sun_avoid_angle * std::sin(angle_avoid);
 
     // Store difference between original position and new position
-    pos.mount_pos.altaz_diff.az = new_az - pos.mount_pos.altaz_coord.az;
-    pos.mount_pos.altaz_diff.el = new_el - pos.mount_pos.altaz_coord.el;
+    pos.altaz_diff.az = new_az - pos.altaz_coord.az;
+    pos.altaz_diff.el = new_el - pos.altaz_coord.el;
 
     // Store new position
-    pos.mount_pos.altaz_coord.az = new_az;
-    pos.mount_pos.altaz_coord.el = new_el;
+    pos.altaz_coord.az = new_az;
+    pos.altaz_coord.el = new_el;
 }
 
 void MovementAnalyzer::checkSunSectorPositions(MovementAnalysis& analysis,
                                                const SunCollisionSector &sector,
-                                               std::vector<Positions>::iterator sun_start,
-                                               std::vector<Positions>::iterator sun_end) const
+                                               MountPositionAnalyzedV::iterator pos_start,
+                                               MountPositionAnalyzedV::iterator pos_end) const
 {
     // Check positions within sun sector. First and last are excluded, since they are outside sun sector
-    for (auto it = sun_start + 1; it != sun_end; it++)
+    for (auto it = pos_start + 1; it != pos_end; it++)
     {
         // Calculate the avoiding position using the avoid angle and distance as radius. Store the difference between
         // original position and new position
         this->calcSunAvoidPos(*it, sector);
-        it->mount_pos.status = AnalyzedPositionStatus::AVOIDING_SUN;
+        it->status = AnalyzedPositionStatus::AVOIDING_SUN;
 
         // Update sun deviation flag.
         analysis.sun_deviation = true;
@@ -767,7 +747,7 @@ void MovementAnalyzer::checkSunSectorPositions(MovementAnalysis& analysis,
 
 long double MovementAnalyzer::calcSunAvoidTrajectory(const MJDateTime &mjdt,
                                                      const SunCollisionSector& sector,
-                                                     const astro::types::AltAzPos& sun_pos) const
+                                                     const AltAzPos& sun_pos) const
 {
     long double time_perc = (mjdt - sector.mjdt_entry) / (sector.mjdt_exit - sector.mjdt_entry);
 

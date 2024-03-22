@@ -27,11 +27,11 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CRDHeader class that abstracts the header of ILRS CRD format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <array>
 #include <sstream>
 // =====================================================================================================================
@@ -41,7 +41,7 @@
 #include <LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h>
 #include <LibDegorasSLR/Helpers/container_helpers.h>
 #include <LibDegorasSLR/Helpers/string_helpers.h>
-#include <LibDegorasSLR/Timing/time_utils.h>
+#include <LibDegorasSLR/Timing/utils/time_utils.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES

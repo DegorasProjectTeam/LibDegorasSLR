@@ -52,10 +52,10 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::types::MJDateTime;
+using dpslr::timing::dates::MJDateTime;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::HRTimePointStd;
-using dpslr::timing::types::J2000DateTime;
+using dpslr::timing::dates::J2000DateTime;
 using dpslr::timing::types::Iso8601Str;
 using dpslr::timing::iso8601DatetimeToTimePoint;
 using dpslr::timing::timePointToModifiedJulianDateTime;
@@ -70,25 +70,25 @@ using dpslr::math::units::Meters;
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPoint;
 // Astronomical containers.
-using dpslr::astro::PredictionSun;
-using dpslr::astro::AltAzPos;
+using dpslr::astro::predictors::PredictionSun;
+using dpslr::astro::types::AltAzPos;
 // ILRS related.
 using dpslr::ilrs::cpf::CPF;
 // Sun predictor related.
-using dpslr::astro::PredictorSunBase;
-using dpslr::astro::PredictorSunFast;
-using dpslr::astro::PredictorSunFixed;
-using dpslr::astro::PredictorSunPtr;
+using dpslr::astro::predictors::PredictorSunBase;
+using dpslr::astro::predictors::PredictorSunFast;
+using dpslr::astro::predictors::PredictorSunFixed;
+using dpslr::astro::predictors::PredictorSunPtr;
 // SLR preditor related.
-using dpslr::slr::PredictorSlrBase;
-using dpslr::slr::PredictorSlrCPF;
-using dpslr::slr::PredictorSlrPtr;
-using dpslr::slr::PredictorSlrCPFPtr;
+using dpslr::slr::predictors::PredictorSlrBase;
+using dpslr::slr::predictors::PredictorSlrCPF;
+using dpslr::slr::predictors::PredictorSlrPtr;
+using dpslr::slr::predictors::PredictorSlrCPFPtr;
 // Mount predictor related.
+using dpslr::mount::utils::TrackingAnalyzerConfig;
 using dpslr::mount::PredictorMountSLR;
 using dpslr::mount::MountPredictionSLRV;
 using dpslr::mount::MountTrackingSLR;
-using dpslr::mount::TrackingAnalyzerConfig;
 using dpslr::mount::PositionStatus;
 // Helpers.
 using dpslr::helpers::strings::numberToStr;

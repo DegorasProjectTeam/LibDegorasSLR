@@ -40,8 +40,9 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
+#include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
+#include "LibDegorasSLR/Astronomical/types/local_sun_position.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/mount_position_analyzed.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/sun_collision_sector.h"
 // =====================================================================================================================
@@ -75,8 +76,8 @@ struct LIBDPSLR_EXPORT MovementAnalysis
     {}
 
     // Time data.
-    timing::types::MJDateTime mjdt_start;     ///< Movement start Modified Julian Datetime.
-    timing::types::MJDateTime mjdt_end;       ///< Movement end Modified Julian Datetime.
+    timing::dates::MJDateTime mjdt_start;     ///< Movement start Modified Julian Datetime.
+    timing::dates::MJDateTime mjdt_end;       ///< Movement end Modified Julian Datetime.
 
     // Position data.
     astro::types::AltAzPos start_coord;       ///< Movement start altazimuth coordinates.
@@ -85,14 +86,14 @@ struct LIBDPSLR_EXPORT MovementAnalysis
     // TODO Track Max speed.
 
     // Data containers.
-    SunCollisionSectorV sun_sectors;            ///< Data for sun collision sectors.
-    types::MountPositionV original_positions;   ///< Original absolute mount positions.
-    MountPositionAnalyzedV analyzed_positions;  ///< Analyzed absolute final mount positions.
-    astro::types::SunPositionV sun_positions;   ///< Sun altazimuth positions.
+    SunCollisionSectorV sun_sectors;                ///< Data for sun collision sectors.
+    types::MountPositionV original_positions;       ///< Original absolute mount positions.
+    MountPositionAnalyzedV analyzed_positions;      ///< Analyzed absolute final mount positions.
+    astro::types::LocalSunPositionV sun_positions;  ///< Sun altazimuth positions.
 
     // Iterators with the start and end of the movement.
-    MountPositionAnalyzedV::const_iterator start_mov_it; ///< Const iterator to the real valid start of the movement.
-    MountPositionAnalyzedV::const_iterator end_mov_it;   ///< Const iterator to the real valid end of the movement.
+    MountPositionAnalyzedV::iterator start_mov_it; ///< Const iterator to the real valid start of the movement.
+    MountPositionAnalyzedV::iterator end_mov_it;   ///< Const iterator to the real valid end of the movement.
 
     // Validation flag.
     bool empty_movement;          ///< Flag inficating if the movement is empty (due to analysis checks).

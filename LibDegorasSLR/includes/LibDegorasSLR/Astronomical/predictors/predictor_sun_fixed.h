@@ -38,15 +38,13 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -56,23 +54,17 @@ namespace astro{
 namespace predictors{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::J2000DateTime;
-using geo::types::GeodeticPoint;
-using astro::types::AltAzPos;
-// ---------------------------------------------------------------------------------------------------------------------
-
 class LIBDPSLR_EXPORT PredictorSunFixed final : public PredictorSunBase
 {
 public:
 
-    PredictorSunFixed(const AltAzPos& fixed_coord);
+    PredictorSunFixed(const types::AltAzPos& fixed_coord);
     
-    PredictionSun predict(const J2000DateTime& j2000, bool) const final;
+    PredictionSun predict(const timing::dates::J2000DateTime& j2000, bool) const final;
 
 private:
 
-    AltAzPos fixed_coord_;
+    types::AltAzPos fixed_coord_;
 };
 
 }}} // END NAMESPACES.

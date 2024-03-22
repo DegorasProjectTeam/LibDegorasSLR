@@ -31,7 +31,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the definition of the PredictorMountSLR class.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -41,6 +41,7 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/TrackingMount/types/tracking_types.h"
 #include "LibDegorasSLR/TrackingMount/types/tracking_analyzer.h"
 // =====================================================================================================================
@@ -74,7 +75,7 @@ public:
      * @param pred_sun, the sun predictor to be used for sun position predictions.
      * @param config, the configuration parameters for the tracking analysis.
      */
-    PredictorMountSLR(const timing::types::MJDateTime& pass_start, const timing::types::MJDateTime& pass_end,
+    PredictorMountSLR(const timing::dates::MJDateTime& pass_start, const timing::dates::MJDateTime& pass_end,
                       slr::PredictorSlrPtr pred_slr, astro::PredictorSunPtr pred_sun,
                       const TrackingAnalyzerConfig& config);
     /**
@@ -117,7 +118,7 @@ public:
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(const timing::types::MJDateTime &mjd, MountPredictionSLR &tracking_result) const;
+    PositionStatus predict(const timing::dates::MJDateTime &mjd, MountPredictionSLR &tracking_result) const;
 
 private:
 

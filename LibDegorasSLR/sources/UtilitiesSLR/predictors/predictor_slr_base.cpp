@@ -31,19 +31,19 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the class PredictorSLR.
  * @copyright EUPL License
- * @version 2306.1
+ 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
-#include "LibDegorasSLR/Mathematics/math.h"
+#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
 #include "LibDegorasSLR/Astronomical/astro_constants.h"
-#include "LibDegorasSLR/Geophysics/tropo.h"
+#include "LibDegorasSLR/Geophysics/utils/tropo_utils.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -60,6 +60,7 @@ using namespace math::types;
 using namespace geo::types;
 using namespace geo::meteo;
 using namespace timing::types;
+using namespace timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorSlrBase::PredictorSlrBase(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :

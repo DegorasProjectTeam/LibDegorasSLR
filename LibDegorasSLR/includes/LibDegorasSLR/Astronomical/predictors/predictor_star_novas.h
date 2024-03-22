@@ -38,7 +38,7 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
@@ -74,7 +74,7 @@ public:
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
      * @return The resulting PredictionStar.
      */
-    PredictionStar predict(const timing::types::JDateTime& jdt) const override;
+    PredictionStar predict(const timing::dates::JDateTime& jdt) const override;
 };
 
 }}} // END NAMESPACES.

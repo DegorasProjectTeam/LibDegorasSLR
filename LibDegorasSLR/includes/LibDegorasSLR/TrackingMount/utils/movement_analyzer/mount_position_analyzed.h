@@ -27,7 +27,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file tracking_analyzer_types.h
+ * @file mount_position_analyzed.h
  * @author Degoras Project Team
  * @brief
  * @copyright EUPL License
@@ -40,6 +40,7 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Astronomical/types/local_sun_position.h"
 #include "LibDegorasSLR/TrackingMount/types/mount_position.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
@@ -56,43 +57,50 @@ using namespace math::units::literals;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
- * @brief Enumerates the possible status codes for an analyzed tracking position.
+ * @brief Enumerates the possible position status of an MountPositionAnalyzed by a MovementAnalyzer.
  *
- * This enumeration defines the status of a tracking position with respect to the Sun's position and the predictor.
- * It is used to quickly identify the tracking scenario and take appropriate action based on the status. It prioritizes
- * Sun-related statuses (CANT_AVOID_SUN, INSIDE_SUN, AVOIDING_SUN) over ELEVATION_CLIPPED when both conditions are met.
+ * This enumeration defines the status of an analyzed tracking mount position with respect to the mount limitations and
+ * the position of the Sun. It is used to quickly identify the movement scenario and take appropriate action based on
+ * this status. It prioritizes Sun-related statuses (CANT_AVOID_SUN, INSIDE_SUN, AVOIDING_SUN) over ELEVATION_CLIPPED
+ * when both conditions are met.
  */
-enum class AnalyzedPositionStatus
+enum class AnalyzedPositionStatus : std::uint32_t
 {
-    NO_MODIF_NEEDED,      ///< No modification to the position was needed; all is okay with the original position.
-    OUT_OF_TRACK,         ///< The time provided for prediction is outside of tracking.
-    CANT_AVOID_SUN,       ///< Final mount position can't be calculated, since it cannot avoid sun security sector.
-    INSIDE_SUN,           ///< The final mount position is in the Sun and is configured for not avoiding.
-    AVOIDING_SUN,         ///< The final mount position is avoiding sun security sector.
-    ELEVATION_CLIPPED,    ///< The final mount position was clipped due to maximum elevation configuration.
+    NO_MODIF_NEEDED   = 0,    ///< No modification to the position was needed; all is okay with the original position.
+    OUT_OF_TRACK      = 1,    ///< The time provided for analysis is outside of the analyzed movement.
+    CANT_AVOID_SUN    = 2,    ///< Final mount position can't be calculated, since it cannot avoid sun security sector.
+    INSIDE_SUN        = 3,    ///< The final mount position is in the Sun and is configured for not avoiding.
+    AVOIDING_SUN      = 4,    ///< The final mount position is avoiding sun security sector.
+    ELEVATION_CLIPPED = 5,    ///< The final mount position was clipped due to maximum elevation configuration.
 };
 
 /**
- * @brief Represents the azimuth and elevation position of a tracking at a specific instant, as well as its status.
+ * @brief Represents an analyzed MountPosition by a MovementAnalyzer, as well as the related AnalyzedPositionStatus.
  *
- * This structure holds the calculated azimuth and elevation angles for the mount at a specific instant.
- * It also includes the differences between the real predicted position and the
- * track position. The necessity to deviate from the predicted path to avoid direct line-of-sight with the Sun or
- * other obstructions can result in these differences.
+ * This structure holds the analyzed azimuth and elevation angles for the tracking mount at a specific instant. It also
+ * includes the original mount position as well as the differences between the original position and the analyzed final
+ * position. The necessity to deviate from the original path to avoid direct line-of-sight with the Sun or other
+ * limitations can result in these differences.
  *
+ * @note If the status is `OUT_OF_TRACK`, the rest of data members will be invalid (set to zero).
  */
 struct LIBDPSLR_EXPORT MountPositionAnalyzed : types::MountPosition
 {
     // Default constructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPositionAnalyzed)
 
-    MountPositionAnalyzed(const types::MountPosition& mount_pos) :
-        types::MountPosition(mount_pos),
+    MountPositionAnalyzed(const MountPosition& original_mount_pos,
+                          const astro::types::LocalSunPosition& sun_pos) :
+        MountPosition(original_mount_pos),
+        original_pos(original_mount_pos),
+        sun_pos(sun_pos),
         altaz_diff(0.0_deg, 0.0_deg),
         status(AnalyzedPositionStatus::NO_MODIF_NEEDED)
     {}
 
     // Data members.
+    MountPosition original_pos;               ///< Original mount position without modifications by analyzer.
+    astro::types::LocalSunPosition sun_pos;   ///< Local Sun position at the instant of the analyzed position time.
     astro::types::AltAzDifference altaz_diff; ///< Difference between analyzed position and the original position.
     AnalyzedPositionStatus status;            ///< The analyzed postion status situation.
 };

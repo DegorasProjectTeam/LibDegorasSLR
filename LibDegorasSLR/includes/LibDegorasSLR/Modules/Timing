@@ -26,6 +26,9 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
+#include <LibDegorasSLR/Timing/dates/base_date_types.h>
+#include <LibDegorasSLR/Timing/dates/datetime.h>
+#include <LibDegorasSLR/Timing/dates/datetime_types.h>
 #include <LibDegorasSLR/Timing/types/base_time_types.h>
-#include <LibDegorasSLR/Timing/time_utils.h>
+#include <LibDegorasSLR/Timing/utils/time_utils.h>
 #include <LibDegorasSLR/Timing/time_constants.h>

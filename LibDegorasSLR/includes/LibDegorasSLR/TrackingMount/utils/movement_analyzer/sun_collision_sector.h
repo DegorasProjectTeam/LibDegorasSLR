@@ -40,8 +40,8 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
-
+#include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -82,8 +82,8 @@ struct LIBDPSLR_EXPORT SunCollisionSector
     astro::types::AltAzPosV altaz_sun_coords;  ///< Altazimuth Sun position during the collision time in degrees.
     astro::types::AltAzPos altaz_entry;        ///< Sun sector altazimuth entry point coordinate in degrees.
     astro::types::AltAzPos altaz_exit;         ///< Sun sector altazimuth exit point coordinate in degrees.
-    timing::types::MJDateTime mjdt_entry;      ///< Modified Julian Datetime of sun sector entry point.
-    timing::types::MJDateTime mjdt_exit;       ///< Modified Julian Datetime of sun sector exit point.
+    timing::dates::MJDateTime mjdt_entry;      ///< Modified Julian Datetime of sun sector entry point.
+    timing::dates::MJDateTime mjdt_exit;       ///< Modified Julian Datetime of sun sector exit point.
     AvoidanceDirection cw;                     ///< Rotation direction of the avoidance manoeuvre.
 };
 

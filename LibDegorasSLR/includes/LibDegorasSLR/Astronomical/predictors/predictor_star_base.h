@@ -38,7 +38,7 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <memory>
 // =====================================================================================================================
 
@@ -49,7 +49,7 @@
 #include "LibDegorasSLR/Astronomical/predictors/data/prediction_star.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -103,7 +103,7 @@ public:
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
      * @return The resulting PredictionStar.
      */
-    virtual PredictionStar predict(const timing::types::JDateTime& jdt) const = 0;
+    virtual PredictionStar predict(const timing::dates::JDateTime& jdt) const = 0;
 
     /**
      * @brief Predicts star positions within a time range with a specified time step.
@@ -115,14 +115,14 @@ public:
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    StarPredictionV predict(const timing::types::JDateTime& jdt_start, const timing::types::JDateTime& jdt_end,
+    StarPredictionV predict(const timing::dates::JDateTime& jdt_start, const timing::dates::JDateTime& jdt_end,
                             const math::units::MillisecondsU& step) const;
 
     virtual ~PredictorStarBase();
 
 protected:
 
-    astro::types::Star star_;
+    types::Star star_;
     geo::types::SurfaceLocation<math::units::Degrees> loc_;
     int leap_secs_;
     double ut1_utc_diff_;

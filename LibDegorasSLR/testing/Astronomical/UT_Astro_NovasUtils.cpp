@@ -113,7 +113,7 @@ M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
     using Geocentric = dpslr::geo::types::GeocentricPoint<double>;
     using Angle = dpslr::math::units::Angle<double>;
     using Surface = dpslr::geo::types::SurfaceLocation<double>;
-    using dpslr::timing::types::JDateTime;
+    using dpslr::timing::dates::JDateTime;
     using dpslr::astro::types::AltAzPosition;
 
     using novas::julian_date;

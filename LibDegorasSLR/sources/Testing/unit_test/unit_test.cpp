@@ -36,7 +36,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/Testing/unit_test/unit_test.h"
 #include "LibDegorasSLR/Helpers/string_helpers.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
+#include "LibDegorasSLR/Timing/utils/time_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES

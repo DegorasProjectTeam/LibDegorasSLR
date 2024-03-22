@@ -31,7 +31,7 @@
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -53,6 +53,8 @@ namespace predictors{
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace math::units;
 using namespace geo::types;
+using namespace types;
+using namespace timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorSunFixed::PredictorSunFixed(const AltAzPos &fixed_coord) :

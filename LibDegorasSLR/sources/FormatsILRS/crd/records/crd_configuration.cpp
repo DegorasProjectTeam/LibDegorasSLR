@@ -27,11 +27,11 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CRDConfiguration class that abstracts part of ILRS CRD format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================#include <fstream>
+// =====================================================================================================================#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <numeric>

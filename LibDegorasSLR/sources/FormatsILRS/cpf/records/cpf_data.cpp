@@ -31,21 +31,20 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CPFData class that abstracts the data of ILRS CPF format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <array>
 #include <sstream>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h>
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
-#include <LibDegorasSLR/Timing/time_utils.h>
+#include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h"
+#include "LibDegorasSLR/Helpers/container_helpers.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -395,7 +394,7 @@ RecordReadError CPFData::readCorrectionsRecord(
             // Get the data.
             corr_record.dir_flag = static_cast<CPFData::DirectionFlag>(std::stoi(tokens[1]));
             corr_record.aberration_correction = {std::stold(tokens[2]), std::stold(tokens[3]), std::stold(tokens[4])};
-            corr_record.range_correction = std::stod(tokens[5]);
+            corr_record.range_correction = std::stold(tokens[5]);
 
         } catch (...)
         {

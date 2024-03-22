@@ -38,15 +38,15 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Astronomical/types/local_sun_position.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -57,15 +57,15 @@ namespace astro{
 namespace predictors{
 // =====================================================================================================================
 
-struct LIBDPSLR_EXPORT PredictionSun : types::SunPosition
+struct LIBDPSLR_EXPORT PredictionSun : types::LocalSunPosition
 {
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(PredictionSun)
 
-    PredictionSun(const timing::types::J2000DateTime& j2000,
-                  const astro::types::AltAzPos& altaz_coord,
+    PredictionSun(const timing::dates::J2000DateTime& j2000,
+                  const types::AltAzPos& altaz_pos,
                   const geo::types::GeocentricPoint& geo_pos) :
-        types::SunPosition(j2000, altaz_coord),
+        types::LocalSunPosition(j2000, altaz_pos),
         geo_pos(geo_pos)
     {}
 
@@ -75,7 +75,7 @@ struct LIBDPSLR_EXPORT PredictionSun : types::SunPosition
     // TODO Calculate the geocentric position, neccesary to check non visible moments in space object passes.
 };
 
-/// Alias for a vector of PredictionSun.
+/// Alias for a vector of PredictionSun objects.
 using PredictionSunV = std::vector<PredictionSun>;
 
 }}} // END NAMESPACES.

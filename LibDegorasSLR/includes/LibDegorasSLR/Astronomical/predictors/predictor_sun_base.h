@@ -38,7 +38,7 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <memory>
 // =====================================================================================================================
 
@@ -47,7 +47,7 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Astronomical/predictors/data/prediction_sun.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
@@ -122,7 +122,7 @@ public:
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
      * @return The predicted PredictionSun.
      */
-    virtual PredictionSun predict(const timing::types::J2000DateTime& j2000, bool refraction) const = 0;
+    virtual PredictionSun predict(const timing::dates::J2000DateTime& j2000, bool refraction) const = 0;
 
     /**
      * @brief Predicts the position of the Sun within a time range with a specified time step.
@@ -133,8 +133,8 @@ public:
      * @return A vector of PredictionSun objects representing predicted sun positions at each step.
      * @throws std::invalid_argument If the interval is invalid.
      */
-    virtual PredictionSunV predict(const timing::types::J2000DateTime& j2000_start,
-                                   const timing::types::J2000DateTime& j2000_end,
+    virtual PredictionSunV predict(const timing::dates::J2000DateTime& j2000_start,
+                                   const timing::dates::J2000DateTime& j2000_end,
                                    const math::units::MillisecondsU& step, bool refraction) const;
 
     virtual ~PredictorSunBase();

@@ -89,20 +89,13 @@ public:
     MovementAnalyzer(const MovementAnalyzerConfig& config);
 
     MovementAnalysis analyzeMovement(const types::MountPositionV& mount_positions,
-                                     const astro::types::SunPositionV &sun_positions);
+                                     const astro::types::LocalSunPositionV& sun_positions);
 
     MountPositionAnalyzed analyzePosition(const MovementAnalysis& analysis,
                                           const types::MountPosition& mount_pos,
-                                          const astro::types::SunPosition& sun_pos) const;
+                                          const astro::types::LocalSunPosition& sun_pos) const;
 
 private:
-
-    /// Auxiliar structure for handle mount and sun positions at same time.
-    struct Positions
-    {
-        MountPositionAnalyzed& mount_pos;
-        const astro::types::SunPosition& sun_pos;
-    };
 
     /// Helper to check the tracking start.
     bool analyzeTrackingStart(MovementAnalysis& analysis);
@@ -118,28 +111,25 @@ private:
 
     /// Helper to set the rotation direction of a sun sector.
     bool setSunSectorRotationDirection(SunCollisionSector& sector,
-                                       std::vector<Positions>::const_iterator sun_start,
-                                       std::vector<Positions>::const_iterator sun_end) const;
+                                       MountPositionAnalyzedV::const_iterator pos_start,
+                                       MountPositionAnalyzedV::const_iterator pos_end) const;
 
     /// Helper to calculate the avoidance position.
-    void calcSunAvoidPos(Positions& pos, const SunCollisionSector& sector) const;
+    void calcSunAvoidPos(MountPositionAnalyzed& pos, const SunCollisionSector& sector) const;
 
 
     /// Helper to check positions whithin a sun sector to see if it is possible to avoid sun
     void checkSunSectorPositions(MovementAnalysis &analysis, const SunCollisionSector &sector,
-                                 std::vector<Positions>::iterator sun_start,
-                                 std::vector<Positions>::iterator sun_end) const;
+                                 MountPositionAnalyzedV::iterator pos_start,
+                                 MountPositionAnalyzedV::iterator pos_end) const;
 
     /// Helper to calculate the avoidance trajectory.
-    long double calcSunAvoidTrajectory(const timing::types::MJDateTime& mjdt,
+    long double calcSunAvoidTrajectory(const timing::dates::MJDateTime& mjdt,
                                        const SunCollisionSector& sector,
                                        const astro::types::AltAzPos& sun_pos) const;
 
     // Private data members.
     MovementAnalyzerConfig config_;     ///< Contains the movement analyzer user configuration.
-    std::vector<Positions> positions_;  ///< Auxiliar vector with the Sun and mount position references.
-    std::vector<Positions>::iterator movement_begin_;  ///< Auxiliar iterator with the analyzed movement real start.
-    std::vector<Positions>::iterator movement_end_;    ///< Auxiliar iterator with the analyzed movement real end.
 };
 
 }}} // END NAMESPACES

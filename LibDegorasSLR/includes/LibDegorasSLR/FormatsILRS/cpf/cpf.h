@@ -41,7 +41,7 @@
  * The "CPF Version 2" specification can be found in: https://ilrs.gsfc.nasa.gov/docs/2018/cpf_2.00h-1.pdf
  *
  * @author    Degoras Project Team.
- * @version   2202.1
+   2202.1
  * @date      03-02-2022
  * @copyright EUPL License.
  *
@@ -74,7 +74,7 @@
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/Mathematics/types/interval.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Helpers/filedir_helpers.h"
 // =====================================================================================================================
 
@@ -238,7 +238,7 @@ public:
      * @param mjd_end The output parameter to store the Modified Julian Date of the end time.
      * @param secs_end The output parameter to store the seconds of the day of the end time with decimals.
      */
-    void getAvailableTimeWindow(timing::types::MJDateTime &start, timing::types::MJDateTime &end) const;
+    void getAvailableTimeWindow(timing::dates::MJDateTime &start, timing::dates::MJDateTime &end) const;
 
     /**
      * @brief Gets the available time window for the CPF as an Interval (will be invalid if the CPF is empty).

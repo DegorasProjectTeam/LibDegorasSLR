@@ -31,7 +31,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the definition of types related with trackings.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -41,8 +41,8 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
+#include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -58,7 +58,7 @@ struct MountPosition
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPosition)
 
     // Data members.
-    timing::types::MJDateTime mjdt;         ///< Modified Julian Datetime associated to the tracking mount position.
+    timing::dates::MJDateTime mjdt;         ///< Modified Julian Datetime associated to the tracking mount position.
     astro::types::AltAzPos altaz_coord;     ///< Altazimuth absolute coordinate for the tracking mount in degrees.
 };
 

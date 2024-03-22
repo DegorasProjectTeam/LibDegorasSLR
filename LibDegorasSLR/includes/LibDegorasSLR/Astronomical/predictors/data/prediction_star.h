@@ -38,14 +38,15 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
+#include "LibDegorasSLR/Astronomical/types/local_star_position.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -56,22 +57,18 @@ namespace astro{
 namespace predictors{
 // =====================================================================================================================
 
-struct LIBDPSLR_EXPORT PredictionStar
+struct LIBDPSLR_EXPORT PredictionStar : types::LocalStarPosition
 {
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(PredictionStar)
 
-    PredictionStar(const timing::types::JDateTime& jdt, const types::AltAzPos& altaz_coord) :
-        jdt(jdt),
-        altaz_coord(altaz_coord)
+    PredictionStar(const timing::dates::JDateTime& jdtm,
+                   const types::AltAzPos& altaz_pos) :
+        types::LocalStarPosition(jdtm, altaz_pos)
     {}
-
-    // Containers.
-    timing::types::JDateTime jdt;     ///< Julian datetime used to generate the star prediction data.
-    types::AltAzPos altaz_coord;      ///< Star predicted altazimuth coordinates referenced to an observer (degrees).
 };
 
-/// Alias for a vector of PredictionSun.
+/// Alias for a vector of PredictionStar objects.
 using StarPredictionV = std::vector<PredictionStar>;
 
 }}} // END NAMESPACES.

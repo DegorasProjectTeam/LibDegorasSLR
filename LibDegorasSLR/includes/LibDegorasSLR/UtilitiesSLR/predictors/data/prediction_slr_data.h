@@ -39,11 +39,11 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_velocity.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -83,7 +83,7 @@ struct LIBDPSLR_EXPORT InstantRange
     std::string toJsonStr() const;
 
     // Struct data.
-    timing::types::MJDateTime mjdt;          ///< Modified julian datetime asociated to the data.
+    timing::dates::MJDateTime mjdt;          ///< Modified julian datetime asociated to the data.
     math::units::Meters range_1w;          ///< One way range in math::units::Meters (mm precision -> 3 decimals).
     math::units::Seconds tof_2w;           ///< Two way flight time in math::units::Seconds (ps precision -> 12 decimals).
     geo::types::GeocentricPoint geo_pos;  ///< Object geocentric interpolated positions in math::units::Meters (x, y, z).
@@ -155,7 +155,7 @@ struct LIBDPSLR_EXPORT InboundData
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(InboundData)
 
     // Datetime members.
-    timing::types::MJDateTime mjdt;          ///< Modified julian datetime.
+    timing::dates::MJDateTime mjdt;          ///< Modified julian datetime.
 
     // Range (1 way) and time of flight (2 way).
     math::units::Meters range_1w;          ///< One way range in math::units::Meters (mm precission -> 3 decimals).

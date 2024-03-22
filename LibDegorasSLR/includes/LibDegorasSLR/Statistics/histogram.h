@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of several functions related with histogram calculations.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
  * @todo Add a high precission histogram class and related if neccesary.
 ***********************************************************************************************************************/
 
@@ -36,7 +36,7 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <string>
 #include <vector>
 #include <algorithm>

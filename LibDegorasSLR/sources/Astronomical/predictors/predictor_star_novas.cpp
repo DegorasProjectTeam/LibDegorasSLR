@@ -31,7 +31,7 @@
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -41,7 +41,7 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/predictors/predictor_star_novas.h"
-#include "LibDegorasSLR/Astronomical/novas_utils.h"
+#include "LibDegorasSLR/Astronomical/utils/novas_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -64,7 +64,7 @@ PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<D
     PredictorStarBase(star, loc, leap_secs, ut1_utc_diff)
 {}
 
-PredictionStar PredictorStarNovas::predict(const timing::types::JDateTime &jdt) const
+PredictionStar PredictorStarNovas::predict(const timing::dates::JDateTime &jdt) const
 {
     PredictionStar pred;
     pred.jdt = jdt;

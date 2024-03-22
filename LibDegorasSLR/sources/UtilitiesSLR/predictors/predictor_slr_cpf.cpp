@@ -31,17 +31,17 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the class PredictorCPF.
  * @copyright EUPL License
- * @version 2306.1
+ 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_cpf.h"
-#include "LibDegorasSLR/Mathematics/math.h"
+#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
 #include "LibDegorasSLR/Statistics/fitting.h"
@@ -62,6 +62,7 @@ using namespace math::types;
 using namespace math::units::literals;
 using namespace geo::types;
 using namespace timing::types;
+using namespace timing::dates;
 using namespace ilrs::cpf;
 using namespace math::units::literals;
 // ---------------------------------------------------------------------------------------------------------------------

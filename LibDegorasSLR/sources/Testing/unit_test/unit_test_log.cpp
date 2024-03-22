@@ -9,7 +9,7 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Testing/unit_test/unit_test_log.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
+#include "LibDegorasSLR/Timing/utils/time_utils.h"
 // =====================================================================================================================
 
 

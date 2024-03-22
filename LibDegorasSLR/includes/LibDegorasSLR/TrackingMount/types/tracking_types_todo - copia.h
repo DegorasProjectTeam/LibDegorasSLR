@@ -31,7 +31,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the definition of types related with trackings.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -62,7 +62,7 @@ struct TrackingPrediction
 {
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(TrackingPrediction)
 
-    timing::types::MJDateTime mjdt;
+    timing::dates::MJDateTime mjdt;
     MountPosition pos;
     astro::PredictionSun sun_pred;
 
@@ -94,7 +94,7 @@ struct MountPredictionSLR
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountPredictionSLR)
 
     // Datetime members.
-    timing::types::MJDateTime mjdt;         ///< Modified Julian DateTime.
+    timing::dates::MJDateTime mjdt;         ///< Modified Julian DateTime.
 
     // Result members.
     Optional<slr::PredictionSLR> slr_pred;  ///< Optional SLR prediction with the object pass position.
@@ -133,7 +133,7 @@ struct MountPredictionMove
 
     // Datetime members.
     timing::types::HRTimePointStd tp;       ///< Timepoint of positions.
-    timing::types::MJDateTime mjdt;         ///< Modified Julian DateTime.
+    timing::dates::MJDateTime mjdt;         ///< Modified Julian DateTime.
 
     // Result members.
     Optional<astro::PredictionSun> sun_pred;  ///< Optional Sun position container.
@@ -177,8 +177,8 @@ struct MountTrackingSLR
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountTrackingSLR)
 
     // TODO THIS MUST BE STORED IN PASSINFO class.
-    timing::types::MJDateTime pass_mjdt_start;
-    timing::types::MJDateTime pass_mjdt_end;
+    timing::dates::MJDateTime pass_mjdt_start;
+    timing::dates::MJDateTime pass_mjdt_end;
 
     // Tracking data
     TrackingAnalyzerConfig config;           ///< Contains the tracking user configuration.

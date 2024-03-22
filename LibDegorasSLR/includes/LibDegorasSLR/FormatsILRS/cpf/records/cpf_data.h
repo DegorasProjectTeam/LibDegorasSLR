@@ -38,7 +38,7 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <string>
 #include <vector>
 // =====================================================================================================================
@@ -46,11 +46,12 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/dates/base_date_types.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_velocity.h"
 // =====================================================================================================================
@@ -110,7 +111,7 @@ public:
     {
         // Members.
         DirectionFlag dir_flag;                ///< Direction flag.
-        timing::types::MJDate mjd;             ///< Modified Julian Date.
+        timing::dates::MJDate mjd;             ///< Modified Julian Date.
         timing::types::SoD sod;                ///< Second of day (UTC).
         int leap_second;                       ///< Leap second flag (0 or the value of new leap second).
         geo::types::GeocentricPoint geo_pos;   ///< Object geocentric position in meters (x, y, z).

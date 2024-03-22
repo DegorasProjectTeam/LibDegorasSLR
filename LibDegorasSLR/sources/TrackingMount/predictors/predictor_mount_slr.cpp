@@ -40,7 +40,7 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_init.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
+#include "LibDegorasSLR/Timing/utils/time_utils.h"
 #include "LibDegorasSLR/TrackingMount/predictors/predictor_mount_slr.h"
 // =====================================================================================================================
 

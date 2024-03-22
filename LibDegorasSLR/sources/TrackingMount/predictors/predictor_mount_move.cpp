@@ -31,7 +31,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the class PredictorMountMove.
  * @copyright EUPL License
- * @version 2306.1
+ 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -41,8 +41,8 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_init.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
-#include "LibDegorasSLR/TrackingMount/predictors/predictor_mount_move.h"
+#include "LibDegorasSLR/Timing/utils/time_utils.h"
+#include "LibDegorasSLR/TrackingMount/predictors/predictor_mount_movement.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
