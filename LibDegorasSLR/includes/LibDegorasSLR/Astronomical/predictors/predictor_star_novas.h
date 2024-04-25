@@ -75,6 +75,8 @@ public:
      * @return The resulting PredictionStar.
      */
     PredictionStar predict(const timing::dates::JDateTime& jdt) const override;
+
+    virtual bool isReady() const override {return true;}
 };
 
 }}} // END NAMESPACES.

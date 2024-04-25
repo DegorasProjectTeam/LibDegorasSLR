@@ -27,71 +27,54 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun_fast.h
- * @brief
- * @author Degoras Project Team
+ * @file mount_tracking_slr.h
+ * @author Degoras Project Team.
+ * @brief This file contains the definition of MountTrackingSLR struct.
  * @copyright EUPL License
+
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
-// C++ INCLUDES
-// =====================================================================================================================
-// =====================================================================================================================
-
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
+#include "LibDegorasSLR/TrackingMount/predictors/data/prediction_mount_movement.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analysis.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer_config.h"
 // =====================================================================================================================
 
-// DPSLR NAMESPACES
+// LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace astro{
+namespace mount{
 namespace predictors{
 // =====================================================================================================================
 
 /**
- * @brief The PredictorSunFast class provides functionality to predict the position of the Sun using a fast algorithm.
- *
- * This class utilizes astronomical algorithms to calculate the azimuth and elevation of the Sun at a given time
- * and observer's geodetic coordinates. This algorithm as a 0.01 degree accuracy.
+ * @brief The MountTrackingSLR struct contains all the tracking data and the predictors used for a SLR tracking.
  */
-class LIBDPSLR_EXPORT PredictorSunFast : public PredictorSunBase
+struct MountTrackingMovement
 {
 
-public:
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountTrackingMovement)
 
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunFast)
+    // TODO THIS MUST BE STORED IN PASSINFO class.
+    timing::dates::MJDateTime pass_mjdt_start;
+    timing::dates::MJDateTime pass_mjdt_end;
 
-    /**
-     * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
-     * @param obs_geod The geodetic coordinates of the observer.
-     */
-    PredictorSunFast(const geo::types::GeodeticPointDeg& obs_geod);
+    // Tracking data
+    utils::MovementAnalyzerConfig config;    ///< Contains the tracking user configuration.
+    utils::MovementAnalysis track_info;      ///< Contains the analyzed tracking information.
 
-    /**
-     * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
-     *
-     * Using a simple algorithm (VSOP87 algorithm is much more complicated), this function predicts the Sun position
-     * with a 0.01 degree accuracy up to 2099. It can perform also a simple atmospheric refraction correction. The
-     * time precision, internally, is decreased to milliseconds (for this type of prediction it is enough).
-     *
-     * @param j2000 The J2000DateTime object representing the J2000 date and time of the prediction.
-     * @param refraction Flag indicating whether to apply atmospheric refraction correction.
-     * @return The predicted PredictionSun.
-     *
-     * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
-     */
-    PredictionSun predict(const timing::dates::J2000DateTime& j2000, bool refraction) const override;
-
-    virtual bool isReady() const override {return true;}
-
+    // Predictors.
+    astro::predictors::PredictorSunPtr predictor_sun;  ///< Internal Sun predictor.
 };
 
-}}} // END NAMESPACES.
+
+
+}}} // END NAMESPACES
 // =====================================================================================================================

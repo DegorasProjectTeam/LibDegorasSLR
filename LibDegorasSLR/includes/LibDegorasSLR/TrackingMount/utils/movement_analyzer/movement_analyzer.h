@@ -53,10 +53,6 @@ namespace mount{
 namespace utils{
 // =====================================================================================================================
 
-// CONSTANTS
-// ---------------------------------------------------------------------------------------------------------------------
-constexpr math::units::Degrees kAvoidAngleOffset = 0.5L;   ///< Offset to apply to avoid the Sun sector.
-// ---------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -94,6 +90,8 @@ public:
     MountPositionAnalyzed analyzePosition(const MovementAnalysis& analysis,
                                           const types::MountPosition& mount_pos,
                                           const astro::types::LocalSunPosition& sun_pos) const;
+
+    const MovementAnalyzerConfig& getConfig() const;
 
 private:
 

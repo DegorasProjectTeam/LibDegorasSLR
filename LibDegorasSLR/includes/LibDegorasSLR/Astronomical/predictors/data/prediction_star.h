@@ -60,7 +60,7 @@ namespace predictors{
 struct LIBDPSLR_EXPORT PredictionStar : types::LocalStarPosition
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(PredictionStar)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionStar)
 
     PredictionStar(const timing::dates::JDateTime& jdtm,
                    const types::AltAzPos& altaz_pos) :

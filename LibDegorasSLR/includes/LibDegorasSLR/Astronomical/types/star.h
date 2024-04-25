@@ -57,7 +57,7 @@ namespace types{
 struct LIBDPSLR_EXPORT Star
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(Star)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(Star)
 
     // Members.
     RA ra;

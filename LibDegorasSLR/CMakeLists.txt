@@ -112,6 +112,11 @@ source_group("Alias Files" FILES ${ALIAS})
 macro_setup_shared_lib("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${LIB_VER}"
                        ${SOURCES1} ${SOURCES2} ${HEADERS} ${TEMPLTS} ${INL} ${ALIAS})
 
+target_sources(LibDegorasSLR
+  PRIVATE
+    includes/LibDegorasSLR/TrackingMount/predictors/data/mount_tracking_slr.h
+)
+
 # Link with LibNovasCPP.
 macro_link_libnovascpp_default(${LIB_NAME})
 

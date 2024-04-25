@@ -109,7 +109,7 @@ public:
      * @brief Predicts star positions within a time range with a specified time step.
      *
      * @param jdt_start The Julian start datetime of the prediction range.
-     * @param jdt_end The Julian end datetime of the prediction range.
+     * @param jdt_end The Julian end datetime of ñthe prediction range.
      * @param step The time step in milliseconds between predictions.
      * @return A vector of StarPrediction objects representing predicted star positions at each step.
      *
@@ -117,6 +117,8 @@ public:
      */
     StarPredictionV predict(const timing::dates::JDateTime& jdt_start, const timing::dates::JDateTime& jdt_end,
                             const math::units::MillisecondsU& step) const;
+
+    virtual bool isReady() const = 0;
 
     virtual ~PredictorStarBase();
 

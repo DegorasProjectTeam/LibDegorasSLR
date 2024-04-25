@@ -74,7 +74,7 @@ namespace predictors{
 struct LIBDPSLR_EXPORT InstantRange
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(InstantRange)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(InstantRange)
 
     /**
      * @brief Represents the InstantRange struct as a JSON-formatted string.
@@ -102,7 +102,7 @@ struct LIBDPSLR_EXPORT InstantRange
 struct LIBDPSLR_EXPORT InstantData : public InstantRange
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(InstantData)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(InstantData)
 
     /**
      * @brief Constructor.
@@ -136,7 +136,7 @@ struct LIBDPSLR_EXPORT InstantData : public InstantRange
 struct LIBDPSLR_EXPORT OutboundData : public InstantData
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(OutboundData)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(OutboundData)
 };
 
 /**
@@ -152,7 +152,7 @@ struct LIBDPSLR_EXPORT OutboundData : public InstantData
 struct LIBDPSLR_EXPORT InboundData
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(InboundData)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(InboundData)
 
     // Datetime members.
     timing::dates::MJDateTime mjdt;          ///< Modified julian datetime.

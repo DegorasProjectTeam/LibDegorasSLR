@@ -56,7 +56,7 @@ namespace predictors{
 struct LIBDPSLR_EXPORT PredictionMountMovement : utils::MountPositionAnalyzed
 {
     // Default constructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(PredictionMountMovement)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionMountMovement)
 
     PredictionMountMovement(const utils::MountPositionAnalyzed& pos) :
         utils::MountPositionAnalyzed(pos)

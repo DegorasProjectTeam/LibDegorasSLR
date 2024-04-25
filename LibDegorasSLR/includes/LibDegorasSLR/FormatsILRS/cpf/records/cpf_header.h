@@ -248,7 +248,7 @@ public:
      */
     explicit CPFHeader(float cpf_version);
 
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CPFHeader)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(CPFHeader)
 
     // Clear methods.
     /**

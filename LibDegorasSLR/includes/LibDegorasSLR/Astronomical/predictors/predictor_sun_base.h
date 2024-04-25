@@ -137,6 +137,8 @@ public:
                                    const timing::dates::J2000DateTime& j2000_end,
                                    const math::units::MillisecondsU& step, bool refraction) const;
 
+    virtual bool isReady() const = 0;
+
     virtual ~PredictorSunBase();
 
 protected:

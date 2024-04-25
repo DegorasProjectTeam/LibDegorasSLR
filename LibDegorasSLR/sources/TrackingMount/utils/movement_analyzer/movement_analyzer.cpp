@@ -62,6 +62,11 @@ using namespace math;
 using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
+// CONSTANTS
+// ---------------------------------------------------------------------------------------------------------------------
+constexpr math::units::Degrees kAvoidAngleOffset = 0.5L;   // Offset to apply to avoid the Sun sector.
+// ---------------------------------------------------------------------------------------------------------------------
+
 MovementAnalyzer::MovementAnalyzer(const MovementAnalyzerConfig& config) :
     config_(config)
 {
@@ -81,6 +86,11 @@ MovementAnalyzer::MovementAnalyzer(const MovementAnalyzerConfig& config) :
         std::string error("Sun avoid angle too high for the configured minimum and maximum elevations.");
         throw std::invalid_argument(submodule + " " + error);
     }
+}
+
+const MovementAnalyzerConfig &MovementAnalyzer::getConfig() const
+{
+    return this->config_;
 }
 
 MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_positions,
@@ -147,14 +157,14 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
     // Check the start and validate at this point.
     if (!this->analyzeTrackingStart(track_analysis))
     {
-        track_analysis.empty_movement = true;
+        track_analysis.valid_movement = true;
         track_analysis.analyzed_positions.clear();
         return track_analysis;
     }
     // Check the end and validate at this point.
     if (!this->analyzeTrackingEnd(track_analysis))
     {
-        track_analysis.empty_movement = true;
+        track_analysis.valid_movement = true;
         track_analysis.analyzed_positions.clear();
         return track_analysis;
     }
@@ -162,7 +172,7 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
     // Check the middle and validate at this point.
     if (!this->analyzeTrackingMiddle(track_analysis))
     {
-        track_analysis.empty_movement = true;
+        track_analysis.valid_movement = true;
         track_analysis.analyzed_positions.clear();
         return track_analysis;
     }

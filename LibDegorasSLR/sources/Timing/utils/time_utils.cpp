@@ -224,6 +224,7 @@ std::string secondsToISO8601Duration(const std::chrono::seconds& secs)
     return millisecondsToISO8601Duration(msecs);
 }
 
+
 HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime)
 {
     // Auxiliar variables.
@@ -238,7 +239,7 @@ HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime)
     if (!std::regex_search(datetime, match, iso8601_regex_extended))
     {
         if (!std::regex_search(datetime, match, iso8601_regex_basic))
-            throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601DatetimeParserUTC] Invalid argument: " + datetime);
+            throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601DatetimeToTimePoint] Invalid argument: " + datetime);
     }
 
     // Get the datetime values.
@@ -277,6 +278,58 @@ HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime)
     // Return the time point.
     return t;
 }
+
+/*
+HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime) {
+    int y, m, d, h, M, s;
+    std::smatch match;
+    std::regex iso8601_regex_extended(R"(^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z)?$)");
+    std::regex iso8601_regex_basic(R"(^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\.(\d+))?(Z)?$)");
+
+    if (!std::regex_search(datetime, match, iso8601_regex_extended) && !std::regex_search(datetime, match, iso8601_regex_basic)) {
+        throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601DatetimeToTimePoint] Invalid argument: " + datetime);
+    }
+
+    y = std::stoi(match[1].str());
+    m = std::stoi(match[2].str());
+    d = std::stoi(match[3].str());
+    h = std::stoi(match[4].str());
+    M = std::stoi(match[5].str());
+    s = std::stoi(match[6].str());
+    std::string fractional_seconds_str = match[7].str();
+    bool is_utc = match[8].str() == "Z";
+
+    auto days_since_epoch = daysFromCivil(y, static_cast<unsigned>(m), static_cast<unsigned>(d));
+    HRTimePointStd t = HRClock::time_point(std::chrono::duration<int, std::ratio<86400>>(days_since_epoch));
+
+    t += std::chrono::hours(h);
+    t += std::chrono::minutes(M);
+    t += std::chrono::seconds(s);
+
+    if (!fractional_seconds_str.empty()) {
+        long long fractional_seconds = std::stoll(fractional_seconds_str);
+        size_t length = fractional_seconds_str.length();
+
+        if (length <= 3)
+            t += std::chrono::milliseconds(fractional_seconds);
+        else if (length <= 6)
+            t += std::chrono::microseconds(fractional_seconds);
+        else
+            t += std::chrono::nanoseconds(fractional_seconds);
+    }
+
+    if (!is_utc) {
+        // Adjust for local timezone if 'Z' is not present
+        std::time_t now = std::time(nullptr);
+        std::tm* now_tm = std::localtime(&now);
+        std::tm* gm_tm = std::gmtime(&now);
+        auto local_diff = std::mktime(now_tm) - std::mktime(gm_tm);
+        t += std::chrono::seconds(local_diff);
+    }
+
+    return t;
+}
+*/
 // =====================================================================================================================
 
 // Timepoint to other calendar/format conversions

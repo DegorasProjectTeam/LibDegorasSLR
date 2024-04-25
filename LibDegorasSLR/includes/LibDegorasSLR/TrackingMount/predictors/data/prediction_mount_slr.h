@@ -67,7 +67,7 @@ enum class PredictionMountSLRStatus : std::uint32_t
 struct LIBDPSLR_EXPORT PredictionMountSLR : utils::MountPositionAnalyzed
 {
     // Default constructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(PredictionMountSLR)
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionMountSLR)
 
     PredictionMountSLR(const utils::MountPositionAnalyzed& pos, const slr::predictors::PredictionSLR& pred_slr) :
         utils::MountPositionAnalyzed(pos),

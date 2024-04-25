@@ -60,10 +60,10 @@ namespace utils{
 struct LIBDPSLR_EXPORT MovementAnalysis
 {
     // Copy and movement constructor and operators, and default destructor.
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MovementAnalysis)
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(MovementAnalysis)
 
     MovementAnalysis() :
-        empty_movement(false),
+        valid_movement(false),
         sun_deviation(false),
         sun_collision(false),
         sun_collision_high_el(false),
@@ -96,7 +96,7 @@ struct LIBDPSLR_EXPORT MovementAnalysis
     MountPositionAnalyzedV::iterator end_mov_it;   ///< Const iterator to the real valid end of the movement.
 
     // Validation flag.
-    bool empty_movement;          ///< Flag inficating if the movement is empty (due to analysis checks).
+    bool valid_movement;          ///< Flag inficating if the movement is valid (due to analysis checks).
 
     // Movement alterations.
     bool sun_deviation;           ///< Flag indicating if the movement was deviated from pass due to Sun.

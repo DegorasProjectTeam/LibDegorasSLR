@@ -55,7 +55,7 @@ namespace types{
 struct MountPosition
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPosition)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(MountPosition)
 
     // Data members.
     timing::dates::MJDateTime mjdt;         ///< Modified Julian Datetime associated to the tracking mount position.

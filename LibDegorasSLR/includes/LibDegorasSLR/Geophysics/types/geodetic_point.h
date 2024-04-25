@@ -74,7 +74,7 @@ std::is_same_v<AngleType, math::units::Degrees> || std::is_same_v<AngleType, mat
 struct LIBDPSLR_EXPORT GeodeticPoint
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(GeodeticPoint)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(GeodeticPoint)
 
     /**
      * @brief Constructs a GeodeticPoint with specified latitude, longitude, and altitude.

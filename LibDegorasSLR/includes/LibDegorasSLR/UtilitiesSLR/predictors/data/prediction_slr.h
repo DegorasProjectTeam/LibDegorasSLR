@@ -68,7 +68,7 @@ struct LIBDPSLR_EXPORT PredictionSLR
     using OptionalDegrees = Optional<math::units::Degrees>;
 
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(PredictionSLR)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionSLR)
 
     // SLR result containers.
     InstantRange instant_range;           ///< Result range for the instant time, always available if NO_ERROR.

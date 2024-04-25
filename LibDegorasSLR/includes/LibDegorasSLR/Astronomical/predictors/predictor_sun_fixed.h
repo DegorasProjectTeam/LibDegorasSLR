@@ -62,6 +62,8 @@ public:
     
     PredictionSun predict(const timing::dates::J2000DateTime& j2000, bool) const final;
 
+    virtual bool isReady() const override {return true;}
+
 private:
 
     types::AltAzPos fixed_coord_;

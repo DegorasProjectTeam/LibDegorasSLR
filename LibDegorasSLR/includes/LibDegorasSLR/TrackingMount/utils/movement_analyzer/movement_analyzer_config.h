@@ -60,7 +60,7 @@ namespace utils{
 struct LIBDPSLR_EXPORT MovementAnalyzerConfig
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MovementAnalyzerConfig)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(MovementAnalyzerConfig)
 
     MovementAnalyzerConfig(const math::units::DegreesU& sun_avoid_angle, const math::units::DegreesU& min_elev,
                            const math::units::DegreesU& max_elev, bool sun_avoid) :

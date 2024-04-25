@@ -60,7 +60,7 @@ namespace predictors{
 struct LIBDPSLR_EXPORT PredictionSun : types::LocalSunPosition
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(PredictionSun)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionSun)
 
     PredictionSun(const timing::dates::J2000DateTime& j2000,
                   const types::AltAzPos& altaz_pos,

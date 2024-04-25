@@ -60,7 +60,7 @@ namespace types{
 struct LIBDPSLR_EXPORT LocalStarPosition
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(LocalStarPosition)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(LocalStarPosition)
 
     LocalStarPosition(const timing::dates::JDateTime& jdt,
                  const astro::types::AltAzPos& altaz_coord) :

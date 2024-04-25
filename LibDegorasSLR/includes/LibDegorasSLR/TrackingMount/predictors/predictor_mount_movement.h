@@ -39,11 +39,15 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/TrackingMount/predictors/data/mount_tracking_movement.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/TrackingMount/types/mount_position.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer_config.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analysis.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
+#include "LibDegorasSLR/TrackingMount/predictors/data/prediction_mount_movement.h"
 // =====================================================================================================================
 
 // C++ INCLUDES
@@ -63,17 +67,16 @@ namespace predictors{
  * and analyzes them. After this analyze it can be used to predict new positions within the time window of the movement.
  * This positions will also avoid sun if requested.
  */
-class LIBDPSLR_EXPORT PredictorMountMove
+class LIBDPSLR_EXPORT PredictorMountMovement
 {
 public:
 
-    /**
+    // Default copy and movement constructor and operators.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorMountMovement)
 
-     */
-    PredictorMountMove(const types::MountPositionV& positions,
-                       astro::predictors::PredictorSunPtr pred_sun,
-                       const utils::MovementAnalyzerConfig& config);
-
+    PredictorMountMovement(types::MountPositionV positions,
+                           astro::predictors::PredictorSunPtr pred_sun,
+                           const utils::MovementAnalyzerConfig& config);
 
     /**
      * @brief This function checks if the predictor has a valid movement and is ready for predicting.
@@ -85,17 +88,16 @@ public:
      * @brief This function returns the mount tracking information for this movement.
      * @return the struct containing all the info about the mount tracking movement.
      */
-    const MountTrackingMove& getMountTrackingMove() const;
+    const MountTrackingMovement& getMountTrackingMovement() const;
 
     /**
      * @brief This function returns the object's position at a given time.
-     * @param tp_time The time point datetime.
+     * @param tp The time point datetime.
      * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
-     *
-     * @warning Nanoseconds resolution for the prediction.
+
      */
-    PositionStatus predict(const timing::types::HRTimePointStd& tp_time, MountPredictionMove &tracking_result) const;
+    PredictionMountMovement predict(const timing::types::HRTimePointStd& tp) const;
 
 
 private:
@@ -105,15 +107,15 @@ private:
     // Helper to analyze the track.
     void analyzeTracking();
 
-    bool checkPositions(const MovePositionV& positions) const;
+    bool checkPositions(const types::MountPositionV& positions) const;
 
     astro::types::AltAzPos interpPos(const timing::types::HRTimePointStd &tp) const;
 
 
     // Private members.
-    MovePositionV positions_;
-    MountTrackingMove mount_track_;                     ///< Mount track analyzed data.
-    TrackingAnalyzer tr_analyzer_;                      ///< Tracking analyzer used.
+    MountTrackingMovement mount_track_;
+    utils::MovementAnalyzer mv_analyzer_;   ///< Mount movement analyzer used.
+    types::MountPositionV positions_;       ///< Original positions given at construction
 };
 
 }}} // END NAMESPACES

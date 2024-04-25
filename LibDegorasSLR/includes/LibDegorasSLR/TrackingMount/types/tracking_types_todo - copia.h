@@ -129,7 +129,7 @@ using MountPredictionSLRV = std::vector<MountPredictionSLR>;
  */
 struct MountPredictionMove
 {
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPredictionMove)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(MountPredictionMove)
 
     // Datetime members.
     timing::types::HRTimePointStd tp;       ///< Timepoint of positions.

@@ -76,7 +76,7 @@ struct LIBDPSLR_EXPORT SunCollisionSector
     };
 
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(SunCollisionSector)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(SunCollisionSector)
 
     // Data members.
     astro::types::AltAzPosV altaz_sun_coords;  ///< Altazimuth Sun position during the collision time in degrees.

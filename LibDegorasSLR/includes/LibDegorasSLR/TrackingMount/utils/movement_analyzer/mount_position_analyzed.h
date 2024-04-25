@@ -87,7 +87,11 @@ enum class AnalyzedPositionStatus : std::uint32_t
 struct LIBDPSLR_EXPORT MountPositionAnalyzed : types::MountPosition
 {
     // Default constructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(MountPositionAnalyzed)
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(MountPositionAnalyzed)
+
+    MountPositionAnalyzed() :
+        status(AnalyzedPositionStatus::OUT_OF_TRACK)
+    {}
 
     MountPositionAnalyzed(const MountPosition& original_mount_pos,
                           const astro::types::LocalSunPosition& sun_pos) :

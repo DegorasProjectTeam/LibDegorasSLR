@@ -59,7 +59,7 @@ namespace types{
 struct LIBDPSLR_EXPORT AltAzPos
 {
     // Copy and movement constructor and operators, and default destructor.
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(AltAzPos)
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(AltAzPos)
 
     AltAzPos();
 

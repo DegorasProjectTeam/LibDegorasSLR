@@ -407,7 +407,7 @@ public:
      */
     explicit CRD(const std::string& crd_filepath, OpenOption open_option);
 
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CRD)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(CRD)
 
     // Clear methods.
     /**

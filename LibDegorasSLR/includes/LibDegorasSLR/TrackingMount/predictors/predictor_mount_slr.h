@@ -40,10 +40,13 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/TrackingMount/predictors/data/mount_tracking_slr.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/dates/datetime_types.h"
-#include "LibDegorasSLR/TrackingMount/types/tracking_types.h"
-#include "LibDegorasSLR/TrackingMount/types/tracking_analyzer.h"
+#include "LibDegorasSLR/TrackingMount/predictors/data/prediction_mount_slr.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
+#include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
 // =====================================================================================================================
 
 // C++ INCLUDES
@@ -54,6 +57,7 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace mount{
+namespace predictors{
 // =====================================================================================================================
 
 /**
@@ -76,8 +80,8 @@ public:
      * @param config, the configuration parameters for the tracking analysis.
      */
     PredictorMountSLR(const timing::dates::MJDateTime& pass_start, const timing::dates::MJDateTime& pass_end,
-                      slr::PredictorSlrPtr pred_slr, astro::PredictorSunPtr pred_sun,
-                      const TrackingAnalyzerConfig& config);
+                      slr::predictors::PredictorSlrPtr pred_slr, astro::predictors::PredictorSunPtr pred_sun,
+                      const utils::MovementAnalyzerConfig &config, math::units::MillisecondsU time_delta = 1000);
     /**
      * @brief PredictorMountSLR constructor.
      * @param pass_start, the modified julian datetime for pass start.
@@ -87,8 +91,8 @@ public:
      * @param config, the configuration parameters for the tracking analysis.
      */
     PredictorMountSLR(const timing::types::HRTimePointStd& pass_start, const timing::types::HRTimePointStd& pass_end,
-                      slr::PredictorSlrPtr pred_slr, astro::PredictorSunPtr pred_sun,
-                      const TrackingAnalyzerConfig &config);
+                      slr::predictors::PredictorSlrPtr pred_slr, astro::predictors::PredictorSunPtr pred_sun,
+                      const utils::MovementAnalyzerConfig &config, math::units::MillisecondsU time_delta = 1000);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
@@ -105,20 +109,18 @@ public:
     /**
      * @brief This function returns the object's position at a given time.
      * @param tp_time The time point datetime.
-     * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      *
      * @warning Nanoseconds resolution for the prediction.
      */
-    PositionStatus predict(const timing::types::HRTimePointStd& tp_time, MountPredictionSLR &tracking_result) const;
+    PredictionMountSLR predict(const timing::types::HRTimePointStd& tp_time) const;
 
     /**
      * @brief This function returns the object's position at a given time.
      * @param mjd, the modified julian datetime.
-     * @param tracking_result, the returned TrackingResult struct.
      * @return the result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(const timing::dates::MJDateTime &mjd, MountPredictionSLR &tracking_result) const;
+    PredictionMountSLR predict(const timing::dates::MJDateTime &mjd) const;
 
 private:
 
@@ -129,9 +131,10 @@ private:
 
 
     // Private members.
-    MountTrackingSLR mount_track_;                     ///< Mount track analyzed data.
-    TrackingAnalyzer tr_analyzer_;                     ///< Tracking analyzer used.
+    MountTrackingSLR mount_track_;             ///< Mount track analyzed data.
+    utils::MovementAnalyzer tr_analyzer_;      ///< Tracking analyzer used.
+    math::units::MillisecondsU time_delta_;     ///< Time delta for analysis.
 };
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

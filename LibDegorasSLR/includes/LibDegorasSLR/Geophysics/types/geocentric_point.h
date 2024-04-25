@@ -62,7 +62,7 @@ namespace types{
 struct LIBDPSLR_EXPORT GeocentricPoint
 {
     // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(GeocentricPoint)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(GeocentricPoint)
 
     GeocentricPoint(const math::units::Meters& x, const math::units::Meters& y, const math::units::Meters& z) :
         x(x), y(y), z(z)

@@ -72,14 +72,14 @@ using StringV = std::vector<std::string>;
 // Generic macros
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// Macro for generate copy and move constructors.
+/// Macro for generating copy and move constructors.
 #define M_DEFINE_CTOR_COPY_MOVE(CLASS) \
 /** @brief Default copy constructor. */ \
 CLASS(const CLASS&) = default; \
 /** @brief Default move constructor. */ \
 CLASS(CLASS&&) = default;
 
-/// Macro for generate default copy and move operators.
+/// Macro for generating default copy and move operators.
 #define M_DEFINE_OP_COPY_MOVE(CLASS) \
 /** \
  * @brief Default copy assingment operator. \
@@ -92,33 +92,32 @@ CLASS& operator=(const CLASS&) = default; \
  */ \
 CLASS& operator=(CLASS&&) = default;
 
-/// Macro for generate default, copy and move constructors.
+/// Macro for generating default, copy and move constructors.
 #define M_DEFINE_CTOR_DEF_COPY_MOVE(CLASS) \
 /** @brief Default constructor. */ \
 CLASS() = default; \
 M_DEFINE_CTOR_COPY_MOVE(CLASS)
 
-/// Macro for generate copy and move constructors and operators.
+/// Macro for generating copy and move constructors and operators.
 #define M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(CLASS) \
 M_DEFINE_CTOR_COPY_MOVE(CLASS) \
 M_DEFINE_OP_COPY_MOVE(CLASS)
 
-/// Macro for generator default, copy and move constructors and copy and move operators.
+/// Macro for generating default, copy and move constructors and copy and move operators.
 #define M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(CLASS) \
 /** @brief Default constructor. */ \
 CLASS() = default; \
 M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(CLASS)
 
-/// Macro for generator default, copy and move constructors and copy and move operators, and default destructor.
-#define M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CLASS) \
+/// Macro for generating default, copy and move constructors and copy and move operators, and default destructor.
+#define M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(CLASS) \
 M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(CLASS) \
 /** @brief Default destructor. */ \
 ~CLASS() = default; \
 
-/// Macro for generator copy and move constructors; copy and move operators, and default destructor.
-#define M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CLASS) \
-M_DEFINE_CTOR_COPY_MOVE(CLASS) \
-M_DEFINE_OP_COPY_MOVE(CLASS) \
+/// Macro for generating copy and move constructors; copy and move operators and default destructor.
+#define M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(CLASS) \
+M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(CLASS) \
 /** @brief Default destructor. */ \
 ~CLASS() = default; \
 
