@@ -40,7 +40,7 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include"LibDegorasSLR/Mathematics/types/numeric_strong_type.h"
+#include "LibDegorasSLR/Mathematics/types/numeric_strong_type.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES

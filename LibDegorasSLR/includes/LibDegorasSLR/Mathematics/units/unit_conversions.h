@@ -107,12 +107,12 @@ T radToDegree(T radian)
 }
 
 
-Degrees radToDegree(const Radians& radian)
+inline Degrees radToDegree(const Radians& radian)
 {
     return (radian*(180.0L/math::kPi));
 }
 
-Radians degToRad(const Degrees& degree)
+inline Radians degToRad(const Degrees& degree)
 {
     return (degree*(math::kPi/180.0L));
 }

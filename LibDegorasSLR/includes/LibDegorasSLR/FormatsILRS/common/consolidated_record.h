@@ -64,6 +64,8 @@ namespace common{
 struct LIBDPSLR_EXPORT ConsolidatedRecord
 {
 
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(ConsolidatedRecord)
+
     // Common members for all the records.
     ConsolidatedFileType consolidated_type;     ///< Stores the consolidated type which belongs the record.
     unsigned generic_record_type;               ///< For CRD: CRDRecordsTypeEnum    For CPF: CPFRecordsTypeEnum

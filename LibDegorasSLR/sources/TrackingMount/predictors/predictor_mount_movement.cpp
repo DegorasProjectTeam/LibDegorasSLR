@@ -61,7 +61,7 @@ PredictorMountMovement::PredictorMountMovement(types::MountPositionV positions,
     positions_(std::move(positions))
 {
     // Check Degoras initialization.
-    DegorasInit::checkMandatoryInit();
+    DegorasInitGuard();
 
 
     // Check positions

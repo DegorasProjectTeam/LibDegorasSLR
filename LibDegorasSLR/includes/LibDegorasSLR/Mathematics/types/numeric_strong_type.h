@@ -191,8 +191,8 @@ using TypeName = dpslr::math::types::NumericStrongType<NumericType, struct UnitN
 
 // Macro to define units and create literal operator
 #define M_DEFINE_STRONG_TYPE_WITH_LITERAL(TypeName, NumericType, TypeLiteral) \
-using TypeName = dpslr::math::types::NumericStrongType<NumericType, struct UnitName##Tag>; \
-namespace literals{ TypeName operator ""_##TypeLiteral(NumericType value) \
-{return TypeName(value);}} \
+M_DEFINE_STRONG_TYPE(TypeName, NumericType) \
+namespace literals { \
+inline TypeName operator ""_##TypeLiteral(NumericType value) {return TypeName(value);} } \
 
 // =====================================================================================================================

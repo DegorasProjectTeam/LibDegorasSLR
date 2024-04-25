@@ -602,7 +602,7 @@ void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, Predicti
 
 PredictorSlrCPF::PredictionError PredictorSlrCPF::convertLagInterpError(stats::types::LagrangeError error)
 {
-    PredictorSlrCPF::PredictionError cpf_error;
+    PredictorSlrCPF::PredictionError cpf_error = PredictionError::OTHER_ERROR;
     switch (error)
     {
     case stats::types::LagrangeError::NOT_ERROR :

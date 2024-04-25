@@ -74,7 +74,7 @@ private:
     inline static std::atomic<bool> initialized_ = false;
 };
 
-class DegorasInitGuard
+class LIBDPSLR_EXPORT DegorasInitGuard
 {
 public:
     DegorasInitGuard()

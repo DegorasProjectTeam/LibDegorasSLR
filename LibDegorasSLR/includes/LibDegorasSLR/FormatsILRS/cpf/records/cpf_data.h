@@ -109,6 +109,14 @@ public:
      */
     struct PositionRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief PositionRecord constructor from a generic ConsolidatedRecord.
+         * @param rec, the consolidated record.
+         */
+        PositionRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(PositionRecord)
+
         // Members.
         DirectionFlag dir_flag;                ///< Direction flag.
         timing::dates::MJDate mjd;             ///< Modified Julian Date.
@@ -130,6 +138,14 @@ public:
      */
     struct VelocityRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief VelocityRecord constructor from a generic ConsolidatedRecord.
+         * @param rec, the consolidated record.
+         */
+        VelocityRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(VelocityRecord)
+
         // Members.
         DirectionFlag dir_flag;                    ///< Direction flag.
         geo::types::GeocentricVelocity geo_vel;    ///< Geocentric velocity in m/s (x, y, z).
@@ -148,6 +164,14 @@ public:
      */
     struct CorrectionsRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief CorrectionsRecord constructor from a generic ConsolidatedRecord.
+         * @param rec, the consolidated record.
+         */
+        CorrectionsRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(CorrectionsRecord)
+
         // Members.
         DirectionFlag dir_flag; ///<< Direction flag.
         math::types::Vector3D<math::units::Meters> aberration_correction; ///<< Stellar aberration correction (meters).
