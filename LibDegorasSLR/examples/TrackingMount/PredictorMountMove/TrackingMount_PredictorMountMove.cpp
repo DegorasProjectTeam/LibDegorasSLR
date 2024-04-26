@@ -431,23 +431,23 @@ int main()
         results.push_back({});
         results.back() = predictor_mount.predict(modifiedJulianDateTimeToTimePoint(mjd));
 
-        if (status == PositionStatus::ELEVATION_CLIPPED)
+        if (results.back().status == AnalyzedPositionStatus::ELEVATION_CLIPPED)
         {
-            //
+            // The elevation is clipped due to maximum elevation reached
         }
-        else if (status == PositionStatus::OUTSIDE_SUN)
+        else if (results.back().status == AnalyzedPositionStatus::NO_MODIF_NEEDED)
         {
             // In this case the position predicted is valid and it is going outside a sun security sector. This is the
             // normal case.
         }
-        else if (status == PositionStatus::INSIDE_SUN)
+        else if (results.back().status == AnalyzedPositionStatus::INSIDE_SUN)
         {
             // In this case the position predicted is valid, but it is going through a sun security sector.
             // This case is only possible if sun avoid algorithm is disabled.
             // BEWARE. If the mount points directly to this position it could be dangerous.
         }
 
-        else if (status == PositionStatus::AVOIDING_SUN)
+        else if (results.back().status == AnalyzedPositionStatus::AVOIDING_SUN)
         {
             // In this case the position predicted is valid and it is going through an alternative way to avoid a sun
             // security sector. While the tracking returns this status, the tracking_position member in result
@@ -455,7 +455,7 @@ int main()
             // the true position of the object (not secure).
 
         }
-        else if (status == PositionStatus::CANT_AVOID_SUN)
+        else if (results.back().status == AnalyzedPositionStatus::CANT_AVOID_SUN)
         {
             // In this case the position predicted is valid and it is going through an alternative way to avoid a sun
             // security sector. While the tracking returns this status, the tracking_position member in result
@@ -463,24 +463,13 @@ int main()
             // the true position of the object (not secure).
 
         }
-        else if (status == PositionStatus::OUT_OF_TRACK)
+        else if (results.back().status == AnalyzedPositionStatus::OUT_OF_TRACK)
         {
             // Bad situation, the prediction time requested is out of track. Stop the tracking and notify to client.
             // However, this should not happen if all is ok in the mount tracking controller software. Maybe if
             // something is wrong with the CPF or in the timing tracking mount subsystem or in the SLR station system.
             std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
             std::cerr << "Error: The requested position is in OUT_OF_TRACK state." << std::endl;
-            std::cerr << "Example finished. Press Enter to exit..." << std::endl;
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            return -1;
-        }
-        else if (status == PositionStatus::PREDICTION_ERROR)
-        {
-            // Bad situation, stop the tracking and notify to client. However, this should not happen if all is ok in
-            // the mount tracking controller software. Maybe if something is wrong with the with the CPF or in the
-            // timing tracking mount subsystem or in the SLR station system.
-            std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
-            std::cerr << "Error: The requested position is in PREDICTION_ERROR state." << std::endl;
             std::cerr << "Example finished. Press Enter to exit..." << std::endl;
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             return -1;
@@ -502,22 +491,22 @@ int main()
         // At this point, you only must check if the prediction is outside track. This is becaouse, for example,
         // the beginning of the real satellite pass may coincide with the Sun sector, so at those points there
         // would be no data from the mount's track, only the real pass.
-        if(pred.status != PositionStatus::OUT_OF_TRACK)
+        if(pred.status != AnalyzedPositionStatus::OUT_OF_TRACK)
         {
-            track_az = numberToStr(pred.mount_pos->altaz_coord.az,7, 4);
-            track_el = numberToStr(pred.mount_pos->altaz_coord.el,7, 4);
-            orig_az = numberToStr(pred.mount_pos->altaz_coord.az - pred.mount_pos->diff_az, 7, 4);
-            orig_el = numberToStr(pred.mount_pos->altaz_coord.el - pred.mount_pos->diff_el, 7, 4);
+            track_az = numberToStr(pred.altaz_coord.az,7, 4);
+            track_el = numberToStr(pred.altaz_coord.el,7, 4);
+            orig_az = numberToStr(pred.original_pos.altaz_coord.az, 7, 4);
+            orig_el = numberToStr(pred.original_pos.altaz_coord.el, 7, 4);
 
             // Store the data.
             file_realtime_track <<'\n';
-            file_realtime_track << std::to_string(timePointToModifiedJulianDateTime(pred.tp).datetime()) <<";";
+            file_realtime_track << std::to_string(pred.mjdt.datetime()) <<";";
             file_realtime_track << orig_az <<";";
             file_realtime_track << orig_el <<";";
             file_realtime_track << track_az <<";";
             file_realtime_track << track_el <<";";
-            file_realtime_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
-            file_realtime_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
+            file_realtime_track << numberToStr(pred.sun_pos.altaz_coord.az, 7, 4) <<";";
+            file_realtime_track << numberToStr(pred.sun_pos.altaz_coord.el, 7, 4);
         }
     }
     // Close the file.

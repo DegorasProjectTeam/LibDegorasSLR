@@ -226,9 +226,9 @@ void PredictorMountSLR::analyzeTracking()
 
     // Parallel calculation of all Sun positions.
     results_sun = this->mount_track_.predictor_sun->predict(
-        j2000_start, j2000_end, this->time_delta_, false);
+        j2000_start, j2000_end + this->time_delta_ / 1000.L, this->time_delta_, false);
     
-    // Create mount positions vector from SLR predictions
+    // Create mount positions vector from SLR predictions. Ensure there is at least one more.
     types::MountPositionV mount_positions(results_slr.size());
     std::transform(results_slr.begin(), results_slr.end(), mount_positions.begin(), [](const auto& pred)
                    {
@@ -239,8 +239,8 @@ void PredictorMountSLR::analyzeTracking()
     });
 
     // Create local sun positions from sun predictions
-    astro::types::LocalSunPositionV sun_positions(results_sun.size());
-    std::copy(results_sun.begin(), results_sun.end(), sun_positions.begin());
+    astro::types::LocalSunPositionV sun_positions(results_slr.size());
+    std::copy(results_sun.begin(), results_sun.begin() + results_slr.size(), sun_positions.begin());
 
     // Analyze tracking
     this->mount_track_.track_info = this->tr_analyzer_.analyzeMovement(mount_positions, sun_positions);
