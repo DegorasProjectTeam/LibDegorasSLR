@@ -66,6 +66,7 @@ struct LIBDPSLR_EXPORT PredictionSLR
     using OptionalPicoseconds = Optional<math::units::Picoseconds>;
     using OptionalMeters = Optional<math::units::Meters>;
     using OptionalDegrees = Optional<math::units::Degrees>;
+    using ErrorType = std::uint32_t;
 
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionSLR)
@@ -88,7 +89,7 @@ struct LIBDPSLR_EXPORT PredictionSLR
     OptionalMeters syst_rnd_corr;       ///< Other systematic and random error corrections (Meters, 1 way).
 
     // Error code.
-    std::uint32_t error;   ///< Error that may have occurred (zero is always NO_ERROR).
+    ErrorType error;   ///< Error that may have occurred (zero is always NO_ERROR).
 
     /**
      * @brief Represents all the prediction result as a JSON formated string.

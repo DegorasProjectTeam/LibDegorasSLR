@@ -163,8 +163,6 @@ PredictionMountSLR PredictorMountSLR::predict(const timing::dates::MJDateTime &m
     slr::predictors::PredictionSLR prediction_result;
     auto pred_error = this->mount_track_.predictor_slr->predict(mjdt, prediction_result);
 
-    // TODO: check prediction error
-
     types::MountPosition mount_pos;
     mount_pos.mjdt = mjdt;
     mount_pos.altaz_coord = prediction_result.instant_data->altaz_coord;

@@ -139,7 +139,6 @@ int main()
     Meters z = 3769892.958L;
 
     // Generic config.
-    MillisecondsU step = 100;         // Steps into which the algorithm will divide the pass for initial analysis.
     DegreesU min_el = 0;             // Minimum acceptable elevation for the mount.
     DegreesU max_el = 85;             // Maximum acceptable elevation for the mount.
     DegreesU sun_avoid_angle = 15;    // Sun avoidance angle to make Sun the security sectors.

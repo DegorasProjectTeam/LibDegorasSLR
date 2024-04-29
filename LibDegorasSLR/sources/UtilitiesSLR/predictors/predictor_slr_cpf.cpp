@@ -136,7 +136,7 @@ bool PredictorSlrCPF::setCPF(const std::string &cpf_path)
     this->rotm_topo_local_.euclidian3DRotation(3, s_lon);
     this->rotm_topo_local_.euclidian3DRotation(2, static_cast<long double>(math::kPi/2) - s_lat);
     this->rotm_topo_local_.euclidian3DRotation(3, static_cast<long double>(math::kPi));
-    //this->rotm_topo_local_ *= rot_long * rot_lat * rot_long_pi;
+    this->rotm_topo_local_ *= rot_long * rot_lat * rot_long_pi;
 
     // All ok.
     return true;
@@ -149,7 +149,7 @@ bool PredictorSlrCPF::isReady() const
     return !this->pos_times_.empty();
 }
 
-int PredictorSlrCPF::predict(const MJDateTime& mjdt, PredictionSLR& result) const
+PredictionSLR::ErrorType PredictorSlrCPF::predict(const MJDateTime& mjdt, PredictionSLR& result) const
 {
 
  /*
@@ -244,14 +244,14 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // The CPF has issues.
     if(this->cpf_.getReadError() != CPF::ReadFileErrorEnum::NOT_ERROR)
     {
-         result.error = static_cast<int>(PredictorSlrCPF::PredictionError::CPF_LOAD_ERROR);
-         return result.error;
+        result.error = static_cast<PredictionSLR::ErrorType>(PredictorSlrCPF::PredictionError::CPF_LOAD_ERROR);
+        return result.error;
     }
 
     // Interpolation is not possible if there are no position records
     if (this->pos_times_.empty())
     {
-        result.error = static_cast<int>(PredictorSlrCPF::PredictionError::NO_POS_RECORDS);
+        result.error = static_cast<PredictionSLR::ErrorType>(PredictorSlrCPF::PredictionError::NO_POS_RECORDS);
         return result.error;
     }
 
@@ -264,7 +264,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // CPF interpolation result variables.
     Seconds x_instant;      // Relative interpolation time for the instant time (instant vector).
     Seconds x_bounce;       // Relative interpolation time for the bounce time (outbound vector).
-    Seconds x_arrival;      // Relative interpolation time for the arrival time (inbound vector).
+    //Seconds x_arrival;      // Relative interpolation time for the arrival time (inbound vector). TODO
 
     // Position vectors at different times.
     Vector3D<Meters> y_instant;    // Vector with the interpolated position at instant time.
@@ -309,7 +309,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // ONLY INSTANT RANGE MODE -----------------------------------------------------------------------------------------
 
     // Default error value (no error).
-    result.error = static_cast<int>(PredictionError::NO_ERROR);
+    result.error = static_cast<PredictionSLR::ErrorType>(PredictionError::NO_ERROR);
 
     // Generate the relative times.
     long long day_relative = mjdt.date() - this->cpf_.getData().positionRecords().front().mjd;
@@ -318,7 +318,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // Check if the interpolation times are valid in the cpf data interval.
     if((x_instant - kTMargin)   < 0 || (x_instant + kTMargin) > this->pos_times_.back())
     {
-        result.error = static_cast<int>(PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS);
+        result.error = static_cast<PredictionSLR::ErrorType>(PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS);
         return result.error;
     }
 
@@ -326,7 +326,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     this->callInterp(x_instant, y_instant, result);
 
     // Check the interpolator error.
-    if(result.error != static_cast<int>(PredictionError::NO_ERROR))
+    if(result.error != static_cast<PredictionSLR::ErrorType>(PredictionError::NO_ERROR))
         return result.error;
 
     // Form the topocentric position vector (station to object) at instant time.
@@ -428,7 +428,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         this->callInterp(x_bounce, y_outbound, result);
 
         // Check the interpolator error.
-        if(result.error != static_cast<int>(PredictionError::NO_ERROR))
+        if(result.error != static_cast<PredictionSLR::ErrorType>(PredictionError::NO_ERROR))
             return result.error;
 
         // Topocentric outbound vector
@@ -443,7 +443,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         // Rotate station during flight time (radians)
         earth_rot_angle = astro::kEarthRotSolDay * (aux_tof_1w/astro::kSecsSolDay);
         rotatedm_earth.euclidian3DRotation(3, earth_rot_angle);
-        //rotatedm_earth *= rotm_earth_rotation;
+        rotatedm_earth *= rotm_earth_rotation;
     }
 
     // WARNING: At this moment, we have the station and the satellite both at the bounce time moment. This is a good
@@ -508,7 +508,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         return result.error;
 
     // Return here if inbound is selected (TODO).
-    result.error = static_cast<std::uint32_t>(PredictionError::OTHER_ERROR);
+    result.error = static_cast<PredictionSLR::ErrorType>(PredictionError::OTHER_ERROR);
     return result.error;
 
     // INBOUND VECTOR MODE ---------------------------------------------------------------------------------------------
@@ -554,10 +554,10 @@ void PredictorSlrCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
     }
 }
 
-std::string PredictorSlrCPF::getErrorMsg(int error_code) const
+std::string PredictorSlrCPF::getErrorMsg(PredictionSLR::ErrorType error_code) const
 {
     std::string result;
-    if (error_code >= 0 && error_code < PredictorSlrCPF::PredictorErrorStr.size())
+    if (error_code < PredictorSlrCPF::PredictorErrorStr.size())
         result = PredictorSlrCPF::PredictorErrorStr[error_code];
     return result;
 }

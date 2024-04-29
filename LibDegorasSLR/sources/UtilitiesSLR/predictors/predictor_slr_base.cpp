@@ -148,7 +148,7 @@ PredictionSLRV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJD
     PredictionSLRV results(interp_times.size());
 
     // Parallel calculation.
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for(size_t i = 0; i<interp_times.size(); i++)
     {
         this->predict(interp_times[i], results[i]);
