@@ -54,8 +54,9 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Mathematics/utils/math_utils.h"
-#include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Helpers/type_traits.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+#include "LibDegorasSLR/libdegorasslr_global.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -75,22 +76,7 @@ class LIBDPSLR_EXPORT Matrix
 {
 public:
 
-    /**
-     * @brief Default constructor.
-     */
-    Matrix() = default;
-
-    /**
-     * @brief Copy constructor.
-     * @param other The matrix to copy.
-     */
-    Matrix(const Matrix<T>& other) = default;
-
-    /**
-     * @brief Move constructor.
-     * @param other The matrix to move.
-     */
-    Matrix(Matrix<T>&& other) = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(Matrix)
 
     /**
      * @brief Construct a matrix from an initializer list.
@@ -113,18 +99,6 @@ public:
      */
     Matrix(std::size_t row_size, std::size_t col_size, T value = T()) :
         data_(row_size, std::vector<T>(col_size, value)) {}
-
-    /**
-     * @brief Destructor.
-     */
-    ~Matrix() = default;
-
-    /**
-     * @brief Copy assignment operator.
-     * @param other The matrix to assign.
-     * @return The assigned matrix.
-     */
-    Matrix& operator=(const Matrix<T>& other) = default;
 
     /**
      * @brief Removes all elements from the matrix, resulting in an empty matrix.
@@ -237,7 +211,8 @@ public:
      *
      * @return True if the matrix is an identity matrix, False otherwise.
      */
-    bool isIdentity() const
+    std::enable_if<helpers::traits::is_numeric_v<T>, bool>
+    isIdentity() const
     {
         // Check if the matrix is square
         if(!this->isSquare())
@@ -250,10 +225,10 @@ public:
         for (size_t i = 0; i < this->rowSize() && identity; i++)
             for (size_t j = 0; j < this->columnsSize(); j++)
             {
-                if (i == j && this->data_[i][j] != 1.0)
-                        identity = false;
-                else if (i != j && this->data_[i][j] != 0.0)
-                        identity = false;
+                if (i == j && compareFloating(static_cast<double>(this->data_[i][j]), 1.0))
+                    identity = false;
+                else if (i != j && compareFloating(static_cast<double>(this->data_[i][j]), 0.0))
+                    identity = false;
             }
 
         // Return the result.
@@ -263,6 +238,13 @@ public:
     inline std::vector<T>& operator[] (std::size_t row_index)  {return this->data_[row_index];}
 
     inline const std::vector<T>& operator[] (std::size_t row_index) const {return this->data_[row_index];}
+
+    inline const T& operator()(std::size_t row_index, std::size_t col_index) const
+    {
+        return this->data_[row_index][col_index];
+    }
+
+    inline T& operator()(std::size_t row_index, std::size_t col_index) {return this->data_[row_index][col_index];}
 
     /**
      * @brief Retrieves a specific row of the matrix.
@@ -297,16 +279,6 @@ public:
         return this->data_[row_index][col_index];
     }
 
-    const T& operator()(std::size_t row_index, std::size_t col_index) const
-    {
-        return this->data_[row_index][col_index];
-    }
-
-    T& operator()(std::size_t row_index, std::size_t col_index)
-    {
-        return this->data_[row_index][col_index];
-    }
-
     std::string toString() const
     {
         std::string str;
@@ -321,8 +293,8 @@ public:
         return str;
     }
 
-    // TODO: ensure T is swappable.
-    bool swapRows(std::size_t r1, std::size_t r2)
+    std::enable_if_t<std::is_swappable_v<T>, bool>
+    swapRows(std::size_t r1, std::size_t r2)
     {
         bool rows_valid = r1 < this->rowSize() && r1 >= 0 && r2 < this->rowSize() && r2 >= 0;
         if (rows_valid)
@@ -330,8 +302,9 @@ public:
         return rows_valid;
     }
 
-    // TODO: ensure T is swappable.
-    bool swapColumns(std::size_t c1, std::size_t c2)
+
+    std::enable_if_t<std::is_swappable_v<T>, bool>
+    swapColumns(std::size_t c1, std::size_t c2)
     {
         bool cols_valid = c1 < this->columnsSize() && c1 >= 0 && c2 < this->columnsSize() && c2 >= 0;
         if (cols_valid)
@@ -432,7 +405,7 @@ public:
     template<typename U>
     Matrix<T>& operator *=(const Matrix<U>& B)
     {
-        *this = *this * B;
+        return *this = *this * B;
         return *this;
     }
 
