@@ -19,6 +19,6 @@ set(IGNORED_PATHS
 # Add all the Modules.
 add_subdirectory(Helpers)
 add_subdirectory(Timing)
-#add_subdirectory(Astronomical)
+add_subdirectory(Astronomical)
 
 # **********************************************************************************************************************
