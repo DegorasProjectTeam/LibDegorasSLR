@@ -474,7 +474,7 @@ public:
             }
 
             // WARNING TODO Comparacion flotante???
-            if (maxValue == 0)
+            if (0 == compareFloating(maxValue, 0.L))
             {
                 // Matrix is singular
                 return std::make_pair(LU, pivot);
@@ -502,7 +502,8 @@ public:
         return std::make_pair(LU, pivot);
     }
 
-    static Matrix<long double> solveLU(const Matrix<long double>& LU, const std::vector<size_t>& pivot, const std::vector<long double>& b)
+    static Matrix<long double> solveLU(const Matrix<long double>& LU, const std::vector<size_t>& pivot,
+                                       const std::vector<long double>& b)
     {
         size_t M = LU.rowSize();
         size_t N = LU.columnsSize();

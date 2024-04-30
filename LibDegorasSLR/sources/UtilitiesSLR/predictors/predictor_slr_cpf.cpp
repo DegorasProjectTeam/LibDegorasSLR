@@ -81,7 +81,7 @@ const std::array<std::string, 10> PredictorSlrCPF::PredictorErrorStr =
     "Other error"
 };
 
-PredictorSlrCPF::PredictorSlrCPF(const std::string &cpf_path, const GeodeticPoint<Degrees> &geod,
+PredictorSlrCPF::PredictorSlrCPF(const std::string &cpf_path, const GeodeticPointDeg &geod,
                                  const GeocentricPoint &geoc) :
     PredictorSlrBase(geod, geoc),
     interp_funct_(InterpFunction::LAGRANGE_16)
@@ -90,7 +90,7 @@ PredictorSlrCPF::PredictorSlrCPF(const std::string &cpf_path, const GeodeticPoin
     this->setCPF(cpf_path);
 }
 
-PredictorSlrCPF::PredictorSlrCPF(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
+PredictorSlrCPF::PredictorSlrCPF(const GeodeticPointDeg &geod, const GeocentricPoint &geoc) :
     PredictorSlrBase(geod, geoc),
     interp_funct_(InterpFunction::LAGRANGE_16)
 {}
@@ -117,9 +117,6 @@ bool PredictorSlrCPF::setCPF(const std::string &cpf_path)
     Radians s_lon = this->getGeodeticLocation<Radians>().lon;
     Radians s_lat = this->getGeodeticLocation<Radians>().lat;
 
-    // Rotation matrices.
-    Matrix<Meters> rot_long, rot_lat, rot_long_pi;
-
     // Get position records and position times for interpolation calculations.
     for (const auto& pos_record : this->cpf_.getData().positionRecords())
     {
@@ -136,7 +133,6 @@ bool PredictorSlrCPF::setCPF(const std::string &cpf_path)
     this->rotm_topo_local_.euclidian3DRotation(3, s_lon);
     this->rotm_topo_local_.euclidian3DRotation(2, static_cast<long double>(math::kPi/2) - s_lat);
     this->rotm_topo_local_.euclidian3DRotation(3, static_cast<long double>(math::kPi));
-    this->rotm_topo_local_ *= rot_long * rot_lat * rot_long_pi;
 
     // All ok.
     return true;
@@ -443,7 +439,6 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         // Rotate station during flight time (radians)
         earth_rot_angle = astro::kEarthRotSolDay * (aux_tof_1w/astro::kSecsSolDay);
         rotatedm_earth.euclidian3DRotation(3, earth_rot_angle);
-        rotatedm_earth *= rotm_earth_rotation;
     }
 
     // WARNING: At this moment, we have the station and the satellite both at the bounce time moment. This is a good

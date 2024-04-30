@@ -95,7 +95,7 @@ const MovementAnalyzerConfig &MovementAnalyzer::getConfig() const
 
 MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_positions,
                                                    const astro::types::LocalSunPositionV& sun_positions)
-{
+{   
     // Check if we have data.
     if(mount_positions.empty() || sun_positions.empty())
     {
@@ -157,14 +157,12 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
     // Check the start and validate at this point.
     if (!this->analyzeTrackingStart(track_analysis))
     {
-        track_analysis.valid_movement = true;
         track_analysis.analyzed_positions.clear();
         return track_analysis;
     }
     // Check the end and validate at this point.
     if (!this->analyzeTrackingEnd(track_analysis))
     {
-        track_analysis.valid_movement = true;
         track_analysis.analyzed_positions.clear();
         return track_analysis;
     }
@@ -172,10 +170,11 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
     // Check the middle and validate at this point.
     if (!this->analyzeTrackingMiddle(track_analysis))
     {
-        track_analysis.valid_movement = true;
         track_analysis.analyzed_positions.clear();
         return track_analysis;
     }
+
+    track_analysis.valid_movement = true;
 
     // Return the track analysis.
     return track_analysis;

@@ -60,7 +60,7 @@ using namespace math::units;
 using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorSunFast::PredictorSunFast(const GeodeticPoint<Degrees> &obs_geod) :
+PredictorSunFast::PredictorSunFast(const GeodeticPointDeg &obs_geod) :
     PredictorSunBase(obs_geod)
 {}
 

@@ -224,7 +224,7 @@ std::string secondsToISO8601Duration(const std::chrono::seconds& secs)
     return millisecondsToISO8601Duration(msecs);
 }
 
-
+/*
 HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime)
 {
     // Auxiliar variables.
@@ -236,10 +236,10 @@ HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime)
     std::regex iso8601_regex_basic(R"(^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\.(\d+))?Z$)");
 
     // Check the regexes.
-    if (!std::regex_search(datetime, match, iso8601_regex_extended))
+    if (!std::regex_search(datetime, match, iso8601_regex_extended) &&
+        !std::regex_search(datetime, match, iso8601_regex_basic))
     {
-        if (!std::regex_search(datetime, match, iso8601_regex_basic))
-            throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601DatetimeToTimePoint] Invalid argument: " + datetime);
+        throw std::invalid_argument("[LibDegorasSLR,Timing,iso8601DatetimeToTimePoint] Invalid argument: " + datetime);
     }
 
     // Get the datetime values.
@@ -278,8 +278,8 @@ HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime)
     // Return the time point.
     return t;
 }
+*/
 
-/*
 HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime) {
     int y, m, d, h, M, s;
     std::smatch match;
@@ -329,7 +329,7 @@ HRTimePointStd iso8601DatetimeToTimePoint(const std::string& datetime) {
 
     return t;
 }
-*/
+
 // =====================================================================================================================
 
 // Timepoint to other calendar/format conversions

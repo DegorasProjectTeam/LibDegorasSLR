@@ -65,15 +65,15 @@ PredictorMountMovement::PredictorMountMovement(types::MountPositionV positions,
 
 
     // Check positions
-    if (!this->checkPositions(positions))
+    if (!this->checkPositions(this->positions_))
     {
-        throw std::invalid_argument("[LibDegorasSLR,TrackingMount,PredictorMountSLR] No positions found for movement.");
+        throw std::invalid_argument("[LibDegorasSLR,TrackingMount,PredictorMountMovement] No positions found for movement.");
     }
 
     // Check Sun predictor
     if (!pred_sun)
     {
-        throw std::invalid_argument("[LibDegorasSLR,TrackingMount,PredictorMountSLR] Invalid Sun predictor.");
+        throw std::invalid_argument("[LibDegorasSLR,TrackingMount,PredictorMountMovement] Invalid Sun predictor.");
     }
 
     // Check configured elevations.

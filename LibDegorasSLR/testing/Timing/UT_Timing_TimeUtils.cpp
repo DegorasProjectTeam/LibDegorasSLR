@@ -300,7 +300,7 @@ M_DEFINE_UNIT_TEST(secondsToISO8601Duration)
 M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
 {
     // Exception result.
-    std::string exception_str = "[LibDegorasSLR,Timing,iso8601DatetimeParserUTC] Invalid argument:";
+    std::string exception_str = "[LibDegorasSLR,Timing,iso8601DatetimeToTimePoint] Invalid argument:";
 
     // Base time.
     std::chrono::seconds secs_1(167253349LL);
@@ -363,7 +363,7 @@ M_DEFINE_UNIT_TEST(iso8601DatetimeParserUTC)
         catch (const std::invalid_argument& e)
         {
             std::string exception_msg = e.what();
-            M_EXPECTED_EQ(exception_msg.substr(0, 65), exception_str)
+            M_EXPECTED_EQ(exception_msg.substr(0, exception_str.size()), exception_str)
         }
     }
 }

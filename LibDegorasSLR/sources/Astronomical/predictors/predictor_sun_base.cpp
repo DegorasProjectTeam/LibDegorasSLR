@@ -58,7 +58,7 @@ using namespace math::units;
 using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorSunBase::PredictorSunBase(const GeodeticPoint<Degrees> &obs_geod) :
+PredictorSunBase::PredictorSunBase(const GeodeticPointDeg &obs_geod) :
     obs_geo_pos_(obs_geod.convertAngles<Radians>())
 {}
 

@@ -82,7 +82,7 @@ LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
 
 LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::SurfaceLocation<math::units::Degrees>& loc);
 
-LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::GeodeticPoint<math::units::Degrees>& geod,
+LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::GeodeticPointDeg& geod,
                                                   const geo::types::MeteoData& meteo);
 
 LIBDPSLR_EXPORT int makeCatEntry(const astro::types::Star& star, ::novas::cat_entry& entry);

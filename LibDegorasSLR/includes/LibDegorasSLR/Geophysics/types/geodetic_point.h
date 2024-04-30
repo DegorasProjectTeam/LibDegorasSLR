@@ -50,7 +50,7 @@
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Mathematics/units/unit_conversions.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Helpers/string_helpers.h"
+#include "LibDegorasSLR/Helpers/type_traits.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -70,7 +70,8 @@ namespace types{
  *         (either math::units::Degrees or math::units::Radians).
  */
 template <typename AngleType, typename = typename std::enable_if<
-std::is_same_v<AngleType, math::units::Degrees> || std::is_same_v<AngleType, math::units::Radians>>>
+std::is_same_v<AngleType, math::units::Degrees> ||
+std::is_same_v<AngleType, math::units::Radians>>>
 struct LIBDPSLR_EXPORT GeodeticPoint
 {
     // Default constructor and destructor, copy and movement constructor and operators.

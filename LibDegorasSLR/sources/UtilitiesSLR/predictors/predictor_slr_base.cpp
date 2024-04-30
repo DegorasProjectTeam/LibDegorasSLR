@@ -63,7 +63,7 @@ using namespace timing::types;
 using namespace timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorSlrBase::PredictorSlrBase(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
+PredictorSlrBase::PredictorSlrBase(const GeodeticPointDeg &geod, const GeocentricPoint &geoc) :
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     objc_ecc_corr_(0.0L),
     grnd_ecc_corr_(0.0L),

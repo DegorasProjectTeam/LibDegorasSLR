@@ -139,7 +139,7 @@ PredictorMountSLR::PredictorMountSLR(const HRTimePointStd &pass_start,
 
 bool PredictorMountSLR::isReady() const
 {
-    return !this->mount_track_.track_info.valid_movement;
+    return this->mount_track_.track_info.valid_movement;
 }
 
 const MountTrackingSLR &PredictorMountSLR::getMountTrackingSLR() const

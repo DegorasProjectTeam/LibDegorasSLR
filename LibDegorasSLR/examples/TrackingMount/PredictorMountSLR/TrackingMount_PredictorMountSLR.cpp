@@ -68,7 +68,7 @@ using dpslr::math::units::MillisecondsU;
 using dpslr::math::units::Meters;
 // Geocentric and geodetic containers.
 using dpslr::geo::types::GeocentricPoint;
-using dpslr::geo::types::GeodeticPoint;
+using dpslr::geo::types::GeodeticPointDeg;
 // Astronomical containers.
 using dpslr::astro::predictors::PredictionSun;
 using dpslr::astro::types::AltAzPos;
@@ -133,8 +133,6 @@ int main()
 
     // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
 
-    // Example selector.
-    size_t example_selector = 0;  // Select the example to process (between reals and sintetics).
     bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).
@@ -173,7 +171,7 @@ int main()
 
     // Store the local geocentric and geodetic coordinates.
     GeocentricPoint stat_geoc(x,y,z);
-    GeodeticPoint<Degrees> stat_geod(latitude, longitude, alt);
+    GeodeticPointDeg stat_geod(latitude, longitude, alt);
 
     // Prepare the different tracking analyzer configurations. The first will be the generic for SLR trackings.
     MovementAnalyzerConfig analyzer_cfg_1(sun_avoid_angle, min_el, max_el, avoid_sun);
@@ -218,7 +216,7 @@ int main()
         {pred_sun_sin_1, analyzer_cfg_1,
             "Jason3_SunMid_Sintetic_1", "41240_cpf_240128_02801.hts", "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z", step},
 
-        // Example 4: Jason 3 | Sun at middle | N-E-CW
+        // Example 5: Jason 3 | Sun at middle | N-E-CW | With setp 100 ms
         {pred_sun_sin_1, analyzer_cfg_2,
             "Jason3_SunMid_Sintetic_2", "41240_cpf_240128_02801.hts", "2024-01-31T09:47:30Z", "2024-01-31T10:01:00Z", 100},
 
@@ -234,6 +232,26 @@ int main()
         {pred_sun_sin_3, analyzer_cfg_1,
             "Jason3_SunMid_Sintetic_5", "41240_cpf_240128_02801.hts", "2024-01-31T09:47:30Z", "2024-01-31T09:59:00Z", step}
     };
+
+    // Example selector.
+    size_t example_selector = examples.size();  // Select the example to process (between reals and sintetics).
+    std::string input;
+    while (example_selector >= examples.size() )
+    {
+        std::cout << "Select example to execute. (0 - " << examples.size() - 1 <<  ")" << std::endl;
+        std::getline(std::cin, input);
+        try
+        {
+            example_selector = std::stoul(input);
+            if (example_selector >= examples.size())
+                std::cout << "Example not found." << std::endl;
+        }
+        catch(...)
+        {
+            std::cout << "Bad input" << std::endl;
+        }
+
+    }
 
     // Get band store the example data.
     std::string cpf_path = input_dir + "/" + examples[example_selector].cpf_name;

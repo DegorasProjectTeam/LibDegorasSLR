@@ -58,7 +58,7 @@ using namespace timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorSunFixed::PredictorSunFixed(const AltAzPos &fixed_coord) :
-    PredictorSunBase(GeodeticPoint<Degrees>()),
+    PredictorSunBase(GeodeticPointDeg()),
     fixed_coord_(fixed_coord)
 {}
 

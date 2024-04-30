@@ -42,7 +42,7 @@ on_surface makeOnSurface(const SurfaceLocation<Degrees> &loc)
     return makeOnSurface(loc.geodetic, loc.meteo);
 }
 
-on_surface makeOnSurface(const GeodeticPoint<Degrees> &geod, const MeteoData &meteo)
+on_surface makeOnSurface(const GeodeticPointDeg &geod, const MeteoData &meteo)
 {
     // TODO CHECK GEDOTIC UNITS AND METEO??
 

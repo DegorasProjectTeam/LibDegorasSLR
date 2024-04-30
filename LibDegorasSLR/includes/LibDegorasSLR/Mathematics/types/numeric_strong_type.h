@@ -187,7 +187,7 @@ public:
 
 // Macro to define custom strong types with literals.
 #define M_DEFINE_STRONG_TYPE(TypeName, NumericType) \
-using TypeName = dpslr::math::types::NumericStrongType<NumericType, struct UnitName##Tag>; \
+using TypeName = dpslr::math::types::NumericStrongType<NumericType, struct TypeName##Tag>; \
 
 // Macro to define units and create literal operator
 #define M_DEFINE_STRONG_TYPE_WITH_LITERAL(TypeName, NumericType, TypeLiteral) \

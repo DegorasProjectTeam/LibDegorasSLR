@@ -69,7 +69,8 @@ using dpslr::math::units::MillisecondsU;
 using dpslr::math::units::Meters;
 // Geocentric and geodetic containers.
 using dpslr::geo::types::GeocentricPoint;
-using dpslr::geo::types::GeodeticPoint;
+using dpslr::geo::types::GeodeticPointDeg;
+using dpslr::geo::types::GeodeticPointRad;
 // Astronomical containers.
 using dpslr::astro::predictors::PredictionSun;
 using dpslr::astro::types::AltAzPos;
@@ -163,7 +164,7 @@ int main()
 
     // Store the local geocentric and geodetic coordinates.
     GeocentricPoint stat_geoc(x,y,z);
-    GeodeticPoint<Degrees> stat_geod(latitude, longitude, alt);
+    GeodeticPointDeg stat_geod(latitude, longitude, alt);
 
     // Prepare the different tracking analyzer configurations.
     MovementAnalyzerConfig analyzer_cfg_1(sun_avoid_angle, min_el, max_el, avoid_sun);
@@ -292,7 +293,7 @@ int main()
     }
 
     // Prepare the mount slr predictor.
-    PredictorMountMovement predictor_mount(positions, predictor_sun, analyzer_cfg);
+    PredictorMountMovement predictor_mount(std::move(positions), predictor_sun, analyzer_cfg);
 
     // Check if the tracking is ready.
     if (!predictor_mount.isReady())
@@ -405,7 +406,7 @@ int main()
 
     // Get the new tracking start and end date. If there is sun overlapping at start or end, the affected date
     // is changed so the tracking will start or end after/before the sun security sector.
-    MJDateTime track_start = mount_track.track_info.mjdt_start;
+    MJDateTime track_start = mount_track.track_info.mjdt_start + Seconds(0.1L);
     MJDateTime track_end = mount_track.track_info.mjdt_end;
 
     // Store the real time track data into a CSV file (only part of the data for easy usage).
