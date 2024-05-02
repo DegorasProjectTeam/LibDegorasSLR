@@ -27,11 +27,10 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun.cpp
+ * @file predictor_sun_base.cpp
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
- * @version
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -39,8 +38,9 @@
 #include <omp.h>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/libdegorasslr_init.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 // =====================================================================================================================
 
@@ -48,22 +48,26 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace timing::types;
+using namespace timing::dates;
 using namespace geo::types;
 using namespace math::units;
+using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorSunBase::PredictorSunBase(const GeodeticPoint<Degrees> &obs_geod) :
+PredictorSunBase::PredictorSunBase(const GeodeticPointDeg &obs_geod) :
     obs_geo_pos_(obs_geod.convertAngles<Radians>())
-{
-}
+{}
 
 PredictionSunV PredictorSunBase::predict(const J2000DateTime &j2000_start, const J2000DateTime &j2000_end,
                                          const MillisecondsU &step, bool refraction) const
 {
+    // Initialization guard.
+    DegorasInitGuard guard;
+
     // Container and auxiliar.
     J2000DateTimeV interp_times;
     Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
@@ -91,5 +95,5 @@ PredictionSunV PredictorSunBase::predict(const J2000DateTime &j2000_start, const
 
 PredictorSunBase::~PredictorSunBase(){}
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

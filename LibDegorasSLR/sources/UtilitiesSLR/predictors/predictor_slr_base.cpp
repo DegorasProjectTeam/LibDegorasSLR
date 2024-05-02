@@ -31,39 +31,39 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the class PredictorSLR.
  * @copyright EUPL License
- * @version 2306.1
+ 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
-#include "LibDegorasSLR/Mathematics/math.h"
+#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
 #include "LibDegorasSLR/Astronomical/astro_constants.h"
-#include "LibDegorasSLR/Geophysics/tropo.h"
+#include "LibDegorasSLR/Geophysics/utils/tropo_utils.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
 // =====================================================================================================================namespace dpslr{
 namespace dpslr{
 namespace slr{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace astro;
 using namespace helpers::strings;
-using namespace math;
 using namespace math::units;
 using namespace math::types;
 using namespace geo::types;
 using namespace geo::meteo;
 using namespace timing::types;
+using namespace timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorSlrBase::PredictorSlrBase(const GeodeticPoint<Degrees> &geod, const GeocentricPoint &geoc) :
+PredictorSlrBase::PredictorSlrBase(const GeodeticPointDeg &geod, const GeocentricPoint &geoc) :
     tropo_model_(TroposphericModel::MARINI_MURRAY),
     objc_ecc_corr_(0.0L),
     grnd_ecc_corr_(0.0L),
@@ -148,7 +148,7 @@ PredictionSLRV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJD
     PredictionSLRV results(interp_times.size());
 
     // Parallel calculation.
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for(size_t i = 0; i<interp_times.size(); i++)
     {
         this->predict(interp_times[i], results[i]);
@@ -166,7 +166,7 @@ Meters PredictorSlrBase::applyCorrections(Meters& range, PredictionSLR& result, 
     // Include the half of the system delay to the range. This will be permanent for the rest of computations.
     if(math::compareFloating(this->cali_del_corr_, Picoseconds(0.0L)) && cali)
     {
-        range += 0.5L*this->cali_del_corr_*kC*kPsToSec;
+        range += 0.5L*this->cali_del_corr_*astro::kC*math::units::kPsToSec;
         result.cali_del_corr = this->cali_del_corr_;
         provisional_range = range;
     }
@@ -198,7 +198,7 @@ Meters PredictorSlrBase::applyCorrections(Meters& range, PredictionSLR& result, 
         if(this->tropo_model_ == PredictorSlrBase::TroposphericModel::MARINI_MURRAY)
         {
             // Get the elevation in radians.
-            long double el_instant_rad = math::units::degToRad(el);
+            Radians el_instant_rad = math::units::degToRad(el);
 
             // Calculate the tropospheric path delay (1 way).
             range += geo::tropo::pathDelayMariniMurray(this->press_, this->temp_, this->rel_hum_, el_instant_rad,
@@ -221,5 +221,5 @@ Meters PredictorSlrBase::applyCorrections(Meters& range, PredictionSLR& result, 
 PredictorSlrBase::~PredictorSlrBase()
 {}
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

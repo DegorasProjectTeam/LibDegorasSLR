@@ -27,22 +27,22 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CPF class.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <array>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/FormatsILRS/cpf/cpf.h>
-#include <LibDegorasSLR/FormatsILRS/common/consolidated_types.h>
-#include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
-#include <LibDegorasSLR/Timing/time_utils.h>
-#include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
-#include <LibDegorasSLR/Helpers/filedir_helpers.h>
+#include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
+#include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
+#include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
+#include "LibDegorasSLR/UtilitiesSLR/utils/spaceobject_utils.h"
+#include "LibDegorasSLR/Helpers/filedir_helpers.h"
+#include "LibDegorasSLR/Helpers/container_helpers.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -55,6 +55,7 @@ namespace cpf{
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace ilrs::common;
 using namespace timing::types;
+using namespace timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
 CPF::CPF(float version) :

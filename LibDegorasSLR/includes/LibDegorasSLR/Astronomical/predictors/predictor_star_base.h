@@ -38,18 +38,18 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <memory>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Astronomical/types/star.h"
+#include "LibDegorasSLR/Astronomical/predictors/data/prediction_star.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -57,17 +57,8 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
-
-struct LIBDPSLR_EXPORT PredictionStar
-{
-    // Containers.
-    timing::types::JDateTime jdt;       ///< Julian datetime used to generate the star prediction data.
-    astro::types::AltAzPos altaz_coord; ///< Star predicted altazimuth coordinates referenced to an observer (degrees).
-};
-
-/// Alias for a vector of PredictionSun.
-using StarPredictionV = std::vector<PredictionStar>;
 
 /**
  * @brief The PredictorStar class provides functionality to predict the position of a star.
@@ -80,6 +71,9 @@ class LIBDPSLR_EXPORT PredictorStarBase
 
 public:
 
+    // Copy and movement constructors and operators.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorStarBase)
+
     /**
      * @brief Constructs a PredictorStarBase object with the given observer's location.
      * @param star The parameters of the star.
@@ -90,8 +84,6 @@ public:
     PredictorStarBase(const astro::types::Star& star,
                       const geo::types::SurfaceLocation<math::units::Degrees>& loc,
                       int leap_secs = 0, double ut1_utc_diff = 0);
-
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorStarBase)
 
     template <typename T, typename... Args>
     static std::shared_ptr<PredictorStarBase> factory(Args&&... args)
@@ -111,27 +103,28 @@ public:
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
      * @return The resulting PredictionStar.
      */
-    virtual PredictionStar predict(const timing::types::JDateTime& jdt) const = 0;
+    virtual PredictionStar predict(const timing::dates::JDateTime& jdt) const = 0;
 
     /**
      * @brief Predicts star positions within a time range with a specified time step.
      *
      * @param jdt_start The Julian start datetime of the prediction range.
-     * @param jdt_end The Julian end datetime of the prediction range.
+     * @param jdt_end The Julian end datetime of ñthe prediction range.
      * @param step The time step in milliseconds between predictions.
      * @return A vector of StarPrediction objects representing predicted star positions at each step.
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    StarPredictionV predict(const timing::types::JDateTime& jdt_start,
-                            const timing::types::JDateTime& jdt_end,
+    StarPredictionV predict(const timing::dates::JDateTime& jdt_start, const timing::dates::JDateTime& jdt_end,
                             const math::units::MillisecondsU& step) const;
+
+    virtual bool isReady() const = 0;
 
     virtual ~PredictorStarBase();
 
 protected:
 
-    astro::types::Star star_;
+    types::Star star_;
     geo::types::SurfaceLocation<math::units::Degrees> loc_;
     int leap_secs_;
     double ut1_utc_diff_;
@@ -140,5 +133,5 @@ protected:
 /// Alias for PredictorStarBase shared smart pointer.
 using PredictorStarPtr = std::shared_ptr<PredictorStarBase>;
 
-}} // END NAMESPACES.
+}}} // END NAMESPACES.
 // =====================================================================================================================

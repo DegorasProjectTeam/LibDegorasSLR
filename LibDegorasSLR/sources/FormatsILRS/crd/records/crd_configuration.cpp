@@ -27,11 +27,11 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CRDConfiguration class that abstracts part of ILRS CRD format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================#include <fstream>
+// =====================================================================================================================#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <numeric>
@@ -40,7 +40,7 @@
 #include <array>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/FormatsILRS/crd/records/crd_configuration.h>
 #include <LibDegorasSLR/FormatsILRS/common/consolidated_types.h>
@@ -671,7 +671,7 @@ std::string CRDConfiguration::generateSystemCfgLine(float version) const
     {
         line_c0 << "C0"
                 << ' ' << this->system_cfg->detail_type
-                << ' ' << helpers::strings::numberToFixstr(this->system_cfg->transmit_wavelength, 10)
+                << ' ' << helpers::strings::numberToFixStr(this->system_cfg->transmit_wavelength, 10)
                 << ' ' << this->system_cfg->system_cfg_id
                 << ' ' << this->laser_cfg->cfg_id
                 << ' ' << this->detector_cfg->cfg_id
@@ -709,11 +709,11 @@ std::string CRDConfiguration::LaserConfiguration::generateLine(float version) co
                 << ' ' << this->detail
                 << ' ' << this->cfg_id
                 << ' ' << this->type
-                << ' ' << helpers::strings::numberToFixstr(this->primary_wavelength, 10)
-                << ' ' << helpers::strings::numberToFixstr(this->fire_rate, 10)
-                << ' ' << helpers::strings::numberToFixstr(this->pulse_energy, 10)
-                << ' ' << helpers::strings::numberToFixstr(this->pulse_width, 6)
-                << ' ' << helpers::strings::numberToFixstr(this->beam_divergence, 5)
+                << ' ' << helpers::strings::numberToFixStr(this->primary_wavelength, 10)
+                << ' ' << helpers::strings::numberToFixStr(this->fire_rate, 10)
+                << ' ' << helpers::strings::numberToFixStr(this->pulse_energy, 10)
+                << ' ' << helpers::strings::numberToFixStr(this->pulse_width, 6)
+                << ' ' << helpers::strings::numberToFixStr(this->beam_divergence, 5)
                 << ' ' << this->pulses_outgoing_semitrain;
     }
 
@@ -733,18 +733,18 @@ std::string CRDConfiguration::DetectorConfiguration::generateLine(float version)
                 << ' ' << this->detail
                 << ' ' << this->cfg_id
                 << ' ' << this->type
-                << ' ' << helpers::strings::numberToFixstr(this->work_wavelength,10)
-                << ' ' << helpers::strings::numberToFixstr(this->efficiency, 6)
-                << ' ' << helpers::strings::numberToFixstr(this->voltage, 5)
-                << ' ' << helpers::strings::numberToFixstr(this->dark_count, 5)
+                << ' ' << helpers::strings::numberToFixStr(this->work_wavelength,10)
+                << ' ' << helpers::strings::numberToFixStr(this->efficiency, 6)
+                << ' ' << helpers::strings::numberToFixStr(this->voltage, 5)
+                << ' ' << helpers::strings::numberToFixStr(this->dark_count, 5)
                 << ' ' << this->out_pulse_type
-                << ' ' << helpers::strings::numberToFixstr(this->out_pulse_width, 5)
-                << ' ' << helpers::strings::numberToFixstr(this->spectral_filter, 5)
-                << ' ' << helpers::strings::numberToFixstr(this->transm_spectral_filter, 5);
+                << ' ' << helpers::strings::numberToFixStr(this->out_pulse_width, 5)
+                << ' ' << helpers::strings::numberToFixStr(this->spectral_filter, 5)
+                << ' ' << helpers::strings::numberToFixStr(this->transm_spectral_filter, 5);
 
         // Spatial filter is optional
         if (this->spatial_filter)
-            line_c2 << ' ' << helpers::strings::numberToFixstr(this->spatial_filter.value(), 5);
+            line_c2 << ' ' << helpers::strings::numberToFixStr(this->spatial_filter.value(), 5);
         else
             line_c2 << ' ' << (version < 2 ? "-1" : "na");
 
@@ -763,8 +763,8 @@ std::string CRDConfiguration::DetectorConfiguration::generateLine(float version)
         // Otherwise, we will print each vaule as separated.
         else
         {
-            line_c2 << ' ' << (!this->amp_gain ? "na" : helpers::strings::numberToFixstr(this->amp_gain.value(), 6))
-                    << ' ' << (!this->amp_bandwidth ? "na" : helpers::strings::numberToFixstr(this->amp_bandwidth.value(), 6))
+            line_c2 << ' ' << (!this->amp_gain ? "na" : helpers::strings::numberToFixStr(this->amp_gain.value(), 6))
+                    << ' ' << (!this->amp_bandwidth ? "na" : helpers::strings::numberToFixStr(this->amp_bandwidth.value(), 6))
                     << " 1";
         }
     }
@@ -788,7 +788,7 @@ std::string CRDConfiguration::TimingConfiguration::generateLine(float version) c
                 << ' ' << this->frequency_source
                 << ' ' << this->timer
                 << ' ' << this->timer_serial
-                << ' ' << helpers::strings::numberToFixstr(this->epoch_delay, 6);
+                << ' ' << helpers::strings::numberToFixStr(this->epoch_delay, 6);
     }
 
     // Return the C3

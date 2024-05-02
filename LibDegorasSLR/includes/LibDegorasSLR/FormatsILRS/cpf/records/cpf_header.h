@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of the CPFHeader class that abstracts the header of ILRS CPF format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -35,12 +35,12 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <array>
 #include <string>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Timing/types/base_time_types.h"
@@ -248,7 +248,7 @@ public:
      */
     explicit CPFHeader(float cpf_version);
 
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CPFHeader)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(CPFHeader)
 
     // Clear methods.
     /**

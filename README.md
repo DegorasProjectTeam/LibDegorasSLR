@@ -6,6 +6,18 @@
 [![EUPL License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
+WORK IN PROGRESS!!!!
+
+If you have reached this repository, you work in a sector related to the SLR technique and you are curious, do not hesitate to send me an email.
+
+Angel Vera Herrera
+
+Royal Institute and Observatory of the Spanish Navy
+
+avera@roa.es
+
+angeldelaveracruz@gmail.com
+
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">

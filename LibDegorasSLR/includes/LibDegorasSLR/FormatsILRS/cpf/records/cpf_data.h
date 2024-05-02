@@ -38,19 +38,20 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <string>
 #include <vector>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/dates/base_date_types.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_velocity.h"
 // =====================================================================================================================
@@ -108,9 +109,17 @@ public:
      */
     struct PositionRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief PositionRecord constructor from a generic ConsolidatedRecord.
+         * @param rec, the consolidated record.
+         */
+        PositionRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(PositionRecord)
+
         // Members.
         DirectionFlag dir_flag;                ///< Direction flag.
-        timing::types::MJDate mjd;             ///< Modified Julian Date.
+        timing::dates::MJDate mjd;             ///< Modified Julian Date.
         timing::types::SoD sod;                ///< Second of day (UTC).
         int leap_second;                       ///< Leap second flag (0 or the value of new leap second).
         geo::types::GeocentricPoint geo_pos;   ///< Object geocentric position in meters (x, y, z).
@@ -129,6 +138,14 @@ public:
      */
     struct VelocityRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief VelocityRecord constructor from a generic ConsolidatedRecord.
+         * @param rec, the consolidated record.
+         */
+        VelocityRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(VelocityRecord)
+
         // Members.
         DirectionFlag dir_flag;                    ///< Direction flag.
         geo::types::GeocentricVelocity geo_vel;    ///< Geocentric velocity in m/s (x, y, z).
@@ -147,6 +164,14 @@ public:
      */
     struct CorrectionsRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief CorrectionsRecord constructor from a generic ConsolidatedRecord.
+         * @param rec, the consolidated record.
+         */
+        CorrectionsRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(CorrectionsRecord)
+
         // Members.
         DirectionFlag dir_flag; ///<< Direction flag.
         math::types::Vector3D<math::units::Meters> aberration_correction; ///<< Stellar aberration correction (meters).
@@ -231,7 +256,7 @@ public:
         std::string generateLine(float version) const;
     };
 
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CPFData)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(CPFData)
 
     // ALIASES
     // -----------------------------------------------------------------------------------------------------------------

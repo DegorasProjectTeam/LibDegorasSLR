@@ -25,10 +25,8 @@
  *   You should use this project in compliance with the EUPL license. You should have received a copy of the license   *
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
-
-#include <LibDegorasSLR/Astronomical/astro_utils.h>
-#include <LibDegorasSLR/Astronomical/novas_utils.h>
-#include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
+#include <LibDegorasSLR/Astronomical/utils/astro_utils.h>
+#include <LibDegorasSLR/Astronomical/utils/novas_utils.h>
 #include <LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h>
 #include <LibDegorasSLR/Astronomical/predictors/predictor_sun_fast.h>
 #include <LibDegorasSLR/Astronomical/predictors/predictor_sun_fixed.h>

@@ -27,10 +27,10 @@
  * @brief This file contains several helper tools related with containers.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Helpers/container_helpers.h"
 // =====================================================================================================================

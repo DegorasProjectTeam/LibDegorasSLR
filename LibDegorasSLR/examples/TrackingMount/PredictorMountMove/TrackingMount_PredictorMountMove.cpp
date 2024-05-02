@@ -52,11 +52,11 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::types::MJDateTime;
+using dpslr::timing::dates::MJDateTime;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::HRTimePointStd;
-using dpslr::timing::types::J2000DateTime;
-using dpslr::timing::types::MJDate;
+using dpslr::timing::dates::J2000DateTime;
+using dpslr::timing::dates::MJDate;
 using dpslr::timing::iso8601DatetimeToTimePoint;
 using dpslr::timing::timePointToModifiedJulianDateTime;
 using dpslr::timing::modifiedJulianDateTimeToTimePoint;
@@ -69,21 +69,25 @@ using dpslr::math::units::MillisecondsU;
 using dpslr::math::units::Meters;
 // Geocentric and geodetic containers.
 using dpslr::geo::types::GeocentricPoint;
-using dpslr::geo::types::GeodeticPoint;
+using dpslr::geo::types::GeodeticPointDeg;
+using dpslr::geo::types::GeodeticPointRad;
 // Astronomical containers.
-using dpslr::astro::PredictionSun;
-using dpslr::astro::AltAzPos;
+using dpslr::astro::predictors::PredictionSun;
+using dpslr::astro::types::AltAzPos;
 // Sun predictor related.
-using dpslr::astro::PredictorSunBase;
-using dpslr::astro::PredictorSunFast;
-using dpslr::astro::PredictorSunFixed;
-using dpslr::astro::PredictorSunPtr;
+using dpslr::astro::predictors::PredictorSunBase;
+using dpslr::astro::predictors::PredictorSunFast;
+using dpslr::astro::predictors::PredictorSunFixed;
+using dpslr::astro::predictors::PredictorSunPtr;
 // Mount predictor related.
-using dpslr::mount::PredictorMountMove;
-using dpslr::mount::MountPredictionMoveV;
-using dpslr::mount::MountTrackingMove;
-using dpslr::mount::TrackingAnalyzerConfig;
-using dpslr::mount::PositionStatus;
+using dpslr::mount::predictors::PredictorMountMovement;
+using dpslr::mount::predictors::PredictionMountMovementV;
+using dpslr::mount::utils::MovementAnalyzerConfig;
+using dpslr::mount::types::MountPosition;
+using dpslr::mount::types::MountPositionV;
+using dpslr::mount::predictors::MountTrackingMovement;
+using dpslr::mount::utils::AnalyzedPositionStatus;
+using dpslr::mount::predictors::PredictionMountMovement;
 // Helpers.
 using dpslr::helpers::strings::numberToStr;
 using dpslr::helpers::strings::split;
@@ -95,7 +99,7 @@ using dpslr::StringV;
 
 struct ExampleData
 {
-    ExampleData(PredictorSunPtr sun_pred, const TrackingAnalyzerConfig& cfg, const std::string& alias,
+    ExampleData(PredictorSunPtr sun_pred, const MovementAnalyzerConfig& cfg, const std::string& alias,
                 const std::string& file):
         example_alias(alias),
         file(file),
@@ -108,7 +112,7 @@ struct ExampleData
     std::string example_alias;            // Example alias for file generation.
     std::string file;                     // Data file.
     PredictorSunPtr predictor_sun;        // Predictor Sun that will be used.
-    TrackingAnalyzerConfig analyzer_cfg;  // Analyzer configuration.
+    MovementAnalyzerConfig analyzer_cfg;  // Analyzer configuration.
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -136,7 +140,6 @@ int main()
     Meters z = 3769892.958L;
 
     // Generic config.
-    MillisecondsU step = 100;         // Steps into which the algorithm will divide the pass for initial analysis.
     DegreesU min_el = 0;             // Minimum acceptable elevation for the mount.
     DegreesU max_el = 85;             // Maximum acceptable elevation for the mount.
     DegreesU sun_avoid_angle = 15;    // Sun avoidance angle to make Sun the security sectors.
@@ -161,11 +164,11 @@ int main()
 
     // Store the local geocentric and geodetic coordinates.
     GeocentricPoint stat_geoc(x,y,z);
-    GeodeticPoint<Degrees> stat_geod(latitude, longitude, alt);
+    GeodeticPointDeg stat_geod(latitude, longitude, alt);
 
     // Prepare the different tracking analyzer configurations.
-    TrackingAnalyzerConfig analyzer_cfg_1(step, sun_avoid_angle, min_el, max_el, avoid_sun);
-    TrackingAnalyzerConfig analyzer_cfg_2(step, sun_avoid_angle, min_el, max_el, false);
+    MovementAnalyzerConfig analyzer_cfg_1(sun_avoid_angle, min_el, max_el, avoid_sun);
+    MovementAnalyzerConfig analyzer_cfg_2(sun_avoid_angle, min_el, max_el, false);
 
     // Prepare the Sun predictors to be used. For this example, the PredictorMount class needs the shared smart
     // pointers with the Sun and SLR inherited predictors, so it is neccesary to use the factories (the smart pointers
@@ -223,7 +226,7 @@ int main()
     std::string positions_filepath = input_dir + "/" + examples[example_selector].file;
     std::string example_alias = examples[example_selector].example_alias;
     PredictorSunPtr predictor_sun = examples[example_selector].predictor_sun;
-    TrackingAnalyzerConfig analyzer_cfg = examples[example_selector].analyzer_cfg;
+    MovementAnalyzerConfig analyzer_cfg = examples[example_selector].analyzer_cfg;
     std::string track_csv_filename = example_alias + "_track_analyzed.csv";
     std::string realtime_csv_filename = example_alias + "_track_realtime.csv";
 
@@ -232,7 +235,7 @@ int main()
     std::ifstream positions_stream(positions_filepath);
     std::string line;
     StringV tokens;
-    PredictorMountMove::MovePositionV positions;
+    MountPositionV positions;
 
     if (!positions_stream.is_open())
     {
@@ -263,17 +266,20 @@ int main()
 
         try
         {
-            long long mjd = static_cast<long long>(std::stold(tokens[0]));
-            long double sod = std::stold(tokens[1]);
+            MJDate mjd = static_cast<long long>(std::stold(tokens[0]));
+            SoD sod = std::stold(tokens[1]);
+            MJDateTime mjdt(mjd, sod);
             Degrees az = std::stold(tokens[2]);
             if (az < 0 )
                 az += 360.L;
             Degrees el = std::stold(tokens[3]);
 
-            auto tp = modifiedJulianDateTimeToTimePoint({static_cast<MJDate>(mjd), static_cast<SoD>(sod)});
+            AltAzPos pos(az, el);
+            MountPosition mount_pos;
+            mount_pos.altaz_coord = pos;
+            mount_pos.mjdt = mjdt;
 
-            AltAzPos pos{az, el};
-            positions.push_back({tp, pos});
+            positions.push_back(std::move(mount_pos));
         }
         catch (...)
         {
@@ -287,7 +293,7 @@ int main()
     }
 
     // Prepare the mount slr predictor.
-    PredictorMountMove predictor_mount(positions, predictor_sun, analyzer_cfg);
+    PredictorMountMovement predictor_mount(std::move(positions), predictor_sun, analyzer_cfg);
 
     // Check if the tracking is ready.
     if (!predictor_mount.isReady())
@@ -304,7 +310,7 @@ int main()
     // Get the analyzed mount track with all the relevant data. You can use this data for example to print
     // a polar plot with the space object pass, the mount track and the Sun position. In the example folder,
     // you can see a Python illustrative example using the data of this struct.
-    const MountTrackingMove& mount_track =  predictor_mount.getMountTrackingMove();
+    const MountTrackingMovement& mount_track =  predictor_mount.getMountTrackingMovement();
 
     // Log the pass and tracking information (illustrative example). You can read the specific
     // documentation to learn what you can do with each class and struct.
@@ -323,7 +329,6 @@ int main()
     //std::cout<<"= Pass interval: " << mount_track. << std::endl;
     data<<"= Avoid Sun:   " << (mount_track.config.sun_avoid ? "true" : "false") << std::endl;
     data<<"= Avoid angle: " << mount_track.config.sun_avoid_angle << std::endl;
-    data<<"= Delta:       " << mount_track.config.time_delta << std::endl;
     data<<"= Min el:      " << mount_track.config.min_elev << std::endl;
     data<<border.str();
     data<<"= Outputs:" << std::endl;
@@ -352,7 +357,7 @@ int main()
     //
     // Iterate the predictions. At this point, all the the real satellite position data must be valid. If the
     // predictor had failed or the data entered did not match a pass, the tracking would not be valid directly.
-    for(const auto& pred : mount_track.predictions)
+    for(const auto& analyzed_pos : mount_track.track_info.analyzed_positions)
     {
         // Auxiliar container for track data.
         std::string track_az;
@@ -363,23 +368,23 @@ int main()
         // At this point, you only must check if the prediction is outside track. This is becaouse, for example,
         // the beginning of the real satellite pass may coincide with the Sun sector, so at those points there
         // would be no data from the mount's track, only the real pass.
-        if(pred.status != PositionStatus::OUT_OF_TRACK)
+        if(analyzed_pos.status != AnalyzedPositionStatus::OUT_OF_TRACK)
         {
 
-            track_az = numberToStr(pred.mount_pos->altaz_coord.az,7, 4);
-            track_el = numberToStr(pred.mount_pos->altaz_coord.el,7, 4);
-            orig_az = numberToStr(pred.mount_pos->altaz_coord.az - pred.mount_pos->diff_az, 7, 4);
-            orig_el = numberToStr(pred.mount_pos->altaz_coord.el - pred.mount_pos->diff_el, 7, 4);
+            track_az = numberToStr(analyzed_pos.altaz_coord.az,7, 4);
+            track_el = numberToStr(analyzed_pos.altaz_coord.el,7, 4);
+            orig_az = numberToStr(analyzed_pos.original_pos.altaz_coord.az, 7, 4);
+            orig_el = numberToStr(analyzed_pos.original_pos.altaz_coord.el, 7, 4);
 
             // Store the data.
             file_analyzed_track <<'\n';
-            file_analyzed_track << std::to_string(timePointToModifiedJulianDateTime(pred.tp).datetime()) <<";";
+            file_analyzed_track << std::to_string(analyzed_pos.mjdt.datetime()) <<";";
             file_analyzed_track << orig_az <<";";
             file_analyzed_track << orig_el <<";";
             file_analyzed_track << track_az <<";";
             file_analyzed_track << track_el <<";";
-            file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
-            file_analyzed_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
+            file_analyzed_track << numberToStr(analyzed_pos.sun_pos.altaz_coord.az, 7, 4) <<";";
+            file_analyzed_track << numberToStr(analyzed_pos.sun_pos.altaz_coord.el, 7, 4);
         }
     }
     //
@@ -401,7 +406,7 @@ int main()
 
     // Get the new tracking start and end date. If there is sun overlapping at start or end, the affected date
     // is changed so the tracking will start or end after/before the sun security sector.
-    MJDateTime track_start = mount_track.track_info.mjdt_start;
+    MJDateTime track_start = mount_track.track_info.mjdt_start + Seconds(0.1L);
     MJDateTime track_end = mount_track.track_info.mjdt_end;
 
     // Store the real time track data into a CSV file (only part of the data for easy usage).
@@ -418,31 +423,31 @@ int main()
 
     // Containers.
     MJDateTime mjd = track_start;
-    MountPredictionMoveV results;
+    PredictionMountMovementV results;
 
     while (mjd < track_end)
     {
         // Store the resulting prediction
         results.push_back({});
-        auto status = predictor_mount.predict(modifiedJulianDateTimeToTimePoint(mjd), results.back());
+        results.back() = predictor_mount.predict(modifiedJulianDateTimeToTimePoint(mjd));
 
-        if (status == PositionStatus::ELEVATION_CLIPPED)
+        if (results.back().status == AnalyzedPositionStatus::ELEVATION_CLIPPED)
         {
-            //
+            // The elevation is clipped due to maximum elevation reached
         }
-        else if (status == PositionStatus::OUTSIDE_SUN)
+        else if (results.back().status == AnalyzedPositionStatus::NO_MODIF_NEEDED)
         {
             // In this case the position predicted is valid and it is going outside a sun security sector. This is the
             // normal case.
         }
-        else if (status == PositionStatus::INSIDE_SUN)
+        else if (results.back().status == AnalyzedPositionStatus::INSIDE_SUN)
         {
             // In this case the position predicted is valid, but it is going through a sun security sector.
             // This case is only possible if sun avoid algorithm is disabled.
             // BEWARE. If the mount points directly to this position it could be dangerous.
         }
 
-        else if (status == PositionStatus::AVOIDING_SUN)
+        else if (results.back().status == AnalyzedPositionStatus::AVOIDING_SUN)
         {
             // In this case the position predicted is valid and it is going through an alternative way to avoid a sun
             // security sector. While the tracking returns this status, the tracking_position member in result
@@ -450,7 +455,7 @@ int main()
             // the true position of the object (not secure).
 
         }
-        else if (status == PositionStatus::CANT_AVOID_SUN)
+        else if (results.back().status == AnalyzedPositionStatus::CANT_AVOID_SUN)
         {
             // In this case the position predicted is valid and it is going through an alternative way to avoid a sun
             // security sector. While the tracking returns this status, the tracking_position member in result
@@ -458,24 +463,13 @@ int main()
             // the true position of the object (not secure).
 
         }
-        else if (status == PositionStatus::OUT_OF_TRACK)
+        else if (results.back().status == AnalyzedPositionStatus::OUT_OF_TRACK)
         {
             // Bad situation, the prediction time requested is out of track. Stop the tracking and notify to client.
             // However, this should not happen if all is ok in the mount tracking controller software. Maybe if
             // something is wrong with the CPF or in the timing tracking mount subsystem or in the SLR station system.
             std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
             std::cerr << "Error: The requested position is in OUT_OF_TRACK state." << std::endl;
-            std::cerr << "Example finished. Press Enter to exit..." << std::endl;
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            return -1;
-        }
-        else if (status == PositionStatus::PREDICTION_ERROR)
-        {
-            // Bad situation, stop the tracking and notify to client. However, this should not happen if all is ok in
-            // the mount tracking controller software. Maybe if something is wrong with the with the CPF or in the
-            // timing tracking mount subsystem or in the SLR station system.
-            std::cerr << "Module: TrackingMount   |   Example: PredictorMountSLR" << std::endl;
-            std::cerr << "Error: The requested position is in PREDICTION_ERROR state." << std::endl;
             std::cerr << "Example finished. Press Enter to exit..." << std::endl;
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             return -1;
@@ -497,22 +491,22 @@ int main()
         // At this point, you only must check if the prediction is outside track. This is becaouse, for example,
         // the beginning of the real satellite pass may coincide with the Sun sector, so at those points there
         // would be no data from the mount's track, only the real pass.
-        if(pred.status != PositionStatus::OUT_OF_TRACK)
+        if(pred.status != AnalyzedPositionStatus::OUT_OF_TRACK)
         {
-            track_az = numberToStr(pred.mount_pos->altaz_coord.az,7, 4);
-            track_el = numberToStr(pred.mount_pos->altaz_coord.el,7, 4);
-            orig_az = numberToStr(pred.mount_pos->altaz_coord.az - pred.mount_pos->diff_az, 7, 4);
-            orig_el = numberToStr(pred.mount_pos->altaz_coord.el - pred.mount_pos->diff_el, 7, 4);
+            track_az = numberToStr(pred.altaz_coord.az,7, 4);
+            track_el = numberToStr(pred.altaz_coord.el,7, 4);
+            orig_az = numberToStr(pred.original_pos.altaz_coord.az, 7, 4);
+            orig_el = numberToStr(pred.original_pos.altaz_coord.el, 7, 4);
 
             // Store the data.
             file_realtime_track <<'\n';
-            file_realtime_track << std::to_string(timePointToModifiedJulianDateTime(pred.tp).datetime()) <<";";
+            file_realtime_track << std::to_string(pred.mjdt.datetime()) <<";";
             file_realtime_track << orig_az <<";";
             file_realtime_track << orig_el <<";";
             file_realtime_track << track_az <<";";
             file_realtime_track << track_el <<";";
-            file_realtime_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
-            file_realtime_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
+            file_realtime_track << numberToStr(pred.sun_pos.altaz_coord.az, 7, 4) <<";";
+            file_realtime_track << numberToStr(pred.sun_pos.altaz_coord.el, 7, 4);
         }
     }
     // Close the file.

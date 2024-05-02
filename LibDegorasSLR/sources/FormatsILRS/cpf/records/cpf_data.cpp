@@ -31,21 +31,20 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CPFData class that abstracts the data of ILRS CPF format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <array>
 #include <sstream>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h>
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
-#include <LibDegorasSLR/Timing/time_utils.h>
+#include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h"
+#include "LibDegorasSLR/Helpers/container_helpers.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -298,7 +297,7 @@ RecordReadErrorMultimap CPFData::readData(const RecordLinesVector &rec_v, float 
 RecordReadError CPFData::readPositionRecord(
     const ConsolidatedRecord &rec, float v)
 {
-    PositionRecord pos_record;
+    PositionRecord pos_record(rec);
 
     // Get the tokens.
     std::vector<std::string> tokens = rec.tokens;
@@ -311,21 +310,20 @@ RecordReadError CPFData::readPositionRecord(
     else if (tokens[0] != DataIdStr[static_cast<int>(DataRecordType::POSITION_RECORD)])
         return RecordReadError::BAD_TYPE;
 
-    // All ok at this momment.
-    else
-        try
-        {
-            // Get the data.
-            pos_record.dir_flag = static_cast<CPFData::DirectionFlag>(std::stoi(tokens[1]));
-            pos_record.mjd = std::stoi(tokens[2]);
-            pos_record.sod = std::stold(tokens[3]);
-            pos_record.leap_second = std::stoi(tokens[4]);
-            pos_record.geo_pos = {std::stold(tokens[5]), std::stold(tokens[6]), std::stold(tokens[7])};
+    // All ok at this momment. Try to fill data from tokens.
+    try
+    {
+        // Get the data.
+        pos_record.dir_flag = static_cast<CPFData::DirectionFlag>(std::stoi(tokens[1]));
+        pos_record.mjd = std::stoi(tokens[2]);
+        pos_record.sod = std::stold(tokens[3]);
+        pos_record.leap_second = std::stoi(tokens[4]);
+        pos_record.geo_pos = {std::stold(tokens[5]), std::stold(tokens[6]), std::stold(tokens[7])};
 
-        } catch (...)
-        {
-            return RecordReadError::CONVERSION_ERROR;
-        }
+    } catch (...)
+    {
+        return RecordReadError::CONVERSION_ERROR;
+    }
 
     // All ok, insert the struct.
     this->pos_records_.push_back(pos_record);
@@ -338,7 +336,7 @@ RecordReadError CPFData::readVelocityRecord(
     const ConsolidatedRecord &rec, float v)
 {
     // Struct.
-    VelocityRecord vel_record;
+    VelocityRecord vel_record(rec);
 
     // Get the tokens.
     std::vector<std::string> tokens = rec.tokens;
@@ -351,31 +349,32 @@ RecordReadError CPFData::readVelocityRecord(
     else if (tokens[0] != DataIdStr[static_cast<int>(DataRecordType::VELOCITY_RECORD)])
         return RecordReadError::BAD_TYPE;
 
-    // All ok at this momment.
-    else
-        try
-        {
-            // Get the data.
-            vel_record.dir_flag = static_cast<CPFData::DirectionFlag>(std::stoi(tokens[1]));
-            vel_record.geo_vel = {std::stold(tokens[2]), std::stold(tokens[3]), std::stold(tokens[4])};
+    // All OK. Try to fill data from tokens.
+    try
+    {
+        // Get the data.
+        vel_record.dir_flag = static_cast<CPFData::DirectionFlag>(std::stoi(tokens[1]));
+        vel_record.geo_vel = {std::stold(tokens[2]), std::stold(tokens[3]), std::stold(tokens[4])};
 
-        } catch (...)
-        {
-            return RecordReadError::CONVERSION_ERROR;
-        }
+    } catch (...)
+    {
+        // If error occure, return conversion error code.
+        return RecordReadError::CONVERSION_ERROR;
+    }
 
     // All ok, insert the struct.
-    this->vel_records_.push_back(vel_record);
+    this->vel_records_.push_back(std::move(vel_record));
 
     // Return the result.
     return RecordReadError::NOT_ERROR;
+
 }
 
 RecordReadError CPFData::readCorrectionsRecord(
     const ConsolidatedRecord &rec, float v)
 {
     // Struct.
-    CorrectionsRecord corr_record;
+    CorrectionsRecord corr_record(rec);
 
     // Get the tokens.
     std::vector<std::string> tokens = rec.tokens;
@@ -388,19 +387,18 @@ RecordReadError CPFData::readCorrectionsRecord(
     else if (tokens[0] != DataIdStr[static_cast<int>(DataRecordType::CORRECTIONS_RECORD)])
         return RecordReadError::BAD_TYPE;
 
-    // All ok at this momment.
-    else
-        try
-        {
-            // Get the data.
-            corr_record.dir_flag = static_cast<CPFData::DirectionFlag>(std::stoi(tokens[1]));
-            corr_record.aberration_correction = {std::stold(tokens[2]), std::stold(tokens[3]), std::stold(tokens[4])};
-            corr_record.range_correction = std::stod(tokens[5]);
+    // All ok at this momment. Try to fill data from tokens.
+    try
+    {
+        // Get the data.
+        corr_record.dir_flag = static_cast<CPFData::DirectionFlag>(std::stoi(tokens[1]));
+        corr_record.aberration_correction = {std::stold(tokens[2]), std::stold(tokens[3]), std::stold(tokens[4])};
+        corr_record.range_correction = std::stold(tokens[5]);
 
-        } catch (...)
-        {
-            return RecordReadError::CONVERSION_ERROR;
-        }
+    } catch (...)
+    {
+        return RecordReadError::CONVERSION_ERROR;
+    }
 
     // All ok, insert the struct.
     this->corr_records_.push_back(corr_record);
@@ -440,6 +438,11 @@ RecordReadError CPFData::readEarthOrientationRecord(
 
 // --- CPF DATA STRUCTS ------------------------------------------------------------------------------------------------
 
+CPFData::PositionRecord::PositionRecord(const common::ConsolidatedRecord &rec) : ConsolidatedRecord(rec)
+{
+
+}
+
 std::string CPFData::PositionRecord::generateLine(float) const
 {
     // Base line.
@@ -457,10 +460,21 @@ std::string CPFData::PositionRecord::generateLine(float) const
     return line_10.str();
 }
 
+CPFData::VelocityRecord::VelocityRecord(const common::ConsolidatedRecord &rec) : ConsolidatedRecord(rec)
+{
+
+}
+
 std::string CPFData::VelocityRecord::generateLine(float) const
 {
     // TODO
     return "";
+}
+
+
+CPFData::CorrectionsRecord::CorrectionsRecord(const common::ConsolidatedRecord &rec) : ConsolidatedRecord(rec)
+{
+
 }
 
 std::string CPFData::CorrectionsRecord::generateLine(float) const

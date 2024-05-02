@@ -38,13 +38,13 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/Astronomical/types/ra_dec.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -56,12 +56,10 @@ namespace types{
 
 struct LIBDPSLR_EXPORT Star
 {
-    Star() = default;
-    Star(const Star&) = default;
-    Star(Star&&) = default;
-    Star& operator =(const Star&) = default;
-    Star& operator =(Star&&) = default;
+    // Default constructor and destructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(Star)
 
+    // Members.
     RA ra;
     Dec dec;
     std::string star_name;
@@ -73,6 +71,7 @@ struct LIBDPSLR_EXPORT Star
     double parallax;
     double rad_vel;
 };
+
 
 
 }}} // END NAMESPACES

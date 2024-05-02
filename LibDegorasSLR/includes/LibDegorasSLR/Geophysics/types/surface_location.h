@@ -43,7 +43,7 @@
 #include <type_traits>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
@@ -65,7 +65,7 @@ template <typename AngleType,
          std::is_same<AngleType, math::units::Radians>::value>::type>
 struct LIBDPSLR_EXPORT SurfaceLocation
 {
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(SurfaceLocation)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(SurfaceLocation)
 
     MeteoData meteo;
     GeodeticPoint<AngleType> geodetic;

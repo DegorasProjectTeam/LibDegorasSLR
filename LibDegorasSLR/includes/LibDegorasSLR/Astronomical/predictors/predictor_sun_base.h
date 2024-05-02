@@ -27,7 +27,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_sun.h
+ * @file predictor_sun_base.h
  * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
@@ -38,18 +38,17 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <memory>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/types/datetime_types.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
+#include "LibDegorasSLR/Astronomical/predictors/data/prediction_sun.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
@@ -57,29 +56,8 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
-
-struct LIBDPSLR_EXPORT PredictionSun
-{
-    // Default constructor.
-    PredictionSun() = default;
-
-    PredictionSun(const timing::types::J2000DateTime& j2000, const astro::types::AltAzPos& altaz_coord,
-                  const geo::types::GeocentricPoint& geo_pos) :
-        j2dt(j2000), altaz_coord(altaz_coord), geo_pos(geo_pos)
-    {}
-
-    // Containers.
-    timing::types::J2000DateTime j2dt;   ///< J2000 datetime used to generate the Sun prediction data.
-    astro::types::AltAzPos altaz_coord;  ///< Sun predicted altazimuth coordinates referenced to an observer (degrees).
-    geo::types::GeocentricPoint geo_pos; ///< Sun predicted geocentric position (meters).
-
-    // TODO Calculate also position vectors, neccesary to check non visible moments in space object passes.
-};
-
-/// Alias for a vector of PredictionSun.
-using PredictionSunV = std::vector<PredictionSun>;
-
 
 /**
  * @brief The PredictorSun class provides functionality to predict the position of the Sun.
@@ -94,13 +72,14 @@ class LIBDPSLR_EXPORT PredictorSunBase
 
 public:
 
+    // Default copy and movement constructor and operators.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunBase)
+
     /**
      * @brief Constructs a PredictorSunBase object with the given observer's geodetic coordinates.
      * @param obs_geod The geodetic coordinates of the observer.
      */
-    PredictorSunBase(const geo::types::GeodeticPoint<math::units::Degrees>& obs_geod);
-
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunBase)
+    PredictorSunBase(const geo::types::GeodeticPointDeg& obs_geod);
 
     /**
      * @brief Creates a shared pointer that internally is an object of type T, derived from PredictorSunBase.
@@ -143,7 +122,7 @@ public:
      * @param refraction Flag indicating whether to apply atmospheric refraction correction.
      * @return The predicted PredictionSun.
      */
-    virtual PredictionSun predict(const timing::types::J2000DateTime& j2000, bool refraction) const = 0;
+    virtual PredictionSun predict(const timing::dates::J2000DateTime& j2000, bool refraction) const = 0;
 
     /**
      * @brief Predicts the position of the Sun within a time range with a specified time step.
@@ -154,19 +133,21 @@ public:
      * @return A vector of PredictionSun objects representing predicted sun positions at each step.
      * @throws std::invalid_argument If the interval is invalid.
      */
-    virtual PredictionSunV predict(const timing::types::J2000DateTime& j2000_start,
-                                   const timing::types::J2000DateTime& j2000_end,
+    virtual PredictionSunV predict(const timing::dates::J2000DateTime& j2000_start,
+                                   const timing::dates::J2000DateTime& j2000_end,
                                    const math::units::MillisecondsU& step, bool refraction) const;
+
+    virtual bool isReady() const = 0;
 
     virtual ~PredictorSunBase();
 
 protected:
 
-    geo::types::GeodeticPoint<math::units::Radians> obs_geo_pos_; ///< Geodetic observer point (radians and meters).
+    geo::types::GeodeticPointRad obs_geo_pos_; ///< Geodetic observer point (radians and meters).
 };
 
 /// Alias for PredictorSunBase shared smart pointer.
 using PredictorSunPtr = std::shared_ptr<PredictorSunBase>;
 
-}} // END NAMESPACES.
+}}} // END NAMESPACES.
 // =====================================================================================================================

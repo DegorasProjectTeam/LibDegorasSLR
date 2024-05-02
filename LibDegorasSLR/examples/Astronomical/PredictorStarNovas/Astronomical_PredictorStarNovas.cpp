@@ -52,11 +52,11 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::types::MJDateTime;
+using dpslr::timing::dates::MJDateTime;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::HRTimePointStd;
-using dpslr::timing::types::J2000DateTime;
-using dpslr::timing::types::MJDate;
+using dpslr::timing::dates::J2000DateTime;
+using dpslr::timing::dates::MJDate;
 using dpslr::timing::iso8601DatetimeToTimePoint;
 using dpslr::timing::timePointToModifiedJulianDateTime;
 using dpslr::timing::modifiedJulianDateTimeToTimePoint;
@@ -72,8 +72,8 @@ using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPoint;
 using dpslr::geo::types::SurfaceLocation;
 // Astronomical containers.
-using dpslr::astro::AltAzPos;
-using dpslr::astro::PredictorStarNovas;
+using dpslr::astro::types::AltAzPos;
+using dpslr::astro::predictors::PredictorStarNovas;
 using dpslr::astro::types::Star;
 // Helpers.
 using dpslr::helpers::strings::numberToStr;

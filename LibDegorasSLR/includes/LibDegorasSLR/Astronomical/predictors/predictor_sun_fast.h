@@ -38,10 +38,10 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
@@ -52,6 +52,7 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
 
 /**
@@ -65,13 +66,13 @@ class LIBDPSLR_EXPORT PredictorSunFast : public PredictorSunBase
 
 public:
 
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunFast)
+
     /**
      * @brief Constructs a PredictorSunFast object with the given observer's geodetic coordinates.
      * @param obs_geod The geodetic coordinates of the observer.
      */
-    PredictorSunFast(const geo::types::GeodeticPoint<math::units::Degrees>& obs_geod);
-
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSunFast)
+    PredictorSunFast(const geo::types::GeodeticPointDeg& obs_geod);
 
     /**
      * @brief Predicts the position of the Sun at a specific time using a fast algorithm.
@@ -86,9 +87,11 @@ public:
      *
      * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
      */
-    PredictionSun predict(const timing::types::J2000DateTime& j2000, bool refraction) const override;
+    PredictionSun predict(const timing::dates::J2000DateTime& j2000, bool refraction) const override;
+
+    virtual bool isReady() const override {return true;}
 
 };
 
-}} // END NAMESPACES.
+}}} // END NAMESPACES.
 // =====================================================================================================================

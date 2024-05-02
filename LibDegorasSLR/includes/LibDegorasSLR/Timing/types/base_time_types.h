@@ -43,18 +43,9 @@
 #include <string>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include"LibDegorasSLR/Mathematics/types/numeric_strong_type.h"
-// =====================================================================================================================
-
-// DEFINITIONS
-// =====================================================================================================================
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#define MKGMTIME _mkgmtime
-#else
-#define MKGMTIME timegm
-#endif
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -65,7 +56,7 @@ namespace types{
 // =====================================================================================================================
 
 // CONVENIENT TYPES
-//======================================================================================================================
+// =====================================================================================================================
 
 /// High resolution clock.
 using HRClock = std::chrono::high_resolution_clock;
@@ -91,18 +82,6 @@ using NsStd = std::chrono::nanoseconds;
 /// Alias for Windows Ticks.
 using Windows32Ticks = math::types::NumericStrongType<unsigned long long, struct Windows32TicksTag>;
 
-/// Alias for Modified Julian Date in days.
-using MJDate = math::types::NumericStrongType<long long, struct MJDateTag>;
-
-/// Alias for Julian Date in days.
-using JDate = math::types::NumericStrongType<long long, struct JDateTag>;
-
-/// Alias for Reduced Julian Date in days.
-using RJDate = math::types::NumericStrongType<long long, struct RDateTag>;
-
-/// Alias for J2000 Date in days.
-using J2000Date = math::types::NumericStrongType<long long, struct J2000DateTag>;
-
 /// Alias for second of day with decimals (always < 86400, picoseconds precision).
 using SoD = math::types::NumericStrongType<long double, struct SoDTag>;
 
@@ -123,7 +102,7 @@ enum class TimeResolution
     NANOSECONDS     ///< Represents the nanoseconds.
 };
 
-//======================================================================================================================
+// =====================================================================================================================
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

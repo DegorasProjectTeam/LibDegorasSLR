@@ -36,15 +36,11 @@
 // =====================================================================================================================
 
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
-#include "LibDegorasSLR/Testing/UnitTest"
-#include "LibDegorasSLR/Astronomical/novas_utils.h"
-#include "LibDegorasSLR/Astronomical/common/astro_types.h"
+#include <LibDegorasSLR/Modules/Testing>
+#include <LibDegorasSLR/Modules/Astronomical>
 // =====================================================================================================================
-
-#include <iostream>
 
 // NAMESPACES
 // ---------------------------------------------------------------------------------------------------------------------
@@ -90,7 +86,7 @@ M_DEFINE_UNIT_TEST(novas_makeOnSurface)
     const double temperature = 25.8;
     const double pressure = 1024.1;
 
-    dpslr::geo::types::GeodeticPoint<double> geoc(latitude, longitude, height);
+    dpslr::geo::types::GeodeticPointDeg geoc(latitude, longitude, height);
     dpslr::geo::types::MeteoData meteo(temperature, pressure, 0);
 
     // Geo location.
@@ -108,13 +104,13 @@ M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
 {
     using dpslr::astro::types::Star;
     using dpslr::geo::types::MeteoData;
-    using dpslr::astro::novas::getStarAltAzPosition;
-    using Geodetic = dpslr::geo::types::GeodeticPoint<double>;
-    using Geocentric = dpslr::geo::types::GeocentricPoint<double>;
-    using Angle = dpslr::math::units::Angle<double>;
-    using Surface = dpslr::geo::types::SurfaceLocation<double>;
-    using dpslr::timing::types::JDateTime;
-    using dpslr::astro::types::AltAzPosition;
+    using dpslr::astro::novas::getStarAltAzPos;
+    using Geodetic = dpslr::geo::types::GeodeticPointDeg;
+    using Geocentric = dpslr::geo::types::GeocentricPoint;
+    using Angle = dpslr::math::units::Degrees;
+    using Surface = dpslr::geo::types::SurfaceLocation<Angle>;
+    using dpslr::timing::dates::JDateTime;
+    using dpslr::astro::types::AltAzPos;
 
     using novas::julian_date;
 
@@ -133,15 +129,15 @@ M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
     md.pressure = 1024.1;
     md.temperature = 25.8;
 
-    Geodetic geod(36.465257734376407939, -6.20530535896, 98.2496715541929, Angle::Unit::DEGREES);
+    Geodetic geod(36.465257734376407939L, -6.20530535896L, 98.2496715541929L);
     Geocentric geoc; // Don't mind
 
     Surface surf{md, geod, geoc};
 
     JDateTime jdt = julian_date(2023, 10, 18, 22) + (static_cast<double>(15)/1440.0) + (30.5 / 86400.0);
-    AltAzPosition pos;
+    AltAzPos pos;
 
-    int error = getStarAltAzPosition(star, surf, jdt, pos, 37, 0.013616);
+    int error = getStarAltAzPos(star, surf, jdt, pos, 37, 0.013616);
 
     if (error)
     {

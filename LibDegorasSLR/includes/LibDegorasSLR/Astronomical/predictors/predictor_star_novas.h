@@ -38,10 +38,10 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_star_base.h"
@@ -51,6 +51,7 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
 
 /**
@@ -64,7 +65,7 @@ class LIBDPSLR_EXPORT PredictorStarNovas : public PredictorStarBase
 
 public:
 
-    PredictorStarNovas(const astro::types::Star& star, const geo::types::SurfaceLocation<math::units::Degrees> &loc,
+    PredictorStarNovas(const astro::types::Star& star, const geo::types::SurfaceLocation<math::units::Degrees>& loc,
                        int leap_secs = 0, double ut1_utc_diff = 0);
 
     /**
@@ -73,8 +74,10 @@ public:
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
      * @return The resulting PredictionStar.
      */
-    PredictionStar predict(const timing::types::JDateTime& jdt) const override;
+    PredictionStar predict(const timing::dates::JDateTime& jdt) const override;
+
+    virtual bool isReady() const override {return true;}
 };
 
-}} // END NAMESPACES.
+}}} // END NAMESPACES.
 // =====================================================================================================================

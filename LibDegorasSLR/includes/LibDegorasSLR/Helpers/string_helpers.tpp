@@ -31,7 +31,7 @@
  * @brief This file contains the template functions related with the string helper tools.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -39,7 +39,7 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <iostream>
 #include <string>
 #include <limits>
@@ -48,10 +48,8 @@
 #include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/type_traits.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -101,7 +99,7 @@ Container split (const std::string& s, const std::string& delimiters, bool empti
 }
 
 template<typename T>
-std::string numberToFixstr(T x, unsigned int prec)
+std::string numberToFixStr(T x, unsigned int prec)
 {
     std::ostringstream strout ;
     strout << std::showpoint << std::setprecision(prec) << x ;

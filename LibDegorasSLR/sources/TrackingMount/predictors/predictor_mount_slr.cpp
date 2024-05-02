@@ -37,10 +37,10 @@
 // =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_init.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
+#include "LibDegorasSLR/Timing/utils/time_utils.h"
 #include "LibDegorasSLR/TrackingMount/predictors/predictor_mount_slr.h"
 // =====================================================================================================================
 
@@ -48,6 +48,7 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace mount{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -58,13 +59,17 @@ using namespace math::units;
 using namespace slr;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(const MJDateTime& pass_start, const MJDateTime& pass_end,
-                                     PredictorSlrPtr pred_slr, PredictorSunPtr pred_sun,
-                                     const TrackingAnalyzerConfig& config) :
-    tr_analyzer_(config)
+PredictorMountSLR::PredictorMountSLR(const timing::dates::MJDateTime& pass_start,
+                                     const timing::dates::MJDateTime& pass_end,
+                                     slr::predictors::PredictorSlrPtr pred_slr,
+                                     astro::predictors::PredictorSunPtr pred_sun,
+                                     const utils::MovementAnalyzerConfig &config,
+                                     math::units::MillisecondsU time_delta) :
+    tr_analyzer_(config),
+    time_delta_(time_delta)
 {
     // Check Degoras initialization.
-    DegorasInit::checkMandatoryInit();
+    DegorasInitGuard();
 
     // Check that start is before end.
     if (pass_start > pass_end)
@@ -108,7 +113,7 @@ PredictorMountSLR::PredictorMountSLR(const MJDateTime& pass_start, const MJDateT
     this->mount_track_.config = config;
 
     // Configure predictor slr in instant vector mode.
-    pred_slr->setPredictionMode(PredictorSlrBase::PredictionMode::INSTANT_VECTOR);
+    pred_slr->setPredictionMode(slr::predictors::PredictorSlrBase::PredictionMode::INSTANT_VECTOR);
 
     // Analyze the tracking.
     this->analyzeTracking();
@@ -116,14 +121,17 @@ PredictorMountSLR::PredictorMountSLR(const MJDateTime& pass_start, const MJDateT
 
 PredictorMountSLR::PredictorMountSLR(const HRTimePointStd &pass_start,
                                      const HRTimePointStd &pass_end,
-                                     PredictorSlrPtr pred_slr,
-                                     PredictorSunPtr pred_sun,
-                                     const TrackingAnalyzerConfig &config) :
+                                     slr::predictors::PredictorSlrPtr pred_slr,
+                                     astro::predictors::PredictorSunPtr pred_sun,
+                                     const utils::MovementAnalyzerConfig &config,
+                                     math::units::MillisecondsU time_delta) :
     PredictorMountSLR(timing::timePointToModifiedJulianDateTime(pass_start),
                       timing::timePointToModifiedJulianDateTime(pass_end),
                       pred_slr,
                       pred_sun,
-                      config)
+                      config,
+                      time_delta)
+
 {
 
 }
@@ -131,77 +139,61 @@ PredictorMountSLR::PredictorMountSLR(const HRTimePointStd &pass_start,
 
 bool PredictorMountSLR::isReady() const
 {
-    return this->mount_track_.track_info.valid_pass;
+    return this->mount_track_.track_info.valid_movement;
 }
 
-const MountTrackingSLR& PredictorMountSLR::getMountTrackingSLR() const
+const MountTrackingSLR &PredictorMountSLR::getMountTrackingSLR() const
 {
     return this->mount_track_;
 }
 
-PositionStatus PredictorMountSLR::predict(const HRTimePointStd& tp_time, MountPredictionSLR &tracking_result) const
+PredictionMountSLR PredictorMountSLR::predict(const timing::types::HRTimePointStd& tp_time) const
 {
-    MJDateTime mjdt = timing::timePointToModifiedJulianDateTime(tp_time);
-    return predict(mjdt, tracking_result);
+    timing::dates::MJDateTime mjdt = timing::timePointToModifiedJulianDateTime(tp_time);
+    return predict(mjdt);
 }
 
-PositionStatus PredictorMountSLR::predict(const MJDateTime &mjdt, MountPredictionSLR &tracking_result) const
+PredictionMountSLR PredictorMountSLR::predict(const timing::dates::MJDateTime &mjdt) const
 {
     // Calculates the Sun position.
-    J2000DateTime j2000 = dpslr::timing::modifiedJulianDateToJ2000DateTime(mjdt);
-    PredictionSun sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
+    timing::dates::J2000DateTime j2000 = dpslr::timing::modifiedJulianDateToJ2000DateTime(mjdt);
+    astro::predictors::PredictionSun sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
 
     // Calculates the space object position.
-    PredictionSLR prediction_result;
+    slr::predictors::PredictionSLR prediction_result;
     auto pred_error = this->mount_track_.predictor_slr->predict(mjdt, prediction_result);
 
-    // Store the info at result.
-    tracking_result.mjdt = mjdt;
-    tracking_result.slr_pred = prediction_result;
-    tracking_result.sun_pred = sun_pos;
+    types::MountPosition mount_pos;
+    mount_pos.mjdt = mjdt;
+    mount_pos.altaz_coord = prediction_result.instant_data->altaz_coord;
 
-    // Check for errors. If there was an error at prediction, return with sun and slr predictions.
-    if (0 != pred_error)
+    PredictionMountSLR mount_pred(
+        this->tr_analyzer_.analyzePosition(this->mount_track_.track_info, mount_pos, sun_pos), prediction_result);
+
+    if (pred_error != 0)
     {
-        tracking_result.status =  PositionStatus::PREDICTION_ERROR;
-        return PositionStatus::PREDICTION_ERROR;
+        mount_pred.pred_status = PredictionMountSLRStatus::SLR_PREDICTION_ERROR;
+    }
+    else if (utils::AnalyzedPositionStatus::OUT_OF_TRACK == mount_pred.status)
+    {
+        mount_pred.pred_status = PredictionMountSLRStatus::OUT_OF_TRACK;
+    }
+    else
+    {
+        mount_pred.pred_status = PredictionMountSLRStatus::VALID_PREDICTION;
     }
 
-    // Store the info at TrackingPrediction for analyzing
-    TrackingPrediction tp;
-    tp.mjdt = mjdt;
-    tp.pos = prediction_result.instant_data->altaz_coord;
-    tp.sun_pred = sun_pos;
+    return mount_pred;
 
-    this->tr_analyzer_.analyzePrediction(tp);
-
-    tracking_result.status = tp.status;
-    tracking_result.mount_pos = tp.pos;
-
-    if (tracking_result.status == PositionStatus::OUT_OF_TRACK)
-    {
-        tracking_result.slr_pred.reset();
-        tracking_result.sun_pred.reset();
-        tracking_result.mount_pos.reset();
-    }
-    else if (tracking_result.status == PositionStatus::CANT_AVOID_SUN ||
-             tracking_result.status == PositionStatus::PREDICTION_ERROR)
-    {
-        tracking_result.mount_pos.reset();
-    }
-
-    return tracking_result.status;
 }
 
 void PredictorMountSLR::analyzeTracking()
 {
     // Results container and auxiliar.
-    PredictionSLRV results_slr;
-    PredictionSunV results_sun;
-    Milliseconds step_ms = static_cast<long double>(this->mount_track_.config.time_delta);
+    slr::predictors::PredictionSLRV results_slr;
+    astro::predictors::PredictionSunV results_sun;
+    const Milliseconds step_ms = static_cast<long double>(this->time_delta_);
 
-    // Update flag.
-    this->mount_track_.track_info.valid_pass = false;
 
     // --------------------------------------------------------------
     // TODO MOVE TO PASS GENERATOR
@@ -216,7 +208,7 @@ void PredictorMountSLR::analyzeTracking()
     // Check that the predictions correspond to a pass.
     // Tracking is not valid if there are errors
     auto it = std::find_if(results_slr.begin(), results_slr.end(),
-    [](const PredictionSLR& pred)
+    [](const auto& pred)
     {
         return pred.error != 0;
     });
@@ -227,57 +219,44 @@ void PredictorMountSLR::analyzeTracking()
 
     // Time transformations with milliseconds precision.
     // TODO Move to the Sun predictor class.
-    J2000DateTime j2000_start = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.pass_mjdt_start);
-    J2000DateTime j2000_end = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.pass_mjdt_end);
+    auto j2000_start = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.pass_mjdt_start);
+    auto j2000_end = timing::modifiedJulianDateToJ2000DateTime(this->mount_track_.pass_mjdt_end);
 
     // Parallel calculation of all Sun positions.
     results_sun = this->mount_track_.predictor_sun->predict(
-        j2000_start, j2000_end, this->mount_track_.config.time_delta, false);
+        j2000_start, j2000_end + this->time_delta_ / 1000.L, this->time_delta_, false);
     
-    // Create tracking predictions for TrackingAnalyzer
-    TrackingPredictionV tr_predictions(results_slr.size());
-    for (std::size_t i = 0; i < results_slr.size(); i++)
-    {
-        TrackingPrediction tp;
-        tp.mjdt = results_slr[i].instant_data->mjdt;
-        tp.pos = results_slr[i].instant_data->altaz_coord;
-        tp.sun_pred = results_sun[i];
-        tr_predictions[i] = std::move(tp);
-    }
+    // Create mount positions vector from SLR predictions. Ensure there is at least one more.
+    types::MountPositionV mount_positions(results_slr.size());
+    std::transform(results_slr.begin(), results_slr.end(), mount_positions.begin(), [](const auto& pred)
+                   {
+        types::MountPosition mount_pos;
+        mount_pos.mjdt = pred.instant_range.mjdt;
+        mount_pos.altaz_coord = pred.instant_data->altaz_coord;
+        return mount_pos;
+    });
+
+    // Create local sun positions from sun predictions
+    astro::types::LocalSunPositionV sun_positions(results_slr.size());
+    std::copy(results_sun.begin(), results_sun.begin() + results_slr.size(), sun_positions.begin());
 
     // Analyze tracking
-    this->tr_analyzer_.analyzeTracking(tr_predictions);
+    this->mount_track_.track_info = this->tr_analyzer_.analyzeMovement(mount_positions, sun_positions);
 
-    // Store data from analysis
-    this->mount_track_.track_info = this->tr_analyzer_.getTrackingInfo();
-
-    // Store all the generated data. At this momment, the
-    // tracking positions have not been generated.
-    this->mount_track_.predictions.resize(results_slr.size());
-    for (std::size_t i = 0; i < results_slr.size(); i++)
+    // Store all generated predictions if movement analysis was successful
+    if (this->mount_track_.track_info.valid_movement)
     {
-        MountPredictionSLR tr;
-        tr.mjdt = results_slr[i].instant_data->mjdt;
-        tr.status = this->tr_analyzer_.getPredictions()[i].status;
-        if (tr.status == PositionStatus::OUTSIDE_SUN ||
-            tr.status == PositionStatus::INSIDE_SUN ||
-            tr.status == PositionStatus::AVOIDING_SUN)
-        {
-            tr.slr_pred = results_slr[i];
-            tr.sun_pred = results_sun[i];
-            tr.mount_pos = this->tr_analyzer_.getPredictions()[i].pos;
-        }
-        else if (tr.status == PositionStatus::CANT_AVOID_SUN || tr.status == PositionStatus::PREDICTION_ERROR)
-        {
-            tr.slr_pred = results_slr[i];
-            tr.sun_pred = results_sun[i];
-        }
 
-        this->mount_track_.predictions[i] = std::move(tr);
+        this->mount_track_.predictions.resize(results_slr.size());
+        for (std::size_t i = 0; i < results_slr.size(); i++)
+        {
+            this->mount_track_.predictions[i] = PredictionMountSLR(this->mount_track_.track_info.analyzed_positions[i],
+                                                                   results_slr[i]);
+        }
     }
 
 }
 
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

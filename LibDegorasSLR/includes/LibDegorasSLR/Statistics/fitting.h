@@ -31,14 +31,14 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of several functions related with data fitting.
  * @copyright EUPL License
- * @version 2306.1
+ 2306.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
 #include "LibDegorasSLR/Mathematics/types/matrix.h"
