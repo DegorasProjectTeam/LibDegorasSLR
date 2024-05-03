@@ -68,8 +68,8 @@ PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Deg
     ut1_utc_diff_(ut1_utc_diff)
 {}
 
-StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDateTime &jdt_end,
-                                           const MillisecondsU& step) const
+PredictionStarV PredictorStarBase::predict(const JDateTime &jdt_start, const JDateTime &jdt_end,
+                                           const MillisecondsU& step, bool refraction) const
 {
     // Initialization guard.
     DegorasInitGuard guard;
@@ -86,13 +86,13 @@ StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDa
     interp_times = JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);
 
     // Results container.
-    StarPredictionV results(interp_times.size());
+    PredictionStarV results(interp_times.size());
 
     // Parallel calculation.
     #pragma omp parallel for
     for(size_t i = 0; i<interp_times.size(); i++)
     {
-        results[i] = this->predict(interp_times[i]);
+        results[i] = this->predict(interp_times[i], refraction);
     }
 
     // Return the container.

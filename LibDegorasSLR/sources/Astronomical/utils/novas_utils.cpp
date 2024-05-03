@@ -53,8 +53,8 @@ on_surface makeOnSurface(const GeodeticPointDeg &geod, const MeteoData &meteo)
     return geo_loc;
 }
 
-int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const JDateTime &jdt, AltAzPos &pos,
-                    int leap_secs, double ut1_utc_diff)
+int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const JDateTime &jdt, bool refraction,
+                    AltAzPos &pos, int leap_secs, double ut1_utc_diff)
 {
     int error;
     auto surface = makeOnSurface(loc);
@@ -84,15 +84,15 @@ int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const
     double dec_topo_ref;       // Topocentric Dec with refraction
 
     // TODO: configurable accuracy mode and poles?
-    constexpr int accuracy = 1;                                                       // Accuracy configuration.
     const double x_pole = 0;                                                          // X pole
     const double y_pole = 0;                                                          // Y pole
+    const short refraction_applied = refraction ? 2 : 0;
 
     // Get topocentric place of star
-    if (!(error = topo_star(jd_tt, delta_t, &entry, &surface, accuracy, &ra_topo, &dec_topo)))
+    if (!(error = topo_star(jd_tt, delta_t, &entry, &surface, 1, &ra_topo, &dec_topo)))
     {
         // If there was no error on previous function, transform the coordinates to az and zenith
-        equ2hor(jd_ut1, delta_t, 1, x_pole, y_pole, &surface, ra_topo, dec_topo, 2,
+        equ2hor(jd_ut1, delta_t, 1, x_pole, y_pole, &surface, ra_topo, dec_topo, refraction_applied,
                 &zd, &az, &ra_topo_ref, &dec_topo_ref);
         el = 90. - zd;
         pos = AltAzPos(static_cast<long double>(az), static_cast<long double>(el));
@@ -102,12 +102,12 @@ int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const
 }
 
 
-int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const HRTimePointStd &tp,
+int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const HRTimePointStd &tp, bool refraction,
                     AltAzPos &pos, int leap_secs, double ut1_utc_diff)
 {
     JDateTime jdt = timing::timePointToJulianDateTime(tp);
 
-    return getStarAltAzPos(star, loc, jdt, pos, leap_secs, ut1_utc_diff);
+    return getStarAltAzPos(star, loc, jdt, refraction, pos, leap_secs, ut1_utc_diff);
 }
 
 int makeCatEntry(const types::Star &star, cat_entry &entry)
@@ -116,8 +116,11 @@ int makeCatEntry(const types::Star &star, cat_entry &entry)
     star_name.push_back('\0');
     std::vector<char>cat_name(star.catalog_name.begin(), star.catalog_name.end());
     cat_name.push_back('\0');
+    // RA pm must be converted from seconds/a to milliarcseconds/a
+    // Dec pm must be converted from seconds/a to milliarcseconds/a
+    // Parallax must be converted from arcseconds to milliarcseconds.
     return make_cat_entry(star_name.data(), cat_name.data(), star.catalog_num, star.ra,
-                          star.dec, star.pm_ra, star.pm_dec, star.parallax, star.rad_vel,
+                          star.dec, star.pm_ra * 15 * 1000., star.pm_dec * 1000., star.parallax * 1000., star.rad_vel,
                           &entry);
 }
 

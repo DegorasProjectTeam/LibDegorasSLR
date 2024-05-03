@@ -69,7 +69,7 @@ struct LIBDPSLR_EXPORT PredictionStar : types::LocalStarPosition
 };
 
 /// Alias for a vector of PredictionStar objects.
-using StarPredictionV = std::vector<PredictionStar>;
+using PredictionStarV = std::vector<PredictionStar>;
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

@@ -101,9 +101,10 @@ public:
      * @brief Predicts the position of a star at a specific time
      *
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
+     * @param refraction True if refraction model is to be applied, false otherwise.
      * @return The resulting PredictionStar.
      */
-    virtual PredictionStar predict(const timing::dates::JDateTime& jdt) const = 0;
+    virtual PredictionStar predict(const timing::dates::JDateTime& jdt, bool refraction) const = 0;
 
     /**
      * @brief Predicts star positions within a time range with a specified time step.
@@ -111,12 +112,14 @@ public:
      * @param jdt_start The Julian start datetime of the prediction range.
      * @param jdt_end The Julian end datetime of ñthe prediction range.
      * @param step The time step in milliseconds between predictions.
+     * @param refraction True if refraction model is to be applied, false otherwise.
      * @return A vector of StarPrediction objects representing predicted star positions at each step.
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    StarPredictionV predict(const timing::dates::JDateTime& jdt_start, const timing::dates::JDateTime& jdt_end,
-                            const math::units::MillisecondsU& step) const;
+    virtual PredictionStarV predict(const timing::dates::JDateTime& jdt_start,
+                                    const timing::dates::JDateTime& jdt_end,
+                                    const math::units::MillisecondsU& step, bool refraction) const;
 
     virtual bool isReady() const = 0;
 

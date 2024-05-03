@@ -69,6 +69,7 @@ namespace novas{
 LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
                                     const geo::types::SurfaceLocation<math::units::Degrees>& loc,
                                     const timing::types::HRTimePointStd& tp,
+                                    bool refraction,
                                     types::AltAzPos& pos,
                                     int leap_secs = 0,
                                     double ut1_utc_diff = 0);
@@ -76,6 +77,7 @@ LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
 LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
                                     const geo::types::SurfaceLocation<math::units::Degrees>& loc,
                                     const timing::dates::JDateTime& jdt,
+                                    bool refraction,
                                     types::AltAzPos& pos,
                                     int leap_secs = 0,
                                     double ut1_utc_diff = 0);

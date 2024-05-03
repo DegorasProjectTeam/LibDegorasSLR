@@ -74,9 +74,18 @@ public:
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
      * @return The resulting PredictionStar.
      */
-    PredictionStar predict(const timing::dates::JDateTime& jdt) const override;
+    PredictionStar predict(const timing::dates::JDateTime& jdt, bool refraction) const override;
 
     virtual bool isReady() const override {return true;}
+
+
+private:
+
+    // TODO: do not use parallel version. Due to novas library, it is not thread-safe.
+    PredictionStarV predict(const timing::dates::JDateTime&,
+                            const timing::dates::JDateTime&,
+                            const math::units::MillisecondsU&, bool) const override { return {}; }
+
 };
 
 }}} // END NAMESPACES.

@@ -64,15 +64,17 @@ PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<D
     PredictorStarBase(star, loc, leap_secs, ut1_utc_diff)
 {}
 
-PredictionStar PredictorStarNovas::predict(const timing::dates::JDateTime &jdt) const
+PredictionStar PredictorStarNovas::predict(const timing::dates::JDateTime &jdt, bool refraction) const
 {
     PredictionStar pred;
     pred.jdt = jdt;
 
-    novas::getStarAltAzPos(this->star_, this->loc_, jdt, pred.altaz_coord, this->leap_secs_, this->ut1_utc_diff_);
+    novas::getStarAltAzPos(this->star_, this->loc_, jdt, refraction, pred.altaz_coord,
+                           this->leap_secs_, this->ut1_utc_diff_);
 
     return pred;
 }
+
 
 }}} // END NAMESPACES
 // =====================================================================================================================

@@ -137,7 +137,7 @@ M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
     JDateTime jdt = julian_date(2023, 10, 18, 22) + (static_cast<double>(15)/1440.0) + (30.5 / 86400.0);
     AltAzPos pos;
 
-    int error = getStarAltAzPos(star, surf, jdt, pos, 37, 0.013616);
+    int error = getStarAltAzPos(star, surf, jdt, true, pos, 37, 0.013616);
 
     if (error)
     {

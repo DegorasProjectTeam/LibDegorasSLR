@@ -66,10 +66,10 @@ struct LIBDPSLR_EXPORT Star
     std::string catalog_name;
     int catalog_num;
     int id;
-    double pm_ra;
-    double pm_dec;
-    double parallax;
-    double rad_vel;
+    double pm_ra;                // s per year
+    double pm_dec;               // arcseconds per year
+    double parallax;             // arcseconds
+    double rad_vel;              // km/s
 };
 
 

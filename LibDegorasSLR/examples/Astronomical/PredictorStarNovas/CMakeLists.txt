@@ -59,9 +59,9 @@ macro_install_runtime_deps("${EXAMPLE_FULL_NAME}"
                             "" "")
 
 # Install example input data.
-install(DIRECTORY "${EXAMPLE_DIR}/inputs/"
-        DESTINATION "${EXAMPLE_INSTALL_PATH}/inputs"
-        FILES_MATCHING PATTERN "*")
+#install(DIRECTORY "${EXAMPLE_DIR}/inputs/"
+#        DESTINATION "${EXAMPLE_INSTALL_PATH}/inputs"
+#        FILES_MATCHING PATTERN "*")
 
 # Install auxiliar python scripts.
 install(DIRECTORY "${EXAMPLE_DIR}/python_scripts/"

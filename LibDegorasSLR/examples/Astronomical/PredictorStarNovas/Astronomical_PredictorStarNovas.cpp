@@ -52,7 +52,7 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::dates::MJDateTime;
+using dpslr::timing::dates::JDateTime;
 using dpslr::timing::types::SoD;
 using dpslr::timing::types::HRTimePointStd;
 using dpslr::timing::dates::J2000DateTime;
@@ -74,6 +74,8 @@ using dpslr::geo::types::SurfaceLocation;
 // Astronomical containers.
 using dpslr::astro::types::AltAzPos;
 using dpslr::astro::predictors::PredictorStarNovas;
+using dpslr::astro::predictors::PredictorStarBase;
+using dpslr::astro::predictors::PredictionStarV;
 using dpslr::astro::types::Star;
 // Helpers.
 using dpslr::helpers::strings::numberToStr;
@@ -144,6 +146,9 @@ int main()
 
     loc.geocentric = stat_geoc;
     loc.geodetic = stat_geod;
+    loc.meteo.pressure = 1024.1;
+    loc.meteo.rel_humidity = 0.75;
+    loc.meteo.temperature = 25.8;
 
     Star vega;
     vega.ra = 18.615648986;
@@ -152,21 +157,31 @@ int main()
     vega.catalog_name = "FK5";
     vega.catalog_num = 699;
     vega.id = 699;
-    vega.pm_ra = 200.94;
-    vega.pm_dec = 287.78;
-    vega.rad_vel = 130.23;
-    vega.parallax = 20.0;
+    vega.pm_ra = 0.01726;
+    vega.pm_dec = 0.2861;
+    vega.rad_vel = -13.9;
+    vega.parallax = 0.123;
+
+    Star arcturus;
+    arcturus.ra = {14, 15, 39.677};
+    arcturus.dec = {19, 10, 56.71};
+    arcturus.star_name = "Arcturus";
+    arcturus.catalog_name = "FK5";
+    arcturus.catalog_num = 526;
+    arcturus.id = 526;
+    arcturus.pm_ra = -0.07714;
+    arcturus.pm_dec = -1.9984;
+    arcturus.rad_vel = -5.2;
+    arcturus.parallax = 0.09;
 
     // Real examples vector with their configurations.
     std::vector<ExampleData> examples =
     {
-        // Vega
-        {vega}
-
+        {vega}, {arcturus}
     };
 
     // Example selector.
-    size_t example_selector = examples.size();  // Select the example to process (between reals and sintetics).
+    size_t example_selector = examples.size();  // Select the example to process.
     std::string input;
     while (example_selector >= examples.size() )
     {
@@ -192,7 +207,8 @@ int main()
     // -------------------- PREDICTOR PREPARATION  ---------------------------------------------------------------
 
     // Prepare the mount slr predictor.
-    PredictorStarNovas predictor_star(examples[example_selector].star, loc);
+    auto predictor = PredictorStarBase::factory<PredictorStarNovas>(examples[example_selector].star, loc);
+
 
     // Log the pass and tracking information (illustrative example). You can read the specific
     // documentation to learn what you can do with each class and struct.
@@ -204,9 +220,6 @@ int main()
     border << "\n";
     lines << "\n";
 
-
-
-
     // -------------------- NOW LET'S START CALCULATING PREDICTIONS SIMULATING REAL TIME PROCESS -----------------------
 
     // Store the real time track data into a CSV file (only part of the data for easy usage).
@@ -215,46 +228,41 @@ int main()
     // Create the file and header.
     std::ofstream file_realtime_track(output_dir + "/" + realtime_csv_filename, std::ios_base::out);
     file_realtime_track << data.str();
-    file_realtime_track << "mjd;sod;pass_az;pass_el;track_az;track_el;sun_az;sun_el";
+    file_realtime_track << "jd;sod;pass_az;pass_el;track_az;track_el;sun_az;sun_el";
 
     // Now, we are simulating real time prediction operations. We can now predict any position within the valid
     // tracking time window (stored in TrackingInfo struct). For the example, we will ask predictions from start to
     // end with a step of 0.1 (simulating real time operations at 10 Hz in the tracking mount).
 
     // Containers.
-    /*
-    JDateTime jd = track_start;
+    // 31/01/2024 - 03:00
+    JDateTime jd(2460340.625L);
+    // 31/01/2024 - 05:00
+    JDateTime jd_end(2460340.70833L);
 
+    PredictionStarV predictions;
+
+    while (jd < jd_end)
+    {
+        predictions.push_back(predictor->predict(jd, true));
+        jd = jd + 5;
+    }
+
+    // Calculate predictions
+    //PredictionStarV predictions = predictor->predict(jd, jd_end, 5000);
 
     // Iterate the real time simulated predictions.
-    for(const auto& pred : results)
+    for(const auto& pred : predictions)
     {
         // Auxiliar container for track data.
-        std::string track_az;
-        std::string track_el;
-        std::string orig_az;
-        std::string orig_el;
-        //
-        // At this point, you only must check if the prediction is outside track. This is becaouse, for example,
-        // the beginning of the real satellite pass may coincide with the Sun sector, so at those points there
-        // would be no data from the mount's track, only the real pass.
-        if(pred.status != PositionStatus::OUT_OF_TRACK)
-        {
-            track_az = numberToStr(pred.mount_pos->altaz_coord.az,7, 4);
-            track_el = numberToStr(pred.mount_pos->altaz_coord.el,7, 4);
-            orig_az = numberToStr(pred.mount_pos->altaz_coord.az - pred.mount_pos->diff_az, 7, 4);
-            orig_el = numberToStr(pred.mount_pos->altaz_coord.el - pred.mount_pos->diff_el, 7, 4);
+        std::string track_az = numberToStr(pred.altaz_coord.az,9, 6);
+        std::string track_el = numberToStr(pred.altaz_coord.el,9, 6);
 
-            // Store the data.
-            file_realtime_track <<'\n';
-            file_realtime_track << std::to_string(timePointToModifiedJulianDateTime(pred.tp).datetime()) <<";";
-            file_realtime_track << orig_az <<";";
-            file_realtime_track << orig_el <<";";
-            file_realtime_track << track_az <<";";
-            file_realtime_track << track_el <<";";
-            file_realtime_track << numberToStr(pred.sun_pred->altaz_coord.az, 7, 4) <<";";
-            file_realtime_track << numberToStr(pred.sun_pred->altaz_coord.el, 7, 4);
-        }
+        // Store the data.
+        file_realtime_track << '\n';
+        file_realtime_track << std::to_string(pred.jdt.datetime()) <<";";
+        file_realtime_track << track_az <<";";
+        file_realtime_track << track_el;
     }
     // Close the file.
     file_realtime_track.close();
@@ -269,7 +277,8 @@ int main()
     // Final wait.
     std::cout << "Example finished. Press Enter to exit..." << std::endl;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-*/
+
+
     // All ok.
     return (0);
 }

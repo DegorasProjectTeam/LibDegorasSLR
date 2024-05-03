@@ -101,27 +101,18 @@ def plot_track_culmination(ax, azs, els, color='blue', s=40, zorder=4, label='Tr
 # Function to read positions from file
 def read_positions(filename):
     header_size = 23
-    pass_positions = []
     track_positions = []
-    sun_positions = []
     with open(filename, 'r') as file:
         lines = file.readlines()
         for line in lines[header_size:]:
             data = line.split(';')
-            pass_az = float(data[1])
-            pass_el = float(data[2])
-            pass_positions.append((pass_az, pass_el))
 
-            if(data[3] != '' and data[4] != ''):
-                track_az = float(data[3])
-                track_el = float(data[4])
-                track_positions.append((track_az, track_el))
+            track_az = float(data[1])
+            track_el = float(data[2])
+            track_positions.append((track_az, track_el))
 
-            sun_az = float(data[5])
-            sun_el = float(data[6])
-            sun_positions.append((sun_az, sun_el))
                         
-    return [pass_positions, track_positions, sun_positions]
+    return track_positions
     
 
 
@@ -133,7 +124,7 @@ if __name__ == "__main__":
     plot_all = True
 
     # Manual example files.
-    files = ['Lares_SunBeg_track.csv', 'Jason3_SunMid_track.csv', 'Explorer27_SunEnd_track.csv']
+    files = ['Vega_track_realtime.csv']
 
     # Get external file by arguments. If no external file, use the manually selected.
     filename = sys.argv[1] if len(sys.argv) > 1 else output_dir + '/' + files[selector]
@@ -142,18 +133,13 @@ if __name__ == "__main__":
     plot_file_name = os.path.splitext(os.path.basename(filename))[0]
 
     # Read positions from files
-    pass_positions, track_positions, sun_positions = read_positions(filename)
+    track_positions = read_positions(filename)
 
     # Extract data
     # ---------------------------------------------------------
-    pass_azimuths = [np.radians(pos[0]) for pos in pass_positions]
-    pass_elevations = [pos[1] for pos in pass_positions]
     track_azimuths = [np.radians(pos[0]) for pos in track_positions]
     track_elevations = [pos[1] for pos in track_positions]
-    sun_azimuths = [np.radians(pos[0]) for pos in sun_positions]
-    sun_elevations = [pos[1] for pos in sun_positions]
     max_track_el_idx = np.argmax(track_elevations)
-    max_pass_el_idx = np.argmax(pass_elevations)
     # ---------------------------------------------------------
 
     # Polar plot configuration
@@ -168,29 +154,14 @@ if __name__ == "__main__":
     ax.set_yticklabels([str(i) for i in range(0, 90, 10)])
     # ---------------------------------------------------------
 
-    # Plot pass data.
-    ax.plot(pass_azimuths, pass_elevations, color='black', linewidth=1.5, alpha=1, label='Object Pass', zorder=2)
-    az = pass_azimuths[max_pass_el_idx]
-    el = pass_elevations[max_pass_el_idx]
-    ax.scatter(az, el, color='darkviolet', label='Pass Culmination', s=50, zorder=4)
-
     # Plot track data.
-    ax.plot(track_azimuths, track_elevations, color='brown', linewidth=1.5, alpha=1, label='Object Pass', zorder=3)
+    ax.plot(track_azimuths, track_elevations, color='brown', linewidth=1.5, alpha=1, label='Star Pass', zorder=3)
     ax.scatter(track_azimuths[0], track_elevations[0], color='green', label='Track Start', s=50, zorder=4)
     ax.scatter(track_azimuths[-1], track_elevations[-1], color='red', label='Track End', s=50, zorder=4)
-    plot_track_culmination(ax, track_azimuths, track_elevations, color='blue', s=50, zorder=5)
-
-    # Plot sun positions
-    ax.scatter(sun_azimuths, sun_elevations, color='gold', label='Sun Pass', s=10, zorder=3)
-    ax.scatter(sun_azimuths[0], sun_elevations[0], color='darkorange', label='Sun Start', s=20, zorder=4)
-    ax.scatter(sun_azimuths[-1], sun_elevations[-1], color='brown', label='Sun End', s=20, zorder=4)
+    #plot_track_culmination(ax, track_azimuths, track_elevations, color='blue', s=50, zorder=5)
 
     #for azimuth, elevation in zip(sun_azimuths, sun_elevations):
     #    plot_projected_circle(ax, np.degrees(azimuth), elevation, 15, num_points, 'yellow', 2)
-
-    # Todo plot the circle in the colision momment.
-    gen_projected_circle(ax, np.degrees(sun_azimuths[0]), sun_elevations[0], 15, True, num_points,'darkorange', 2)
-    #gen_projected_circle(ax, np.degrees(sun_azimuths[-1]), sun_elevations[-1], 15, True, num_points,'brown', 2)
 
 
 

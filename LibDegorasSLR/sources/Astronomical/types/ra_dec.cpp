@@ -50,6 +50,14 @@ namespace astro{
 namespace types{
 // =====================================================================================================================
 
+RA::RA(int hour, int min, double sec) :
+    hour(hour),
+    min(min),
+    sec(sec)
+{
+    this->ra = hour + min / 60. + sec / 3600.;
+}
+
 RA::RA(double ra) :
     ra(ra)
 {
