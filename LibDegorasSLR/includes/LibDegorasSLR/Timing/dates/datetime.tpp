@@ -186,6 +186,36 @@ DateTime<DateType> DateTime<DateType>::operator+(const math::units::Seconds &sec
 }
 
 template <typename DateType>
+DateTime<DateType>& DateTime<DateType>::operator+=(const math::units::Seconds& seconds)
+{
+    return *this = *this + seconds;
+}
+
+template <typename DateType>
+DateTime<DateType>& DateTime<DateType>::operator+=(const DateTime<DateType>& other)
+{
+    return *this = *this + other;
+}
+
+template <typename DateType>
+DateTime<DateType> DateTime<DateType>::operator-(const math::units::Seconds& seconds) const
+{
+    return *this + (-seconds);
+}
+
+template <typename DateType>
+DateTime<DateType>& DateTime<DateType>::operator-=(const math::units::Seconds& seconds)
+{
+    return *this = *this - seconds;
+}
+
+template <typename DateType>
+DateTime<DateType>& DateTime<DateType>::operator-=(const DateTime<DateType>& other)
+{
+    return *this = *this - other;
+}
+
+template <typename DateType>
 void DateTime<DateType>::normalize()
 {
     // Normalize the second of day input (decrement).

@@ -27,3 +27,4 @@
  **********************************************************************************************************************/
 
 #include <LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_cpf.h>
+#include <LibDegorasSLR/UtilitiesSLR/utils/pass_calculator.h>

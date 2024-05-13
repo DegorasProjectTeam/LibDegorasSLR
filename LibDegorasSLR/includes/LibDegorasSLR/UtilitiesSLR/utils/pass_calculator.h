@@ -81,13 +81,18 @@ class LIBDPSLR_EXPORT PassCalculator
 {
 public:
 
+    /**
+     * @brief ResultCode enum represents the possible results of the operations performed by this class.
+     */
     enum ResultCode
     {
-        NOT_ERROR,
-        PREDICTOR_NOT_VALID,
-        INTERVAL_OUTSIDE_OF_PREDICTOR,
-        SOME_PREDICTIONS_NOT_VALID,
-        OTHER_ERROR
+        NOT_ERROR,                          ///< There was no error.
+        PREDICTOR_NOT_VALID,                ///< The predictor is not ready, so it cannot be used.
+        INTERVAL_OUTSIDE_OF_PREDICTOR,      ///< Requested interval for pass search is outside of predictor window.
+        TIME_OUTSIDE_OF_PREDICTOR,          ///< Requested time for next pass search is outside of predictor window.
+        SOME_PREDICTIONS_NOT_VALID,         ///< There was some errors at predictions.
+        NO_NEXT_PASS_FOUND,                 ///< There is no next pass after given datetime.
+        OTHER_ERROR                         ///< Other errors.
 
     };
 
@@ -126,12 +131,28 @@ public:
      * @brief Get passes within the given interval of time.
      * @param mjd_start the modified julian date of interval start.
      * @param mjd_end the modified julian date of interval end.
-     * @param passes the returned passes.
+     * @param passes the returned passes, or empty if no pass was found.
      * @return The result of the operation.
      */
     ResultCode getPasses(const timing::dates::MJDateTime &mjd_start,
                           const timing::dates::MJDateTime &mjd_end,
                           std::vector<Pass> &passes) const;
+
+    /**
+     * @brief Get the next pass, starting from mjd_start datetime. If this datetime is already inside a pass, then
+     *        this pass will be returned.
+     * @param mjd_start, the datetime to start lookig for next pass.
+     * @param pass, the data of the pass. This data is not valid if returned code is different from NOT_ERROR.
+     * @return The result of the operation. If the result is different from NOT_ERROR, pass data is not valid.
+     */
+    ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, Pass &pass) const;
+
+    /**
+     * @brief Checks is a given time is inside a pass.
+     * @param mjd, the MJ datetime to check.
+     * @return true if the datetime is inside of a pass, false if there was some error or the datetime is not inside a pass.
+     */
+    bool isInsidePass(const timing::dates::MJDateTime &mjd) const;
 
 
 private:

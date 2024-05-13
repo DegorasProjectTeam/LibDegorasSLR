@@ -67,17 +67,18 @@ math::units::Seconds PassCalculator::interval() const
 }
 
 PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDateTime &mjd_start,
-                                                      const timing::dates::MJDateTime &mjd_end,
-                                                      std::vector<Pass> &passes) const
+                                                     const timing::dates::MJDateTime &mjd_end,
+                                                     std::vector<Pass> &passes) const
 {
     // Clear passes vector
     passes.clear();
 
-    // Check if predictor is valid and has data for the time window.
-    if (this->predictor_->isReady())
+    // Check if predictor is valid.
+    if (!this->predictor_->isReady())
         return ResultCode::PREDICTOR_NOT_VALID;
 
-    if (this->predictor_->isInsideTimeWindow(mjd_start, mjd_end))
+    // Check if time interval is inside valid prediction window.
+    if (!this->predictor_->isInsideTimeWindow(mjd_start, mjd_end))
         return ResultCode::INTERVAL_OUTSIDE_OF_PREDICTOR;
 
     // Calculate all the predictions.
@@ -137,6 +138,150 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
     }
 
     return PassCalculator::ResultCode::NOT_ERROR;
+}
+
+PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDateTime &mjd_start, Pass &pass) const
+{
+    // Clear passes vector
+    pass = {};
+
+    // Check if predictor is valid.
+    if (!this->predictor_->isReady())
+        return ResultCode::PREDICTOR_NOT_VALID;
+
+    // Check if time is inside valid prediction window.
+    if (!this->predictor_->isInsideTime(mjd_start))
+        return ResultCode::TIME_OUTSIDE_OF_PREDICTOR;
+
+    timing::dates::MJDateTime mjdt_start_window, mjdt_end_window;
+    this->predictor_->getTimeWindow(mjdt_start_window, mjdt_end_window);
+
+    // Calculate all the predictions.
+    predictors::PredictionSLR pred;
+    auto pred_error = this->predictor_->predict(mjd_start, pred);
+
+    if (0 != pred_error)
+        return ResultCode::SOME_PREDICTIONS_NOT_VALID;
+
+    // Auxiliary variables.
+    bool pass_started = pred.instant_data->altaz_coord.el >= this->min_elev_;
+    pass.interval = this->interval_;
+    pass.min_elev = this->min_elev_;
+    std::vector<Pass::Step>& steps = pass.steps;
+    timing::dates::MJDateTime mjdt;
+
+    if (pass_started)
+    {
+        // Insert start time position, since it is inside pass
+        steps.push_back({mjdt, pred.instant_data->altaz_coord.az, pred.instant_data->altaz_coord.el, 0, 0});
+
+        // Look for the start of the pass going backwards from start.
+        mjdt = mjd_start - this->interval_;
+        do
+        {
+            pred_error = this->predictor_->predict(mjdt, pred);
+            if (0 != pred_error)
+            {
+                pass = {};
+                return ResultCode::SOME_PREDICTIONS_NOT_VALID;
+            }
+            // Store pass step.
+            steps.push_back({mjdt, pred.instant_data->altaz_coord.az, pred.instant_data->altaz_coord.el, 0, 0});
+            mjdt -= this->interval_;
+        } while (pred.instant_data->altaz_coord.el >= this->min_elev_ && mjdt >= mjdt_start_window);
+
+        // If the whole pass is inside the predictor time window.
+        if (mjdt >= mjdt_start_window)
+        {
+            // Delete last element, since it is outside of pass
+            steps.pop_back();
+        }
+
+        // Put elements in chronological order.
+        std::reverse(steps.begin(), steps.end());
+
+        // Set time to position after start, to look for the end of the pass.
+        mjdt = mjd_start + this->interval_;
+
+    }
+    else
+    {
+        // Look for the start of the pass going forward from start.
+        mjdt = mjd_start + this->interval_;
+        do
+        {
+            pred_error = this->predictor_->predict(mjdt, pred);
+            if (0 != pred_error)
+            {
+                pass = {};
+                return ResultCode::SOME_PREDICTIONS_NOT_VALID;
+            }
+            mjdt += this->interval_;
+        } while (pred.instant_data->altaz_coord.el < this->min_elev_ && mjdt <= mjdt_end_window);
+
+        // If end of predictor time window has not been reached, start was found. Otherwise return with no pass error.
+        if (mjdt <= mjdt_end_window)
+        {
+            // Store pass step.
+            steps.push_back({mjdt - this->interval_, pred.instant_data->altaz_coord.az,
+                             pred.instant_data->altaz_coord.el, 0, 0});
+        }
+        else
+        {
+            pass = {};
+            return ResultCode::NO_NEXT_PASS_FOUND;
+        }
+    }
+
+    // Look for the end of the pass.
+    do
+    {
+        pred_error = this->predictor_->predict(mjdt, pred);
+        if (0 != pred_error)
+        {
+            pass = {};
+            return ResultCode::SOME_PREDICTIONS_NOT_VALID;
+        }
+        // Store pass step.
+        steps.push_back({mjdt, pred.instant_data->altaz_coord.az, pred.instant_data->altaz_coord.el, 0, 0});
+        mjdt += this->interval_;
+    } while (pred.instant_data->altaz_coord.el >= this->min_elev_ && mjdt <= mjdt_end_window);
+
+
+    // If the whole pass is inside the predictor time window.
+    if (mjdt <= mjdt_end_window)
+    {
+        // Delete last element, since it is outside of pass
+        steps.pop_back();
+    }
+
+
+    // Update az and el rate.
+    for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)
+    {
+        it->azim_rate = (it->azim - (it - 1)->azim) / this->interval_;
+        it->elev_rate = (it->elev - (it - 1)->elev) / this->interval_;
+    }
+
+    return PassCalculator::ResultCode::NOT_ERROR;
+}
+
+bool PassCalculator::isInsidePass(const timing::dates::MJDateTime &mjd) const
+{
+    // If predictor is not valid or time is outside of prediction time window, return false.
+    if (!this->predictor_->isReady() || !this->predictor_->isInsideTime(mjd))
+        return false;
+
+    // Calculate all the predictions.
+    predictors::PredictionSLR pred;
+    auto pred_error = this->predictor_->predict(mjd, pred);
+
+    // If there was an error at prediction, return false.
+    if (0 != pred_error)
+        return false;
+
+    // Return true if elevation of position is above minimum. False otherwise.
+    return pred.instant_data->altaz_coord.el >= this->min_elev_;
 }
 
 }}} // END NAMESPACES.

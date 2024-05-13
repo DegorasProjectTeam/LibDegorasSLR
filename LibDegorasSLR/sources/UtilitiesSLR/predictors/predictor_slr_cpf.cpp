@@ -543,6 +543,8 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
 void PredictorSlrCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
 {
+    // TODO: maybe this should return the real valid time window, avoiding the time lapse where the interpolation
+    // returns not in the middle error.
     if (this->isReady())
     {
         this->cpf_.getAvailableTimeWindow(start, end);

@@ -129,6 +129,18 @@ bool PredictorSlrBase::isInsideTimeWindow(const MJDateTime& start, const MJDateT
     return start >= predict_mjd_start && end <= predict_mjd_end;
 }
 
+bool PredictorSlrBase::isInsideTime(const timing::dates::MJDateTime &time) const
+{
+    // Auxiliar.
+    MJDateTime predict_mjd_start, predict_mjd_end;
+
+    // Get the predict time window.
+    this->getTimeWindow(predict_mjd_start, predict_mjd_end);
+
+    // Check if requested time is inside predict time window
+    return time >= predict_mjd_start && time <= predict_mjd_end;
+}
+
 PredictionSLRV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJDateTime &mjdt_end,
                                          const Milliseconds &step) const
 {

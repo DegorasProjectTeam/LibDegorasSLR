@@ -102,7 +102,7 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
     # List of basic tests.
     file(GLOB_RECURSE TESTS_SOURCES RELATIVE "${tests_sources_path}" "${tests_sources_path}/*.cpp")
 
-    # For simple test we will avoit the include the external resources.
+    # For simple test we will avoid the include the external resources.
     set(EXTERN)
 
     # Filter out ignored paths.
@@ -151,7 +151,7 @@ MACRO(macro_setup_lib_basic_unit_tests tests_sources_path install_path ignore_pa
                                         ${install_path})
 
         # Install the runtime dependencies.
-        macro_install_runtime_deps("${EXAMPLE_NAME}"
+        macro_install_runtime_deps("${TEST_NAME}"
                                    "${MODULES_GLOBAL_MAIN_DEP_SET_NAME}"
                                    "${ext_libs_loc}"
                                    "${install_path}"

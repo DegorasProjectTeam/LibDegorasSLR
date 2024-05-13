@@ -241,6 +241,13 @@ public:
     bool isInsideTimeWindow(const timing::dates::MJDateTime& start, const timing::dates::MJDateTime& end) const;
 
     /**
+     * @brief Checks if given time is inside the valid prediction range.
+     * @param time, the time to check if it is inside time window.
+     * @return true if the time is inside, false otherwise.
+     */
+    bool isInsideTime(const timing::dates::MJDateTime& time) const;
+
+    /**
      * @brief Interpolates position at requested instant.
      * @param mjdt, the modified julian datetime of the instant to be interpolated.
      * @param result, the result of the prediction.

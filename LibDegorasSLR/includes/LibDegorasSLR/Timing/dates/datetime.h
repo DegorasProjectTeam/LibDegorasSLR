@@ -150,6 +150,16 @@ public:
 
     DateTime operator+(const math::units::Seconds& seconds) const;
 
+    DateTime& operator+=(const math::units::Seconds& seconds);
+
+    DateTime& operator+=(const DateTime& other);
+
+    DateTime operator-(const math::units::Seconds& seconds) const;
+
+    DateTime& operator-=(const math::units::Seconds& seconds);
+
+    DateTime& operator-=(const DateTime& other);
+
     static std::vector<DateTime> linspaceStep(const DateTime& start,  const DateTime& end,
                                               const math::units::Seconds& step);
 
