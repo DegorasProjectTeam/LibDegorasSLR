@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the template implementation of several functions related with data fitting.
  * @copyright EUPL License
- * @version 2306.1
+ 2306.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -35,19 +35,19 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <vector>
 #include <cmath>
 #include <numeric>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
 #include "LibDegorasSLR/Statistics/measures.h"
 #include "LibDegorasSLR/Mathematics/types/matrix.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
-#include "LibDegorasSLR/Helpers/types/type_traits.h"
+#include "LibDegorasSLR/Helpers/type_traits.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -64,10 +64,7 @@ using math::types::Vector3D;
 // ---------------------------------------------------------------------------------------------------------------------
 
 template <typename T, typename U>
-typename std::enable_if_t<
-    (std::is_floating_point_v<T> || helpers::types::is_strong_float<T>::value) &&
-    (std::is_floating_point_v<U> || helpers::types::is_strong_float<U>::value),
-    LagrangeError>
+typename std::enable_if_t<helpers::traits::both_floating_v<T,U>, types::LagrangeError>
 lagrangeInterpol(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, const T& x_interp,
                  std::vector<U>& y_interp)
 {
@@ -112,7 +109,7 @@ lagrangeInterpol(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, c
         // Apply Lagrange polynomial interpolation to all variables in Y.
         for (unsigned i = first_point; i <= first_point + degree; i++)
         {
-            std::common_type_t<T,U> pj=1.0;
+            long double pj= 1.0L;
             for(unsigned j = first_point; j <= first_point + degree; j++)
             {
                 if (j != i) pj*=(x_interp-x[j])/(x[i]-x[j]);
@@ -133,10 +130,7 @@ lagrangeInterpol(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, c
 }
 
 template <typename T, typename U>
-typename std::enable_if_t<
-    (std::is_floating_point_v<T> || helpers::types::is_strong_float<T>::value) &&
-    (std::is_floating_point_v<U> || helpers::types::is_strong_float<U>::value),
-    LagrangeError>
+typename std::enable_if_t<helpers::traits::both_floating_v<T,U>, types::LagrangeError>
 lagrangeInterpol3DVec(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, const T& x_interp,
                       Vector3D<U>& y_interp)
 {
@@ -163,7 +157,7 @@ std::vector<Ret> robustBisquareWeights(const std::vector<T>& x, const std::vecto
     long double mad = median(resids_abs);
     // For the standard normal E(MAD)=0.6745
     long double s = mad/0.6745L;
-    long double Ks = K*s;
+    long double Ks = static_cast<long double>(K)*s;
     std::vector<T> u;
     std::vector<Ret> w;
 

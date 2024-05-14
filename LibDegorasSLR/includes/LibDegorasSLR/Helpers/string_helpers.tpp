@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -27,7 +31,7 @@
  * @brief This file contains the template functions related with the string helper tools.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -35,7 +39,7 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <iostream>
 #include <string>
 #include <limits>
@@ -44,10 +48,8 @@
 #include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/types/numeric_strong_type.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -97,7 +99,7 @@ Container split (const std::string& s, const std::string& delimiters, bool empti
 }
 
 template<typename T>
-std::string numberToFixstr(T x, unsigned int prec)
+std::string numberToFixStr(T x, unsigned int prec)
 {
     std::ostringstream strout ;
     strout << std::showpoint << std::setprecision(prec) << x ;
@@ -134,10 +136,6 @@ std::string numberToStr(T x, unsigned int prec, unsigned int dec_places, bool fi
 template<typename T>
 std::string numberToMaxDecStr(const T& x)
 {
-    // Check that the number is a float.
-    static_assert(types::is_numeric_strong_type<T>::value ?
-                          helpers::types::is_strong_float<T>::value : std::is_floating_point_v<T>,
-                  "[LibDegorasBase,Helpers,numberToMaxDecStr] T must be a floating-point type.");
     // Container.
     std::ostringstream strout;
     // Set precision to maximum possible for the type

@@ -31,14 +31,14 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of several functions related with data fitting.
  * @copyright EUPL License
- * @version 2306.1
+ 2306.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Statistics/types/statistics_types.h"
 #include "LibDegorasSLR/Mathematics/types/matrix.h"
@@ -50,11 +50,6 @@
 namespace dpslr{
 namespace stats{
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-using math::types::Matrix;
-using math::types::Vector3D;
-// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Performs Lagrange polynomial interpolation on the given data points and degree.
@@ -73,20 +68,14 @@ using math::types::Vector3D;
  * @return The LagrangeError indicating the result of the interpolation.
  */
 template <typename T, typename U>
-typename std::enable_if_t<
-    (std::is_floating_point_v<T> || helpers::types::is_strong_float<T>::value) &&
-        (std::is_floating_point_v<U> || helpers::types::is_strong_float<U>::value),
-    types::LagrangeError>
-lagrangeInterpol(const std::vector<T>& x, const Matrix<U>& Y, unsigned degree, const T& x_interp,
-                 std::vector<U>& y_interp);
+typename std::enable_if_t<helpers::traits::both_floating_v<T,U>, types::LagrangeError>
+lagrangeInterpol(const std::vector<T>& x, const math::types::Matrix<U>& Y, unsigned degree,
+                 const T& x_interp, std::vector<U>& y_interp);
 
 template <typename T, typename U>
-typename std::enable_if_t<
-    (std::is_floating_point_v<T> || helpers::types::is_strong_float<T>::value) &&
-    (std::is_floating_point_v<U> || helpers::types::is_strong_float<U>::value),
-    types::LagrangeError>
-lagrangeInterpol3DVec(const std::vector<T>& x, const Matrix<T>& Y, unsigned degree, const T& x_interp,
-                      Vector3D<U>& y_interp);
+typename std::enable_if_t<helpers::traits::both_floating_v<T,U>, types::LagrangeError>
+lagrangeInterpol3DVec(const std::vector<T>& x, const math::types::Matrix<U>& Y, unsigned degree,
+                      const T& x_interp, math::types::Vector3D<U>& y_interp);
 
 /**
  * @brief Computes the robust bisquare weights (Tukey bisquare) for robust regression or outlier detection.
@@ -110,11 +99,11 @@ std::vector<Ret> robustBisquareWeights(const std::vector<T>& x, const std::vecto
 
 /**
  * @brief Gets the polynomial fit coefficients for x,y.
- * @param x, a vector with the independent variable values.
- * @param y, a vector with the dependent variable values. It must have the same size as x.
- * @param degree, the degree of the polynomial fit
- * @param w, a vector with the weights applied to each observation. It must be empty or have the same size as x.
- * @param robust, the robust fit method selected
+ * @param x A vector with the independent variable values.
+ * @param y A vector with the dependent variable values. It must have the same size as x.
+ * @param degree The degree of the polynomial fit
+ * @param w A vector with the weights applied to each observation. It must be empty or have the same size as x.
+ * @param robust The robust fit method selected
  * @return The coefficients of the polynomial fit for x and x, or empty vector if x and x sizes are not equal.
  *         The order of the coefficients in the returned vector is c[0] + c[1] * x + c[2] * x^2 + ... + c[n] * x^n.
  */
@@ -125,8 +114,8 @@ std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y,
 
 /**
  * @brief Resolve for @param x the polynomial given by its coefficients in @param coefs.
- * @param coefs, the coefficients of the polynomial: coefs[0] + coefs[1] * x + cofes[2] * x^2 + ... + coefs[n] * x^n
- * @param x, the independent variable for resolving the polynomial.
+ * @param coefs The coefficients of the polynomial: coefs[0] + coefs[1] * x + cofes[2] * x^2 + ... + coefs[n] * x^n
+ * @param x The independent variable for resolving the polynomial.
  * @return The solution of the polynomial: coefs[0] + coefs[1] * x + cofes[2] * x^2 + ... + coefs[n] * x^n.
  *         If @param coefs is empty, returns 0.
  */
@@ -136,9 +125,9 @@ T applyPolynomial(const std::vector<T>& coefs, T x);
 
 /**
  * @brief Removes polynomial trend from the data in y.
- * @param x, a vector with the independent variable values.
- * @param y, a vector with the dependent variable values. It must have the same size as x.
- * @param degree, the degree of the polynomial fit using for detrend.
+ * @param x A vector with the independent variable values.
+ * @param y A vector with the dependent variable values. It must have the same size as x.
+ * @param degree The degree of the polynomial fit using for detrend.
  * @return The data with the trend removed.
  * @note When degree = 1, detrend removes the linear trend.
  */
@@ -147,11 +136,11 @@ std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y, unsig
 
 /**
  * @brief Removes polynomial trend from the data in y, using xinterp, yinterp to form the polynomial fit
- * @param x, a vector with the independent variable values.
- * @param y, a vector with the dependent variable values. It must have the same size as x.
- * @param xinterp, a vector with the independent variable for polynomial fit.
- * @param yinterp, a vector with the dependent variable for polynomial fit. It must have the same size as xinterp.
- * @param degree, the degree of the polynomial fit using for detrend.
+ * @param x A vector with the independent variable values.
+ * @param y A vector with the dependent variable values. It must have the same size as x.
+ * @param xinterp A vector with the independent variable for polynomial fit.
+ * @param yinterp A vector with the dependent variable for polynomial fit. It must have the same size as xinterp.
+ * @param degree The degree of the polynomial fit using for detrend.
  * @return The data with the trend removed.
  * @note When degree = 1, detrend removes the linear trend.
  */

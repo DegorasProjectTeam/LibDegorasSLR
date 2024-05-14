@@ -31,128 +31,96 @@
  * @author Degoras Project Team.
  * @brief This file contains the definition of the PredictorMountSLR class.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
 #pragma once
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/TrackingMount/predictors/data/mount_tracking_slr.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_cpf.h"
+#include "LibDegorasSLR/Timing/dates/datetime_types.h"
+#include "LibDegorasSLR/TrackingMount/predictors/data/prediction_mount_slr.h"
+#include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
-#include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
-#include "LibDegorasSLR/TrackingMount/types/tracking_types.h"
-#include "LibDegorasSLR/TrackingMount/types/tracking_analyzer.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
 // =====================================================================================================================
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <memory>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace mount{
+namespace predictors{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::HRTimePointStd;
-using timing::types::MJDateTime;
-using timing::types::MJDate;
-using timing::types::SoD;
-using astro::PredictorSunBase;
-using astro::PredictorSunPtr;
-using astro::types::AltAzPos;
-using astro::types::AltAzPosV;
-using math::units::DegreesU;
-using math::units::Degrees;
-using math::units::MillisecondsU;
-using math::units::Meters;
-using utils::PredictorSlrBase;
-using utils::PredictorSlrPtr;
-using utils::PredictionSLR;
-using utils::PredictionSLRV;
-using astro::PredictionSun;
-using astro::PredictionSunV;
-using ilrs::cpf::CPF;
-// ---------------------------------------------------------------------------------------------------------------------
-
-// la elevacion minima deberia de coincidir con la que se use para generar las predicciones
-// para evitar incongruencias, aunque nunca llevaría a un estado de error.
-
-// Este sistema no analiza los limites físicos de la montura de seguimiento. En SFEl, la montura AMELAS tiene
-// capacidad independiente de cálculo, y es la encargada de realizar internamente una modificación de la trayectoria
-// si el pase es demasiado alto o demasiado rápido. En otros sistemas, este cálculo específico debe de ser realizado
-// independientemente con otro subsistema dedicado una vez realizada la predicción con esta clase.
-
-// TRACKING SLR VS PassCalculatorSLR
-// TrackingSLR está pensado para un unico track. La idea es que pass calculator tiene capacidad de calcular todos
-// los pases (o los que se requieran) a partir de un CPF y sacar las características del mismo. En este caso, los
-// datos serían los reales respecto al pase. TrackingSLR lo que permite es modificar estos datos y generar una
-// nueva clase TrackSLR (diferente de PassSLR pero que contiene tambien el original) en la que el pase pueda verse
-// modificado por distintas cuestiones, siempre desde el punto de vista de la seguridad o mécanico de la montura.
-// Inicialmente, solo tendremos en cuenta el Sol y limites de altura, pero en el futuro puede añadirse nuevos
-// parámetros como la máxima velocidad del pase.
-
-// inicio > final
-// El intervalo se encuentra dentro del CPF (predictor). Validar predictor respecto a intervalos.
-// Comprobar que existe un pase (la elevacion es en todo momento > minimo).
-//
-// TODO Se podrian añadir en un futuro limites mecánicos para que el sistema ajuste automáticamente velocidades,
-// alturas, etc.
-
 /**
- * @brief The TrackingSLR class implements an abstraction for a SLR tracking.
+ * @brief The PredictorMountSLR class implements a mount predictor for SLR trackings. This predictor calculates the
+ * mount position at each timestamp within a valid SLR tracking, controlling the elevation limits and the existence of
+ * sectors where the tracking passes through the sun, giving an alternative way if requested.
  *
- * This class uses a PredictorSLR to look for a SLR tracking within the given time window, i.e., the object is
- * always above the minimum elevation.
- *
- * This class also offers a sun avoidance algorithm. This algorithm changes the tracking trajectory whenever it passes
- * through a circular sector around the sun (the sun security sector). There are other checkings performed to the
- * tracking by this class. Before using the tracking you should check whether the tracking is valid or not.
- *
+ * @todo Checking other limits, like speed
  */
 class LIBDPSLR_EXPORT PredictorMountSLR
 {
 public:
 
-    PredictorMountSLR(const MJDateTime& pass_start, const MJDateTime& pass_end, PredictorSlrPtr pred_slr,
-                      PredictorSunPtr pred_sun, const TrackingAnalyzerConfig &config);
-
+    /**
+     * @brief PredictorMountSLR constructor.
+     * @param pass_start The modified julian datetime for pass start.
+     * @param pass_end The modified julian datetime for pass end.
+     * @param pred_slr The SLR predictor to be used for SLR object predictions.
+     * @param pred_sun The sun predictor to be used for sun position predictions.
+     * @param config The configuration parameters for the tracking analysis.
+     */
+    PredictorMountSLR(const timing::dates::MJDateTime& pass_start, const timing::dates::MJDateTime& pass_end,
+                      slr::predictors::PredictorSlrPtr pred_slr, astro::predictors::PredictorSunPtr pred_sun,
+                      const utils::MovementAnalyzerConfig &config, math::units::MillisecondsU time_delta = 1000);
+    /**
+     * @brief PredictorMountSLR constructor.
+     * @param pass_start The modified julian datetime for pass start.
+     * @param pass_end The modified julian datetime for pass end.
+     * @param pred_slr The SLR predictor to be used for SLR object predictions.
+     * @param pred_sun The sun predictor to be used for sun position predictions.
+     * @param config The configuration parameters for the tracking analysis.
+     */
+    PredictorMountSLR(const timing::types::HRTimePointStd& pass_start, const timing::types::HRTimePointStd& pass_end,
+                      slr::predictors::PredictorSlrPtr pred_slr, astro::predictors::PredictorSunPtr pred_sun,
+                      const utils::MovementAnalyzerConfig &config, math::units::MillisecondsU time_delta = 1000);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
-     * @return true if there is a valid tracking, false otherwise.
+     * @return True if there is a valid tracking, false otherwise.
      */
     bool isReady() const;
 
+    /**
+     * @brief This function returns the mount tracking information.
+     * @return The struct containing all the info about the mount tracking.
+     */
     const MountTrackingSLR& getMountTrackingSLR() const;
 
     /**
      * @brief This function returns the object's position at a given time.
      * @param tp_time The time point datetime.
-     * @param tracking_result, the returned TrackingResult struct.
-     * @return the result of the operation. Must be checked to ensure the position is valid.
+     * @return The result of the operation. Must be checked to ensure the position is valid.
      *
      * @warning Nanoseconds resolution for the prediction.
      */
-    PositionStatus predict(const timing::HRTimePointStd& tp_time, MountPredictionSLR &tracking_result) const;
+    PredictionMountSLR predict(const timing::types::HRTimePointStd& tp_time) const;
 
     /**
      * @brief This function returns the object's position at a given time.
-     * @param mjd, the MJD in days.
-     * @param tracking_result, the returned TrackingResult struct.
-     * @return the result of the operation. Must be checked to ensure the position is valid.
+     * @param mjd The modified julian datetime.
+     * @return The result of the operation. Must be checked to ensure the position is valid.
      */
-    PositionStatus predict(const MJDateTime &mjd, MountPredictionSLR &tracking_result) const;
+    PredictionMountSLR predict(const timing::dates::MJDateTime &mjd) const;
 
 private:
 
@@ -163,9 +131,10 @@ private:
 
 
     // Private members.
-    MountTrackingSLR mount_track_;                     ///< Mount track analyzed data.
-    TrackingAnalyzer tr_analyzer_;
+    MountTrackingSLR mount_track_;             ///< Mount track analyzed data.
+    utils::MovementAnalyzer tr_analyzer_;      ///< Tracking analyzer used.
+    math::units::MillisecondsU time_delta_;     ///< Time delta for analysis.
 };
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

@@ -1,11 +1,15 @@
 /***********************************************************************************************************************
- *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
+ *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
  *                                                                                                                     *
- *   Copyright (C) 2023 Degoras Project Team                                                                           *
+ *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
+ *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
+ *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
+ *                                                                                                                     *
+ *   Copyright (C) 2024 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDPSLR.                                                                                    *
+ *   This file is part of LibDegorasSLR.                                                                               *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -27,7 +31,7 @@
  * @brief This file contains the declarations of the mathematical class Matrix.
  * @author Degoras Project Team
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -35,7 +39,7 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <string>
 #include <vector>
 #include <cstddef>
@@ -46,11 +50,13 @@
 #include <string.h>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/Mathematics/units/strong_units.h"
+#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
+#include "LibDegorasSLR/Helpers/type_traits.h"
+#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/libdegorasslr_init.h"
-#include "LibDegorasSLR/Helpers/types/type_traits.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -59,7 +65,6 @@ namespace dpslr{
 namespace math{
 namespace types{
 // =====================================================================================================================
-
 
 /**
  * @class Matrix
@@ -71,35 +76,13 @@ class LIBDPSLR_EXPORT Matrix
 {
 public:
 
-    /**
-     * @brief Default constructor.
-     */
-    Matrix() = default;
-
-    /**
-     * @brief Copy constructor.
-     * @param other The matrix to copy.
-     */
-    Matrix(const Matrix<T>& other) = default;
-
-    /**
-     * @brief Move constructor.
-     * @param other The matrix to move.
-     */
-    Matrix(Matrix<T>&& other) = default;
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(Matrix)
 
     /**
      * @brief Construct a matrix from an initializer list.
      * @param list The initializer list containing the matrix elements.
      */
-    Matrix(const std::initializer_list<std::initializer_list<T>>& list)
-    {
-        std::vector<std::vector<T>> data;
-        data.reserve(list.size());
-        for (const auto& row : list)
-            data.emplace_back(row.begin(), row.end());
-        this->setDataFromContainer(data);
-    }
+    Matrix(const std::initializer_list<std::initializer_list<T>>& list);
 
     /**
      * @brief Constructor with row and column size and all elements initializated to a specified value.
@@ -107,74 +90,35 @@ public:
      * @param col_size The number of columns in the matrix.
      * @param value The initial value for all elements (default is T()).
      */
-    Matrix(std::size_t row_size, std::size_t col_size, T value = T()) :
-        data_(row_size, std::vector<T>(col_size, value)) {}
-
-    /**
-     * @brief Destructor.
-     */
-    ~Matrix() = default;
-
-    /**
-     * @brief Copy assignment operator.
-     * @param other The matrix to assign.
-     * @return The assigned matrix.
-     */
-    Matrix& operator=(const Matrix<T>& other) = default;
+    Matrix(std::size_t row_size, std::size_t col_size, T value = T());
 
     /**
      * @brief Removes all elements from the matrix, resulting in an empty matrix.
      */
-    inline void clear() {data_.clear();}
+    void clear();
 
     /**
      * @brief Sets the size of the matrix and fills all elements with the specified value.
      * @param row_size The number of rows in the matrix.
      * @param col_size The number of columns in the matrix.
-     * @param value The value to fill the matrix with (default is T()).
+     * @param value The value to fill the matrix with.
      */
-    inline void fill(std::size_t row_size, std::size_t col_size, T value = T())
-    {
-        this->data_.clear();
-        this->data_.insert(data_.begin(), row_size, std::vector<T>(col_size, value));
-    }
+    void fill(std::size_t row_size, std::size_t col_size, T value = T());
 
-    inline void fill(T value = T())
-    {
-        std::size_t r_size = this->rowSize();
-        std::size_t c_size = this->columnsSize();
+    /**
+     * @brief Fill all the current matrix space with the specified value.
+     * @param value The value to fill the matrix with.
+     */
+    void fill(T value = T());
 
-        this->data_.clear();
-        this->data_.insert(data_.begin(), r_size, std::vector<T>(c_size, value));
-    }
-
+    /**
+     * @brief Fill the matrix with the contents of a container.
+     * @param container The container ith the values to fill the matrix with.
+     *        This must have a matrix form, i.e., container of containers, with a proper size.
+     * @return True if matrix was filled successfully, false otherwise.
+     */
     template<typename Container>
-    bool setDataFromContainer(const Container& container)
-    {
-        bool result = false;
-
-        if (container.size() > 0)
-        {
-            // Check if every column has the same size, otherwise, the matrix is ill-formed
-            std::size_t col_size = container[0].size();
-            bool valid_column_size = true;
-            std::size_t i = 1;
-            while(i < container.size() && valid_column_size)
-            {
-                valid_column_size = container[i].size() == col_size;
-                i++;
-            }
-            if (valid_column_size)
-            {
-                this->data_.clear();
-                this->data_.reserve(container.size());
-                for (const auto& row : container)
-                    this->data_.emplace_back(row.begin(), row.end());
-                result = true;
-            }
-        }
-        return result;
-    }
+    bool setDataFromContainer(const Container& container);
 
 
     /**
@@ -186,45 +130,40 @@ public:
      * @pre `col_index` must be a valid column index (i.e., less than `columnsSize()`).
      * @pre The size of `column` must be equal to `rowSize()`.
      */
-    void setColumn(std::size_t col_index, const std::vector<T>& column)
-    {
-        assert(col_index < this->columnsSize());
-        assert(column.size() == this->rowSize());
+    void setColumn(std::size_t col_index, const std::vector<T>& column);
 
-        for (std::size_t i = 0; i < this->rowSize(); ++i)
-            this->data_[i][col_index] = column[i];
-    }
-
+    /**
+     * @brief Push back a new row in the matrix, increasing the row number by one. The row must have the same column
+     *        size as the matrix.
+     * @param row The row to push back to the matrix.
+     * @return True if row was successfully pushed back, false otherwise.
+     */
     template <typename Container>
-    bool pushBackRow(const Container& row)
-    {
-        bool size_correct = row.size() == this->columnsSize() || this->columnsSize() == 0;
-        if (size_correct)
-        {
-            this->data_.push_back(std::vector<T>(row.size()));
-            std::copy(row.begin(), row.end(), this->data_.back().begin());
-        }
-        return  size_correct;
-    }
+    bool pushBackRow(const Container& row);
 
-    inline std::size_t columnsSize() const { return this->data_.size() == 0 ? 0 : this->data_[0].size(); }
+    /**
+     * @brief Get current columns size of the matrix.
+     * @return The columns size of the matrix.
+     */
+    std::size_t columnsSize() const;
 
-    inline std::size_t rowSize() const { return this->data_.size(); }
+    /**
+     * @brief Get current rows size of the matrix.
+     * @return The rows size of the matrix.
+     */
+    std::size_t rowSize() const;
 
     /**
      * @brief Checks if the matrix is square.
      * @return True if the matrix is square, false otherwise.
      */
-    bool isSquare() const
-    {
-        return this->rowSize() == this->columnsSize();
-    }
+    bool isSquare() const;
 
-    bool isEmpty() const
-    {
-        return this->data_.empty();
-    }
-
+    /**
+     * @brief Checks if the matrix is empty.
+     * @return True if the matrix is empty, false otherwise.
+     */
+    bool isEmpty() const;
     /**
      * @brief Check if the matrix is an identity matrix.
      *
@@ -233,440 +172,254 @@ public:
      *
      * @return True if the matrix is an identity matrix, False otherwise.
      */
-    bool isIdentity() const
-    {
-        // Check if the matrix is square
-        if(!this->isSquare())
-            return false;
+    std::enable_if_t<helpers::traits::is_numeric_v<T>, bool>
+    isIdentity() const;
 
-        // Auxiliar result.
-        bool identity = true;
+    /**
+     * @brief Access operator that gives access to the row vector specified by index.
+     * @param row_index The index of the row returned.
+     * @return The row specified by index.
+     * @warning This operator is unsafe. Index must be checked before using it.
+     */
+    std::vector<T>& operator[] (std::size_t row_index);
 
-        // Check if the diagonal elements are 1 and all other elements are 0
-        for (size_t i = 0; i < this->rowSize() && identity; i++)
-            for (size_t j = 0; j < this->columnsSize(); j++)
-            {
-                if (i == j && this->data_[i][j] != 1.0)
-                        identity = false;
-                else if (i != j && this->data_[i][j] != 0.0)
-                        identity = false;
-            }
+    /**
+     * @brief Access operator that gives access to the row vector specified by index. Constant override.
+     * @param row_index The index of the row returned.
+     * @return The row specified by index.
+     * @warning This operator is unsafe. Index must be checked before using it.
+     */
+    const std::vector<T>& operator[] (std::size_t row_index) const;
 
-        // Return the result.
-        return identity;
-    }
+    /**
+     * @brief Element access operator that gives access to the element specified by indexes. Constant override.
+     * @param row_index The row index of the element.
+     * @param col_index The column index of the element
+     * @return The element specified by the indexes.
+     * @warning This operator is unsafe. Indexes must be checked before using it.
+     */
+    const T& operator()(std::size_t row_index, std::size_t col_index) const;
 
-    inline std::vector<T>& operator[] (std::size_t row_index)  {return this->data_[row_index];}
+    /**
+     * @brief Element access operator that gives access to the element specified by indexes.
+     * @param row_index The row index of the element.
+     * @param col_index The column index of the element
+     * @return The element specified by the indexes.
+     * @warning This operator is unsafe. Indexes must be checked before using it.
+     */
+    T& operator()(std::size_t row_index, std::size_t col_index);
 
-    inline const std::vector<T>& operator[] (std::size_t row_index) const {return this->data_[row_index];}
-
+    // TODO: this versions should throw exception?
     /**
      * @brief Retrieves a specific row of the matrix.
      * @param row_index The index of the row to retrieve.
      * @return The vector representing the requested row.
      */
-    const std::vector<T>& getRow(std::size_t row_index) const
-    {
-        return this->data_[row_index];
-    }
+    const std::vector<T>& getRow(std::size_t row_index) const;
 
     /**
      * @brief Retrieves a specific column of the matrix.
      * @param col_index The index of the column to retrieve.
      * @return The vector representing the requested column.
      */
-    std::vector<T> getColumn(std::size_t col_index) const
-    {
-        std::vector<T> column;
-        for (const auto& row : this->data_)
-            column.push_back(row[col_index]);
-        return column;
-    }
+    std::vector<T> getColumn(std::size_t col_index) const;
 
-    void setElement(std::size_t row_index, std::size_t col_index, int value)
-    {
-        data_[row_index][col_index] = value;
-    }
+    /**
+     * @brief Set element value at the specified position.
+     * @param row_index The row index of the element.
+     * @param col_index The column index of the element.
+     * @param value The value to set to the element.
+     */
+    void setElement(std::size_t row_index, std::size_t col_index, const T &value);
 
-    const T& getElement(std::size_t row_index, std::size_t col_index) const
-    {
-        return this->data_[row_index][col_index];
-    }
+    /**
+     * @brief Get the element value at the specified position.
+     * @param row_index The row index of the element.
+     * @param col_index The column index of the element.
+     */
+    const T& getElement(std::size_t row_index, std::size_t col_index) const;
 
-    const T& operator()(std::size_t row_index, std::size_t col_index) const
-    {
-        return this->data_[row_index][col_index];
-    }
+    /**
+     * @brief Convert matrix to string.
+     * @return A string representing the matrix.
+     */
+    std::string toString() const;
 
-    T& operator()(std::size_t row_index, std::size_t col_index)
-    {
-        return this->data_[row_index][col_index];
-    }
+    /**
+     * @brief Swap two rows of the matrix.
+     * @param r1 The row index of the first row.
+     * @param r2 The row index of the second row.
+     * @return True if swap was successfully done, false otherwise.
+     * @note This function is safe. It will fail if indexes are not valid.
+     */
+    std::enable_if_t<std::is_swappable_v<T>, bool>
+    swapRows(std::size_t r1, std::size_t r2);
 
-    std::string toString() const
-    {
-        std::string str;
-        for (std::size_t j = 0; j < this->columnsSize(); j++)
-        {
-            for (std::size_t i = 0; i < this->rowSize(); i++)
-            {
-                str += std::to_string(this->data_[i][j]) + " ";
-            }
-            str += '\n';
-        }
-        return str;
-    }
-
-    // TODO: ensure T is swappable.
-    bool swapRows(std::size_t r1, std::size_t r2)
-    {
-        bool rows_valid = r1 < this->rowSize() && r1 >= 0 && r2 < this->rowSize() && r2 >= 0;
-        if (rows_valid)
-            std::swap(this->data_[r1], this->data_[r2]);
-        return rows_valid;
-    }
-
-    // TODO: ensure T is swappable.
-    bool swapColumns(std::size_t c1, std::size_t c2)
-    {
-        bool cols_valid = c1 < this->columnsSize() && c1 >= 0 && c2 < this->columnsSize() && c2 >= 0;
-        if (cols_valid)
-            for (const auto& row : this->data_)
-                std::swap(row[c1], row[c2]);
-        return cols_valid;
-    }
+    /**
+     * @brief Swap two columns of the matrix.
+     * @param r1 The column index of the first column.
+     * @param r2 The column index of the second column.
+     * @return True if swap was successfully done, false otherwise.
+     * @note This function is safe. It will fail if indexes are not valid.
+     */
+    std::enable_if_t<std::is_swappable_v<T>, bool>
+    swapColumns(std::size_t c1, std::size_t c2);
 
     /**
      * @brief Transposes the matrix.
      * @return Transposed matrix.
      */
-    Matrix<T> transpose() const
-    {
-        // Create a new matrix with swapped dimensions.
-        Matrix<T> result(this->columnsSize(), this->rowSize(), 0);
-
-        // Transpose elements in parallel using OpenMP.
-        omp_set_num_threads(omp_get_max_threads());
-        #pragma omp parallel
-        {
-            // Get data from omp.
-            const size_t n_th = static_cast<size_t>(omp_get_num_threads());
-            const size_t th_id = static_cast<size_t>(omp_get_thread_num());
-            const size_t block_size = this->rowSize() / n_th;
-            const size_t start_idx = th_id * block_size;
-            const size_t end_idx = (th_id == n_th - 1) ? this->rowSize() : start_idx + block_size;
-
-            // Private transpose.
-            Matrix<T> priv_res(columnsSize(), rowSize(), 0);
-
-            for (size_t i = start_idx; i < end_idx; i++)
-                for (size_t j = 0; j < this->columnsSize(); j++)
-                    priv_res[j][i] = data_[i][j];
-
-            // Update the result.
-            #pragma omp critical
-            {
-                result += priv_res;
-            }
-        }
-
-        // Return the transpose matrix.
-        return result;
-    }
-
-    template<typename U>
-    Matrix<std::common_type_t<T,U>> operator*(const U& scalar) const
-    {
-        using ResultType = std::common_type_t<T, U>;
-        Matrix<ResultType> result(rowSize(), columnsSize());
-
-        #pragma omp parallel for
-        for (size_t i = 0; i < rowSize(); i++)
-        {
-            for (size_t j = 0; j < columnsSize(); j++)
-                result(i, j) = static_cast<ResultType>(this->data_[i][j]) * scalar;
-        }
-
-        return result;
-    }
-
-    template<typename U>
-    typename std::enable_if_t<
-        (std::is_floating_point_v<T> && std::is_floating_point_v<U>) ||
-        (std::is_integral_v<T> && std::is_integral_v<U>) ||
-        (helpers::types::is_strong_integral<T>::value && std::is_integral_v<U>) ||
-        (helpers::types::is_strong_float<T>::value && std::is_floating_point_v<U>) ||
-        (std::is_integral_v<T> && helpers::types::is_strong_integral<U>::value) ||
-        (std::is_floating_point_v<T> && helpers::types::is_strong_float<U>::value),
-        Matrix<T>>
-    operator*(const Matrix<U>& B) const
-    {
-        // Check dimensions.
-        if (this->columnsSize() != B.rowSize())
-            return Matrix<T>();
-
-        // Transpose the rhs matrix for more efficient multiplication.
-        Matrix<U> B_transposed = B.transpose();
-
-        Matrix<T> result(this->rowSize(), B.columnsSize());
-
-        #pragma omp parallel for
-        for (std::size_t i = 0; i < this->rowSize(); ++i)
-        {
-            for (std::size_t j = 0; j < B_transposed.rowSize(); ++j)
-            {
-                long double sum = 0;
-                #pragma omp parallel for reduction(+:sum)
-                for (std::size_t k = 0; k < this->columnsSize(); ++k)
-                {
-                    sum += this->data_[i][k] * B_transposed.getElement(j,k);
-                }
-                result(i, j) = static_cast<T>(sum);
-            }
-        }
-
-        return result;
-    }
-
-    template<typename U>
-    Matrix<T>& operator *=(const Matrix<U>& B)
-    {
-        *this = *this * B;
-        return *this;
-    }
-
-    template<typename U>
-    Matrix<T>& operator *=(const U& scalar)
-    {
-        *this = *this * scalar;
-        return *this;
-    }
-
-    std::pair<Matrix<long double>, std::vector<size_t>> decomposeLU() const
-    {
-        size_t row_s = this->rowSize();
-        size_t col_s = this->columnsSize();
-
-        // Create a copy of the input matrix to preserve its values
-        Matrix<long double> LU = *this;
-        std::vector<size_t> pivot(col_s);
-
-        // Initialize the pivot vector
-        for (size_t i = 0; i < col_s; i++)
-        {
-            pivot[i] = i;
-        }
-
-        for (size_t k = 0; k < std::min(row_s, col_s); k++)
-        {
-            // Find the pivot element and swap rows
-            size_t maxIndex = k;
-            long double maxValue = std::abs(LU(k, k));
-
-            for (size_t i = k + 1; i < row_s; i++)
-            {
-                if (std::abs(LU(i, k)) > maxValue)
-                {
-                    maxIndex = i;
-                    maxValue = std::abs(LU(i, k));
-                }
-            }
-
-            // WARNING TODO Comparacion flotante???
-            if (maxValue == 0)
-            {
-                // Matrix is singular
-                return std::make_pair(LU, pivot);
-            }
-
-            if (maxIndex != k)
-            {
-                // Swap rows in LU matrix
-                LU.swapRows(maxIndex, k);
-
-                // Update the pivot vector
-                std::swap(pivot[maxIndex], pivot[k]);
-            }
-
-            for (size_t i = k + 1; i < row_s; i++)
-            {
-                LU(i, k) /= LU(k, k);
-                for (size_t j = k + 1; j < col_s; j++)
-                {
-                    LU(i, j) -= LU(i, k) * LU(k, j);
-                }
-            }
-        }
-
-        return std::make_pair(LU, pivot);
-    }
-
-    static Matrix<long double> solveLU(const Matrix<long double>& LU, const std::vector<size_t>& pivot, const std::vector<long double>& b)
-    {
-        size_t M = LU.rowSize();
-        size_t N = LU.columnsSize();
-
-        // Create a matrix from the vector b
-
-        Matrix<long double> x(M, N);
-
-        for (size_t col = 0; col < N; col++)
-        {
-            // Create a copy of the right-hand side vector for the current column
-            Matrix<long double> y(M, 1);
-            y.setColumn(0, b);
-
-            // Apply row permutations to the right-hand side vector
-            for (size_t i = 0; i < M; i++)
-            {
-                std::swap(y(i, 0), y(pivot[i], 0));
-            }
-
-            // Solve Ly = b using forward substitution
-            for (size_t i = 1; i < M; i++)
-            {
-                for (size_t j = 0; j < i; j++)
-                {
-                    y(i, 0) -= LU(i, j) * y(j, 0);
-                }
-            }
-
-            // Solve Ux = y using backward substitution
-            for (int i = M - 1; i >= 0; i--)
-            {
-                for (size_t j = static_cast<size_t>(i) + 1; j < N; j++)
-                {
-                    y(static_cast<size_t>(i), 0) -= LU(static_cast<size_t>(i), j) * y(j, 0);
-                }
-                y(static_cast<size_t>(i), 0) /= LU( static_cast<size_t>(i), static_cast<size_t>(i));
-            }
-
-            // Assign the solution to the corresponding column of the result matrix
-            x.setColumn(pivot[col], y.getColumn(0));
-        }
-
-        return x;
-    }
+    Matrix<T> transpose() const;
 
     /**
      * @brief Calculates the inverse of a square matrix using Cholesky decomposition.
      * @note The matrix must be square and positive definite for the inverse to exist.
      * @return The inverse matrix if it exists, otherwise an empty matrix.
      */
-    Matrix<long double> inverse() const
-    {
-        // TODO
-        // Algo esta mal, retorna los datos bien pero las columnas no estan en el orden correcto.
+    Matrix<long double> inverse() const;
 
-        // Check if the matrix is square.
-        if (!this->isSquare())
-            return Matrix<long double>();
+    std::pair<Matrix<long double>, std::vector<size_t>> decomposeLU() const;
 
-        size_t m = this->rowSize();
-        Matrix<long double> identity = Matrix<long double>::I(m);
+    static Matrix<long double> solveLU(const Matrix<long double>& LU, const std::vector<size_t>& pivot,
+                                       const std::vector<long double>& b);
 
-        // Perform LU decomposition
-        Matrix<long double> lu_m = *this;
-        std::vector<size_t> pivot;
-        std::pair<Matrix<long double>, std::vector<size_t>> lu = lu_m.decomposeLU();
+    /**
+     * @brief Performs a 3D Euclidean rotation on the matrix.
+     *
+     * This function generates a rotation matrix based on the provided axis and angle, then applies this rotation to
+     * the current matrix. It is templated to work with floating point types directly or types defined as strong
+     * floating point types via a helper structure. An exception is thrown if an invalid axis is provided.
+     *
+     * @param axis The axis of rotation. Must be greater than 1.
+     * @param angle The angle of rotation in radians.
+     *
+     * @throws std::invalid_argument If the provided axis is < 1.
+     *
+     * @warning This rotation is only suitable for floating point types.
+     */
+    typename std::enable_if_t<helpers::traits::is_floating_v<T>, void>
+    euclidian3DRotation(unsigned axis, const math::units::Radians& angle);
 
-        // Solve for each column of the inverse
-        Matrix<long double> inv(m, m);
-        for (size_t col = 0; col < m; col++)
-        {
-            Matrix<long double> x = Matrix<long double>::solveLU(lu.first, lu.second, identity.getColumn(col));
-            inv.setColumn(lu.second[col], x.getColumn(0));
-        }
-
-        return inv;
-    }
-
+    /**
+     * @brief Multiply by scalar operator.
+     * @param scalar The scalar to multiply the matrix by.
+     * @return The matrix multiplied by scalar.
+     */
     template<typename U>
-    Matrix<std::common_type_t<T, U>> operator+(const Matrix<U>& B) const
-    {
-        // Check dimensions.
-        if (this->rowSize() != B.rowSize() || this->columnsSize() != B.columnsSize())
-            return Matrix<std::common_type_t<T, U>>();
+    typename std::enable_if_t<helpers::traits::is_numeric_v<U>, Matrix<T>>
+    operator*(const U& scalar) const;
 
-        // Create a new matrix for the result.
-        Matrix<std::common_type_t<T, U>> result(this->rowSize(), this->columnsSize(), 0);
-
-        // Add corresponding elements.
-        omp_set_num_threads(omp_get_max_threads());
-        #pragma omp parallel for
-        for (size_t i = 0; i < this->rowSize(); i++)
-            for (size_t j = 0; j < this->columnsSize(); j++)
-                result[i][j] = this->data_[i][j] + B.data_[i][j];
-
-        // Return the result.
-        return result;
-    }
-
+    /**
+     * @brief Multiply this matrix by other matrix.
+     * @param B The other matrix.
+     * @return this * B, if possible. Empty matrix otherwise.
+     */
     template<typename U>
-    Matrix<T>& operator+=(const Matrix<U>& other)
-    {
-        *this = *this + other;
-        return *this;
-    }
+    typename std::enable_if_t<helpers::traits::same_arithmetic_category_v<T,U>,Matrix<T>>
+    operator*(const Matrix<U>& B) const;
 
+    /**
+     * @brief Multiply and assign operator.
+     * @param B The other matrix to multiply by.
+     * @return A reference to this.
+     */
+    template<typename U>
+    Matrix<T>& operator *=(const Matrix<U>& B);
 
-    static Matrix<T> I(std::size_t n)
-    {
-        Matrix<T> ident(n,n,0);
-        omp_set_num_threads(omp_get_max_threads());
-        #pragma omp parallel for
-        for (size_t i = 0; i < n; i++)
-        {
-            ident[i][i] = 1;
-        }
-        return ident;
-    }
+    /**
+     * @brief Multiply and assign operator.
+     * @param scalar The scalar to multiply by.
+     * @return A reference to this.
+     */
+    template<typename U>
+    Matrix<T>& operator *=(const U& scalar);
 
-    static Matrix<T> fromColumnVector(const std::vector<T>& col)
-    {
-        Matrix<T> res;
-        std::transform(col.begin(), col.end(),
-                       std::back_inserter(res.data_), [](const auto& e){return std::vector<T>{e};});
-        return res;
-    }
+    /**
+     * @brief Sum operator for matrices.
+     * @param B The other matrix.
+     * @return this + B if possible. An empty matrix otherwise.
+     */
+    template<typename U>
+    Matrix<T> operator+(const Matrix<U>& B) const;
 
-    static Matrix<T> fromRowVector(const std::vector<T>& row)
-    {
-        Matrix<T> res;
-        res.data_.push_back(row);
-        return res;
-    }
+    /**
+     * @brief Unary minus operator for matrix. Changes sign of elements.
+     * @return -this.
+     */
+    Matrix<T> operator-() const;
+
+    /**
+     * @brief Substract operator for matrices.
+     * @param B The other matrix.
+     * @return this - B if possible. An empty matrix otherwise.
+     */
+    template<typename U>
+    Matrix<T> operator-(const Matrix<U>& B) const;
+
+    /**
+     * @brief Sum and assign operator for matrices.
+     * @param B The other matrix.
+     * @return A reference to this.
+     */
+    template<typename U>
+    Matrix<T>& operator+=(const Matrix<U>& other);
+
+    /**
+     * @brief Substract and assign operator for matrices.
+     * @param B The other matrix.
+     * @return A reference to this.
+     */
+    template<typename U>
+    Matrix<T>& operator-=(const Matrix<U>& other);
+
+    /**
+     * @brief Create an identity matrix of order n.
+     * @param n The order of the identity matrix.
+     * @return The identity matrix of order n.
+     */
+    static Matrix<T> I(std::size_t n);
+
+    /**
+     * @brief Create a matrix from a column vector.
+     * @param col The column vector.
+     * @return A matrix created from a column vector.
+     */
+    static Matrix<T> fromColumnVector(const std::vector<T>& col);
+
+    /**
+     * @brief Create a matrix from a row vector.
+     * @param row The row vector.
+     * @return A matrix created from a row vector.
+     */
+    static Matrix<T> fromRowVector(const std::vector<T>& row);
 
 private:
 
     std::vector<std::vector<T>> data_;
 };
 
+/**
+ * @brief Equal operator for matrices.
+ * @param A One matrix.
+ * @param B The other matrix.
+ * @return True if matrices are equal, false otherwise.
+ */
 template <typename T, typename U>
-bool operator==(const Matrix<T>& A, const Matrix<U>& B)
-{
-    // Check if the matrices have the same dimensions
-    if (A.rowSize() != B.rowSize() || A.columnsSize() != B.columnsSize())
-        return false;
+bool operator==(const Matrix<T>& A, const Matrix<U>& B);
 
-    // Check if both are empty.
-    if(A.isEmpty() && B.isEmpty())
-        return true;
-
-    bool res = true;
-
-    // Check element-wise equality
-    for (size_t i = 0; i < A.rowSize() && res; ++i)
-        for (size_t j = 0; j < A.columnsSize() && res; ++j)
-            if (std::fabs(A(i, j)-B(i, j) >= kFloatingCompEpsilon))
-                res = false;
-
-    return res;
-}
+/**
+ * @brief Different operator for matrices.
+ * @param A One matrix.
+ * @param B The other matrix.
+ * @return True if matrices are different, false otherwise.
+ */
+template <typename T, typename U>
+bool operator!=(const Matrix<T>& A, const Matrix<U>& B);
 
 }}} // END NAMESPACES
 // =====================================================================================================================
 
 // TEMPLATES INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/Mathematics/types/matrix.tpp"
 // =====================================================================================================================

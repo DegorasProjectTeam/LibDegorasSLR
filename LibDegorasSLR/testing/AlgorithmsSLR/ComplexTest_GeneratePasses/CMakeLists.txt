@@ -22,7 +22,7 @@ message(STATUS "Setup complex test: ${TEST_NAME}")
 set(SOURCES "ComplexTest_GeneratePassesCPF.cpp")
 
 # Set resources.
-set(RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/test_data/39380_cpf_230309_5681.tjr)
+set(RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/inputs/39380_cpf_230309_5681.tjr)
 source_group("Resource Files" FILES ${RESOURCES})
 
 # Setup the launcher.
@@ -42,7 +42,30 @@ macro_install_runtime_artifacts(${TEST_NAME}
                                 ${MODULES_GLOBAL_MAIN_DEP_SET_NAME}
                                 ${TEST_INSTALL_PATH})
 
-#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/39380_cpf_230309_5681.tjr
-#     DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_data)
+# Prepare the external library search folders.
+set(ext_libs_loc
+    ${MODULES_GLOBAL_INSTALL_LIB_PATH}
+    ${MODULES_GLOBAL_INSTALL_BIN_PATH}
+    ${CMAKE_BINARY_DIR}/bin)
+
+# Install the runtime dependencies.
+macro_install_runtime_deps("${TEST_NAME}"
+                           "${MODULES_GLOBAL_MAIN_DEP_SET_NAME}"
+                           "${ext_libs_loc}"
+                           "${TEST_INSTALL_PATH}"
+                           "" "")
+
+# Add to the build step the necessary input files for the example.
+add_custom_command(TARGET "${TEST_NAME}" PRE_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E copy_directory
+                  "${CMAKE_CURRENT_SOURCE_DIR}/inputs/" "$<TARGET_FILE_DIR:${TEST_NAME}>/inputs")
+
+# Install example input data.
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/inputs/"
+      DESTINATION "${TEST_INSTALL_PATH}/inputs"
+      FILES_MATCHING PATTERN "*")
+
+#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/inputs/39380_cpf_230309_5681.tjr
+#     DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/inputs)
 
 

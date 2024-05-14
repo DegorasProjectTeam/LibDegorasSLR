@@ -40,20 +40,12 @@
 // C++ INCLUDES
 // =====================================================================================================================
 #include <chrono>
+#include <string>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include"LibDegorasSLR/Helpers/types/numeric_strong_type.h"
-// =====================================================================================================================
-
-// DEFINITIONS
-// =====================================================================================================================
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#define MKGMTIME _mkgmtime
-#else
-#define MKGMTIME timegm
-#endif
+#include"LibDegorasSLR/Mathematics/types/numeric_strong_type.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -63,12 +55,8 @@ namespace timing{
 namespace types{
 // =====================================================================================================================
 
-// =====================================================================================================================
-using helpers::types::NumericStrongType;
-// =====================================================================================================================
-
 // CONVENIENT TYPES
-//======================================================================================================================
+// =====================================================================================================================
 
 /// High resolution clock.
 using HRClock = std::chrono::high_resolution_clock;
@@ -92,25 +80,13 @@ using UsStd = std::chrono::microseconds;
 using NsStd = std::chrono::nanoseconds;
 
 /// Alias for Windows Ticks.
-using Windows32Ticks = NumericStrongType<unsigned long long, struct Windows32TicksTag>;
-
-/// Alias for Modified Julian Date in days.
-using MJDate = NumericStrongType<long long, struct MJDateTag>;
-
-/// Alias for Julian Date in days.
-using JDate = NumericStrongType<long long, struct JDateTag>;
-
-/// Alias for Reduced Julian Date in days.
-using RJDate = NumericStrongType<long long, struct RDateTag>;
-
-/// Alias for J2000 Date in days.
-using J2000Date = NumericStrongType<long long, struct J2000DateTag>;
+using Windows32Ticks = math::types::NumericStrongType<unsigned long long, struct Windows32TicksTag>;
 
 /// Alias for second of day with decimals (always < 86400, picoseconds precision).
-using SoD = NumericStrongType<long double, struct SoDTag>;
+using SoD = math::types::NumericStrongType<long double, struct SoDTag>;
 
 /// Alias for fraction of day with decimals (always < 0, nanoseconds precision in the sense of fraction of the day).
-using DayFraction = NumericStrongType<long double, struct DayFractionTag>;
+using DayFraction = math::types::NumericStrongType<long double, struct DayFractionTag>;
 
 /// Alias for ISO 8601 string.
 using Iso8601Str = std::string;
@@ -126,7 +102,7 @@ enum class TimeResolution
     NANOSECONDS     ///< Represents the nanoseconds.
 };
 
-//======================================================================================================================
+// =====================================================================================================================
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

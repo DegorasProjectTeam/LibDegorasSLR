@@ -27,7 +27,7 @@
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
-# Updated 29/02/2024
+# Updated 11/03/2024
 # **********************************************************************************************************************
 
 # **********************************************************************************************************************
@@ -42,10 +42,13 @@ cmake_minimum_required(VERSION 3.21)
 project(_)
 
 # Set path to additional CMake modules.
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules ${CMAKE_MODULE_PATH})
-include(CMakeMacrosGlobals)
+set(CMAKE_MODULE_PATH
+    ${CMAKE_MODULE_PATH}
+    ${CMAKE_SOURCE_DIR}/CMakeModules
+    ${CMAKE_SOURCE_DIR}/CMakeLibsConfig)
 
 # Init CMake modules.
+include(CMakeMacrosGlobals)
 macro_cmakemodules_init()
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -53,7 +56,7 @@ macro_cmakemodules_init()
 
 # Base project configuration.
 set(LIB_NAME LibDegorasSLR)
-set(LIB_VER 1.9.3)
+set(LIB_VER 1.9.4)
 set(LIB_BUILD_MODE Debug)
 set(LIB_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../${LIB_NAME}_product_v${LIB_VER})
 set(LIB_LANGUAGES CXX C)
@@ -86,7 +89,7 @@ set(LIB_SOURCES_DIR ${CMAKE_SOURCE_DIR}/sources)
 
 # Configure the LibNovasCPP package.
 include(ConfigLibNovasCpp)
-macro_configure_libnovascpp_default("3.1" EXACT "" "")
+macro_configure_libnovascpp_default("3.1.1" EXACT "" "")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # SETUP THE SHARED LIBRARY
@@ -111,6 +114,9 @@ macro_setup_shared_lib("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${LIB_VER}"
 
 # Link with LibNovasCPP.
 macro_link_libnovascpp_default(${LIB_NAME})
+
+# Include the shared library CMake configuration file.
+include(ConfigLibDegorasSLR)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE COMPILERS

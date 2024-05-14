@@ -27,23 +27,23 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CRD class.
  * @copyright EUPL License
- * @version 2306.1
+ 2306.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <array>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/FormatsILRS/crd/crd.h>
-#include <LibDegorasSLR/FormatsILRS/common/consolidated_types.h>
-#include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
-#include <LibDegorasSLR/Timing/time_utils.h>
-#include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
-#include <LibDegorasSLR/Helpers/filedir_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
+#include "LibDegorasSLR/FormatsILRS/crd/crd.h"
+#include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
+#include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
+#include "LibDegorasSLR/UtilitiesSLR/utils/spaceobject_utils.h"
+#include "LibDegorasSLR/Helpers/filedir_helpers.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
+#include "LibDegorasSLR/Helpers/container_helpers.h"
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -57,12 +57,16 @@ namespace ilrs{
 namespace crd{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace timing::types;
+// ---------------------------------------------------------------------------------------------------------------------
+
 CRD::CRD(float version):
     empty_(false)
 {
     // Set the version and creation time at Format Header
     this->header.formatHeader()->crd_version = version;
-    this->header.formatHeader()->crd_production_date = timing::HRTimePointStd::clock::now();
+    this->header.formatHeader()->crd_production_date = HRTimePointStd::clock::now();
 }
 
 CRD::CRD(const std::string &crd_filepath, OpenOption option)

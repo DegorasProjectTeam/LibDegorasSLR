@@ -27,11 +27,11 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file predictor_star.cpp
+ * @file predictor_star_base.cpp
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -39,8 +39,9 @@
 #include <omp.h>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
+#include "LibDegorasSLR/libdegorasslr_init.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_star_base.h"
 // =====================================================================================================================
 
@@ -48,42 +49,50 @@
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace timing::types;
+using namespace timing::dates;
+using namespace geo::types;
+using namespace astro::types;
+using namespace math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
-                                                   int leap_secs, double ut1_utc_diff) :
+PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
+                                     int leap_secs, double ut1_utc_diff) :
     star_(star),
     loc_(loc),
     leap_secs_(leap_secs),
     ut1_utc_diff_(ut1_utc_diff)
 {}
 
-StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDateTime &jdt_end,
-                                           const MillisecondsU& step) const
+PredictionStarV PredictorStarBase::predict(const JDateTime &jdt_start, const JDateTime &jdt_end,
+                                           const MillisecondsU& step, bool refraction) const
 {
+    // Initialization guard.
+    DegorasInitGuard guard;
+
     // Container and auxiliar.
     JDateTimeV interp_times;
     math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
 
     // Check for valid time interval.
     if(!(jdt_start <= jdt_end))
-        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorSun::fastPredict] Invalid interval.");
+        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorStarBase::predict] Invalid interval.");
 
     // Calculates all the interpolation times.
     interp_times = JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);
 
     // Results container.
-    StarPredictionV results(interp_times.size());
+    PredictionStarV results(interp_times.size());
 
     // Parallel calculation.
     #pragma omp parallel for
     for(size_t i = 0; i<interp_times.size(); i++)
     {
-        results[i] = this->predict(interp_times[i]);
+        results[i] = this->predict(interp_times[i], refraction);
     }
 
     // Return the container.
@@ -92,5 +101,5 @@ StarPredictionV PredictorStarBase::predict(const JDateTime &jdt_start, const JDa
 
 PredictorStarBase::~PredictorStarBase(){}
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

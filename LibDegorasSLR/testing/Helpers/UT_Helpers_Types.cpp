@@ -30,16 +30,18 @@
 // =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/Modules/Testing>
+#include <LibDegorasSLR/Modules/Mathematics>
 #include <LibDegorasSLR/Modules/Helpers>
 // =====================================================================================================================
 
 // NAMESPACES
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace dpslr;
-using namespace dpslr::helpers::types;
+using dpslr::math::types::NumericStrongType;
+using dpslr::helpers::traits::is_strong_integral_v;
+using dpslr::helpers::traits::is_strong_floating_v;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // UNIT TEST DECLARATIONS
@@ -69,29 +71,29 @@ M_DEFINE_UNIT_TEST(NumericStrongType_traits)
     using CustomLongDouble = NumericStrongType<long double, struct CustomDoubleTag>;
 
     // Static asserts testing.
-    static_assert(is_strong_integral<CustomUnsigned>::value, "CustomUnsigned should be integral.");
-    static_assert(is_strong_integral<CustomInt>::value, "CustomInt should be integral");
-    static_assert(is_strong_integral<CustomLong>::value, "CustomLong should be integral");
-    static_assert(is_strong_integral<CustomLongLong>::value, "CustomLongLong should be integral");
-    static_assert(is_strong_float<CustomFloat>::value, "CustomFloat should be floating");
-    static_assert(is_strong_float<CustomDouble>::value, "CustomDouble should be floating");
-    static_assert(is_strong_float<CustomLongDouble>::value, "CustomLongDouble should be floating");
+    static_assert(is_strong_integral_v<CustomUnsigned>, "CustomUnsigned should be integral.");
+    static_assert(is_strong_integral_v<CustomInt>, "CustomInt should be integral");
+    static_assert(is_strong_integral_v<CustomLong>, "CustomLong should be integral");
+    static_assert(is_strong_integral_v<CustomLongLong>, "CustomLongLong should be integral");
+    static_assert(is_strong_floating_v<CustomFloat>, "CustomFloat should be floating");
+    static_assert(is_strong_floating_v<CustomDouble>, "CustomDouble should be floating");
+    static_assert(is_strong_floating_v<CustomLongDouble>, "CustomLongDouble should be floating");
 
     // Dynamic checks.
-    M_EXPECTED_TRUE(is_strong_integral<CustomUnsigned>::value)
-    M_EXPECTED_TRUE(is_strong_integral<CustomInt>::value)
-    M_EXPECTED_TRUE(is_strong_integral<CustomLong>::value)
-    M_EXPECTED_TRUE(is_strong_integral<CustomLongLong>::value)
-    M_EXPECTED_TRUE(is_strong_float<CustomFloat>::value)
-    M_EXPECTED_TRUE(is_strong_float<CustomDouble>::value)
-    M_EXPECTED_TRUE(is_strong_float<CustomLongDouble>::value)
-    M_EXPECTED_FALSE(is_strong_float<CustomUnsigned>::value)
-    M_EXPECTED_FALSE(is_strong_float<CustomInt>::value)
-    M_EXPECTED_FALSE(is_strong_float<CustomLong>::value)
-    M_EXPECTED_FALSE(is_strong_float<CustomLongLong>::value)
-    M_EXPECTED_FALSE(is_strong_integral<CustomFloat>::value)
-    M_EXPECTED_FALSE(is_strong_integral<CustomDouble>::value)
-    M_EXPECTED_FALSE(is_strong_integral<CustomLongDouble>::value)
+    M_EXPECTED_TRUE(is_strong_integral_v<CustomUnsigned>)
+    M_EXPECTED_TRUE(is_strong_integral_v<CustomInt>)
+    M_EXPECTED_TRUE(is_strong_integral_v<CustomLong>)
+    M_EXPECTED_TRUE(is_strong_integral_v<CustomLongLong>)
+    M_EXPECTED_TRUE(is_strong_floating_v<CustomFloat>)
+    M_EXPECTED_TRUE(is_strong_floating_v<CustomDouble>)
+    M_EXPECTED_TRUE(is_strong_floating_v<CustomLongDouble>)
+    M_EXPECTED_FALSE(is_strong_floating_v<CustomUnsigned>)
+    M_EXPECTED_FALSE(is_strong_floating_v<CustomInt>)
+    M_EXPECTED_FALSE(is_strong_floating_v<CustomLong>)
+    M_EXPECTED_FALSE(is_strong_floating_v<CustomLongLong>)
+    M_EXPECTED_FALSE(is_strong_integral_v<CustomFloat>)
+    M_EXPECTED_FALSE(is_strong_integral_v<CustomDouble>)
+    M_EXPECTED_FALSE(is_strong_integral_v<CustomLongDouble>)
 
     // Custom assigns.
     CustomUnsigned custom_unsigned = 1234;
@@ -103,20 +105,20 @@ M_DEFINE_UNIT_TEST(NumericStrongType_traits)
     CustomLongDouble custom_longdouble = 1.2345678987654321L;
 
     // Dynamic checks.
-    M_EXPECTED_TRUE(is_strong_integral<decltype(custom_unsigned)>::value)
-    M_EXPECTED_TRUE(is_strong_integral<decltype(custom_int)>::value)
-    M_EXPECTED_TRUE(is_strong_integral<decltype(custom_long)>::value)
-    M_EXPECTED_TRUE(is_strong_integral<decltype(custom_longlong)>::value)
-    M_EXPECTED_TRUE(is_strong_float<decltype(custom_float)>::value)
-    M_EXPECTED_TRUE(is_strong_float<decltype(custom_double)>::value)
-    M_EXPECTED_TRUE(is_strong_float<decltype(custom_longdouble)>::value)
-    M_EXPECTED_FALSE(is_strong_float<decltype(custom_unsigned)>::value)
-    M_EXPECTED_FALSE(is_strong_float<decltype(custom_int)>::value)
-    M_EXPECTED_FALSE(is_strong_float<decltype(custom_long)>::value)
-    M_EXPECTED_FALSE(is_strong_float<decltype(custom_longlong)>::value)
-    M_EXPECTED_FALSE(is_strong_integral<decltype(custom_float)>::value)
-    M_EXPECTED_FALSE(is_strong_integral<decltype(custom_double)>::value)
-    M_EXPECTED_FALSE(is_strong_integral<decltype(custom_longdouble)>::value)
+    M_EXPECTED_TRUE(is_strong_integral_v<decltype(custom_unsigned)>)
+    M_EXPECTED_TRUE(is_strong_integral_v<decltype(custom_int)>)
+    M_EXPECTED_TRUE(is_strong_integral_v<decltype(custom_long)>)
+    M_EXPECTED_TRUE(is_strong_integral_v<decltype(custom_longlong)>)
+    M_EXPECTED_TRUE(is_strong_floating_v<decltype(custom_float)>)
+    M_EXPECTED_TRUE(is_strong_floating_v<decltype(custom_double)>)
+    M_EXPECTED_TRUE(is_strong_floating_v<decltype(custom_longdouble)>)
+    M_EXPECTED_FALSE(is_strong_floating_v<decltype(custom_unsigned)>)
+    M_EXPECTED_FALSE(is_strong_floating_v<decltype(custom_int)>)
+    M_EXPECTED_FALSE(is_strong_floating_v<decltype(custom_long)>)
+    M_EXPECTED_FALSE(is_strong_floating_v<decltype(custom_longlong)>)
+    M_EXPECTED_FALSE(is_strong_integral_v<decltype(custom_float)>)
+    M_EXPECTED_FALSE(is_strong_integral_v<decltype(custom_double)>)
+    M_EXPECTED_FALSE(is_strong_integral_v<decltype(custom_longdouble)>)
 
     // Check numeric limits for long double (MinGW use extended 80-bit for long double).
     M_EXPECTED_TRUE(std::numeric_limits<decltype(custom_longdouble)>::digits10 >= 18)

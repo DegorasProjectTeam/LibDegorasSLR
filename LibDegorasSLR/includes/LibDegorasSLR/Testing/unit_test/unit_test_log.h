@@ -32,13 +32,14 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <string>
 #include <vector>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -62,7 +63,7 @@ public:
                 const std::string& test,
                 const std::string &det_ex,
                 bool passed,
-                const timing::HRTimePointStd &tp,
+                const timing::types::HRTimePointStd &tp,
                 long long elapsed,
                 const UnitTestResult& results);
 

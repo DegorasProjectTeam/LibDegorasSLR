@@ -31,27 +31,32 @@
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
 // =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/predictors/predictor_star_novas.h"
-#include "LibDegorasSLR/Astronomical/novas_utils.h"
+#include "LibDegorasSLR/Astronomical/utils/novas_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
+using namespace novas;
 using namespace timing::types;
+using namespace astro::types;
+using namespace geo::types;
+using namespace math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<Degrees> &loc,
@@ -59,16 +64,17 @@ PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<D
     PredictorStarBase(star, loc, leap_secs, ut1_utc_diff)
 {}
 
-PredictionStar PredictorStarNovas::predict(const timing::types::JDateTime &jdt) const
+PredictionStar PredictorStarNovas::predict(const timing::dates::JDateTime &jdt, bool refraction) const
 {
     PredictionStar pred;
     pred.jdt = jdt;
 
-    astro::novas::getStarAltAzPos(this->star_, this->loc_, jdt, pred.altaz_coord,
-                                  this->leap_secs_, this->ut1_utc_diff_);
+    novas::getStarAltAzPos(this->star_, this->loc_, jdt, refraction, pred.altaz_coord,
+                           this->leap_secs_, this->ut1_utc_diff_);
 
     return pred;
 }
 
-}} // END NAMESPACES
+
+}}} // END NAMESPACES
 // =====================================================================================================================

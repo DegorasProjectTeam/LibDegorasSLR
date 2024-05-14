@@ -38,14 +38,13 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
-#include <vector>
+// =====================================================================================================================
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/types/astro_types.h"
+#include "LibDegorasSLR/Astronomical/types/ra_dec.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -55,32 +54,24 @@ namespace astro{
 namespace types{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using timing::types::MJDate;
-using timing::types::SoD;
-using timing::types::MJDateTime;
-using math::units::Degrees;
-// ---------------------------------------------------------------------------------------------------------------------
-
 struct LIBDPSLR_EXPORT Star
 {
-    Star() = default;
-    Star(const Star&) = default;
-    Star(Star&&) = default;
-    Star& operator =(const Star&) = default;
-    Star& operator =(Star&&) = default;
+    // Default constructor and destructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(Star)
 
+    // Members.
     RA ra;
     Dec dec;
     std::string star_name;
     std::string catalog_name;
     int catalog_num;
     int id;
-    double pm_ra;
-    double pm_dec;
-    double parallax;
-    double rad_vel;
+    double pm_ra;                // s per year
+    double pm_dec;               // arcseconds per year
+    double parallax;             // arcseconds
+    double rad_vel;              // km/s
 };
+
 
 
 }}} // END NAMESPACES

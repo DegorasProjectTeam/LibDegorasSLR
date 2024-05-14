@@ -6,30 +6,34 @@
 #include <sstream>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Testing/unit_test/unit_test_log.h"
+#include "LibDegorasSLR/Timing/utils/time_utils.h"
 // =====================================================================================================================
 
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 namespace dpslr{
 namespace testing{
 // =====================================================================================================================
 
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace timing::types;
+// ---------------------------------------------------------------------------------------------------------------------
 
 UnitTestLog::UnitTestLog(const std::string& module,
                          const std::string& submodule,
                          const std::string& test,
                          const std::string& det_ex,
-                         bool passed, const timing::HRTimePointStd& tp,
+                         bool passed, const HRTimePointStd& tp,
                          long long elapsed,
                          const UnitTestResult& results) :
     module_(module),
     submodule_(submodule),
     test_(test),
-    tp_str_(timing::timePointToIso8601(tp, timing::TimeResolution::MILLISECONDS, true, false)),
+    tp_str_(timing::timePointToIso8601(tp, TimeResolution::MILLISECONDS, true, false)),
     det_ex_(det_ex),
     passed_(passed),
     elapsed_(elapsed),

@@ -38,36 +38,26 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <memory>
+#include <cstdint>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
-#include "LibDegorasSLR/Geophysics/meteo.h"
-#include "LibDegorasSLR/UtilitiesSLR/predictors/prediction_data_slr.h"
+#include "LibDegorasSLR/Geophysics/utils/meteo_utils.h"
+#include "LibDegorasSLR/UtilitiesSLR/predictors/data/prediction_slr.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace utils{
+namespace slr{
+namespace predictors{
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-using geo::types::GeocentricPoint;
-using geo::types::GeodeticPoint;
-using geo::meteo::WtrVapPressModel;
-using math::units::Degrees;
-using math::units::Radians;
-using math::units::Picoseconds;
-using math::units::Milliseconds;
-using timing::MJDateTime;
-using timing::types::MJDateTimeV;
-// ---------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief This class implements an interpolator for CPF positions.
@@ -104,6 +94,18 @@ public:
         INBOUND_VECTOR
     };
 
+    /**
+     *  @enum PredictionError
+     *  @brief This enum represents the different errors that can happen at interpolation.
+     */
+    enum class PredictionSLRError : std::uint32_t
+    {
+        NO_ERROR = 0,
+        INVALID_INTERVAL,
+        OTHER_ERROR,
+        END_BASE_ERRORS   = 10  ///< Sentinel value indicating the end of the base errors (invalid error).
+    };
+
     /** @enum TroposphericModel
      *  @brief This enum represents the different tropospheric models that can be used.
      *  @todo Mendes-Pavlis tropospheric model (IERS Conventions 2010, IERS Technical Note No. 36).
@@ -114,17 +116,15 @@ public:
         MENDES_PAVLIS
     };
 
+    // Default copy and movement constructor and operators.
+    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSlrBase)
     /**
      * @brief Constructs the interpolator by getting the station location.
      * @param geod Geodetic position of the station (N and E > 0, 8 decimals for ~1 mm).
      * @param geoc Geocentric ECEF position of the station (with mm preccision).
      */
-    PredictorSlrBase(const GeodeticPoint<Degrees>& geod, const GeocentricPoint& geoc);
+    PredictorSlrBase(const geo::types::GeodeticPointDeg& geod, const geo::types::GeocentricPoint& geoc);
 
-    PredictorSlrBase(const PredictorSlrBase&) = default;
-    PredictorSlrBase(PredictorSlrBase&&) = default;
-    PredictorSlrBase& operator=(const PredictorSlrBase&) = default;
-    PredictorSlrBase& operator=(PredictorSlrBase&&) = default;
 
     template <typename T, typename... Args>
     static std::shared_ptr<PredictorSlrBase> factory(Args&&... args)
@@ -138,11 +138,13 @@ public:
         return std::static_pointer_cast<T>(base);
     }
 
+
+
     /**
      * @brief Get the station location of this cpf interpolator as a GeodeticPoint.
      */
     template <typename T>
-    GeodeticPoint<T> getGeodeticLocation() const
+    geo::types::GeodeticPoint<T> getGeodeticLocation() const
     {
         return this->stat_geodetic_.convertAngles<T>();
     }
@@ -150,7 +152,7 @@ public:
     /**
      * @brief Get the station location of this cpf interpolator as a GeocentricPoint.
      */
-    const GeocentricPoint& getGeocentricLocation() const;
+    const geo::types::GeocentricPoint& getGeocentricLocation() const;
 
     /**
      * @brief Set the prediction mode that will be used
@@ -178,7 +180,7 @@ public:
 
     /**
      * @brief Set the troposheric model used for troposheric correction calculation.
-     * @param model, the troposheric model used for troposheric correction calculated.
+     * @param model The troposheric model used for troposheric correction calculated.
      */
     void setTropoModel(TroposphericModel model);
 
@@ -186,19 +188,19 @@ public:
      * @brief Set object eccentricity correction in meters.
      * @param correction in meters.
      */
-    void setObjEccentricityCorr(Meters correction);
+    void setObjEccentricityCorr(math::units::Meters correction);
 
     /**
      * @brief Set calibration delay correction in picoseconds.
      * @param correction in picoseconds.
      */
-    void setCaliDelayCorr(Picoseconds correction);
+    void setCaliDelayCorr(math::units::Picoseconds correction);
 
     /**
      * @brief Set systematic correction in meters.
      * @param correction in meters
      */
-    void setSystematicCorr(Meters correction);
+    void setSystematicCorr(math::units::Meters correction);
 
     /**
      * @brief Sets the parameters for the tropospheric path delay correction.
@@ -217,7 +219,7 @@ public:
      * @note To disable the current refraction correction application, call to CPFPredictor::unsetTropoCorrParams().
      */
     void setTropoCorrParams(long double press, long double temp, long double rh, long double wl,
-                            WtrVapPressModel wvpm = WtrVapPressModel::GIACOMO_DAVIS);
+                            geo::meteo::WtrVapPressModel wvpm = geo::meteo::WtrVapPressModel::GIACOMO_DAVIS);
 
     /**
      * @brief Unsets the parameters for the tropospheric path delay correction.
@@ -226,94 +228,104 @@ public:
 
     /**
      * @brief Checks if interpolator is ready. An interpolator is ready if it has positions for interpolating.
-     * @return true if interpolator is ready, false otherwise.
+     * @return True if interpolator is ready, false otherwise.
      */
     virtual bool isReady() const = 0;
 
     /**
      * @brief Checks if given time window is inside the valid prediction range.
-     * @param start, the start MJ datetime of the window to be checked.
-     * @param end, the end MJ datetime of the window to be checked.
-     * @return true if the window is inside prediction range, false otherwise.
+     * @param start The start MJ datetime of the window to be checked.
+     * @param end The end MJ datetime of the window to be checked.
+     * @return True if the window is inside prediction range, false otherwise.
      */
-    bool isInsideTimeWindow(const MJDateTime& start, const MJDateTime& end) const;
+    bool isInsideTimeWindow(const timing::dates::MJDateTime& start, const timing::dates::MJDateTime& end) const;
+
+    /**
+     * @brief Checks if given time is inside the valid prediction range.
+     * @param time The time to check if it is inside time window.
+     * @return True if the time is inside, false otherwise.
+     */
+    bool isInsideTime(const timing::dates::MJDateTime& time) const;
 
     /**
      * @brief Interpolates position at requested instant.
-     * @param mjdt, the modified julian datetime of the instant to be interpolated.
-     * @param result, the result of the prediction.
+     * @param mjdt The modified julian datetime of the instant to be interpolated.
+     * @param result The result of the prediction.
      * @return The error code generated by the predictor.
      */
-    virtual int predict(const MJDateTime& mjdt, PredictionSLR& result) const = 0;
+    virtual PredictionSLR::ErrorType predict(const timing::dates::MJDateTime& mjdt, PredictionSLR& result) const = 0;
 
     /**
      * @brief Interpolates positions at requested time window.
      * @param mjdt_start The start Modified Julian Datetime of the time window.
      * @param mjdt_end The end Modified Julian Datetime of the time window.
      * @param step The step in milliseconds from one interpolation to the next one.
-     * @return A vector of `PredictionSLR` with all the prediction results, or empty if it was impossible. To
-     * check errors produced at individual interpolations, check each independent result error code.
+     * @return A vector of `PredictionSLR` with all the prediction results, or empty if it was impossible.
+     *         To check errors produced at individual interpolations, check each independent result error code.
      */
-    virtual PredictionSLRV predict(const MJDateTime& mjdt_start, const MJDateTime& mjdt_end,
-                                   const Milliseconds& step) const;
+    virtual PredictionSLRV predict(const timing::dates::MJDateTime& mjdt_start,
+                                   const timing::dates::MJDateTime& mjdt_end,
+                                   const math::units::Milliseconds& step) const;
 
     /**
      * @brief If predictor is ready, returns the time window in which the predictor can be used. Otherwise,
      *        return time 0 at start and end.
-     * @param start, MJ datetime of time window start.
-     * @param end, MJ datetime of time window end.
+     * @param start MJ datetime of time window start.
+     * @param end MJ datetime of time window end.
      */
-    virtual void getTimeWindow(MJDateTime& start, MJDateTime& end) const = 0;
+    virtual void getTimeWindow(timing::dates::MJDateTime& start, timing::dates::MJDateTime& end) const = 0;
 
     /**
      * @brief Gets the asociated error message for a given error_code
-     * @param error_code, the code whose error message will be returned.
-     * @return the error message associated with error_code if it exists. Otherwise, an empty string.
+     * @param error_code The code whose error message will be returned.
+     * @return The error message associated with error_code if it exists. Otherwise, an empty string.
      */
-    virtual std::string getErrorMsg(int error_code) const = 0;
+    virtual std::string getErrorMsg(PredictionSLR::ErrorType error_code) const = 0;
 
     virtual ~PredictorSlrBase();
 
 protected:
     
-    virtual Meters applyCorrections(Meters& range, PredictionSLR& result, bool cali = false, Degrees el = 0) const;
+    virtual math::units::Meters applyCorrections(math::units::Meters& range, PredictionSLR& result,
+                                                 bool cali = false, math::units::Degrees el = 0) const;
 
     // Configuration variables.
     TroposphericModel tropo_model_;
 
     // Correction related parameters.
-    Meters objc_ecc_corr_;            ///< Eccentricity correction at the satellite in meters (usually center of mass).
-    Meters grnd_ecc_corr_;            ///< Eccentricity correction at the ground in meters (usually not used).
-    Meters syst_rnd_corr_;            ///< Other systematic and random error corrections (in meters).
-    Picoseconds cali_del_corr_;       ///< Station calibration delay correction (in picoseconds).
-    bool apply_corr_;                 ///< Flag for apply the corrections.
+    math::units::Meters objc_ecc_corr_;       ///< Eccentricity correction at the satellite in meters (center of mass).
+    math::units::Meters grnd_ecc_corr_;       ///< Eccentricity correction at the ground in meters (usually not used).
+    math::units::Meters syst_rnd_corr_;       ///< Other systematic and random error corrections (in meters).
+    math::units::Picoseconds cali_del_corr_;  ///< Station calibration delay correction (in picoseconds).
+    bool apply_corr_;                         ///< Flag for apply the corrections.
 
     // Tropospheric parameters.
+    // TODO Strong units
     long double press_;
     long double temp_;
     long double rel_hum_;
     long double wl_;
-    WtrVapPressModel wtrvap_model_;
+    geo::meteo::WtrVapPressModel wtrvap_model_;
     bool tropo_ready_;
 
 private:
 
-    // The prediction mode used
+    // The prediction mode used.
     PredictionMode prediction_mode_;
 
     // Station position data.
     // Station latitude in radians (north > 0). 8 decimals preccision (1.1mm).
     // Station longitude in radians (east > 0). 8 decimals preccision (1.1mm).
     // Station altitude in metres
-    GeodeticPoint<Radians> stat_geodetic_;  //
+    geo::types::GeodeticPointRad stat_geodetic_;
 
-    // Station geocentric in metres
-    GeocentricPoint stat_geocentric_;
+    // Station geocentric point in metres.
+    geo::types::GeocentricPoint stat_geocentric_;
 
 };
 
 /// Alias for PredictorSlrBase shared smart pointer.
 using PredictorSlrPtr = std::shared_ptr<PredictorSlrBase>;
 
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

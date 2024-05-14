@@ -27,7 +27,6 @@
  * @author Degoras Project Team.
  * @brief This file contains the definition of the struct ConsolidatedRecord.
  * @copyright EUPL License
- * @version 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -35,13 +34,12 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <string>
 #include <vector>
-#include <map>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
@@ -65,6 +63,8 @@ namespace common{
  */
 struct LIBDPSLR_EXPORT ConsolidatedRecord
 {
+
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(ConsolidatedRecord)
 
     // Common members for all the records.
     ConsolidatedFileType consolidated_type;     ///< Stores the consolidated type which belongs the record.

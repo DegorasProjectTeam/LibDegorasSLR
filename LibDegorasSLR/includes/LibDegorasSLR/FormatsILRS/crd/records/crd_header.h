@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of the CRDHeader class that abstracts the header of ILRS CRD format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -35,19 +35,18 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <array>
 #include <string>
-#include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -180,7 +179,7 @@ public:
     {
         // Members.
         float crd_version;                           /// CRD version. We store the subversion, for example 2.1
-        timing::HRTimePointStd crd_production_date;  /// File production date. Will update if we call generate line.
+        timing::types::HRTimePointStd crd_production_date;  /// File production date. Will update if we call generate line.
         // Functions.
         std::string generateLine();                  // Also regenerate the crd_production_date.
     };
@@ -221,8 +220,8 @@ public:
     {
         // Members.
         DataType data_type;             /// Data type (full rate, normal point or sampled engineering).
-        timing::HRTimePointStd start_time;  /// Object tracking session start time.
-        timing::HRTimePointStd end_time;    /// Object tracking session end time.
+        timing::types::HRTimePointStd start_time;  /// Object tracking session start time.
+        timing::types::HRTimePointStd end_time;    /// Object tracking session end time.
         unsigned data_release;              /// Data release. Remember updating when you edit the CRD data.
         bool trop_correction_applied;       /// Tropospheric refraction correction applied flag.
         bool com_correction_applied;        /// Center of mass correction applied flag.
@@ -239,10 +238,10 @@ public:
     struct PredictionHeader : common::ConsolidatedRecord
     {
         // Members.
-        PredictionType prediction_type;        /// Can be CPF or TLE (forbbiden for ILRS).
-        timing::HRTimePointStd file_creation_time; /// CPF: MMDDHH              TLE: Field 8 (Epoch).
-        std::string prediction_provider;           /// CPF or TLE provider
-        unsigned sequence_number;                  /// CPF: daily*100+sub-daily TLE: Field 9 (revolution at epoch).
+        PredictionType prediction_type;                   /// Can be CPF or TLE (forbbiden for ILRS).
+        timing::types::HRTimePointStd file_creation_time; /// CPF: MMDDHH ; TLE: Field 8 (Epoch).
+        std::string prediction_provider;                  /// CPF or TLE provider
+        unsigned sequence_number;                         /// CPF: daily*100+sub-daily TLE: Field 9 (epoch revolution).
         // Functions.
         std::string generateLine(float version) const;
     };

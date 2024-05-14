@@ -43,28 +43,24 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CRDHeader class that abstracts the header of ILRS CRD format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
 #include <array>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/FormatsILRS/crd/records/crd_header.h>
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
-#include <LibDegorasSLR/Timing/time_utils.h>
-#include <LibDegorasSLR/Astronomical/spaceobject_utils.h>
-// =====================================================================================================================
-
-// =====================================================================================================================
-using namespace dpslr::ilrs::common;
+#include "LibDegorasSLR/FormatsILRS/crd/records/crd_header.h"
+#include "LibDegorasSLR/Helpers/container_helpers.h"
+#include "LibDegorasSLR/Helpers/string_helpers.h"
+#include "LibDegorasSLR/Timing/utils/time_utils.h"
+#include "LibDegorasSLR/UtilitiesSLR/utils/spaceobject_utils.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -73,6 +69,11 @@ namespace dpslr{
 namespace ilrs{
 namespace crd{
 // =====================================================================================================================
+
+// ---------------------------------------------------------------------------------------------------------------------
+using namespace common;
+using namespace timing::types;
+// ---------------------------------------------------------------------------------------------------------------------
 
 // CRD HEADER
 // =====================================================================================================================
@@ -667,7 +668,7 @@ std::string CRDHeader::FormatHeader::generateLine()
 
     // Get the creation time (UTC).
     std::tm *time;
-    timing::HRTimePointStd timepoint = timing::HRTimePointStd::clock::now();
+    HRTimePointStd timepoint = HRTimePointStd::clock::now();
     std::time_t datetime = std::chrono::system_clock::to_time_t(timepoint);
     time = std::gmtime(&datetime);
 

@@ -49,7 +49,7 @@
  * The "CRD Version 2" specification can be found in: https://ilrs.gsfc.nasa.gov/docs/2019/crd_v2.01.pdf
  *
  * @author    Degoras Project Team
- * @version   2011.1
+   2011.1
  * @date      12-11-2020
  * @copyright EUPL License.
  *
@@ -279,7 +279,7 @@
 // =====================================================================================================================
 
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_header.h"
@@ -407,7 +407,7 @@ public:
      */
     explicit CRD(const std::string& crd_filepath, OpenOption open_option);
 
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CRD)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(CRD)
 
     // Clear methods.
     /**

@@ -31,7 +31,7 @@
  * @brief
  * @author Degoras Project Team.
  * @copyright EUPL License
- * @version
+
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
@@ -39,26 +39,30 @@
 #include <cmath>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_fast.h"
-#include "LibDegorasSLR/Mathematics/math.h"
+#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
 namespace astro{
+namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace timing::types;
+using namespace timing::dates;
+using namespace geo::types;
+using namespace math::units;
+using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
-dpslr::astro::PredictorSunFast::PredictorSunFast(const geo::types::GeodeticPoint<Degrees> &obs_geod) :
+PredictorSunFast::PredictorSunFast(const GeodeticPointDeg &obs_geod) :
     PredictorSunBase(obs_geod)
-{
-}
+{}
 
 PredictionSun PredictorSunFast::predict(const J2000DateTime& j2000, bool refraction) const
 {
@@ -90,18 +94,18 @@ PredictionSun PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
     long double hour_ang = sidereal - rasc;
 
     // Local elevation of the sun.
-    long double elevation = std::asin(std::sin(decl) * std::sin(lat_rad) +
+    long double elevation_rad = std::asin(std::sin(decl) * std::sin(lat_rad) +
                                       std::cos(decl) * std::cos(lat_rad) * std::cos(hour_ang));
 
     // Local azimuth of the sun.
-    long double azimuth = std::atan2(-std::cos(decl) * std::cos(lat_rad) * std::sin(hour_ang),
-                                     std::sin(decl) - std::sin(lat_rad) * std::sin(elevation));
+    long double azimuth_rad = std::atan2(-std::cos(decl) * std::cos(lat_rad) * std::sin(hour_ang),
+                                     std::sin(decl) - std::sin(lat_rad) * std::sin(elevation_rad));
 
     // Convert azimuth and elevation to degrees and normalize.
-    elevation = math::normalizeVal(math::units::radToDegree(elevation), -180.0L, 180.0L);
-    azimuth = math::normalizeVal(math::units::radToDegree(azimuth), 0.0L, 360.0L);
+    long double elevation = math::normalizeVal(math::units::radToDegree(elevation_rad), -180.0L, 180.0L);
+    long double azimuth = math::normalizeVal(math::units::radToDegree(azimuth_rad), 0.0L, 360.0L);
 
-    // Very simple refraction correction but enought for several applications.
+    // Very simple fast refraction correction but enought for several applications.
     if (refraction && (elevation >= -1 * (0.26667L + 0.5667L)))
     {
         long double targ = math::units::degToRad((elevation + (10.3L / (elevation + 5.11L))));
@@ -118,7 +122,5 @@ PredictionSun PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
     return prediction;
 }
 
-
-
-}} // END NAMESPACES
+}}} // END NAMESPACES
 // =====================================================================================================================

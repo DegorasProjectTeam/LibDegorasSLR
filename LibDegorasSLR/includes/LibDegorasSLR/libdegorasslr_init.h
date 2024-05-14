@@ -37,7 +37,7 @@
 #include <stdexcept>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 // =====================================================================================================================
@@ -47,12 +47,21 @@
 namespace dpslr{
 // =====================================================================================================================
 
-static long double kFloatingCompEpsilon = 0.000000001L;
-
 class LIBDPSLR_EXPORT DegorasInit
 {
 
 public:
+
+    static void init()
+    {
+        DegorasInit::setOMPNumThreads();
+        DegorasInit::initialized_ = true;
+    }
+
+    static bool initialized()
+    {
+        return DegorasInit::initialized_;
+    }
 
     static void setOMPNumThreads(int n = 0)
     {
@@ -60,32 +69,20 @@ public:
         omp_set_num_threads(n_th);
     }
 
-    static void setFloatingComparationEpsilon(long double epsilon = 0.000000001L)
-    {
-        kFloatingCompEpsilon = epsilon;
-    }
+private:
 
-    static void init()
-    {
-        DegorasInit::setOMPNumThreads();
-        DegorasInit::initialized = true;
-    }
-
-    static void checkMandatoryInit()
-    {
-        if(!DegorasInit::initialized)
-            throw std::runtime_error("[LibDegorasSLR,DegorasInit] LibDegorasSLR not initialized.");
-    }
-
-    inline static std::atomic<bool> initialized = false;
+    inline static std::atomic<bool> initialized_ = false;
 };
 
-
-
-
-
-
-
+class LIBDPSLR_EXPORT DegorasInitGuard
+{
+public:
+    DegorasInitGuard()
+    {
+        if (!DegorasInit::initialized())
+            throw std::runtime_error("[LibDegorasSLR,DegorasInitGuard] LibDegorasSLR not initialized.");
+    }
+};
 
 } // END NAMESPACES
 // =====================================================================================================================

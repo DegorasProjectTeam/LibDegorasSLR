@@ -1,8 +1,4 @@
 # **********************************************************************************************************************
-# Updated 23/01/2024
-# **********************************************************************************************************************
-
-# **********************************************************************************************************************
 # LIBDEGORASSLR TESTS CMAKELIST
 # **********************************************************************************************************************
 
@@ -14,8 +10,7 @@ set(GLOBAL_LIBDPSLR_TESTS_INSTALL_PATH ${MODULES_GLOBAL_INSTALL_BIN_PATH}/testin
 
 # Ignore paths for basic unit test:
 set(IGNORED_PATHS
-    "AlgorithmsSLR/UnitTest_PredictorSLR/*"
-    "AlgorithmsSLR/ComplexTest_GeneratePasses/*")
+    "AlgorithmsSLR/UnitTest_PredictorSLR/*")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ADD THE MODULES (SIMPLE AND COMPLEX TESTS)
@@ -23,6 +18,10 @@ set(IGNORED_PATHS
 # Add all the Modules.
 add_subdirectory(Helpers)
 add_subdirectory(Timing)
-#add_subdirectory(Astronomical)
+add_subdirectory(Astronomical)
+
+
+# Add the examples in the subdirectories.
+macro_add_subdirs_recursive("${CMAKE_CURRENT_SOURCE_DIR}/AlgorithmsSLR" "${IGNORED_PATHS}")
 
 # **********************************************************************************************************************

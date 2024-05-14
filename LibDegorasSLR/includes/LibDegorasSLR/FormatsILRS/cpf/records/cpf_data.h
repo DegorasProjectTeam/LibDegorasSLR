@@ -38,20 +38,20 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
-#include <array>
+// =====================================================================================================================
 #include <string>
 #include <vector>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/dates/base_date_types.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/Mathematics/types/vector3d.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_velocity.h"
 // =====================================================================================================================
@@ -61,16 +61,6 @@
 namespace dpslr{
 namespace ilrs{
 namespace cpf{
-// =====================================================================================================================
-
-// =====================================================================================================================
-using geo::types::GeocentricPoint;
-using geo::types::GeocentricVelocity;
-using timing::types::MJDate;
-using timing::types::SoD;
-using math::types::Vector3D;
-using math::units::Meters;
-using math::units::Nanoseconds;
 // =====================================================================================================================
 
 // CPF DATA
@@ -119,12 +109,20 @@ public:
      */
     struct PositionRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief PositionRecord constructor from a generic ConsolidatedRecord.
+         * @param rec The consolidated record.
+         */
+        PositionRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(PositionRecord)
+
         // Members.
-        DirectionFlag dir_flag;     ///< Direction flag.
-        MJDate mjd;                 ///< Modified Julian Date.
-        SoD sod;                    ///< Second of day (UTC).
-        int leap_second;            ///< Leap second flag (0 or the value of new leap second).
-        GeocentricPoint geo_pos;    ///< Object geocentric position in meters (x, y, z).
+        DirectionFlag dir_flag;                ///< Direction flag.
+        timing::dates::MJDate mjd;             ///< Modified Julian Date.
+        timing::types::SoD sod;                ///< Second of day (UTC).
+        int leap_second;                       ///< Leap second flag (0 or the value of new leap second).
+        geo::types::GeocentricPoint geo_pos;   ///< Object geocentric position in meters (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -140,9 +138,17 @@ public:
      */
     struct VelocityRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief VelocityRecord constructor from a generic ConsolidatedRecord.
+         * @param rec The consolidated record.
+         */
+        VelocityRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(VelocityRecord)
+
         // Members.
-        DirectionFlag dir_flag;        ///< Direction flag.
-        GeocentricVelocity geo_vel;    ///< Geocentric velocity in m/s (x, y, z).
+        DirectionFlag dir_flag;                    ///< Direction flag.
+        geo::types::GeocentricVelocity geo_vel;    ///< Geocentric velocity in m/s (x, y, z).
 
         /**
          * @brief Generate the line for this record.
@@ -158,10 +164,18 @@ public:
      */
     struct CorrectionsRecord : common::ConsolidatedRecord
     {
+        /**
+         * @brief CorrectionsRecord constructor from a generic ConsolidatedRecord.
+         * @param rec The consolidated record.
+         */
+        CorrectionsRecord(const common::ConsolidatedRecord& rec);
+
+        M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE_DTOR(CorrectionsRecord)
+
         // Members.
-        DirectionFlag dir_flag;                     ///<< Direction flag.
-        Vector3D<Meters> aberration_correction;     ///<< Stellar aberration correction in meters (x, y, z).
-        Nanoseconds range_correction;               ///<< Relativistic range correction in nanoseconds (positive).
+        DirectionFlag dir_flag; ///<< Direction flag.
+        math::types::Vector3D<math::units::Meters> aberration_correction; ///<< Stellar aberration correction (meters).
+        math::units::Nanoseconds range_correction; ///<< Relativistic range correction in nanoseconds (positive).
 
         /**
          * @brief Generate the line for this record.
@@ -242,7 +256,7 @@ public:
         std::string generateLine(float version) const;
     };
 
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CPFData)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(CPFData)
 
     // ALIASES
     // -----------------------------------------------------------------------------------------------------------------
@@ -319,37 +333,37 @@ public:
     // Records individual setter methods.
     /**
      * @brief Adds a position record to the end of the current list of position records.
-     * @param rec, the position record to append.
+     * @param rec The position record to append.
      */
     void addPositionRecord(const PositionRecord &rec);
     /**
      * @brief Adds a velocity record to the end of the current list of velocity records.
-     * @param rec, the velocity record to append.
+     * @param rec The velocity record to append.
      */
     void addVelocityRecord(const VelocityRecord &rec);
     /**
      * @brief Adds a corrections record to the end of the current list of corrections records.
-     * @param rec, the corretions record to append.
+     * @param rec The corretions record to append.
      */
     void addCorrectionsRecord(const CorrectionsRecord &rec);
     /**
      * @brief Adds a transponder record to the end of the current list of transponder records.
-     * @param rec, the transponder record to append.
+     * @param rec The transponder record to append.
      */
     void addTransponderRecord(const TransponderRecord &rec);
     /**
      * @brief Adds an offset from center record to the end of the current list of offset from center records.
-     * @param rec, the offset from center record to append.
+     * @param rec The offset from center record to append.
      */
     void addOffsetFromCenterRecord(const OffsetFromCenterRecord &rec);
     /**
      * @brief Adds a rotation angle record to the end of the current list of rotation angle records.
-     * @param rec, the rotation angle record to append.
+     * @param rec The rotation angle record to append.
      */
     void addRotationAngleRecord(const RotationAngleRecord &rec);
     /**
      * @brief Adds an earth orientation record to the end of the current list of earth orientation records.
-     * @param rec, the earth orientation record to append.
+     * @param rec The earth orientation record to append.
      */
     void addEarthOrientationRecord(const EarthOrientationRecord &rec);
 

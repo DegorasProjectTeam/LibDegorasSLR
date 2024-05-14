@@ -27,11 +27,11 @@
  * @author Degoras Project Team.
  * @brief This file contains the implementation of the CRDData class that abstracts the data of ILRS CRD format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -41,7 +41,7 @@
 #include <array>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/FormatsILRS/crd/records/crd_data.h>
 #include <LibDegorasSLR/Helpers/container_helpers.h>

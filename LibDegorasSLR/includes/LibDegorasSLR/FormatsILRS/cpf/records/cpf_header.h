@@ -27,7 +27,7 @@
  * @author Degoras Project Team.
  * @brief This file contains the declaration of the CPFHeader class that abstracts the header of ILRS CPF format.
  * @copyright EUPL License
- * @version 2305.1
+ 2305.1
 ***********************************************************************************************************************/
 
 // =====================================================================================================================
@@ -35,17 +35,16 @@
 // =====================================================================================================================
 
 // C++ INCLUDES
-//======================================================================================================================
+// =====================================================================================================================
 #include <array>
 #include <string>
-#include <vector>
 // =====================================================================================================================
 
-// LIBDPSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Timing/time_utils.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 // =====================================================================================================================
@@ -143,13 +142,13 @@ public:
     {
         // Members and functions.
 
-        float cpf_version;                              ///< CPF version. We store the subversion, for example 2.1
-        std::string cpf_source;                         ///< Ephemeris source.
-        timing::HRTimePointStd cpf_production_date;     ///< File production date. Will update if we call generate line.
-        std::string target_name;                        ///< Target name from official ILRS list.
-        std::string cpf_notes;                          ///< Notes with NO SPACES.
-        int cpf_sequence_number;                        ///< Ephemeris sequence number.
-        int cpf_subsequence_number;                     ///< Ephemeris sub-daily sequence number.               [For v2]
+        float cpf_version;                                  ///< CPF version. We store the subversion, for example 2.1
+        std::string cpf_source;                             ///< Ephemeris source.
+        timing::types::HRTimePointStd cpf_production_date;  ///< File production date (update if we generate the line).
+        std::string target_name;                            ///< Target name from official ILRS list.
+        std::string cpf_notes;                              ///< Notes with NO SPACES.
+        int cpf_sequence_number;                            ///< Ephemeris sequence number.
+        int cpf_subsequence_number;                         ///< Ephemeris sub-daily sequence number.           [For v2]
 
         /**
          * @brief Generate the line for this record. Also regenerate the cpf_production_date.
@@ -169,8 +168,8 @@ public:
         std::string id;                                 ///< It is always ILRS ID, based on COSPAR ID.
         Optional<std::string> sic;                      ///< SIC provided by ILRS. Set to -1 if target has no SIC.
         std::string norad;                              ///< NORAD ID.
-        timing::HRTimePointStd start_time;              ///< Ephemeris start time.
-        timing::HRTimePointStd end_time;                ///< Ephemeris end time.
+        timing::types::HRTimePointStd start_time;       ///< Ephemeris start time.
+        timing::types::HRTimePointStd end_time;         ///< Ephemeris end time.
         std::chrono::seconds total_seconds;             ///< TODO: what is this? non-standard.
         std::chrono::seconds time_between_entries;      ///< Time between two table entries in seconds. 0 if variable.
         bool tiv_compatible;                            ///< Compatible with TIVs.
@@ -249,7 +248,7 @@ public:
      */
     explicit CPFHeader(float cpf_version);
 
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR_DEF(CPFHeader)
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(CPFHeader)
 
     // Clear methods.
     /**
@@ -307,7 +306,7 @@ public:
     // Generic read methods.
     /**
      * @brief Read header records.
-     * @param rec_v, vector with header records.
+     * @param rec_v Vector with header records.
      * @return The errors generated at reading.
      */
     common::RecordReadErrorMultimap readHeader(const common::RecordLinesVector &rec_v);
@@ -315,35 +314,35 @@ public:
     // Specific read methods.
     /**
      * @brief Read Basic Info 1 Header H1 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readBasicInfo1Header(const common::ConsolidatedRecord &rec);
 
     /**
      * @brief Read Basic Info 2 Header H2 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readBasicInfo2Header(const common::ConsolidatedRecord &rec);
 
     /**
      * @brief Read Expected Accuracy H3 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readExpectedAccuracyHeader(const common::ConsolidatedRecord &rec);
 
     /**
      * @brief Read Transponder Info H4 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readTransponderInfoHeader(const common::ConsolidatedRecord &rec);
 
     /**
      * @brief Read Center of Mass Correction H5 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readCoMCorrectionHeader(const common::ConsolidatedRecord &rec);

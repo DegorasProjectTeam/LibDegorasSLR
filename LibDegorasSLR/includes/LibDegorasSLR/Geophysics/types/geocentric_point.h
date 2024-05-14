@@ -42,7 +42,7 @@
 #include <array>
 // =====================================================================================================================
 
-// LIBDEGORASSLR INCLUDES
+// LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Mathematics/units/strong_units.h"
@@ -57,41 +57,52 @@ namespace geo{
 namespace types{
 // =====================================================================================================================
 
-// ---------------------------------------------------------------------------------------------------------------------
-using math::types::Vector3D;
-using math::units::Meters;
-// ---------------------------------------------------------------------------------------------------------------------
-
 /**
  */
 struct LIBDPSLR_EXPORT GeocentricPoint
 {
-    GeocentricPoint(const Meters& x = Meters(), const Meters& y = Meters(), const Meters& z = Meters()) :
+    // Default constructor and destructor, copy and movement constructor and operators.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(GeocentricPoint)
+
+    GeocentricPoint(const math::units::Meters& x, const math::units::Meters& y, const math::units::Meters& z) :
         x(x), y(y), z(z)
     {}
 
-    GeocentricPoint(std::array<Meters,3> a) :
+    GeocentricPoint(std::array<math::units::Meters,3> a) :
         x(a[0]), y(a[1]), z(a[2])
     {}
 
-    GeocentricPoint(Vector3D<Meters> v) :
+    GeocentricPoint(math::types::Vector3D<math::units::Meters> v) :
         x(v.getX()), y(v.getY()), z(v.getZ())
     {}
 
-    M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(GeocentricPoint)
+    math::types::Vector3D<math::units::Meters> toVector3D() const
+    {
+        return math::types::Vector3D<math::units::Meters>(x,y,z);
+    }
 
-    Vector3D<Meters> toVector3D() const {return Vector3D<Meters>(x,y,z);}
+    std::vector<math::units::Meters> toStdVector() const
+    {
+        return this->toVector3D().toVector();
+    }
 
-    std::vector<Meters> toStdVector() const {return this->toVector3D().toVector();}
+    std::string toJsonStr() const
+    {
+        std::ostringstream json;
+        json << "{"
+             << "\"x\": " << this->x.toString() << ", "
+             << "\"y\": " << this->y.toString() << ", "
+             << "\"z\": " << this->z.toString()
+             << "}";
+        return json.str();
+    }
 
-    std::string toJsonStr() const {return this->toVector3D().toJsonStr();}
+    template<typename Container = std::array<math::units::Meters, 3>>
+    inline constexpr Container store() const {return Container{this->x,this->y,this->z};}
 
-    template<typename Container = std::array<Meters, 3>>
-    inline constexpr Container store() const {return Container{x,y,z};}
-
-    Meters x;
-    Meters y;
-    Meters z;
+    math::units::Meters x;
+    math::units::Meters y;
+    math::units::Meters z;
 };
 
 }}} // END NAMESPACES.
