@@ -111,7 +111,7 @@ public:
     {
         /**
          * @brief PositionRecord constructor from a generic ConsolidatedRecord.
-         * @param rec, the consolidated record.
+         * @param rec The consolidated record.
          */
         PositionRecord(const common::ConsolidatedRecord& rec);
 
@@ -140,7 +140,7 @@ public:
     {
         /**
          * @brief VelocityRecord constructor from a generic ConsolidatedRecord.
-         * @param rec, the consolidated record.
+         * @param rec The consolidated record.
          */
         VelocityRecord(const common::ConsolidatedRecord& rec);
 
@@ -166,7 +166,7 @@ public:
     {
         /**
          * @brief CorrectionsRecord constructor from a generic ConsolidatedRecord.
-         * @param rec, the consolidated record.
+         * @param rec The consolidated record.
          */
         CorrectionsRecord(const common::ConsolidatedRecord& rec);
 
@@ -333,37 +333,37 @@ public:
     // Records individual setter methods.
     /**
      * @brief Adds a position record to the end of the current list of position records.
-     * @param rec, the position record to append.
+     * @param rec The position record to append.
      */
     void addPositionRecord(const PositionRecord &rec);
     /**
      * @brief Adds a velocity record to the end of the current list of velocity records.
-     * @param rec, the velocity record to append.
+     * @param rec The velocity record to append.
      */
     void addVelocityRecord(const VelocityRecord &rec);
     /**
      * @brief Adds a corrections record to the end of the current list of corrections records.
-     * @param rec, the corretions record to append.
+     * @param rec The corretions record to append.
      */
     void addCorrectionsRecord(const CorrectionsRecord &rec);
     /**
      * @brief Adds a transponder record to the end of the current list of transponder records.
-     * @param rec, the transponder record to append.
+     * @param rec The transponder record to append.
      */
     void addTransponderRecord(const TransponderRecord &rec);
     /**
      * @brief Adds an offset from center record to the end of the current list of offset from center records.
-     * @param rec, the offset from center record to append.
+     * @param rec The offset from center record to append.
      */
     void addOffsetFromCenterRecord(const OffsetFromCenterRecord &rec);
     /**
      * @brief Adds a rotation angle record to the end of the current list of rotation angle records.
-     * @param rec, the rotation angle record to append.
+     * @param rec The rotation angle record to append.
      */
     void addRotationAngleRecord(const RotationAngleRecord &rec);
     /**
      * @brief Adds an earth orientation record to the end of the current list of earth orientation records.
-     * @param rec, the earth orientation record to append.
+     * @param rec The earth orientation record to append.
      */
     void addEarthOrientationRecord(const EarthOrientationRecord &rec);
 

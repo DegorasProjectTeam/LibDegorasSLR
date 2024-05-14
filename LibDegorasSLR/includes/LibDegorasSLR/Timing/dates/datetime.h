@@ -95,11 +95,16 @@ public:
      */
     DateTime(const DateType& date, const types::SoD& sod);
 
+    /**
+     * @brief Constructor with Date and DayFraction parameters.
+     * @param date DateType object representing the date.
+     * @param sod Fraction of day [0,1).
+     */
     DateTime(const DateType& date, const types::DayFraction& sod);
 
     /**
      * @brief Constructor from long double value containing the day and fraction of day combined.
-     * @param datetime, the current datetime in days since origin with day fraction.
+     * @param datetime The current datetime in days since origin with day fraction.
      */
     DateTime(long double datetime);
 
@@ -132,7 +137,7 @@ public:
 
     /**
      * @brief Function to add some seconds to this datetime.
-     * @param seconds, the seconds that will be added to the datetime. If negative, the time is decremented.
+     * @param seconds The seconds that will be added to the datetime. If negative, the time is decremented.
      */
     void add(const math::units::Seconds& seconds);
 

@@ -667,14 +667,15 @@ long long hhmmssnsToNsDay(unsigned int hour, unsigned int min, unsigned int sec,
 long long nsDayTohhmmssns(long long ns_in, unsigned int& hour, unsigned int& min, unsigned int& sec, unsigned int& ns)
 {
     // Not use exponential to avoid double.
-    auto result = dpslr::math::euclidDivLL(ns_in, 86400000000000ll);
+    // If ns_in exceeds the nanoseconds in one day, normalize it by substracting the necessary days elapsed.
+    auto result = dpslr::math::euclidDiv(ns_in, 86400000000000ll);
     ns_in -= result.q * 86400000000000ll;
-    hour = ns_in / 3600000000000ll;
+    hour = static_cast<unsigned int>(ns_in / 3600000000000ll);
     ns_in -= hour * 3600000000000ll;
-    min = ns_in / 60000000000ll;
+    min = static_cast<unsigned int>(ns_in / 60000000000ll);
     ns_in -= min * 60000000000ll;
-    sec = ns_in / 1000000000ll;
-    ns = ns_in % 1000000000ll;
+    sec = static_cast<unsigned int>(ns_in / 1000000000ll);
+    ns = static_cast<unsigned int>(ns_in % 1000000000ll);
     return  result.q;
 }
 // =====================================================================================================================

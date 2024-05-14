@@ -76,10 +76,10 @@ public:
 
     /**
      * @brief Constructs a PredictorStarBase object with the given observer's location.
-     * @param star The parameters of the star.
-     * @param loc The location of the observer.
-     * @param leap_secs The leap seconds to apply.
-     * @param ut1_utc_diff The difference between UT1 and UTC time systems to apply.
+     * @param star          The parameters of the star.
+     * @param loc           The location of the observer.
+     * @param leap_secs     The leap seconds to apply.
+     * @param ut1_utc_diff  The difference between UT1 and UTC time systems to apply.
      */
     PredictorStarBase(const astro::types::Star& star,
                       const geo::types::SurfaceLocation<math::units::Degrees>& loc,
@@ -100,8 +100,8 @@ public:
     /**
      * @brief Predicts the position of a star at a specific time
      *
-     * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
-     * @param refraction True if refraction model is to be applied, false otherwise.
+     * @param jdt         The Julian DateTime object representing the Julian date and time of the prediction.
+     * @param refraction  True if refraction model is to be applied, false otherwise.
      * @return The resulting PredictionStar.
      */
     virtual PredictionStar predict(const timing::dates::JDateTime& jdt, bool refraction) const = 0;
@@ -109,10 +109,10 @@ public:
     /**
      * @brief Predicts star positions within a time range with a specified time step.
      *
-     * @param jdt_start The Julian start datetime of the prediction range.
-     * @param jdt_end The Julian end datetime of ñthe prediction range.
-     * @param step The time step in milliseconds between predictions.
-     * @param refraction True if refraction model is to be applied, false otherwise.
+     * @param jdt_start   The Julian start datetime of the prediction range.
+     * @param jdt_end     The Julian end datetime of ñthe prediction range.
+     * @param step        The time step in milliseconds between predictions.
+     * @param refraction  True if refraction model is to be applied, false otherwise.
      * @return A vector of StarPrediction objects representing predicted star positions at each step.
      *
      * @throws std::invalid_argument If the interval is invalid.

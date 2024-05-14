@@ -107,15 +107,15 @@ public:
 
     /**
      * @brief Fill all the current matrix space with the specified value.
-     * @param value, the value to fill the matrix with.
+     * @param value The value to fill the matrix with.
      */
     void fill(T value = T());
 
     /**
      * @brief Fill the matrix with the contents of a container.
-     * @param container with the values to fill the matrix with. This must have a matrix form, i.e., container of
-     *        containers, with a proper size.
-     * @return true if matrix was filled successfully, false otherwise.
+     * @param container The container ith the values to fill the matrix with.
+     *        This must have a matrix form, i.e., container of containers, with a proper size.
+     * @return True if matrix was filled successfully, false otherwise.
      */
     template<typename Container>
     bool setDataFromContainer(const Container& container);
@@ -135,21 +135,21 @@ public:
     /**
      * @brief Push back a new row in the matrix, increasing the row number by one. The row must have the same column
      *        size as the matrix.
-     * @param row, the row to push back to the matrix.
-     * @return true if row was successfully pushed back, false otherwise.
+     * @param row The row to push back to the matrix.
+     * @return True if row was successfully pushed back, false otherwise.
      */
     template <typename Container>
     bool pushBackRow(const Container& row);
 
     /**
      * @brief Get current columns size of the matrix.
-     * @return the columns size of the matrix.
+     * @return The columns size of the matrix.
      */
     std::size_t columnsSize() const;
 
     /**
      * @brief Get current rows size of the matrix.
-     * @return the rows size of the matrix.
+     * @return The rows size of the matrix.
      */
     std::size_t rowSize() const;
 
@@ -177,34 +177,34 @@ public:
 
     /**
      * @brief Access operator that gives access to the row vector specified by index.
-     * @param row_index, the index of the row returned.
-     * @return the row specified by index.
+     * @param row_index The index of the row returned.
+     * @return The row specified by index.
      * @warning This operator is unsafe. Index must be checked before using it.
      */
     std::vector<T>& operator[] (std::size_t row_index);
 
     /**
      * @brief Access operator that gives access to the row vector specified by index. Constant override.
-     * @param row_index, the index of the row returned.
-     * @return the row specified by index.
+     * @param row_index The index of the row returned.
+     * @return The row specified by index.
      * @warning This operator is unsafe. Index must be checked before using it.
      */
     const std::vector<T>& operator[] (std::size_t row_index) const;
 
     /**
      * @brief Element access operator that gives access to the element specified by indexes. Constant override.
-     * @param row_index, the row index of the element.
-     * @param col_index, the column index of the element
-     * @return the element specified by the indexes.
+     * @param row_index The row index of the element.
+     * @param col_index The column index of the element
+     * @return The element specified by the indexes.
      * @warning This operator is unsafe. Indexes must be checked before using it.
      */
     const T& operator()(std::size_t row_index, std::size_t col_index) const;
 
     /**
      * @brief Element access operator that gives access to the element specified by indexes.
-     * @param row_index, the row index of the element.
-     * @param col_index, the column index of the element
-     * @return the element specified by the indexes.
+     * @param row_index The row index of the element.
+     * @param col_index The column index of the element
+     * @return The element specified by the indexes.
      * @warning This operator is unsafe. Indexes must be checked before using it.
      */
     T& operator()(std::size_t row_index, std::size_t col_index);
@@ -226,30 +226,30 @@ public:
 
     /**
      * @brief Set element value at the specified position.
-     * @param row_index, the row index of the element.
-     * @param col_index, the column index of the element.
-     * @param value, the value to set to the element.
+     * @param row_index The row index of the element.
+     * @param col_index The column index of the element.
+     * @param value The value to set to the element.
      */
     void setElement(std::size_t row_index, std::size_t col_index, const T &value);
 
     /**
      * @brief Get the element value at the specified position.
-     * @param row_index, the row index of the element.
-     * @param col_index, the column index of the element.
+     * @param row_index The row index of the element.
+     * @param col_index The column index of the element.
      */
     const T& getElement(std::size_t row_index, std::size_t col_index) const;
 
     /**
      * @brief Convert matrix to string.
-     * @return a string representing the matrix.
+     * @return A string representing the matrix.
      */
     std::string toString() const;
 
     /**
      * @brief Swap two rows of the matrix.
-     * @param r1, the row index of the first row.
-     * @param r2, the row index of the second row.
-     * @return true if swap was successfully done, false otherwise.
+     * @param r1 The row index of the first row.
+     * @param r2 The row index of the second row.
+     * @return True if swap was successfully done, false otherwise.
      * @note This function is safe. It will fail if indexes are not valid.
      */
     std::enable_if_t<std::is_swappable_v<T>, bool>
@@ -257,9 +257,9 @@ public:
 
     /**
      * @brief Swap two columns of the matrix.
-     * @param r1, the column index of the first column.
-     * @param r2, the column index of the second column.
-     * @return true if swap was successfully done, false otherwise.
+     * @param r1 The column index of the first column.
+     * @param r2 The column index of the second column.
+     * @return True if swap was successfully done, false otherwise.
      * @note This function is safe. It will fail if indexes are not valid.
      */
     std::enable_if_t<std::is_swappable_v<T>, bool>
@@ -302,7 +302,7 @@ public:
 
     /**
      * @brief Multiply by scalar operator.
-     * @param scalar, the scalar to multiply the matrix by.
+     * @param scalar The scalar to multiply the matrix by.
      * @return The matrix multiplied by scalar.
      */
     template<typename U>
@@ -311,7 +311,7 @@ public:
 
     /**
      * @brief Multiply this matrix by other matrix.
-     * @param B, the other matrix.
+     * @param B The other matrix.
      * @return this * B, if possible. Empty matrix otherwise.
      */
     template<typename U>
@@ -320,23 +320,23 @@ public:
 
     /**
      * @brief Multiply and assign operator.
-     * @param B, the other matrix to multiply by.
-     * @return a reference to this.
+     * @param B The other matrix to multiply by.
+     * @return A reference to this.
      */
     template<typename U>
     Matrix<T>& operator *=(const Matrix<U>& B);
 
     /**
      * @brief Multiply and assign operator.
-     * @param scalar, the scalar to multiply by.
-     * @return a reference to this.
+     * @param scalar The scalar to multiply by.
+     * @return A reference to this.
      */
     template<typename U>
     Matrix<T>& operator *=(const U& scalar);
 
     /**
      * @brief Sum operator for matrices.
-     * @param B, the other matrix.
+     * @param B The other matrix.
      * @return this + B if possible. An empty matrix otherwise.
      */
     template<typename U>
@@ -350,7 +350,7 @@ public:
 
     /**
      * @brief Substract operator for matrices.
-     * @param B, the other matrix.
+     * @param B The other matrix.
      * @return this - B if possible. An empty matrix otherwise.
      */
     template<typename U>
@@ -358,38 +358,38 @@ public:
 
     /**
      * @brief Sum and assign operator for matrices.
-     * @param B, the other matrix.
-     * @return a reference to this.
+     * @param B The other matrix.
+     * @return A reference to this.
      */
     template<typename U>
     Matrix<T>& operator+=(const Matrix<U>& other);
 
     /**
      * @brief Substract and assign operator for matrices.
-     * @param B, the other matrix.
-     * @return a reference to this.
+     * @param B The other matrix.
+     * @return A reference to this.
      */
     template<typename U>
     Matrix<T>& operator-=(const Matrix<U>& other);
 
     /**
      * @brief Create an identity matrix of order n.
-     * @param n, the order of the identity matrix.
-     * @return the identity matrix of order n.
+     * @param n The order of the identity matrix.
+     * @return The identity matrix of order n.
      */
     static Matrix<T> I(std::size_t n);
 
     /**
      * @brief Create a matrix from a column vector.
-     * @param col, the column vector.
-     * @return a matrix created from a column vector.
+     * @param col The column vector.
+     * @return A matrix created from a column vector.
      */
     static Matrix<T> fromColumnVector(const std::vector<T>& col);
 
     /**
      * @brief Create a matrix from a row vector.
-     * @param row, the row vector.
-     * @return a matrix created from a row vector.
+     * @param row The row vector.
+     * @return A matrix created from a row vector.
      */
     static Matrix<T> fromRowVector(const std::vector<T>& row);
 
@@ -400,18 +400,18 @@ private:
 
 /**
  * @brief Equal operator for matrices.
- * @param A, one matrix.
- * @param B, the other matrix.
- * @return true if matrices are equal, false otherwise.
+ * @param A One matrix.
+ * @param B The other matrix.
+ * @return True if matrices are equal, false otherwise.
  */
 template <typename T, typename U>
 bool operator==(const Matrix<T>& A, const Matrix<U>& B);
 
 /**
  * @brief Different operator for matrices.
- * @param A, one matrix.
- * @param B, the other matrix.
- * @return true if matrices are different, false otherwise.
+ * @param A One matrix.
+ * @param B The other matrix.
+ * @return True if matrices are different, false otherwise.
  */
 template <typename T, typename U>
 bool operator!=(const Matrix<T>& A, const Matrix<U>& B);

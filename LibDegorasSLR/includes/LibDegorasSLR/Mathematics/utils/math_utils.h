@@ -54,12 +54,25 @@ namespace dpslr {
 namespace math {
 // =====================================================================================================================
 
+/**
+ * @brief Calculate the square of a number.
+ * @tparam The type of the operand. It must have an operator * defined.
+ * @param x The operand to be squared.
+ * @return The square of x.
+ */
 template<typename T>
 T pow2(const T& x)
 {
     return x*x;
 }
 
+
+/**
+ * @brief Calculate the cube of a number.
+ * @tparam The type of the operand. It must have an operator * defined.
+ * @param x The operand to be cubed.
+ * @return The cube of x.
+ */
 template<typename T>
 T pow3(const T& x)
 {
@@ -68,19 +81,19 @@ T pow3(const T& x)
 
 /**
  * @brief Truncates a number with a given number of decimal places.
- * @param x, the number to be truncated.
- * @param prec, the total number of digits of the number to be truncated, including whole number and fractional part.
- * @param dec_places, the maximum size of the fractional part.
- * @return
+ * @param x The number to be truncated.
+ * @param prec The total number of digits of the number to be truncated, including whole number and fractional part.
+ * @param dec_places The maximum size of the fractional part.
+ * @return The number trucated as double.
  */
 template<typename T>
 double truncToDouble(T x, unsigned prec, unsigned dec_places);
 
 /**
  * @brief Rounds a number with a given numer of decimal places.
- * @param x, the number to be rounded.
- * @param dec_places, the decimal places taken into account to round the number.
- * @return the number rounded as double.
+ * @param x The number to be rounded.
+ * @param dec_places The decimal places taken into account to round the number.
+ * @return The number rounded as double.
  */
 template<typename T>
 double roundToDouble(T x, unsigned dec_places);
@@ -103,12 +116,12 @@ T normalizeVal(T x, T x_min, T x_max);
  *        sense, the remainder can be negative.
  *
  * @tparam T The integral type for the division.
- * @param a, The dividend.
- * @param b, The divisor.
- * @return An instance of LldivResult<T> containing the quotient and remainder.
+ * @param a The dividend.
+ * @param b The divisor.
+ * @return An instance of EuclideanDivResult<T> containing the quotient and remainder.
  */
 template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
-types::EuclideanDivResult<T> euclidDivLL(T a, T b)
+types::EuclideanDivResult<T> euclidDiv(T a, T b)
 {
     types::EuclideanDivResult<T> res;
     T r = a % b;
@@ -121,9 +134,10 @@ types::EuclideanDivResult<T> euclidDivLL(T a, T b)
 
 /**
  * @brief Compare floating points arguments a and b.
- * @param a, first operand
- * @param b, second operand
- * @param epsilon, the difference between a floating point number and the consecutive one.
+ * @tparam T The type of the operands to compare. It must be a floating point type.
+ * @param a First operand
+ * @param b Second operand
+ * @param epsilon The difference between a floating point number and the consecutive one.
  * @return 1 if a > b, 0 if a == b, -1 a < b.
  */
 template <typename T>
@@ -134,6 +148,13 @@ compareFloating(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
     return std::abs(aux) < epsilon ? 0 : std::signbit(aux) ? -1 : 1;
 }
 
+/**
+ * @brief Check if a floating point value is less or equal than 0.
+ * @tparam T The type of the operands to compare. It must be a floating point type.
+ * @param a The number to check.
+ * @param epsilon The difference between a floating point number and the consecutive one.
+ * @return True if number is <= 0.0, false otherwise.
+ */
 template <typename T>
 std::enable_if_t<helpers::traits::is_floating_v<T>, bool>
 isFloatingZeroOrMinor(T a, T epsilon = std::numeric_limits<T>::epsilon())
@@ -141,6 +162,13 @@ isFloatingZeroOrMinor(T a, T epsilon = std::numeric_limits<T>::epsilon())
     return (compareFloating(a, static_cast<T>(0.0L), epsilon) <= 0);
 }
 
+/**
+ * @brief Check if a floating point value is less than 0.
+ * @tparam T The type of the operands to compare. It must be a floating point type.
+ * @param a The number to check.
+ * @param epsilon The difference between a floating point number and the consecutive one.
+ * @return True if number is less than 0.0, false otherwise.
+ */
 template <typename T>
 std::enable_if_t<helpers::traits::is_floating_v<T>, bool>
 isFloatingMinorThanZero(T a, T epsilon = std::numeric_limits<T>::epsilon())
@@ -148,13 +176,21 @@ isFloatingMinorThanZero(T a, T epsilon = std::numeric_limits<T>::epsilon())
     return (compareFloating(a, static_cast<T>(0.0L), epsilon) < 0);
 }
 
+/**
+ * @brief Generates a sequence of numbers between start and end using a linear increment.
+ * @tparam T The type of the operands to compare. It must be a floating point type.
+ * @param start The first number included in the interval.
+ * @param end The last number included in the interval.
+ * @param step The step between two consecutive numbers. This value must be greater than 0 and less than end - start.
+ * @return A vector containing the sequence. If the step is not correct, the sequence is empty.
+ */
 template <typename T>
 std::enable_if_t<helpers::traits::is_floating_v<T>, std::vector<T>>
 linspaceStep(const T& start, const T& end, const T& step)
 {
     std::vector<T> result;
 
-    if (step == 0)
+    if (isFloatingZeroOrMinor(step) || step > (end - start) )
         return result;
 
     // Calculate the number of values based on the step size

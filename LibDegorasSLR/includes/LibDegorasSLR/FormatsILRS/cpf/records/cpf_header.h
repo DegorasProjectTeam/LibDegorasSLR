@@ -306,7 +306,7 @@ public:
     // Generic read methods.
     /**
      * @brief Read header records.
-     * @param rec_v, vector with header records.
+     * @param rec_v Vector with header records.
      * @return The errors generated at reading.
      */
     common::RecordReadErrorMultimap readHeader(const common::RecordLinesVector &rec_v);
@@ -314,35 +314,35 @@ public:
     // Specific read methods.
     /**
      * @brief Read Basic Info 1 Header H1 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readBasicInfo1Header(const common::ConsolidatedRecord &rec);
 
     /**
      * @brief Read Basic Info 2 Header H2 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readBasicInfo2Header(const common::ConsolidatedRecord &rec);
 
     /**
      * @brief Read Expected Accuracy H3 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readExpectedAccuracyHeader(const common::ConsolidatedRecord &rec);
 
     /**
      * @brief Read Transponder Info H4 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readTransponderInfoHeader(const common::ConsolidatedRecord &rec);
 
     /**
      * @brief Read Center of Mass Correction H5 from record.
-     * @param rec, the record to read from.
+     * @param rec The record to read from.
      * @return The error generated at reading.
      */
     common::RecordReadError readCoMCorrectionHeader(const common::ConsolidatedRecord &rec);

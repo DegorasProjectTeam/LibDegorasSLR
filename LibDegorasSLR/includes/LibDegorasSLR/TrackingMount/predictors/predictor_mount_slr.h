@@ -73,22 +73,22 @@ public:
 
     /**
      * @brief PredictorMountSLR constructor.
-     * @param pass_start, the modified julian datetime for pass start.
-     * @param pass_end, the modified julian datetime for pass end.
-     * @param pred_slr, the SLR predictor to be used for SLR object predictions.
-     * @param pred_sun, the sun predictor to be used for sun position predictions.
-     * @param config, the configuration parameters for the tracking analysis.
+     * @param pass_start The modified julian datetime for pass start.
+     * @param pass_end The modified julian datetime for pass end.
+     * @param pred_slr The SLR predictor to be used for SLR object predictions.
+     * @param pred_sun The sun predictor to be used for sun position predictions.
+     * @param config The configuration parameters for the tracking analysis.
      */
     PredictorMountSLR(const timing::dates::MJDateTime& pass_start, const timing::dates::MJDateTime& pass_end,
                       slr::predictors::PredictorSlrPtr pred_slr, astro::predictors::PredictorSunPtr pred_sun,
                       const utils::MovementAnalyzerConfig &config, math::units::MillisecondsU time_delta = 1000);
     /**
      * @brief PredictorMountSLR constructor.
-     * @param pass_start, the modified julian datetime for pass start.
-     * @param pass_end, the modified julian datetime for pass end.
-     * @param pred_slr, the SLR predictor to be used for SLR object predictions.
-     * @param pred_sun, the sun predictor to be used for sun position predictions.
-     * @param config, the configuration parameters for the tracking analysis.
+     * @param pass_start The modified julian datetime for pass start.
+     * @param pass_end The modified julian datetime for pass end.
+     * @param pred_slr The SLR predictor to be used for SLR object predictions.
+     * @param pred_sun The sun predictor to be used for sun position predictions.
+     * @param config The configuration parameters for the tracking analysis.
      */
     PredictorMountSLR(const timing::types::HRTimePointStd& pass_start, const timing::types::HRTimePointStd& pass_end,
                       slr::predictors::PredictorSlrPtr pred_slr, astro::predictors::PredictorSunPtr pred_sun,
@@ -96,20 +96,20 @@ public:
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
-     * @return true if there is a valid tracking, false otherwise.
+     * @return True if there is a valid tracking, false otherwise.
      */
     bool isReady() const;
 
     /**
      * @brief This function returns the mount tracking information.
-     * @return the struct containing all the info about the mount tracking.
+     * @return The struct containing all the info about the mount tracking.
      */
     const MountTrackingSLR& getMountTrackingSLR() const;
 
     /**
      * @brief This function returns the object's position at a given time.
      * @param tp_time The time point datetime.
-     * @return the result of the operation. Must be checked to ensure the position is valid.
+     * @return The result of the operation. Must be checked to ensure the position is valid.
      *
      * @warning Nanoseconds resolution for the prediction.
      */
@@ -117,8 +117,8 @@ public:
 
     /**
      * @brief This function returns the object's position at a given time.
-     * @param mjd, the modified julian datetime.
-     * @return the result of the operation. Must be checked to ensure the position is valid.
+     * @param mjd The modified julian datetime.
+     * @return The result of the operation. Must be checked to ensure the position is valid.
      */
     PredictionMountSLR predict(const timing::dates::MJDateTime &mjd) const;
 

@@ -285,23 +285,23 @@ LIBDPSLR_EXPORT dates::JDateTime timePointToJulianDateTime(const types::HRTimePo
 
 /**
  * @brief Converts a timepoint to a Modified Julian DateTime.
- * @param tp, the timepoint.
- * @return a MJDateTime representing tp.
+ * @param tp The timepoint.
+ * @return A MJDateTime representing tp.
  */
 LIBDPSLR_EXPORT dates::MJDateTime timePointToModifiedJulianDateTime(const types::HRTimePointStd &tp);
 
 
 /**
  * @brief Converts a timepoint to a J2000 DateTime.
- * @param tp, the timepoint.
- * @return a J2000DateTime representing tp.
+ * @param tp The timepoint.
+ * @return A J2000DateTime representing tp.
  */
 LIBDPSLR_EXPORT dates::J2000DateTime timePointToJ2000DateTime(const types::HRTimePointStd &tp);
 
 /**
  * @brief Get seconds of day from timepoint
- * @param tp, the timepoint.
- * @return the seconds elapsed since day start with fraction.
+ * @param tp The timepoint.
+ * @return The seconds elapsed since day start with fraction.
  */
 LIBDPSLR_EXPORT long double timePointToSecsDay(const types::HRTimePointStd& tp);
 
@@ -347,14 +347,14 @@ LIBDPSLR_EXPORT types::HRTimePointStd julianDateTimeToTimePoint(const dates::JDa
 // =====================================================================================================================
 /**
  * @brief Converts a Modified Julian Datetime to a TimePoint.
- * @param mjdt, Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
+ * @param mjdt Modified Julian Datetime in days. Precission up to ns. Must be within TimePoint era.
  * @return A TimePoint.
  */
 LIBDPSLR_EXPORT types::HRTimePointStd modifiedJulianDateTimeToTimePoint(const dates::MJDateTime &mjdt);
 
 /**
  * @brief Converts a Modified Julian Datetime to a J2000 Datetime.
- * @param mjdt, Modified Julian Datetime in days. Precission up to ns.
+ * @param mjdt Modified Julian Datetime in days. Precission up to ns.
  * @return A J2000DateTime.
  */
 LIBDPSLR_EXPORT dates::J2000DateTime modifiedJulianDateToJ2000DateTime(const dates::MJDateTime &mjdt);
@@ -388,17 +388,17 @@ LIBDPSLR_EXPORT types::HRTimePointStd win32TicksToTimePoint(types::Windows32Tick
 // =====================================================================================================================
 /**
  * @brief Converts a timepoint to a TLE Date.
- * @param tp, the timepoint.
- * @param cent_year, the last two digits of the year.
- * @param day_with_fract, the day of the year with the fraction
+ * @param tp The timepoint.
+ * @param cent_year The last two digits of the year.
+ * @param day_with_fract The day of the year with the fraction
  */
 LIBDPSLR_EXPORT void timePointToTLEDate(const types::HRTimePointStd& tp, int& cent_year, long double& day_with_fract);
 
 /**
  * @brief Converts a TLE date to a timepoint.
- * @param cent_year, the last two digits of the year
- * @param day_with_fract
- * @return
+ * @param cent_year The last two digits of the year
+ * @param day_with_fract The day of the year with the fractionary part.
+ * @return A timepoint representing the TLE date.
  */
 LIBDPSLR_EXPORT types::HRTimePointStd tleDateToTimePoint(unsigned int cent_year, long double day_with_fract);
 // =====================================================================================================================
@@ -406,11 +406,26 @@ LIBDPSLR_EXPORT types::HRTimePointStd tleDateToTimePoint(unsigned int cent_year,
 
 // HELPER FUNCTIONS
 // =====================================================================================================================
-// Transforms hours, mins, seconds and nanoseconds to day nanoseconds.
+
+/**
+ * @brief Transform hh:mm::ss hour to nanoseconds of day.
+ * @param hour The hours.
+ * @param min The minutes.
+ * @param sec The seconds.
+ * @param ns The nanoseconds.
+ * @return Nanoseconds elapsed since start of day.
+ */
 LIBDPSLR_EXPORT long long hhmmssnsToNsDay(unsigned int hour, unsigned int min, unsigned int sec, unsigned int ns);
 
-// Transforms day nanoseconds to hours, mins, seconds and nanoseconds.
-// Returns the days offset as long long.
+/**
+ * @brief Transforms nanoseconds elapsed since start of day to hh:mm:ss hour.
+ * @param ns_in The nanoseconds elapsed since start of day.
+ * @param hour_out The hours.
+ * @param min_out The minutes.
+ * @param sec_out The seconds.
+ * @param ns_out The nanoseconds.
+ * @return The number of days elapsed since start of day.
+ */
 LIBDPSLR_EXPORT long long nsDayTohhmmssns(long long ns_in, unsigned int& hour_out, unsigned int& min_out,
                                         unsigned int& sec_out, unsigned int& ns_out);
 

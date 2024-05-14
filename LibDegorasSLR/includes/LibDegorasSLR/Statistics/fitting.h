@@ -99,11 +99,11 @@ std::vector<Ret> robustBisquareWeights(const std::vector<T>& x, const std::vecto
 
 /**
  * @brief Gets the polynomial fit coefficients for x,y.
- * @param x, a vector with the independent variable values.
- * @param y, a vector with the dependent variable values. It must have the same size as x.
- * @param degree, the degree of the polynomial fit
- * @param w, a vector with the weights applied to each observation. It must be empty or have the same size as x.
- * @param robust, the robust fit method selected
+ * @param x A vector with the independent variable values.
+ * @param y A vector with the dependent variable values. It must have the same size as x.
+ * @param degree The degree of the polynomial fit
+ * @param w A vector with the weights applied to each observation. It must be empty or have the same size as x.
+ * @param robust The robust fit method selected
  * @return The coefficients of the polynomial fit for x and x, or empty vector if x and x sizes are not equal.
  *         The order of the coefficients in the returned vector is c[0] + c[1] * x + c[2] * x^2 + ... + c[n] * x^n.
  */
@@ -114,8 +114,8 @@ std::vector<Ret> polynomialFit(const std::vector<T>& x, const std::vector<T>& y,
 
 /**
  * @brief Resolve for @param x the polynomial given by its coefficients in @param coefs.
- * @param coefs, the coefficients of the polynomial: coefs[0] + coefs[1] * x + cofes[2] * x^2 + ... + coefs[n] * x^n
- * @param x, the independent variable for resolving the polynomial.
+ * @param coefs The coefficients of the polynomial: coefs[0] + coefs[1] * x + cofes[2] * x^2 + ... + coefs[n] * x^n
+ * @param x The independent variable for resolving the polynomial.
  * @return The solution of the polynomial: coefs[0] + coefs[1] * x + cofes[2] * x^2 + ... + coefs[n] * x^n.
  *         If @param coefs is empty, returns 0.
  */
@@ -125,9 +125,9 @@ T applyPolynomial(const std::vector<T>& coefs, T x);
 
 /**
  * @brief Removes polynomial trend from the data in y.
- * @param x, a vector with the independent variable values.
- * @param y, a vector with the dependent variable values. It must have the same size as x.
- * @param degree, the degree of the polynomial fit using for detrend.
+ * @param x A vector with the independent variable values.
+ * @param y A vector with the dependent variable values. It must have the same size as x.
+ * @param degree The degree of the polynomial fit using for detrend.
  * @return The data with the trend removed.
  * @note When degree = 1, detrend removes the linear trend.
  */
@@ -136,11 +136,11 @@ std::vector<Ret> detrend(const std::vector<T>& x, const std::vector<T>& y, unsig
 
 /**
  * @brief Removes polynomial trend from the data in y, using xinterp, yinterp to form the polynomial fit
- * @param x, a vector with the independent variable values.
- * @param y, a vector with the dependent variable values. It must have the same size as x.
- * @param xinterp, a vector with the independent variable for polynomial fit.
- * @param yinterp, a vector with the dependent variable for polynomial fit. It must have the same size as xinterp.
- * @param degree, the degree of the polynomial fit using for detrend.
+ * @param x A vector with the independent variable values.
+ * @param y A vector with the dependent variable values. It must have the same size as x.
+ * @param xinterp A vector with the independent variable for polynomial fit.
+ * @param yinterp A vector with the dependent variable for polynomial fit. It must have the same size as xinterp.
+ * @param degree The degree of the polynomial fit using for detrend.
  * @return The data with the trend removed.
  * @note When degree = 1, detrend removes the linear trend.
  */

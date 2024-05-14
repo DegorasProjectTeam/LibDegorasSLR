@@ -98,9 +98,9 @@ public:
 
     /**
      * @brief PassCalculator constructs the pass calculator.
-     * @param predictor the predictor used to calculate the passes.
-     * @param min_elev minimum elevation of the pass in degrees. By default is 0, i.e., above the horizon.
-     * @param interval interval between two steps of the pass in seconds. By default is 1 second.
+     * @param predictor  The predictor used to calculate the passes.
+     * @param min_elev   Minimum elevation of the pass in degrees. By default is 0, i.e., above the horizon.
+     * @param interval   Interval between two steps of the pass in seconds. By default is 1 second.
      */
     PassCalculator(predictors::PredictorSlrPtr predictor, math::units::Degrees min_elev = 0,
                    math::units::Seconds interval = 1.L);
@@ -113,25 +113,25 @@ public:
     void setMinElev(math::units::Degrees min_elev);
     /**
      * @brief Getter for minimum elevation.
-     * @return the minimum elevation in degrees.
+     * @return The minimum elevation in degrees.
      */
     math::units::Degrees minElev() const;
     /**
      * @brief Setter for interval.
-     * @param interval the interval for interpolation in seconds.
+     * @param interval  The interval for interpolation in seconds.
      */
     void setInterval(math::units::Seconds interval);
     /**
      * @brief Getter for interval.
-     * @return the interval for interpolation in seconds.
+     * @return The interval for interpolation in seconds.
      */
     math::units::Seconds interval() const;
 
     /**
      * @brief Get passes within the given interval of time.
-     * @param mjd_start the modified julian date of interval start.
-     * @param mjd_end the modified julian date of interval end.
-     * @param passes the returned passes, or empty if no pass was found.
+     * @param mjd_start  The modified julian date of interval start.
+     * @param mjd_end    The modified julian date of interval end.
+     * @param passes     The returned passes, or empty if no pass was found.
      * @return The result of the operation.
      */
     ResultCode getPasses(const timing::dates::MJDateTime &mjd_start,
@@ -141,16 +141,16 @@ public:
     /**
      * @brief Get the next pass, starting from mjd_start datetime. If this datetime is already inside a pass, then
      *        this pass will be returned.
-     * @param mjd_start, the datetime to start lookig for next pass.
-     * @param pass, the data of the pass. This data is not valid if returned code is different from NOT_ERROR.
+     * @param mjd_start  The datetime to start lookig for next pass.
+     * @param pass       The data of the pass. This data is not valid if returned code is different from NOT_ERROR.
      * @return The result of the operation. If the result is different from NOT_ERROR, pass data is not valid.
      */
     ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, Pass &pass) const;
 
     /**
      * @brief Checks is a given time is inside a pass.
-     * @param mjd, the MJ datetime to check.
-     * @return true if the datetime is inside of a pass, false if there was some error or the datetime is not inside a pass.
+     * @param mjd  The MJ datetime to check.
+     * @return True if the datetime is inside of a pass, false if there was some error or the datetime is not inside a pass.
      */
     bool isInsidePass(const timing::dates::MJDateTime &mjd) const;
 

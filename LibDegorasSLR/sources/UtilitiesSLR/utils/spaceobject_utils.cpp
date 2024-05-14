@@ -133,9 +133,9 @@ std::string ilrsidToShortcospar(const std::string& ilrsid)
 
     do
     {
-        auto res = dpslr::math::euclidDivLL(num - 1, 26);
+        auto res = dpslr::math::euclidDiv(num - 1, 26);
         num = res.q;
-        letters.push_back('A' + res.r);
+        letters.push_back('A' + static_cast<char>(res.r));
     } while(num > 0);
 
     // Add the letters in correct order to the numbers
