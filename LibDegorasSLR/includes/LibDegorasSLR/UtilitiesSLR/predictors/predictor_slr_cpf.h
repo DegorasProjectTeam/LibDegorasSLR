@@ -95,7 +95,7 @@ public:
      */
     enum class PredictionError : std::uint32_t
     {
-        NO_ERROR,
+        NOT_ERROR,
         CPF_LOAD_ERROR,
         INTERPOLATION_NOT_IN_THE_MIDDLE,
         X_INTERPOLATED_OUT_OF_BOUNDS,

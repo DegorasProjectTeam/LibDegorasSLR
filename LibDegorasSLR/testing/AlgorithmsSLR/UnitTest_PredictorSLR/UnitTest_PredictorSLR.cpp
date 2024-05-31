@@ -68,7 +68,7 @@ int main(int, char**)
 
     error = predictor.predict(mjd, sod_with_fract, result);
 
-    if(error == PredictorSLR::PredictionError::NO_ERROR)
+    if(error == PredictorSLR::PredictionError::NOT_ERROR)
     {
         std::cout<<"Done"<<std::endl;
         std::cout<<result.toJsonStr()<<std::endl;

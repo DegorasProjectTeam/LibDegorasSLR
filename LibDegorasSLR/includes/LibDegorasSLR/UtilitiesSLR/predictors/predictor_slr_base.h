@@ -100,7 +100,7 @@ public:
      */
     enum class PredictionSLRError : std::uint32_t
     {
-        NO_ERROR = 0,
+        NOT_ERROR = 0,
         INVALID_INTERVAL,
         OTHER_ERROR,
         END_BASE_ERRORS   = 10  ///< Sentinel value indicating the end of the base errors (invalid error).

@@ -72,7 +72,7 @@ struct LIBDPSLR_EXPORT PredictionSLR
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionSLR)
 
     // SLR result containers.
-    InstantRange instant_range;           ///< Result range for the instant time, always available if NO_ERROR.
+    InstantRange instant_range;           ///< Result range for the instant time, always available if NOT_ERROR.
     Optional<InstantData> instant_data;   ///< Result data for the instant time (instant vectors).
     Optional<OutboundData> outbound_data; ///< Result data for the bounce time (outbound vectors).
     Optional<InboundData> inbound_data;   ///< Result data for the arrival time (inbound vectors).
@@ -89,7 +89,7 @@ struct LIBDPSLR_EXPORT PredictionSLR
     OptionalMeters syst_rnd_corr;       ///< Other systematic and random error corrections (Meters, 1 way).
 
     // Error code.
-    ErrorType error;   ///< Error that may have occurred (zero is always NO_ERROR).
+    ErrorType error;   ///< Error that may have occurred (zero is always NOT_ERROR).
 
     /**
      * @brief Represents all the prediction result as a JSON formated string.

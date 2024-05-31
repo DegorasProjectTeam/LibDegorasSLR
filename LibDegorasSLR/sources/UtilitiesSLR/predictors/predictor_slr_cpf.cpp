@@ -305,7 +305,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     // ONLY INSTANT RANGE MODE -----------------------------------------------------------------------------------------
 
     // Default error value (no error).
-    result.error = static_cast<PredictionSLR::ErrorType>(PredictionError::NO_ERROR);
+    result.error = static_cast<PredictionSLR::ErrorType>(PredictionError::NOT_ERROR);
 
     // Generate the relative times.
     long long day_relative = mjdt.date() - this->cpf_.getData().positionRecords().front().mjd;
@@ -322,7 +322,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     this->callInterp(x_instant, y_instant, result);
 
     // Check the interpolator error.
-    if(result.error != static_cast<PredictionSLR::ErrorType>(PredictionError::NO_ERROR))
+    if(result.error != static_cast<PredictionSLR::ErrorType>(PredictionError::NOT_ERROR))
         return result.error;
 
     // Form the topocentric position vector (station to object) at instant time.
@@ -424,7 +424,7 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
         this->callInterp(x_bounce, y_outbound, result);
 
         // Check the interpolator error.
-        if(result.error != static_cast<PredictionSLR::ErrorType>(PredictionError::NO_ERROR))
+        if(result.error != static_cast<PredictionSLR::ErrorType>(PredictionError::NOT_ERROR))
             return result.error;
 
         // Topocentric outbound vector
@@ -603,7 +603,7 @@ PredictorSlrCPF::PredictionError PredictorSlrCPF::convertLagInterpError(stats::t
     switch (error)
     {
     case stats::types::LagrangeError::NOT_ERROR :
-        cpf_error = PredictionError::NO_ERROR; break;
+        cpf_error = PredictionError::NOT_ERROR; break;
     case stats::types::LagrangeError::NOT_IN_THE_MIDDLE :
         cpf_error = PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE; break;
     case stats::types::LagrangeError::X_OUT_OF_BOUNDS :
