@@ -139,22 +139,27 @@ PredictorMountSLR::PredictorMountSLR(const HRTimePointStd &pass_start,
 
 bool PredictorMountSLR::isReady() const
 {
+    std::unique_lock<std::mutex> lock(this->mtx_);
     return this->mount_track_.track_info.valid_movement;
 }
 
 const MountTrackingSLR &PredictorMountSLR::getMountTrackingSLR() const
 {
+    std::unique_lock<std::mutex> lock(this->mtx_);
     return this->mount_track_;
 }
 
 PredictionMountSLR PredictorMountSLR::predict(const timing::types::HRTimePointStd& tp_time) const
 {
     timing::dates::MJDateTime mjdt = timing::timePointToModifiedJulianDateTime(tp_time);
-    return predict(mjdt);
+    return this->predict(mjdt);
 }
 
 PredictionMountSLR PredictorMountSLR::predict(const timing::dates::MJDateTime &mjdt) const
 {
+    // Safe mutex lock
+    std::unique_lock<std::mutex> lock(this->mtx_);
+
     // Calculates the Sun position.
     timing::dates::J2000DateTime j2000 = dpslr::timing::modifiedJulianDateToJ2000DateTime(mjdt);
     astro::predictors::PredictionSun sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
@@ -185,6 +190,12 @@ PredictionMountSLR PredictorMountSLR::predict(const timing::dates::MJDateTime &m
 
     return mount_pred;
 
+}
+
+slr::predictors::PredictorSlrPtr PredictorMountSLR::getPredictorSLR()
+{
+    std::unique_lock<std::mutex> lock(this->mtx_);
+    return this->mount_track_.predictor_slr;
 }
 
 void PredictorMountSLR::analyzeTracking()

@@ -60,7 +60,6 @@ namespace predictors{
  */
 struct MountTrackingSLR
 {
-
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountTrackingSLR)
 
     // TODO THIS MUST BE STORED IN PASSINFO class.

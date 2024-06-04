@@ -38,6 +38,11 @@
 #pragma once
 // =====================================================================================================================
 
+// C++ INCLUDES
+// =====================================================================================================================
+#include <mutex>
+// =====================================================================================================================
+
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/TrackingMount/predictors/data/mount_tracking_slr.h"
@@ -47,10 +52,6 @@
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
-// =====================================================================================================================
-
-// C++ INCLUDES
-// =====================================================================================================================
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -107,6 +108,15 @@ public:
     const MountTrackingSLR& getMountTrackingSLR() const;
 
     /**
+     * @brief This function returns the SLR predictor pointer that can be used to set corrections.
+     * @param mjd The modified julian datetime.
+     * @return The SLR predictor pointer.
+     * @warning Use this getter only to make corrections. Varying predictor settings during
+     * prediction calculation can lead to undesired behavior.
+     */
+    slr::predictors::PredictorSlrPtr getPredictorSLR();
+
+    /**
      * @brief This function returns the object's position at a given time.
      * @param tp_time The time point datetime.
      * @return The result of the operation. Must be checked to ensure the position is valid.
@@ -124,16 +134,16 @@ public:
 
 private:
 
-    // Private functions.
-
     /// Helper to analyze the track.
     void analyzeTracking();
 
+    // Mutex
+    mutable std::mutex mtx_;  ///< Safety mutex.
 
     // Private members.
     MountTrackingSLR mount_track_;             ///< Mount track analyzed data.
     utils::MovementAnalyzer tr_analyzer_;      ///< Tracking analyzer used.
-    math::units::MillisecondsU time_delta_;     ///< Time delta for analysis.
+    math::units::MillisecondsU time_delta_;    ///< Time delta for analysis.
 };
 
 }}} // END NAMESPACES
