@@ -156,7 +156,7 @@ int main()
     vega.star_name = "Vega";
     vega.catalog_name = "FK5";
     vega.catalog_num = 699;
-    vega.id = 699;
+    vega.degoras_id = 699;
     vega.pm_ra = 0.01726;
     vega.pm_dec = 0.2861;
     vega.rad_vel = -13.9;
@@ -168,7 +168,7 @@ int main()
     arcturus.star_name = "Arcturus";
     arcturus.catalog_name = "FK5";
     arcturus.catalog_num = 526;
-    arcturus.id = 526;
+    arcturus.degoras_id = 526;
     arcturus.pm_ra = -0.07714;
     arcturus.pm_dec = -1.9984;
     arcturus.rad_vel = -5.2;
