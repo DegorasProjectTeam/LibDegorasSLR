@@ -39,6 +39,7 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <sstream>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
@@ -58,15 +59,24 @@ struct LIBDPSLR_EXPORT RA
 {
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(RA)
 
-
-
     RA(int hour, int min, double sec);
     RA(double ra);
-
 
     operator double () const;
 
     static bool checkRA(int h, int min, double sec);
+
+    std::string toJsonStr() const
+    {
+        std::ostringstream json;
+        json << "{"
+             << "\"hour\": " << std::to_string(this->hour) << ", "
+             << "\"min\": " << std::to_string(this->min) << ", "
+             << "\"sec\": " << std::to_string(this->sec) << ", "
+             << "\"ra\": " << std::to_string(this->ra)
+             << "}";
+        return json.str();
+    }
 
     int hour;
     int min;
@@ -78,13 +88,24 @@ struct LIBDPSLR_EXPORT Dec
 {
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(Dec)
 
-
     Dec(int deg, int min, double sec);
     Dec(double dec);
 
     operator double () const;
 
     static bool checkDec(int deg, int min, double sec);
+
+    std::string toJsonStr() const
+    {
+        std::ostringstream json;
+        json << "{"
+             << "\"deg\": " << std::to_string(this->deg) << ", "
+             << "\"min\": " << std::to_string(this->min) << ", "
+             << "\"sec\": " << std::to_string(this->sec) << ", "
+             << "\"dec\": " << std::to_string(this->dec)
+             << "}";
+        return json.str();
+    }
 
     int deg;
     int min;

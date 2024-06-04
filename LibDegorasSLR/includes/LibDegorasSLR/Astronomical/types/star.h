@@ -39,6 +39,7 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <sstream>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
@@ -59,17 +60,24 @@ struct LIBDPSLR_EXPORT Star
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(Star)
 
+    std::string toJsonStr() const
+    {
+        // TODO
+        std::ostringstream json;
+        return json.str();
+    }
+
     // Members.
-    RA ra;
-    Dec dec;
-    std::string star_name;
-    std::string catalog_name;
-    int catalog_num;
-    int id;
-    double pm_ra;                // s per year
-    double pm_dec;               // arcseconds per year
-    double parallax;             // arcseconds
-    double rad_vel;              // km/s
+    RA ra;                       //< RAJ2000
+    Dec dec;                     //< DEJ2000
+    std::string star_name;       //< Modern proper name of the star.
+    std::string catalog_name;    //< Name of the catalog.
+    int catalog_num;             //< Number of the star in the catalog.
+    int degoras_id;              //< Identification for Degoras use only.
+    double pm_ra;                //< Proper motion in RA (s per year).
+    double pm_dec;               //< Proper motion (arcseconds per year).
+    double parallax;             //< Parallax (arcseconds).
+    double rad_vel;              //< Radial velocity (km/s)
 };
 
 

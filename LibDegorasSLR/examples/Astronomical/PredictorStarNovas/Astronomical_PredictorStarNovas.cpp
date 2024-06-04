@@ -156,7 +156,7 @@ int main()
     vega.star_name = "Vega";
     vega.catalog_name = "FK5";
     vega.catalog_num = 699;
-    vega.id = 699;
+    vega.degoras_id = 699;
     vega.pm_ra = 0.01726;
     vega.pm_dec = 0.2861;
     vega.rad_vel = -13.9;
@@ -168,11 +168,23 @@ int main()
     arcturus.star_name = "Arcturus";
     arcturus.catalog_name = "FK5";
     arcturus.catalog_num = 526;
-    arcturus.id = 526;
+    arcturus.degoras_id = 526;
     arcturus.pm_ra = -0.07714;
     arcturus.pm_dec = -1.9984;
     arcturus.rad_vel = -5.2;
     arcturus.parallax = 0.09;
+
+    Star polaris;
+    polaris.ra = {2, 31, 48.704};
+    polaris.dec = {89, 15, 50.72};
+    polaris.star_name = "Polaris";
+    polaris.catalog_name = "FK5";
+    polaris.catalog_num = 907;
+    polaris.degoras_id = 907;
+    polaris.pm_ra = 0.19877;
+    polaris.pm_dec =  -0.0152;
+    polaris.rad_vel = 0.003;
+    polaris.parallax = -17.4;
 
     // Real examples vector with their configurations.
     std::vector<ExampleData> examples =

@@ -94,7 +94,6 @@ void AltAzPos::normalize()
     this->el = el;
 }
 
-
 std::string AltAzPos::toJsonStr() const
 {
     std::ostringstream json;
