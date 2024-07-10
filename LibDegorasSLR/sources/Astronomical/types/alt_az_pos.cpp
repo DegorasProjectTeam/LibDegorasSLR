@@ -104,6 +104,23 @@ std::string AltAzPos::toJsonStr() const
     return json.str();
 }
 
+void degreesToDegMinSec(const math::units::Degrees &deg, int &h, int &min, double &sec)
+{
+    double fractionalPart, integerPart;
+
+    // Separate degrees into integer part and fractional part
+    fractionalPart = std::modf(deg, &integerPart);
+    h = static_cast<int>(integerPart);
+
+    // Convert fractional part to minutes
+    fractionalPart *= 60;
+    fractionalPart = std::modf(fractionalPart, &integerPart);
+    min = static_cast<int>(integerPart);
+
+    // Convert remaining fractional part to seconds
+    sec = fractionalPart * 60;
+}
+
 /*
 size_t AltAzPos::serialize(zmqutils::utils::BinarySerializer &serializer) const
 {

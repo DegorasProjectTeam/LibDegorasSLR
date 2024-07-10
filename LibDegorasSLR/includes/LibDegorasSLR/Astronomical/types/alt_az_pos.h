@@ -56,6 +56,10 @@ namespace astro{
 namespace types{
 // =====================================================================================================================
 
+// MOVE TO UTILS TODO
+
+void LIBDPSLR_EXPORT degreesToDegMinSec(const math::units::Degrees& deg, int& h, int& min, double& sec);
+
 struct LIBDPSLR_EXPORT AltAzPos
 {
     // Copy and movement constructor and operators, and default destructor.

@@ -109,7 +109,7 @@ int main()
 
     // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
 
-    bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
+    bool plot_data = false;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).
     // Altitude in meters with 3 decimals (~1 mm precision).
@@ -118,9 +118,9 @@ int main()
     Meters alt = 98.177L;
 
     // SFEL station geocentric coordinates in meters with 3 decimals (~1 mm precison).
-    Meters x = 5105473.885L;
-    Meters y = -555110.526L;
-    Meters z = 3769892.958L;
+    Meters x = 5105473.922L;
+    Meters y = -555110.640L;
+    Meters z = 3769892.747L;
 
     // Configure the input folder.
     std::string current_dir = dpslr::helpers::files::getCurrentDir();
@@ -186,10 +186,32 @@ int main()
     polaris.rad_vel = 0.003;
     polaris.parallax = -17.4;
 
+    Star sirius;
+    sirius.ra = 6.752464;
+    sirius.dec = -16.7161083;
+    sirius.star_name = "Sirius";
+    sirius.catalog_name = "FK5";
+    sirius.catalog_num = 257;
+    sirius.degoras_id = 257;
+    sirius.pm_ra = -0.03847;
+    sirius.pm_dec = -1.2053;
+    sirius.rad_vel = -7.6;
+    sirius.parallax = 0.375;
+
+    // Datetime configuration.
+    const std::string datetime_iso8601 = "2024-07-02T11:31:17.000Z";
+    std::chrono::seconds obs_secs(200);
+
+    dpslr::timing::types::HRTimePointStd tp_start = dpslr::timing::iso8601DatetimeToTimePoint(datetime_iso8601);
+    dpslr::timing::types::HRTimePointStd tp_end = tp_start + obs_secs;
+
+    JDateTime jd_start = dpslr::timing::timePointToJulianDateTime(tp_start);
+    JDateTime jd_end = dpslr::timing::timePointToJulianDateTime(tp_end);
+
     // Real examples vector with their configurations.
     std::vector<ExampleData> examples =
     {
-        {vega}, {arcturus}
+        {vega}, {arcturus}, {sirius}
     };
 
     // Example selector.
@@ -246,13 +268,9 @@ int main()
     // tracking time window (stored in TrackingInfo struct). For the example, we will ask predictions from start to
     // end with a step of 0.1 (simulating real time operations at 10 Hz in the tracking mount).
 
-    // Containers.
-    // 31/01/2024 - 03:00
-    JDateTime jd(2460340.625L);
-    // 31/01/2024 - 05:00
-    JDateTime jd_end(2460340.70833L);
-
     PredictionStarV predictions;
+
+    JDateTime jd = jd_start;
 
     while (jd < jd_end)
     {
@@ -270,12 +288,34 @@ int main()
         std::string track_az = numberToStr(pred.altaz_coord.az,9, 6);
         std::string track_el = numberToStr(pred.altaz_coord.el,9, 6);
 
+        int az_h, az_min;
+        int el_h, el_min;
+        double az_sec;
+        double el_sec;
+
+        // Get h, min, sec;
+        dpslr::astro::types::degreesToDegMinSec(pred.altaz_coord.az, az_h, az_min, az_sec);
+        dpslr::astro::types::degreesToDegMinSec(pred.altaz_coord.el, el_h, el_min, el_sec);
+
+        // Get ISO
+        dpslr::timing::types::HRTimePointStd tp_aux = dpslr::timing::julianDateTimeToTimePoint(pred.jdt);
+        std::string iso_aux = dpslr::timing::timePointToIso8601(tp_aux);
+
         // Store the data.
         file_realtime_track << '\n';
+        file_realtime_track << iso_aux <<";";
         file_realtime_track << std::to_string(pred.jdt.datetime()) <<";";
         file_realtime_track << track_az <<";";
-        file_realtime_track << track_el;
+        file_realtime_track << track_el <<";";
+        file_realtime_track << std::to_string(az_h) <<";";
+        file_realtime_track << std::to_string(az_min) <<";";
+        file_realtime_track << std::to_string(az_sec) <<";";
+        file_realtime_track << std::to_string(el_h) <<";";
+        file_realtime_track << std::to_string(el_min) <<";";
+        file_realtime_track << std::to_string(el_sec);
+
     }
+
     // Close the file.
     file_realtime_track.close();
 
