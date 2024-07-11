@@ -55,23 +55,53 @@ namespace slr{
 namespace utils{
 // =====================================================================================================================
 
+// TODO COMPLETE ALL THIS INFORMATION
+
+struct LIBDPSLR_EXPORT SpaceObjectPassStep
+{
+    SpaceObjectPassStep() = default;
+
+    SpaceObjectPassStep(predictors::PredictionSLR&& pred, long double azim_ra = 0, long double elev_ra = 0) :
+        slr_pred(pred),
+        mjdt(this->slr_pred.instant_data->mjdt),
+        altaz_coord(this->slr_pred.instant_data->altaz_coord),
+        azim_rate(azim_ra),
+        elev_rate(elev_ra)
+    {}
+
+    predictors::PredictionSLR slr_pred;  ///< Full SLR prediction computed data.
+    timing::dates::MJDateTime mjdt;      ///< Modified julian datetime asociated to the step.
+    astro::types::AltAzPos altaz_coord;  ///< Fast access to InstantData local computed altazimuth coords in degrees.
+    long double azim_rate;               ///< Azimuth rate of step in deg/s
+    long double elev_rate;               ///< Elevation rate of step in deg/s
+};
+
 /**
  * @brief The Pass struct contains data about a space object pass
  */
-struct LIBDPSLR_EXPORT Pass
+struct LIBDPSLR_EXPORT SpaceObjectPass
 {
-    struct LIBDPSLR_EXPORT Step
+    bool isEmpty()
     {
-        timing::dates::MJDateTime mjd;    ///< Modified julian date of step.
-        math::units::Degrees azim;        ///< Azimuth of the step in degrees.
-        math::units::Degrees elev;        ///< Elevation of the step in degrees.
-        long double azim_rate;            ///< Azimuth rate of step in deg/s
-        long double elev_rate;            ///< Elevation rate of step in deg/s
-    };
+        return steps.empty();
+    }
 
-    math::units::Seconds interval;        ///< Interval between two steps in seconds
-    math::units::Degrees min_elev;        ///< Minimum elevation for pass.
-    std::vector<Step> steps;              ///< Steps of the pass
+    predictors::PredictionSLRV getPredictionsSLR() const
+    {
+        predictors::PredictionSLRV predictions(steps.size());
+
+        #pragma omp parallel for
+        for (size_t i = 0; i < steps.size(); ++i)
+        {
+            predictions[i] = steps[i].slr_pred;
+        }
+
+        return predictions;
+    }
+
+    math::units::MillisecondsU time_step;    ///< Interval between two steps in milliseconds.
+    math::units::DegreesU min_elev;          ///< Minimum elevation for pass.
+    std::vector<SpaceObjectPassStep> steps;  ///< Steps of the pass.
 };
 
 /**
@@ -100,32 +130,32 @@ public:
      * @brief PassCalculator constructs the pass calculator.
      * @param predictor  The predictor used to calculate the passes.
      * @param min_elev   Minimum elevation of the pass in degrees. By default is 0, i.e., above the horizon.
-     * @param interval   Interval between two steps of the pass in seconds. By default is 1 second.
+     * @param time_step  Interval between two steps of the pass in milliseconds.
      */
-    PassCalculator(predictors::PredictorSlrPtr predictor, math::units::Degrees min_elev = 0,
-                   math::units::Seconds interval = 1.L);
+    PassCalculator(predictors::PredictorSlrPtr predictor, math::units::DegreesU min_elev = 0,
+                   math::units::MillisecondsU time_step = 1000.0L);
 
 
     /**
      * @brief Setter for minimum elevation.
      * @param min_elev the minimum elevation in degrees.
      */
-    void setMinElev(math::units::Degrees min_elev);
+    void setMinElev(math::units::DegreesU min_elev);
     /**
      * @brief Getter for minimum elevation.
      * @return The minimum elevation in degrees.
      */
-    math::units::Degrees minElev() const;
+    math::units::DegreesU minElev() const;
     /**
-     * @brief Setter for interval.
-     * @param interval  The interval for interpolation in seconds.
+     * @brief Setter for time_step.
+     * @param time_step  The time_step for interpolation in seconds.
      */
-    void setInterval(math::units::Seconds interval);
+    void setTimeStep(math::units::MillisecondsU time_step);
     /**
      * @brief Getter for interval.
      * @return The interval for interpolation in seconds.
      */
-    math::units::Seconds interval() const;
+    math::units::MillisecondsU getTimeStep() const;
 
     /**
      * @brief Get passes within the given interval of time.
@@ -135,8 +165,8 @@ public:
      * @return The result of the operation.
      */
     ResultCode getPasses(const timing::dates::MJDateTime &mjd_start,
-                          const timing::dates::MJDateTime &mjd_end,
-                          std::vector<Pass> &passes) const;
+                         const timing::dates::MJDateTime &mjd_end,
+                         std::vector<SpaceObjectPass> &passes) const;
 
     /**
      * @brief Get the next pass, starting from mjd_start datetime. If this datetime is already inside a pass, then
@@ -145,22 +175,22 @@ public:
      * @param pass       The data of the pass. This data is not valid if returned code is different from NOT_ERROR.
      * @return The result of the operation. If the result is different from NOT_ERROR, pass data is not valid.
      */
-    ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, Pass &pass) const;
+    ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, SpaceObjectPass &pass) const;
 
     /**
      * @brief Checks is a given time is inside a pass.
      * @param mjd  The MJ datetime to check.
      * @return True if the datetime is inside of a pass, false if there was some error or the datetime is not inside a pass.
      */
-    bool isInsidePass(const timing::dates::MJDateTime &mjd) const;
+    bool isInsidePass(const timing::dates::MJDateTime& mjd) const;
 
 
 private:
-    math::units::Degrees min_elev_;
-    math::units::Seconds interval_;
+
+    math::units::DegreesU min_elev_;
+    math::units::MillisecondsU time_step_;
     predictors::PredictorSlrPtr predictor_;
 };
-
 
 }}} // END NAMESPACES.
 // =====================================================================================================================

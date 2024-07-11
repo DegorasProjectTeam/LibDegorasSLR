@@ -259,13 +259,13 @@ public:
      * @brief Interpolates positions at requested time window.
      * @param mjdt_start The start Modified Julian Datetime of the time window.
      * @param mjdt_end The end Modified Julian Datetime of the time window.
-     * @param step The step in milliseconds from one interpolation to the next one.
+     * @param time_step The time_step in milliseconds from one interpolation to the next one.
      * @return A vector of `PredictionSLR` with all the prediction results, or empty if it was impossible.
      *         To check errors produced at individual interpolations, check each independent result error code.
      */
     virtual PredictionSLRV predict(const timing::dates::MJDateTime& mjdt_start,
                                    const timing::dates::MJDateTime& mjdt_end,
-                                   const math::units::Milliseconds& step) const;
+                                   const math::units::MillisecondsU& time_step) const;
 
     /**
      * @brief If predictor is ready, returns the time window in which the predictor can be used. Otherwise,
@@ -273,7 +273,7 @@ public:
      * @param start MJ datetime of time window start.
      * @param end MJ datetime of time window end.
      */
-    virtual void getTimeWindow(timing::dates::MJDateTime& start, timing::dates::MJDateTime& end) const = 0;
+    virtual void getAvailableTimeWindow(timing::dates::MJDateTime& start, timing::dates::MJDateTime& end) const = 0;
 
     /**
      * @brief Gets the asociated error message for a given error_code
@@ -292,12 +292,16 @@ protected:
     // Configuration variables.
     TroposphericModel tropo_model_;
 
+    // TODO ADD RANGE BIAS
+
     // Correction related parameters.
-    math::units::Meters objc_ecc_corr_;       ///< Eccentricity correction at the satellite in meters (center of mass).
-    math::units::Meters grnd_ecc_corr_;       ///< Eccentricity correction at the ground in meters (usually not used).
-    math::units::Meters syst_rnd_corr_;       ///< Other systematic and random error corrections (in meters).
-    math::units::Picoseconds cali_del_corr_;  ///< Station calibration delay correction (in picoseconds).
-    bool apply_corr_;                         ///< Flag for apply the corrections.
+    math::units::Meters objc_ecc_corr_;        ///< Eccentricity correction at the satellite in meters (center of mass).
+    math::units::Meters grnd_ecc_corr_;        ///< Eccentricity correction at the ground in meters (usually not used).
+    math::units::Meters syst_rnd_corr_;        ///< Other systematic and random error corrections (in meters).
+    math::units::Picoseconds cali_del_corr_;   ///< Station calibration delay correction (in picoseconds).
+    math::units::Milliseconds time_bias_corr_; ///< Time bias correction (in milliseconds).
+    math::units::Meters range_bias_corr_;      ///<
+    bool apply_corr_;                          ///< Flag for apply the corrections.
 
     // Tropospheric parameters.
     // TODO Strong units

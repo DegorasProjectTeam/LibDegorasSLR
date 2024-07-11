@@ -123,7 +123,7 @@ bool PredictorSlrBase::isInsideTimeWindow(const MJDateTime& start, const MJDateT
     MJDateTime predict_mjd_start, predict_mjd_end;
 
     // Get the predict time window.
-    this->getTimeWindow(predict_mjd_start, predict_mjd_end);
+    this->getAvailableTimeWindow(predict_mjd_start, predict_mjd_end);
 
     // Check if requested window is inside predict time window
     return start >= predict_mjd_start && end <= predict_mjd_end;
@@ -135,19 +135,20 @@ bool PredictorSlrBase::isInsideTime(const timing::dates::MJDateTime &time) const
     MJDateTime predict_mjd_start, predict_mjd_end;
 
     // Get the predict time window.
-    this->getTimeWindow(predict_mjd_start, predict_mjd_end);
+    this->getAvailableTimeWindow(predict_mjd_start, predict_mjd_end);
 
     // Check if requested time is inside predict time window
     return time >= predict_mjd_start && time <= predict_mjd_end;
 }
 
-PredictionSLRV PredictorSlrBase::predict(const MJDateTime &mjdt_start, const MJDateTime &mjdt_end,
-                                         const Milliseconds &step) const
+PredictionSLRV PredictorSlrBase::predict(const MJDateTime &mjdt_start,
+                                         const MJDateTime &mjdt_end,
+                                         const math::units::MillisecondsU &time_step) const
 {
     // Container and auxiliar.
     MJDateTimeV interp_times;
     MJDateTime mjdt_current = mjdt_start;
-    Seconds step_sec = step/1000.0L;
+    Seconds step_sec = time_step/1000.0L;
 
     // Check the validity of the predictor and the inputs.
     if(!this->isInsideTimeWindow(mjdt_start, mjdt_end) || math::isFloatingZeroOrMinor(step_sec))

@@ -541,13 +541,18 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
     } */
 }
 
-void PredictorSlrCPF::getTimeWindow(MJDateTime &start, MJDateTime &end) const
+void PredictorSlrCPF::getAvailableTimeWindow(MJDateTime &start, MJDateTime &end) const
 {
-    // TODO: maybe this should return the real valid time window, avoiding the time lapse where the interpolation
-    // returns not in the middle error.
+    // Return the real valid time window, avoiding the time lapse where the interpolation returns not in the
+    // middle error removing data from the boundaries of the CPF. This is done internally by the CPF function.
     if (this->isReady())
     {
         this->cpf_.getAvailableTimeWindow(start, end);
+    }
+    else
+    {
+        start = MJDateTime();
+        end = MJDateTime();
     }
 }
 

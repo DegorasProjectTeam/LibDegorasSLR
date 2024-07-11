@@ -37,38 +37,38 @@ namespace slr{
 namespace utils{
 // =====================================================================================================================
 
-PassCalculator::PassCalculator(predictors::PredictorSlrPtr predictor, math::units::Degrees min_elev,
-                               math::units::Seconds interval) :
+PassCalculator::PassCalculator(predictors::PredictorSlrPtr predictor, math::units::DegreesU min_elev,
+                               math::units::MillisecondsU time_step) :
     min_elev_(min_elev),
-    interval_(interval),
+    time_step_(time_step),
     predictor_(std::move(predictor))
 {
 
 }
 
-void PassCalculator::setMinElev(math::units::Degrees min_elev)
+void PassCalculator::setMinElev(math::units::DegreesU min_elev)
 {
     this->min_elev_ = min_elev;
 }
 
-math::units::Degrees PassCalculator::minElev() const
+math::units::DegreesU PassCalculator::minElev() const
 {
     return this->min_elev_;
 }
 
-void PassCalculator::setInterval(math::units::Seconds interval)
+void PassCalculator::setTimeStep(math::units::MillisecondsU time_step)
 {
-    this->interval_ = interval;
+    this->time_step_ = time_step;
 }
 
-math::units::Seconds PassCalculator::interval() const
+math::units::MillisecondsU PassCalculator::getTimeStep() const
 {
-    return this->interval_;
+    return this->time_step_;
 }
 
 PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDateTime &mjd_start,
                                                      const timing::dates::MJDateTime &mjd_end,
-                                                     std::vector<Pass> &passes) const
+                                                     std::vector<SpaceObjectPass> &passes) const
 {
     // Clear passes vector
     passes.clear();
@@ -82,17 +82,16 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
         return ResultCode::INTERVAL_OUTSIDE_OF_PREDICTOR;
 
     // Calculate all the predictions.
-    auto predictions = this->predictor_->predict(mjd_start, mjd_end, this->interval_ * 1000.L);
+    auto predictions = this->predictor_->predict(mjd_start, mjd_end, this->time_step_);
 
     // Auxiliary variables.
     bool pass_started = false;
-    Pass current_pass;
-    current_pass.interval = this->interval_;
+    SpaceObjectPass current_pass;
+    current_pass.time_step = this->time_step_;
     current_pass.min_elev = this->min_elev_;
-    Pass::Step current_step;
 
     // Check the predictions to get all the passes within the time window.
-    for (const auto &pred : predictions)
+    for (auto &&pred : predictions)
     {
         if (0 != pred.error)
         {
@@ -100,27 +99,25 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
             return PassCalculator::ResultCode::SOME_PREDICTIONS_NOT_VALID;
         }
 
-        if (pred.instant_data->altaz_coord.el >= this->min_elev_)
+        if (pred.instant_data->altaz_coord.el > this->min_elev_)
         {
+            long double azim_rate = 0;
+            long double elev_rate = 0;
+
             if (!pass_started)
             {
                 pass_started = true;
-                current_step.azim_rate = 0;
-                current_step.elev_rate = 0;
             }
             else
             {
-                current_step.azim_rate = (pred.instant_data->altaz_coord.az - current_pass.steps.back().azim) /
-                                         this->interval_;
-                current_step.elev_rate = (pred.instant_data->altaz_coord.el - current_pass.steps.back().elev) /
-                                         this->interval_;
+                azim_rate = std::abs(
+                    (pred.instant_data->altaz_coord.az - current_pass.steps.back().altaz_coord.az) /
+                    (this->time_step_ / 1000.0L));
+                elev_rate = std::abs(
+                    (pred.instant_data->altaz_coord.el - current_pass.steps.back().altaz_coord.el) /
+                    (this->time_step_ / 1000.0L));
             }
-            current_step.mjd = pred.instant_data->mjdt;
-            current_step.azim = pred.instant_data->altaz_coord.az;
-            current_step.elev = pred.instant_data->altaz_coord.el;
-            current_pass.steps.push_back(std::move(current_step));
-            current_step = {};
-
+            current_pass.steps.push_back(SpaceObjectPassStep(std::move(pred), azim_rate, elev_rate));
         }
         else if(pass_started)
         {
@@ -128,7 +125,6 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
             passes.push_back(std::move(current_pass));
             current_pass = {};
         }
-
     }
 
     // Close pass if it is cut in the middle.
@@ -140,7 +136,8 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
     return PassCalculator::ResultCode::NOT_ERROR;
 }
 
-PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDateTime &mjd_start, Pass &pass) const
+PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDateTime& mjd_start,
+                                                       SpaceObjectPass& pass) const
 {
     // Clear passes vector
     pass = {};
@@ -153,30 +150,38 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
     if (!this->predictor_->isInsideTime(mjd_start))
         return ResultCode::TIME_OUTSIDE_OF_PREDICTOR;
 
+    // Declare the times.
     timing::dates::MJDateTime mjdt_start_window, mjdt_end_window;
-    this->predictor_->getTimeWindow(mjdt_start_window, mjdt_end_window);
+
+    // Get the time window.
+    this->predictor_->getAvailableTimeWindow(mjdt_start_window, mjdt_end_window);
 
     // Calculate all the predictions.
     predictors::PredictionSLR pred;
     auto pred_error = this->predictor_->predict(mjd_start, pred);
 
+    // Check the initial prediction.
     if (0 != pred_error)
         return ResultCode::SOME_PREDICTIONS_NOT_VALID;
 
     // Auxiliary variables.
-    bool pass_started = pred.instant_data->altaz_coord.el >= this->min_elev_;
-    pass.interval = this->interval_;
+    math::units::Seconds time_step_sec = this->time_step_ / 1000.0L;
+    bool pass_started = pred.instant_data->altaz_coord.el > this->min_elev_;
+    pass.time_step = this->time_step_;
     pass.min_elev = this->min_elev_;
-    std::vector<Pass::Step>& steps = pass.steps;
+    std::vector<SpaceObjectPassStep>& steps = pass.steps;
     timing::dates::MJDateTime mjdt;
 
-    if (pass_started)
+    // TODO ADD IN STEPS THE RATES.
+
+    // Check if the pass already started.
+    if(pass_started)
     {
         // Insert start time position, since it is inside pass
-        steps.push_back({mjdt, pred.instant_data->altaz_coord.az, pred.instant_data->altaz_coord.el, 0, 0});
+        steps.push_back(SpaceObjectPassStep(std::move(pred)));
 
         // Look for the start of the pass going backwards from start.
-        mjdt = mjd_start - this->interval_;
+        mjdt = mjd_start - time_step_sec;
         do
         {
             pred_error = this->predictor_->predict(mjdt, pred);
@@ -186,28 +191,24 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
                 return ResultCode::SOME_PREDICTIONS_NOT_VALID;
             }
             // Store pass step.
-            steps.push_back({mjdt, pred.instant_data->altaz_coord.az, pred.instant_data->altaz_coord.el, 0, 0});
-            mjdt -= this->interval_;
-        } while (pred.instant_data->altaz_coord.el >= this->min_elev_ && mjdt >= mjdt_start_window);
+            steps.push_back(SpaceObjectPassStep(std::move(pred)));
+            mjdt -= time_step_sec;
+        } while (steps.back().slr_pred.instant_data->altaz_coord.el >
+                     this->min_elev_ && mjdt >= mjdt_start_window);
 
-        // If the whole pass is inside the predictor time window.
-        if (mjdt >= mjdt_start_window)
-        {
-            // Delete last element, since it is outside of pass
-            steps.pop_back();
-        }
+        // Delete first element (last due to reverse order), since it is outside of pass in some situations.
+        steps.pop_back();
 
         // Put elements in chronological order.
         std::reverse(steps.begin(), steps.end());
 
         // Set time to position after start, to look for the end of the pass.
-        mjdt = mjd_start + this->interval_;
-
+        mjdt = mjd_start + time_step_sec;
     }
     else
     {
         // Look for the start of the pass going forward from start.
-        mjdt = mjd_start + this->interval_;
+        mjdt = mjd_start + time_step_sec;
         do
         {
             pred_error = this->predictor_->predict(mjdt, pred);
@@ -216,15 +217,14 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
                 pass = {};
                 return ResultCode::SOME_PREDICTIONS_NOT_VALID;
             }
-            mjdt += this->interval_;
+            mjdt += time_step_sec;
         } while (pred.instant_data->altaz_coord.el < this->min_elev_ && mjdt <= mjdt_end_window);
 
         // If end of predictor time window has not been reached, start was found. Otherwise return with no pass error.
         if (mjdt <= mjdt_end_window)
         {
             // Store pass step.
-            steps.push_back({mjdt - this->interval_, pred.instant_data->altaz_coord.az,
-                             pred.instant_data->altaz_coord.el, 0, 0});
+            steps.push_back(SpaceObjectPassStep(std::move(pred)));
         }
         else
         {
@@ -243,25 +243,20 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
             return ResultCode::SOME_PREDICTIONS_NOT_VALID;
         }
         // Store pass step.
-        steps.push_back({mjdt, pred.instant_data->altaz_coord.az, pred.instant_data->altaz_coord.el, 0, 0});
-        mjdt += this->interval_;
-    } while (pred.instant_data->altaz_coord.el >= this->min_elev_ && mjdt <= mjdt_end_window);
+        steps.push_back(SpaceObjectPassStep(std::move(pred)));
+        mjdt += time_step_sec;
+    } while (steps.back().slr_pred.instant_data->altaz_coord.el >
+                 this->min_elev_ && mjdt <= mjdt_end_window);
 
-
-    // If the whole pass is inside the predictor time window.
-    if (mjdt <= mjdt_end_window)
-    {
-        // Delete last element, since it is outside of pass
-        steps.pop_back();
-    }
-
+    // Delete last element, since it is outside of pass in some situations.
+    steps.pop_back();
 
     // Update az and el rate.
-    for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)
-    {
-        it->azim_rate = (it->azim - (it - 1)->azim) / this->interval_;
-        it->elev_rate = (it->elev - (it - 1)->elev) / this->interval_;
-    }
+    // for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)
+    // {
+    //     it->azim_rate = std::abs( (it->altaz_coord.az - (it - 1)->altaz_coord.az) / interval_sec );
+    //     it->elev_rate = std::abs( (it->altaz_coord.el - (it - 1)->altaz_coord.el) / interval_sec );
+    // }
 
     return PassCalculator::ResultCode::NOT_ERROR;
 }

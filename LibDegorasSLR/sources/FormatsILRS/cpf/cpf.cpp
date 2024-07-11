@@ -121,15 +121,27 @@ const std::string &CPF::getSourceFilepath() const {return this->cpf_fullpath_;}
 
 void CPF::getAvailableTimeWindow(MJDateTime &start, MJDateTime &end) const
 {
-    if (this->empty_)
+    // Return the real valid time window, avoiding the time lapse where the interpolation returns not in the
+    // middle error removing data from the boundaries of the CPF.
+
+    // Get the records.
+    const auto& records = this->getData().positionRecords();
+
+    // Check if the cpf is empty or if is too small.
+    if (this->empty_ || records.size() <= kDataReservedInBoundaries*2)
     {
         start = MJDateTime();
         end = MJDateTime();
     }
     else
     {
-        start = MJDateTime(this->getData().positionRecords().front().mjd, this->getData().positionRecords().front().sod);
-        end = MJDateTime(this->getData().positionRecords().back().mjd, this->getData().positionRecords().back().sod);
+        // Get the start and end positions.
+        const CPFData::PositionRecord& start_pos = records[kDataReservedInBoundaries];
+        const CPFData::PositionRecord& end_pos = records[records.size() - kDataReservedInBoundaries - 1];
+
+        // Get the datetimes.
+        start = MJDateTime(start_pos.mjd, start_pos.sod);
+        end = MJDateTime(end_pos.mjd, end_pos.sod);
     }
 }
 

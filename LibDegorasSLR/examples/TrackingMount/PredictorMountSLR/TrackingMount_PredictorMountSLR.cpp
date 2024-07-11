@@ -131,6 +131,10 @@ int main()
     // Initialize LibDegorasSLR.
     DegorasInit::init();
 
+
+    // Force python dir if necessary.
+    std::string python_dir = "C:/Users/ControlSFEL/AppData/Local/Programs/Python/Python312/";
+
     // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
 
     bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
@@ -161,7 +165,7 @@ int main()
     // Configure the python script executable.
     std::string python_plot_analysis(current_dir+"/python_scripts/Helper_Plotting_Analysis.py");
     std::string python_plot_track(current_dir+"/python_scripts/Helper_Plotting_Track.py");
-    std::string python_cmd_analysis = "python \"" + python_plot_analysis + "\" ";
+    std::string python_cmd_analysis = python_dir + "python \"" + python_plot_analysis + "\" ";
 
     // Create the ouput directory.
     if (!dpslr::helpers::files::directoryExists(output_dir))

@@ -85,6 +85,11 @@ namespace ilrs{
 namespace cpf{
 // =====================================================================================================================
 
+// CONSTANTS
+// =====================================================================================================================
+constexpr unsigned kDataReservedInBoundaries = 20; ///< Number of position lines reserved in boundaries of the CPF.
+// =====================================================================================================================
+
 class LIBDPSLR_EXPORT CPF
 {
 public:
@@ -231,7 +236,9 @@ public:
      * @brief Gets the available time window for the CPF. If is empty, all values are set to zero.
      *
      * This function retrieves the available time window from the CPF data. If the CPF is empty, the start and end
-     * times are set to zero. Otherwise, the start and end times are obtained from the position records.
+     * times are set to zero. Otherwise, the start and end times are obtained from the position records. The function
+     * returns the real valid time window, avoiding the time lapse where the interpolation returns not in the
+     * middle error removing data from the boundaries of the CPF.
      *
      * @param start The output parameter to store the Modified Julian Date of the start time.
      * @param end The output parameter to store the seconds of the day of the start time with decimals.

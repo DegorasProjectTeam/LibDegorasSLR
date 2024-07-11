@@ -70,7 +70,7 @@ using dpslr::slr::predictors::PredictorSlrCPF;
 using dpslr::slr::predictors::PredictorSlrPtr;
 using dpslr::slr::predictors::PredictorSlrCPFPtr;
 using dpslr::slr::utils::PassCalculator;
-using dpslr::slr::utils::Pass;
+using dpslr::slr::utils::SpaceObjectPass;
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -94,6 +94,10 @@ int main()
     Meters y = -555110.526L;
     Meters z = 3769892.958L;
 
+    // Pass calculator configuration.
+    dpslr::math::units::DegreesU min_elevation = 10;
+    dpslr::math::units::MillisecondsU time_step = 10000;
+
     // Configure the CPF input folder.
     std::string current_dir = dpslr::helpers::files::getCurrentDir();
     std::string input_dir(current_dir+"/inputs");
@@ -102,10 +106,9 @@ int main()
     GeocentricPoint stat_geoc(x,y,z);
     GeodeticPointDeg stat_geod(latitude, longitude, alt);
 
-
     // Get band store the example data.
     std::string cpf_path = input_dir + "/" + "39380_cpf_230309_5681.tjr";
-    std::vector<Pass> passes;
+    std::vector<SpaceObjectPass> passes;
 
     // Prepare the SLR predictor to be used. For this example, the PredictorMount class needs the shared smart
     // pointers with the Sun and SLR inherited predictors, so it is neccesary to use the factories (the smart pointers
@@ -123,23 +126,31 @@ int main()
         return -1;
     }
 
-
-    // Get start and end time from predictor.
+    // Auxiliar variables.
     MJDateTime mjdt_start;
     MJDateTime mjdt_end;
 
-    predictor_cpf->getTimeWindow(mjdt_start, mjdt_end);
+    // Configure the predictor to instant vector for fast calculation.
+    predictor_cpf->setPredictionMode(dpslr::slr::predictors::PredictorSlrBase::PredictionMode::INSTANT_VECTOR);
 
-    // Avoid predictions not in the middle. At the beginning and at the end of a CPF you cannot interpolate
-    // the position because there is not enough information for Lagrange interpolation.
-    mjdt_start += Seconds(960.L);
-    mjdt_end -= Seconds(960.L);
+    // Get the available time window for the predictor.
+    predictor_cpf->getAvailableTimeWindow(mjdt_start, mjdt_end);
 
-	// Seek for passes in selected cpf, with a minimum of 9 degrees of elevation.
-    PassCalculator pass_calculator(predictor_cpf, 9);
+    // Input data.
+    const dpslr::ilrs::cpf::CPF& cpf = PredictorSlrBase::specialization<PredictorSlrCPF>(predictor_cpf)->getCPF();
+    std::cout<<"CPF INPUT:"<<std::endl;
+    std::cout<<"CPF         -> " << cpf.getStandardFilename()<<std::endl;
+    std::cout<<"Target      -> " << cpf.getHeader().basicInfo1Header()->target_name<<std::endl;
+    std::cout<<"Time Window -> " << mjdt_start.datetime() << " - " << mjdt_end.datetime() << std::endl;
+    std::cout<<"-------------------------------------"<<std::endl;
 
+    // Prepare the pass calculator with a minimum of 10 degrees of elevation.
+    PassCalculator pass_calculator(predictor_cpf, min_elevation, time_step);
+
+    // Calculate all the passes included in the CPF.
     auto res = pass_calculator.getPasses(mjdt_start, mjdt_end, passes);
 
+    // Check for errors.
     if ( PassCalculator::ResultCode::NOT_ERROR != res)
     {
         std::cout << "Error at passes search. Code is: " << res << std::endl;
@@ -147,6 +158,7 @@ int main()
     }
 
     std::cout << "Number of passes found: " << passes.size() << std::endl;
+
     int i = 1;
     for (const auto &pass : passes)
     {
@@ -156,8 +168,8 @@ int main()
             std::cout << "Bad pass detected" <<std::endl;
             continue;
         }
-        auto start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjd);
-        auto end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjd);
+        auto start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjdt);
+        auto end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjdt);
 
         auto start_pass_time = std::chrono::system_clock::to_time_t(start_pass_tp);
         auto end_pass_time = std::chrono::system_clock::to_time_t(end_pass_tp);
@@ -173,7 +185,9 @@ int main()
     MJDateTime mjd_test(60014, SoD(0.0L));
     std::cout << "Is MJ datetime " << mjd_test.date() << ", " << mjd_test.sod() << ", inside pass: "
               << pass_calculator.isInsidePass(mjd_test) << std::endl;
-    Pass pass;
+    SpaceObjectPass pass;
+
+    std::cout << " ----------------------------------------------------- " << std::endl;
 
     // Find next. When the start date is outside of a pass.
     res = pass_calculator.getNextPass(mjd_test, pass);
@@ -184,22 +198,20 @@ int main()
         return -1;
     }
 
-
     // This should be impossible. Paranoid check.
     if (pass.steps.empty())
     {
         std::cout << "Bad pass detected" <<std::endl;
         return -1;
     }
-    auto start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjd);
-    auto end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjd);
+    auto start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjdt);
+    auto end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjdt);
 
     auto start_pass_time = std::chrono::system_clock::to_time_t(start_pass_tp);
     auto end_pass_time = std::chrono::system_clock::to_time_t(end_pass_tp);
 
     std::cout << "Pass starts at: " << std::ctime(&start_pass_time)
               << ". Ends at: " << std::ctime(&end_pass_time) << std::endl;
-
 
     // Find next pass when the start date is inside a pass.
     mjd_test = {60014, SoD(27720.0L)};
@@ -215,23 +227,20 @@ int main()
         return -1;
     }
 
-
     // This should be impossible. Paranoid check.
     if (pass.steps.empty())
     {
         std::cout << "Bad pass detected" <<std::endl;
         return -1;
     }
-    start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjd);
-    end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjd);
+    start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjdt);
+    end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjdt);
 
     start_pass_time = std::chrono::system_clock::to_time_t(start_pass_tp);
     end_pass_time = std::chrono::system_clock::to_time_t(end_pass_tp);
 
     std::cout << "Pass starts at: " << std::ctime(&start_pass_time)
               << ". Ends at: " << std::ctime(&end_pass_time) << std::endl;
-
-
 
 	return 0;
 }

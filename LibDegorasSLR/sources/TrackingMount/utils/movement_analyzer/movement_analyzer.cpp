@@ -99,7 +99,7 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
     // Check if we have data.
     if(mount_positions.empty() || sun_positions.empty())
     {
-        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeTracking]");
+        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeMovement]");
         std::string error("Empty input data.");
         throw std::invalid_argument(submodule + " " + error);
     }
@@ -107,7 +107,7 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
     // Check if sizes of mount_positions and sun_predictions are the same.
     if (mount_positions.size() != sun_positions.size())
     {
-        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeTracking]");
+        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeMovement]");
         std::string error("Inconsistent data sizes between mount positions and sun predictions.");
         throw std::invalid_argument(submodule + " " + error);
     }
@@ -117,7 +117,7 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
     {
         if (modifiedJulianDateToJ2000DateTime(mount_positions[i].mjdt) != sun_positions[i].j2dt)
         {
-            std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeTracking]");
+            std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeMovement]");
             std::string error("Mismatch between mount and sun times at index: " + std::to_string(i) + ".");
             throw std::invalid_argument(submodule + " " + error);
         }
@@ -128,7 +128,7 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
                     [](const MountPosition& pos){return math::isFloatingMinorThanZero(pos.altaz_coord.el);});
     if(it_find != mount_positions.end())
     {
-        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeTracking]");
+        std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeMovement]");
         std::string error("The mount elevation positions are invalid (minor than 0).");
         throw std::invalid_argument(submodule + " " + error);
     }

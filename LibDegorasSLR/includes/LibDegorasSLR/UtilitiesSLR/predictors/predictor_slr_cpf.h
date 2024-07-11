@@ -159,7 +159,6 @@ public:
      */
     InterpFunction getInterpFunction() const;
 
-
     /**
      * @brief Checks if interpolator is ready. An interpolator is ready if it has positions for interpolating.
      * @return true if interpolator is ready, false otherwise.
@@ -180,7 +179,7 @@ public:
      * @param start MJ datetime of time window start.
      * @param end MJ datetime of time window end.
      */
-    void getTimeWindow(timing::dates::MJDateTime &start, timing::dates::MJDateTime &end) const override;
+    void getAvailableTimeWindow(timing::dates::MJDateTime &start, timing::dates::MJDateTime &end) const override;
 
     /**
      * @brief Gets the asociated error message for a given error_code
