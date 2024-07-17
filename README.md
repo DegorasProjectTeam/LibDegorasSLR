@@ -49,8 +49,7 @@ angeldelaveracruz@gmail.com
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-TODO
-
+* [Royal Institute and Observatory of the Spanish Navy (San Fernando, Spain)](https://armada.defensa.gob.es/ArmadaPortal/page/Portal/ArmadaEspannola/cienciaobservatorio/prefLang-es/)
 * [International Laser Ranging Service](https://ilrs.gsfc.nasa.gov/)
 * [Naval Observatory Vector Astrometry Software (NOVAS) Version 3.1](https://aa.usno.navy.mil/software/novas_info)
 * [European Union Public License](https://choosealicense.com)
