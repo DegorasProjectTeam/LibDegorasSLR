@@ -14,7 +14,7 @@ WORK IN PROGRESS!!
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">LibDPSLR - Degoras Project SLR Library</h3>
+  <h3 align="center">LibDegorasSLR - Degoras Project SLR Library</h3>
 
   <p align="center">
     A C++ libre base library for Satellite Laser Ranging (SLR) software and hardware related developments. 
