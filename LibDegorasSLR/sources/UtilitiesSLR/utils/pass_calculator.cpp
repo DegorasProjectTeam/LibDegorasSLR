@@ -130,6 +130,7 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
     // Close pass if it is cut in the middle.
     if (pass_started)
     {
+        current_pass.end_trimmed = true;
         passes.push_back(current_pass);
     }
 
@@ -250,6 +251,132 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
 
     // Delete last element, since it is outside of pass in some situations.
     steps.pop_back();
+
+    // Update az and el rate.
+    // for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)
+    // {
+    //     it->azim_rate = std::abs( (it->altaz_coord.az - (it - 1)->altaz_coord.az) / interval_sec );
+    //     it->elev_rate = std::abs( (it->altaz_coord.el - (it - 1)->altaz_coord.el) / interval_sec );
+    // }
+
+    return PassCalculator::ResultCode::NOT_ERROR;
+}
+
+PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDateTime& mjd_start,
+                                                       unsigned pass_limit_minutes,
+                                                       SpaceObjectPass& pass,
+                                                       unsigned search_limit_minutes) const
+{
+    // Clear passes vector
+    pass = {};
+
+    // Check if predictor is valid.
+    if (!this->predictor_->isReady())
+        return ResultCode::PREDICTOR_NOT_VALID;
+
+    // Check if time is inside valid prediction window.
+    if (!this->predictor_->isInsideTime(mjd_start))
+        return ResultCode::TIME_OUTSIDE_OF_PREDICTOR;
+
+    // Declare the times.
+    timing::dates::MJDateTime mjdt_start_window, mjdt_end_window, mjdt_end_search;
+
+    // Get the time window.
+    this->predictor_->getAvailableTimeWindow(mjdt_start_window, mjdt_end_window);
+
+    // Apply the search limit if set.
+    if (search_limit_minutes > 0)
+    {
+        mjdt_end_search = mjdt_start_window + (search_limit_minutes * 60);
+
+        // If search limit is above predictor window end, then set the search limit to the window end.
+        if (mjdt_end_search > mjdt_end_window)
+            mjdt_end_search = mjdt_end_window;
+    }
+
+    // Calculate all the predictions.
+    predictors::PredictionSLR pred;
+    auto pred_error = this->predictor_->predict(mjd_start, pred);
+
+    // Check the initial prediction.
+    if (0 != pred_error)
+        return ResultCode::SOME_PREDICTIONS_NOT_VALID;
+
+    // Auxiliary variables.
+    math::units::Seconds time_step_sec = this->time_step_ / 1000.0L;
+    bool pass_started = pred.instant_data->altaz_coord.el > this->min_elev_;
+    pass.time_step = this->time_step_;
+    pass.min_elev = this->min_elev_;
+    std::vector<SpaceObjectPassStep>& steps = pass.steps;
+    timing::dates::MJDateTime mjdt;
+
+    // TODO ADD IN STEPS THE RATES.
+    // If pass is started we will look first for the end until the limit. If the limit
+
+    // Check if the pass already started.
+    if(pass_started)
+    {
+
+        // Insert start time position, since it is inside pass
+        steps.push_back(SpaceObjectPassStep(std::move(pred)));
+
+        // Set time to position after start, to look for the end of the pass.
+        mjdt = mjd_start + time_step_sec;
+
+        // Set start trimmed to true, since the pass has been trimmed at the start.
+        pass.start_trimmed = true;
+    }
+    else
+    {
+        // Look for the start of the pass going forward from start.
+        mjdt = mjd_start + time_step_sec;
+        do
+        {
+            pred_error = this->predictor_->predict(mjdt, pred);
+            if (0 != pred_error)
+            {
+                pass = {};
+                return ResultCode::SOME_PREDICTIONS_NOT_VALID;
+            }
+            mjdt += time_step_sec;
+        } while (pred.instant_data->altaz_coord.el < this->min_elev_ && mjdt <= mjdt_end_search);
+
+        // If search end time has not been reached, start was found. Otherwise return with no pass error.
+        if (mjdt <= mjdt_end_search)
+        {
+            // Store pass step.
+            steps.push_back(SpaceObjectPassStep(std::move(pred)));
+        }
+        else
+        {
+            pass = {};
+            return ResultCode::NO_NEXT_PASS_FOUND;
+        }
+    }
+
+    // Look for the end of the pass. This pass can end when it goes below minimum elevation or when time limit is reached
+    do
+    {
+        pred_error = this->predictor_->predict(mjdt, pred);
+        if (0 != pred_error)
+        {
+            pass = {};
+            return ResultCode::SOME_PREDICTIONS_NOT_VALID;
+        }
+        // Store pass step.
+        steps.push_back(SpaceObjectPassStep(std::move(pred)));
+        mjdt += time_step_sec;
+    } while (steps.back().slr_pred.instant_data->altaz_coord.el > this->min_elev_ &&
+             mjdt <= mjdt_end_window &&
+             mjdt <= steps.front().mjdt + (pass_limit_minutes*60));
+
+    // If pass limit was reached, set flag.
+    if (mjdt > steps.front().mjdt + (pass_limit_minutes*60))
+        pass.end_trimmed = true;
+
+    // Delete last element if it is outside of pass.
+    if (steps.back().altaz_coord.el < this->min_elev_)
+        steps.pop_back();
 
     // Update az and el rate.
     // for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)

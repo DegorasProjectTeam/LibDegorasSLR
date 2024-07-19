@@ -102,6 +102,9 @@ struct LIBDPSLR_EXPORT SpaceObjectPass
     math::units::MillisecondsU time_step;    ///< Interval between two steps in milliseconds.
     math::units::DegreesU min_elev;          ///< Minimum elevation for pass.
     std::vector<SpaceObjectPassStep> steps;  ///< Steps of the pass.
+
+    bool start_trimmed = false;              ///< True if start was trimmed due to time limitation.
+    bool end_trimmed = false;                ///< True if end was trimmed due to time limitation.
 };
 
 /**
@@ -177,13 +180,26 @@ public:
      */
     ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, SpaceObjectPass &pass) const;
 
+
+    /**
+     * @brief Get the next pass, starting from mjd_start datetime. If this datetime is already inside a pass, then
+     *        this pass will be returned. The returned pass duration will always be less or equal to pass_limit_minutes.
+     * @param mjd_start  The datetime to start lookig for next pass.
+     * @param pass_limit_minutes
+     * @param pass       The data of the pass. This data is not valid if returned code is different from NOT_ERROR.
+     * @param search_limit_minutes The time search limit duration in minutes. 0 = no limit. This limit is used only
+     *                             for looking for the start. After that pass_limit_minutes is used.
+     * @return The result of the operation. If the result is different from NOT_ERROR, pass data is not valid.
+     */
+    ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, unsigned int pass_limit_minutes,
+                           SpaceObjectPass &pass, unsigned search_limit_minutes = 0) const;
+
     /**
      * @brief Checks is a given time is inside a pass.
      * @param mjd  The MJ datetime to check.
      * @return True if the datetime is inside of a pass, false if there was some error or the datetime is not inside a pass.
      */
     bool isInsidePass(const timing::dates::MJDateTime& mjd) const;
-
 
 private:
 
