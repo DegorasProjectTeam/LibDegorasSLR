@@ -182,14 +182,34 @@ int main()
 
     }
 
-    MJDateTime mjd_test(60014, SoD(0.0L));
+    MJDateTime mjd_test;
+    SpaceObjectPass pass;
+
+    std::cout << std::endl << " ----------------------------------------------------- " << std::endl;
+
+    std::cout << " Test: IsInsidePass " << std::endl;
+
+    std::cout << " ----------------------------------------------------- " << std::endl;
+
+    mjd_test = {60014, SoD(0.0L)};
+
     std::cout << "Is MJ datetime " << mjd_test.date() << ", " << mjd_test.sod() << ", inside pass: "
               << pass_calculator.isInsidePass(mjd_test) << std::endl;
-    SpaceObjectPass pass;
+
+    mjd_test = {60014, SoD(27720.0L)};
+
+    std::cout << "Is MJ datetime " << mjd_test.date() << ", " << mjd_test.sod() << ", inside pass: "
+              << pass_calculator.isInsidePass(mjd_test) << std::endl;
+
+    std::cout << std::endl << " ----------------------------------------------------- " << std::endl;
+
+    std::cout << " Test: GetNextPass without limits " << std::endl;
 
     std::cout << " ----------------------------------------------------- " << std::endl;
 
     // Find next. When the start date is outside of a pass.
+    mjd_test = {60014, SoD(0.0L)};
+
     res = pass_calculator.getNextPass(mjd_test, pass);
 
     if ( PassCalculator::ResultCode::NOT_ERROR != res)
@@ -216,9 +236,6 @@ int main()
     // Find next pass when the start date is inside a pass.
     mjd_test = {60014, SoD(27720.0L)};
 
-    std::cout << "Is MJ datetime " << mjd_test.date() << ", " << mjd_test.sod() << ", inside pass: "
-              << pass_calculator.isInsidePass(mjd_test) << std::endl;
-
     res = pass_calculator.getNextPass(mjd_test, pass);
 
     if ( PassCalculator::ResultCode::NOT_ERROR != res)
@@ -241,6 +258,144 @@ int main()
 
     std::cout << "Pass starts at: " << std::ctime(&start_pass_time)
               << ". Ends at: " << std::ctime(&end_pass_time) << std::endl;
+
+    std::cout << std::endl << " ----------------------------------------------------- " << std::endl;
+
+    std::cout << " Test: GetNextPass with limits " << std::endl;
+
+    std::cout << " ----------------------------------------------------- " << std::endl;
+
+
+
+    // Find next. When the start date is outside of a pass.
+    mjd_test = {60014, SoD(0.0L)};
+
+    std::cout << std::endl << "- Start date outside of pass, succesfully found. Pass complete" << std::endl;
+    res = pass_calculator.getNextPass(mjd_test, 10, pass, 1440);
+
+    if ( PassCalculator::ResultCode::NOT_ERROR != res)
+    {
+        std::cout << "Error at next pass search. Code is: " << res << std::endl;
+        return -1;
+    }
+
+    // This should be impossible. Paranoid check.
+    if (pass.steps.empty())
+    {
+        std::cout << "Bad pass detected" <<std::endl;
+        return -1;
+    }
+    start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjdt);
+    end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjdt);
+
+    start_pass_time = std::chrono::system_clock::to_time_t(start_pass_tp);
+    end_pass_time = std::chrono::system_clock::to_time_t(end_pass_tp);
+
+    std::cout << "Pass starts at: " << std::ctime(&start_pass_time)
+              << ". Ends at: " << std::ctime(&end_pass_time)
+              << "Start trimmed: " << pass.start_trimmed << ". End trimmed: " << pass.end_trimmed << std::endl;
+
+    // Find next pass when the start date is inside a pass.
+    std::cout << std::endl << "- Start date inside of pass, succesfully found. Start trimmed, but end is not. "
+              << std::endl;
+    mjd_test = {60014, SoD(27720.0L)};
+
+    res = pass_calculator.getNextPass(mjd_test, 10, pass);
+
+    if ( PassCalculator::ResultCode::NOT_ERROR != res)
+    {
+        std::cout << "Error at next pass search. Code is: " << res << std::endl;
+        return -1;
+    }
+
+    // This should be impossible. Paranoid check.
+    if (pass.steps.empty())
+    {
+        std::cout << "Bad pass detected" <<std::endl;
+        return -1;
+    }
+    start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjdt);
+    end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjdt);
+
+    start_pass_time = std::chrono::system_clock::to_time_t(start_pass_tp);
+    end_pass_time = std::chrono::system_clock::to_time_t(end_pass_tp);
+
+    std::cout << "Pass starts at: " << std::ctime(&start_pass_time)
+              << ". Ends at: " << std::ctime(&end_pass_time)
+              << "Start trimmed: " << pass.start_trimmed << ". End trimmed: " << pass.end_trimmed << std::endl;
+
+    // Find next. When the start date is outside of a pass and search limit is reached. No pass found.
+    std::cout << std::endl << "- Search limit exceeded. No pass found. " << std::endl;
+    mjd_test = {60014, SoD(0.0L)};
+    res = pass_calculator.getNextPass(mjd_test, 10, pass, 1);
+
+    if ( PassCalculator::ResultCode::NO_NEXT_PASS_FOUND != res)
+    {
+        std::cout << "Error. No next pass should have been found. Code is: " << res << std::endl;
+        return -1;
+    }
+    else
+        std::cout << "Test passed. No pass found." << std::endl;
+
+    // Find next pass when the start date is outside a pass, and duration limit is lower than pass duration.
+    // Start is not trimmed, but end is.
+    std::cout << std::endl << "- Start date outside of pass, succesfully found. Duration limit reached. " << std::endl;
+
+    mjd_test = {60014, SoD(0.0L)};
+    res = pass_calculator.getNextPass(mjd_test, 1, pass);
+
+    if ( PassCalculator::ResultCode::NOT_ERROR != res)
+    {
+        std::cout << "Error at next pass search. Code is: " << res << std::endl;
+        return -1;
+    }
+
+    // This should be impossible. Paranoid check.
+    if (pass.steps.empty())
+    {
+        std::cout << "Bad pass detected" <<std::endl;
+        return -1;
+    }
+    start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjdt);
+    end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjdt);
+
+    start_pass_time = std::chrono::system_clock::to_time_t(start_pass_tp);
+    end_pass_time = std::chrono::system_clock::to_time_t(end_pass_tp);
+
+    std::cout << "Pass starts at: " << std::ctime(&start_pass_time)
+              << ". Ends at: " << std::ctime(&end_pass_time)
+              << "Start trimmed: " << pass.start_trimmed << ". End trimmed: " << pass.end_trimmed << std::endl;
+
+    // Find next pass when the start date is inside a pass. Duration limit is lower than pass duration.
+    // Both start and end are trimmed.
+    std::cout << std::endl << "- Start date inside of pass, succesfully found. Duration limit reached. " << std::endl
+              << " Start and end trimmed. " << std::endl;
+
+    mjd_test = {60014, SoD(27720.0L)};
+
+    res = pass_calculator.getNextPass(mjd_test, 1, pass);
+
+    if ( PassCalculator::ResultCode::NOT_ERROR != res)
+    {
+        std::cout << "Error at next pass search. Code is: " << res << std::endl;
+        return -1;
+    }
+
+    // This should be impossible. Paranoid check.
+    if (pass.steps.empty())
+    {
+        std::cout << "Bad pass detected" <<std::endl;
+        return -1;
+    }
+    start_pass_tp = modifiedJulianDateTimeToTimePoint( pass.steps.front().mjdt);
+    end_pass_tp = modifiedJulianDateTimeToTimePoint(pass.steps.back().mjdt);
+
+    start_pass_time = std::chrono::system_clock::to_time_t(start_pass_tp);
+    end_pass_time = std::chrono::system_clock::to_time_t(end_pass_tp);
+
+    std::cout << "Pass starts at: " << std::ctime(&start_pass_time)
+              << ". Ends at: " << std::ctime(&end_pass_time)
+              << "Start trimmed: " << pass.start_trimmed << ". End trimmed: " << pass.end_trimmed << std::endl;
 
 	return 0;
 }

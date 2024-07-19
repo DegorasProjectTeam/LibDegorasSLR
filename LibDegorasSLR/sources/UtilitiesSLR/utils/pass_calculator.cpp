@@ -81,14 +81,20 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
     if (!this->predictor_->isInsideTimeWindow(mjd_start, mjd_end))
         return ResultCode::INTERVAL_OUTSIDE_OF_PREDICTOR;
 
-    // Calculate all the predictions.
-    auto predictions = this->predictor_->predict(mjd_start, mjd_end, this->time_step_);
-
     // Auxiliary variables.
     bool pass_started = false;
     SpaceObjectPass current_pass;
     current_pass.time_step = this->time_step_;
     current_pass.min_elev = this->min_elev_;
+
+    // Calculate all the predictions.
+    auto predictions = this->predictor_->predict(mjd_start, mjd_end, this->time_step_);
+
+    // If a pass is ongoing at start time, set start trimmed flag.
+    if (predictions.front().instant_data->altaz_coord.el > this->min_elev_)
+    {
+        current_pass.start_trimmed = true;
+    }
 
     // Check the predictions to get all the passes within the time window.
     for (auto &&pred : predictions)
@@ -127,7 +133,7 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
         }
     }
 
-    // Close pass if it is cut in the middle.
+    // If a pass is ongoing at end time, store the pass and set end trimmed flag.
     if (pass_started)
     {
         current_pass.end_trimmed = true;
@@ -284,15 +290,17 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
     // Get the time window.
     this->predictor_->getAvailableTimeWindow(mjdt_start_window, mjdt_end_window);
 
-    // Apply the search limit if set.
+    // Apply the search limit if set. Otherwise search limit is predictor time window.
     if (search_limit_minutes > 0)
     {
-        mjdt_end_search = mjdt_start_window + (search_limit_minutes * 60);
+        mjdt_end_search = mjd_start + (search_limit_minutes * 60);
 
         // If search limit is above predictor window end, then set the search limit to the window end.
         if (mjdt_end_search > mjdt_end_window)
             mjdt_end_search = mjdt_end_window;
     }
+    else
+        mjdt_end_search = mjdt_end_window;
 
     // Calculate all the predictions.
     predictors::PredictionSLR pred;
@@ -354,6 +362,12 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
         }
     }
 
+    // Update end time. The end time will be the minimum between the available predictor time window and
+    // the pass duration limit.
+    auto mjdt_end_limit = steps.front().mjdt + (pass_limit_minutes*60);
+    if (mjdt_end_limit < mjdt_end_window)
+        mjdt_end_window = mjdt_end_limit;
+
     // Look for the end of the pass. This pass can end when it goes below minimum elevation or when time limit is reached
     do
     {
@@ -366,12 +380,10 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
         // Store pass step.
         steps.push_back(SpaceObjectPassStep(std::move(pred)));
         mjdt += time_step_sec;
-    } while (steps.back().slr_pred.instant_data->altaz_coord.el > this->min_elev_ &&
-             mjdt <= mjdt_end_window &&
-             mjdt <= steps.front().mjdt + (pass_limit_minutes*60));
+    } while (steps.back().slr_pred.instant_data->altaz_coord.el > this->min_elev_ && mjdt <= mjdt_end_window );
 
-    // If pass limit was reached, set flag.
-    if (mjdt > steps.front().mjdt + (pass_limit_minutes*60))
+    // If pass limit or predictor time window end was reached, set end trimmed flag.
+    if (mjdt > mjdt_end_window)
         pass.end_trimmed = true;
 
     // Delete last element if it is outside of pass.
