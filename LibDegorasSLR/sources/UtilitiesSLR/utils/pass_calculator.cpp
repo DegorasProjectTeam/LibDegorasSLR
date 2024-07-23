@@ -82,6 +82,7 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
         return ResultCode::INTERVAL_OUTSIDE_OF_PREDICTOR;
 
     // Auxiliary variables.
+    const math::units::Seconds step_s = this->time_step_ / 1000.L;
     bool pass_started = false;
     SpaceObjectPass current_pass;
     current_pass.time_step = this->time_step_;
@@ -109,6 +110,8 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
         {
             long double azim_rate = 0;
             long double elev_rate = 0;
+            long double azim_accel = 0;
+            long double elev_accel = 0;
 
             if (!pass_started)
             {
@@ -116,14 +119,24 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
             }
             else
             {
-                azim_rate = std::abs(
-                    (pred.instant_data->altaz_coord.az - current_pass.steps.back().altaz_coord.az) /
-                    (this->time_step_ / 1000.0L));
+                long double azim_diff = std::abs(
+                    (pred.instant_data->altaz_coord.az - current_pass.steps.back().altaz_coord.az));
+
+                // If azim_diff is between 270 and 360, we assume that it has passed through zero.
+                if (azim_diff > 270.L && azim_diff < 360.L)
+                    azim_diff = 360.L - azim_diff;
+
+                azim_rate = azim_diff / step_s;
                 elev_rate = std::abs(
-                    (pred.instant_data->altaz_coord.el - current_pass.steps.back().altaz_coord.el) /
-                    (this->time_step_ / 1000.0L));
+                    (pred.instant_data->altaz_coord.el - current_pass.steps.back().altaz_coord.el) / step_s);
+
+                if (!current_pass.steps.empty())
+                {
+                    azim_accel = (azim_rate - current_pass.steps.back().azim_rate) / step_s;
+                    elev_accel = (elev_rate - current_pass.steps.back().elev_rate)  / step_s;
+                }
             }
-            current_pass.steps.push_back(SpaceObjectPassStep(std::move(pred), azim_rate, elev_rate));
+            current_pass.steps.push_back(SpaceObjectPassStep(std::move(pred), azim_rate, elev_rate, azim_accel, elev_accel));
         }
         else if(pass_started)
         {
@@ -259,11 +272,23 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
     steps.pop_back();
 
     // Update az and el rate.
-    // for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)
-    // {
-    //     it->azim_rate = std::abs( (it->altaz_coord.az - (it - 1)->altaz_coord.az) / interval_sec );
-    //     it->elev_rate = std::abs( (it->altaz_coord.el - (it - 1)->altaz_coord.el) / interval_sec );
-    // }
+    for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)
+    {
+        auto prev_it = it - 1;
+
+        long double azim_diff = std::abs( (it->altaz_coord.az - prev_it->altaz_coord.az));
+
+        // If azim_diff is between 270 and 360, we assume that it has passed through zero.
+        if (azim_diff > 270.L && azim_diff < 360.L)
+            azim_diff = 360.L - azim_diff;
+
+        it->azim_rate = azim_diff / time_step_sec;
+        it->elev_rate = std::abs((it->altaz_coord.el - prev_it->altaz_coord.el) / time_step_sec);
+
+        it->azim_accel = (it->azim_rate - prev_it->azim_rate) / time_step_sec;
+        it->elev_accel = (it->elev_rate - prev_it->elev_rate)  / time_step_sec;
+
+    }
 
     return PassCalculator::ResultCode::NOT_ERROR;
 }
@@ -391,11 +416,22 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
         steps.pop_back();
 
     // Update az and el rate.
-    // for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)
-    // {
-    //     it->azim_rate = std::abs( (it->altaz_coord.az - (it - 1)->altaz_coord.az) / interval_sec );
-    //     it->elev_rate = std::abs( (it->altaz_coord.el - (it - 1)->altaz_coord.el) / interval_sec );
-    // }
+    for (auto it = pass.steps.begin() + 1; it != pass.steps.end(); it++)
+    {
+        auto prev_it = it - 1;
+
+        long double azim_diff = std::abs( (it->altaz_coord.az - prev_it->altaz_coord.az));
+
+        // If azim_diff is between 270 and 360, we assume that it has passed through zero.
+        if (azim_diff > 270.L && azim_diff < 360.L)
+            azim_diff = 360.L - azim_diff;
+
+        it->azim_rate = azim_diff / time_step_sec;
+        it->elev_rate = std::abs((it->altaz_coord.el - prev_it->altaz_coord.el) / time_step_sec);
+
+        it->azim_accel = (it->azim_rate - prev_it->azim_rate) / time_step_sec;
+        it->elev_accel = (it->elev_rate - prev_it->elev_rate)  / time_step_sec;
+    }
 
     return PassCalculator::ResultCode::NOT_ERROR;
 }

@@ -61,19 +61,28 @@ struct LIBDPSLR_EXPORT SpaceObjectPassStep
 {
     SpaceObjectPassStep() = default;
 
-    SpaceObjectPassStep(predictors::PredictionSLR&& pred, long double azim_ra = 0, long double elev_ra = 0) :
+    SpaceObjectPassStep(predictors::PredictionSLR&& pred,
+                        long double azim_ra = 0,
+                        long double elev_ra = 0,
+                        long double azim_accel = 0,
+                        long double elev_accel = 0) :
         slr_pred(pred),
         mjdt(this->slr_pred.instant_data->mjdt),
         altaz_coord(this->slr_pred.instant_data->altaz_coord),
         azim_rate(azim_ra),
-        elev_rate(elev_ra)
+        elev_rate(elev_ra),
+        azim_accel(azim_accel),
+        elev_accel(elev_accel)
     {}
 
     predictors::PredictionSLR slr_pred;  ///< Full SLR prediction computed data.
     timing::dates::MJDateTime mjdt;      ///< Modified julian datetime asociated to the step.
     astro::types::AltAzPos altaz_coord;  ///< Fast access to InstantData local computed altazimuth coords in degrees.
-    long double azim_rate;               ///< Azimuth rate of step in deg/s
-    long double elev_rate;               ///< Elevation rate of step in deg/s
+    ///@warning If step is too wide, rates could be incorrect.
+    long double azim_rate;               ///< Azimuth rate of step in deg/s. It is the velocity change in abs. value.
+    long double elev_rate;               ///< Elevation rate of step in deg/s. It is the velocity change in abs. value.
+    long double azim_accel;              ///< Azimuth accel. of step in deg/s2.
+    long double elev_accel;              ///< Elevation accel. of step in deg/s2.
 };
 
 /**
