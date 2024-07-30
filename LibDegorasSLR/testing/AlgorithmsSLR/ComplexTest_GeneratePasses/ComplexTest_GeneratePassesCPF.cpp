@@ -271,7 +271,7 @@ int main()
     mjd_test = {60014, SoD(0.0L)};
 
     std::cout << std::endl << "- Start date outside of pass, succesfully found. Pass complete" << std::endl;
-    res = pass_calculator.getNextPass(mjd_test, 10, pass, 1440);
+    res = pass_calculator.getNextPass(mjd_test, 600, pass, 86400);
 
     if ( PassCalculator::ResultCode::NOT_ERROR != res)
     {
@@ -300,7 +300,7 @@ int main()
               << std::endl;
     mjd_test = {60014, SoD(27720.0L)};
 
-    res = pass_calculator.getNextPass(mjd_test, 10, pass);
+    res = pass_calculator.getNextPass(mjd_test, 600, pass);
 
     if ( PassCalculator::ResultCode::NOT_ERROR != res)
     {
@@ -327,7 +327,7 @@ int main()
     // Find next. When the start date is outside of a pass and search limit is reached. No pass found.
     std::cout << std::endl << "- Search limit exceeded. No pass found. " << std::endl;
     mjd_test = {60014, SoD(0.0L)};
-    res = pass_calculator.getNextPass(mjd_test, 10, pass, 1);
+    res = pass_calculator.getNextPass(mjd_test, 600, pass, 60);
 
     if ( PassCalculator::ResultCode::NO_NEXT_PASS_FOUND != res)
     {
@@ -342,7 +342,7 @@ int main()
     std::cout << std::endl << "- Start date outside of pass, succesfully found. Duration limit reached. " << std::endl;
 
     mjd_test = {60014, SoD(0.0L)};
-    res = pass_calculator.getNextPass(mjd_test, 1, pass);
+    res = pass_calculator.getNextPass(mjd_test, 60, pass);
 
     if ( PassCalculator::ResultCode::NOT_ERROR != res)
     {
@@ -373,7 +373,7 @@ int main()
 
     mjd_test = {60014, SoD(27720.0L)};
 
-    res = pass_calculator.getNextPass(mjd_test, 1, pass);
+    res = pass_calculator.getNextPass(mjd_test, 60, pass);
 
     if ( PassCalculator::ResultCode::NOT_ERROR != res)
     {

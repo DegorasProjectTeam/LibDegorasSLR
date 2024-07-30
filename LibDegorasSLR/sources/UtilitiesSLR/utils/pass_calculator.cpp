@@ -294,9 +294,9 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
 }
 
 PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDateTime& mjd_start,
-                                                       unsigned pass_limit_minutes,
+                                                       math::units::SecondsU pass_limit,
                                                        SpaceObjectPass& pass,
-                                                       unsigned search_limit_minutes) const
+                                                       math::units::SecondsU search_limit) const
 {
     // Clear passes vector
     pass = {};
@@ -316,9 +316,9 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
     this->predictor_->getAvailableTimeWindow(mjdt_start_window, mjdt_end_window);
 
     // Apply the search limit if set. Otherwise search limit is predictor time window.
-    if (search_limit_minutes > 0)
+    if (search_limit > 0)
     {
-        mjdt_end_search = mjd_start + (search_limit_minutes * 60);
+        mjdt_end_search = mjd_start + search_limit.get();
 
         // If search limit is above predictor window end, then set the search limit to the window end.
         if (mjdt_end_search > mjdt_end_window)
@@ -389,7 +389,7 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
 
     // Update end time. The end time will be the minimum between the available predictor time window and
     // the pass duration limit.
-    auto mjdt_end_limit = steps.front().mjdt + (pass_limit_minutes*60);
+    auto mjdt_end_limit = steps.front().mjdt + pass_limit.get();
     if (mjdt_end_limit < mjdt_end_window)
         mjdt_end_window = mjdt_end_limit;
 

@@ -194,14 +194,15 @@ public:
      * @brief Get the next pass, starting from mjd_start datetime. If this datetime is already inside a pass, then
      *        this pass will be returned. The returned pass duration will always be less or equal to pass_limit_minutes.
      * @param mjd_start  The datetime to start lookig for next pass.
-     * @param pass_limit_minutes
+     * @param pass_limit The duration limit of the pass in seconds. If pass is started, this method will not
+     *                   look behind, so the pass start will be trimmed. This variable should be greater than 0.
      * @param pass       The data of the pass. This data is not valid if returned code is different from NOT_ERROR.
-     * @param search_limit_minutes The time search limit duration in minutes. 0 = no limit. This limit is used only
-     *                             for looking for the start. After that pass_limit_minutes is used.
+     * @param search_limit The time search limit duration in seconds. 0 = no limit. This limit is used only
+     *                     for looking for the start. After that, pass_limit is used.
      * @return The result of the operation. If the result is different from NOT_ERROR, pass data is not valid.
      */
-    ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, unsigned int pass_limit_minutes,
-                           SpaceObjectPass &pass, unsigned search_limit_minutes = 0) const;
+    ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, math::units::SecondsU pass_limit,
+                           SpaceObjectPass &pass, math::units::SecondsU search_limit = 0) const;
 
     /**
      * @brief Checks is a given time is inside a pass.
