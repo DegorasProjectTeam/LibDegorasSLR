@@ -88,13 +88,15 @@ using dpslr::StringV;
 
 struct ExampleData
 {
-    ExampleData(const Star& star):
-        star(star)
+    ExampleData(const Star& star, const std::string &date, const Seconds& duration):
+        star(star), datetime_iso8601(date), duration_tracking(duration)
     {
     }
 
     // Specific example data.
     Star star;
+    std::string datetime_iso8601;
+    Seconds duration_tracking;
 
 };
 
@@ -109,7 +111,7 @@ int main()
 
     // -------------------- EXAMPLES CONFIGURATION ---------------------------------------------------------------------
 
-    bool plot_data = false;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
+    bool plot_data = true;        // Flag for enable the data plotting using a Python3 (>3.9) helper script.
 
     // SFEL station geodetic position in degrees (north and east > 0) with 8 decimals (~1 mm precision).
     // Altitude in meters with 3 decimals (~1 mm precision).
@@ -198,20 +200,13 @@ int main()
     sirius.rad_vel = -7.6;
     sirius.parallax = 0.375;
 
-    // Datetime configuration.
-    const std::string datetime_iso8601 = "2024-07-02T11:31:17.000Z";
-    std::chrono::seconds obs_secs(200);
-
-    dpslr::timing::types::HRTimePointStd tp_start = dpslr::timing::iso8601DatetimeToTimePoint(datetime_iso8601);
-    dpslr::timing::types::HRTimePointStd tp_end = tp_start + obs_secs;
-
-    JDateTime jd_start = dpslr::timing::timePointToJulianDateTime(tp_start);
-    JDateTime jd_end = dpslr::timing::timePointToJulianDateTime(tp_end);
 
     // Real examples vector with their configurations.
     std::vector<ExampleData> examples =
     {
-        {vega}, {arcturus}, {sirius}
+        {vega, "2023-10-19T21:15:30.000Z", 600},
+        {arcturus, "2023-10-23T08:25:30.000Z", 600},
+        {sirius, "2023-10-23T08:25:30.000Z", 600}
     };
 
     // Example selector.
@@ -234,9 +229,20 @@ int main()
 
     }
 
+    // Datetime configuration.
+    std::chrono::seconds obs_secs(examples[example_selector].duration_tracking);
+
+    dpslr::timing::types::HRTimePointStd tp_start = dpslr::timing::iso8601DatetimeToTimePoint(
+        examples[example_selector].datetime_iso8601);
+    dpslr::timing::types::HRTimePointStd tp_end = tp_start + obs_secs;
+
+    JDateTime jd_start = dpslr::timing::timePointToJulianDateTime(tp_start);
+    JDateTime jd_end = dpslr::timing::timePointToJulianDateTime(tp_end);
+
     // Get band store the example data.
     std::string example_alias = examples[example_selector].star.star_name;
     std::string realtime_csv_filename = example_alias + "_track_realtime.csv";
+    std::string rt_interval_csv_filename = example_alias + "_track_rt_interval.csv";
 
     // -------------------- PREDICTOR PREPARATION  ---------------------------------------------------------------
 
@@ -262,7 +268,7 @@ int main()
     // Create the file and header.
     std::ofstream file_realtime_track(output_dir + "/" + realtime_csv_filename, std::ios_base::out);
     file_realtime_track << data.str();
-    file_realtime_track << "jd;sod;pass_az;pass_el;track_az;track_el;sun_az;sun_el";
+    file_realtime_track << "date;jdt;pass_az;pass_el;track_az;track_el;az_h;az_min;az_sec;el_deg;el_min;el_sec";
 
     // Now, we are simulating real time prediction operations. We can now predict any position within the valid
     // tracking time window (stored in TrackingInfo struct). For the example, we will ask predictions from start to
@@ -275,11 +281,9 @@ int main()
     while (jd < jd_end)
     {
         predictions.push_back(predictor->predict(jd, true));
-        jd = jd + 5;
+        jd = jd + 0.1L;
     }
 
-    // Calculate predictions
-    //PredictionStarV predictions = predictor->predict(jd, jd_end, 5000);
 
     // Iterate the real time simulated predictions.
     for(const auto& pred : predictions)
@@ -326,9 +330,61 @@ int main()
             std::cout<<"Plotting failed!!"<<std::endl;
     }
 
-    // Final wait.
-    std::cout << "Example finished. Press Enter to exit..." << std::endl;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    // Store the real time track data into a CSV file (only part of the data for easy usage).
+    // TODO: Store the full track data as JSON.
+    // --
+    // Create the file and header.
+    std::ofstream file_rt_interval_track(output_dir + "/" + rt_interval_csv_filename, std::ios_base::out);
+    file_rt_interval_track << data.str();
+    file_rt_interval_track << "date;jdt;pass_az;pass_el;track_az;track_el;az_h;az_min;az_sec;el_deg;el_min;el_sec";
+
+    // Calculate predictions with interval method.
+    predictions = predictor->predict(jd_start, jd_end, 100, true);
+
+    // Iterate the real time simulated predictions.
+    for(const auto& pred : predictions)
+    {
+        // Auxiliar container for track data.
+        std::string track_az = numberToStr(pred.altaz_coord.az,9, 6);
+        std::string track_el = numberToStr(pred.altaz_coord.el,9, 6);
+
+        int az_h, az_min;
+        int el_h, el_min;
+        double az_sec;
+        double el_sec;
+
+        // Get h, min, sec;
+        dpslr::astro::types::degreesToDegMinSec(pred.altaz_coord.az, az_h, az_min, az_sec);
+        dpslr::astro::types::degreesToDegMinSec(pred.altaz_coord.el, el_h, el_min, el_sec);
+
+        // Get ISO
+        dpslr::timing::types::HRTimePointStd tp_aux = dpslr::timing::julianDateTimeToTimePoint(pred.jdt);
+        std::string iso_aux = dpslr::timing::timePointToIso8601(tp_aux);
+
+        // Store the data.
+        file_rt_interval_track << '\n';
+        file_rt_interval_track << iso_aux <<";";
+        file_rt_interval_track << std::to_string(pred.jdt.datetime()) <<";";
+        file_rt_interval_track << track_az <<";";
+        file_rt_interval_track << track_el <<";";
+        file_rt_interval_track << std::to_string(az_h) <<";";
+        file_rt_interval_track << std::to_string(az_min) <<";";
+        file_rt_interval_track << std::to_string(az_sec) <<";";
+        file_rt_interval_track << std::to_string(el_h) <<";";
+        file_rt_interval_track << std::to_string(el_min) <<";";
+        file_rt_interval_track << std::to_string(el_sec);
+    }
+
+    // Close the file.
+    file_rt_interval_track.close();
+
+    if(plot_data)
+    {
+        std::cout<<"Plotting real time simulated data using Python helpers..."<<std::endl;
+        if(system(std::string(python_cmd_analysis + output_dir + "/" + rt_interval_csv_filename).c_str()))
+            std::cout<<"Plotting failed!!"<<std::endl;
+    }
 
 
     // All ok.

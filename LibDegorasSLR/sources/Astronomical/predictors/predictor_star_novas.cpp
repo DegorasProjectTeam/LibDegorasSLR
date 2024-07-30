@@ -75,6 +75,34 @@ PredictionStar PredictorStarNovas::predict(const timing::dates::JDateTime &jdt, 
     return pred;
 }
 
+PredictionStarV PredictorStarNovas::predict(const timing::dates::JDateTime &jdt_start,
+                                            const timing::dates::JDateTime &jdt_end,
+                                            const math::units::MillisecondsU &step, bool refraction) const
+{
+
+    // Container and auxiliar.
+    timing::dates::JDateTimeV interp_times;
+    math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
+
+    // Check for valid time interval.
+    if(!(jdt_start <= jdt_end))
+        throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorStarBase::predict] Invalid interval.");
+
+    // Calculates all the interpolation times.
+    interp_times = timing::dates::JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);
+
+    // Results container.
+    PredictionStarV results(interp_times.size());
+
+    for(size_t i = 0; i<interp_times.size(); i++)
+    {
+        results[i] = this->predict(interp_times[i], refraction);
+    }
+
+    // Return the container.
+    return results;
+}
+
 
 }}} // END NAMESPACES
 // =====================================================================================================================

@@ -76,15 +76,24 @@ public:
      */
     PredictionStar predict(const timing::dates::JDateTime& jdt, bool refraction) const override;
 
+    /**
+     * @brief Predicts star positions within a time range with a specified time step.
+     *
+     * @warning This function is does not perform computations in parallel, since Novas is not thread safe.
+     *
+     * @param jdt_start   The Julian start datetime of the prediction range.
+     * @param jdt_end     The Julian end datetime of ñthe prediction range.
+     * @param step        The time step in milliseconds between predictions.
+     * @param refraction  True if refraction model is to be applied, false otherwise.
+     * @return A vector of StarPrediction objects representing predicted star positions at each step.
+     *
+     * @throws std::invalid_argument If the interval is invalid.
+     */
+    PredictionStarV predict(const timing::dates::JDateTime& jdt_start,
+                            const timing::dates::JDateTime& jdt_end,
+                            const math::units::MillisecondsU& step, bool refraction) const override;
+
     virtual bool isReady() const override {return true;}
-
-
-private:
-
-    // TODO: do not use parallel version. Due to novas library, it is not thread-safe.
-    PredictionStarV predict(const timing::dates::JDateTime&,
-                            const timing::dates::JDateTime&,
-                            const math::units::MillisecondsU&, bool) const override { return {}; }
 
 };
 

@@ -100,15 +100,15 @@ def plot_track_culmination(ax, azs, els, color='blue', s=40, zorder=4, label='Tr
 
 # Function to read positions from file
 def read_positions(filename):
-    header_size = 23
+    header_size = 1
     track_positions = []
     with open(filename, 'r') as file:
         lines = file.readlines()
         for line in lines[header_size:]:
             data = line.split(';')
 
-            track_az = float(data[1])
-            track_el = float(data[2])
+            track_az = float(data[2])
+            track_el = float(data[3])
             track_positions.append((track_az, track_el))
 
                         
