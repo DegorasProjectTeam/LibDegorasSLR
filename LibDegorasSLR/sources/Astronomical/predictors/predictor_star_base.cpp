@@ -99,6 +99,11 @@ PredictionStarV PredictorStarBase::predict(const JDateTime &jdt_start, const JDa
     return results;
 }
 
+void PredictorStarBase::setMeteo(const geo::types::MeteoData &meteo)
+{
+    this->loc_.meteo = meteo;
+}
+
 PredictorStarBase::~PredictorStarBase(){}
 
 }}} // END NAMESPACES

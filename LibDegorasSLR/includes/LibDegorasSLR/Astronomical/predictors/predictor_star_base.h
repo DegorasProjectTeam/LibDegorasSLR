@@ -85,14 +85,27 @@ public:
                       const geo::types::SurfaceLocation<math::units::Degrees>& loc,
                       int leap_secs = 0, double ut1_utc_diff = 0);
 
+    /**
+     * @brief Create a smart ptr to a star predictor subclass, that is constructed in place using args.
+     * @tparam T The star predictor subclass.
+     * @tparam Args The argument pack for T constructor.
+     * @param args The arguments to construct the star predictor. They must fit a valid constructor for T subclass.
+     * @return A smart ptr to T object.
+     */
     template <typename T, typename... Args>
     static std::shared_ptr<PredictorStarBase> factory(Args&&... args)
     {
         return std::static_pointer_cast<PredictorStarBase>(std::make_shared<T>(std::forward<Args>(args)...));
     }
 
+    /**
+     * @brief Get specialized smart ptr to star predictor.
+     * @tparam T The specialized type. It must be a class derived from PredictorStarBase.
+     * @param base The smart ptr to star predictor base.
+     * @return A smart ptr to T object.
+     */
     template <typename T>
-    static std::shared_ptr<T> specialization(std::shared_ptr<PredictorStarBase> base)
+    static std::shared_ptr<T> specialization(const std::shared_ptr<PredictorStarBase> &base)
     {
         return std::static_pointer_cast<T>(base);
     }
@@ -121,8 +134,21 @@ public:
                                     const timing::dates::JDateTime& jdt_end,
                                     const math::units::MillisecondsU& step, bool refraction) const;
 
+    /**
+     * @brief Checks if this predictor is ready to predict.
+     * @return true if the predictor can predict, false otherwise.
+     */
     virtual bool isReady() const = 0;
 
+    /**
+     * @brief Set the meteo data to use for predictions.
+     * @param meteo The meteo data.
+     */
+    void setMeteo(const geo::types::MeteoData &meteo);
+
+    /**
+     * @brief Virtual destructor for subclassing.
+     */
     virtual ~PredictorStarBase();
 
 protected:
