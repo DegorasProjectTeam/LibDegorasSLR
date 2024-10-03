@@ -19,6 +19,7 @@ set(IGNORED_PATHS
 add_subdirectory(Helpers)
 add_subdirectory(Timing)
 add_subdirectory(Astronomical)
+add_subdirectory(TrackingMount)
 
 
 # Add the examples in the subdirectories.
