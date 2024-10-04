@@ -40,14 +40,16 @@ int main()
     std::vector<std::vector<double>> error_el(36000, zero_vector);
     std::vector<std::vector<double>> error_rms(36000, zero_vector);
 
+    unsigned factor = 1;
+
     omp_set_num_threads(8);
 
     #pragma omp parallel for
-    for (unsigned i = 0; i < 36000; i++)
+    for (unsigned i = 0; i < 360 * factor; i++)
     {
-        for (unsigned j = 0; j < 9000; j++)
+        for (unsigned j = 0; j < 90 * factor; j++)
         {
-            dpslr::astro::types::AltAzPos p(i / 100., j / 100.);
+            dpslr::astro::types::AltAzPos p(i / (1. * factor), j / (1. * factor));
             modified_positions[i][j] = dpslr::mount::models::computeCorrectedByTPointPosition(coefs, p);
             error_az[i][j] = p.az - modified_positions[i][j].az;
             error_el[i][j] = p.el - modified_positions[i][j].el;
@@ -63,14 +65,14 @@ int main()
     out_el << std::setprecision(8);
     out_rms << std::setprecision(8);
 
-    for (unsigned i = 0; i < 36000; i++)
+    for (unsigned i = 0; i < 360 * factor; i++)
     {
-        for (unsigned j = 0; j < 9000; j++)
+        for (unsigned j = 0; j < 90 * factor; j++)
         {
             out_az << error_az[i][j];
             out_el << error_el[i][j];
             out_rms << error_rms[i][j];
-            if (j < 9000 - 1)
+            if (j < 90 * factor - 1)
             {
                 out_az << ",";
                 out_el << ",";
@@ -81,4 +83,6 @@ int main()
         out_el << std::endl;
         out_rms << std::endl;
     }
+
+    return 0;
 }
