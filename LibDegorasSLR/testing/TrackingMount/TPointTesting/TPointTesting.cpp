@@ -2,6 +2,7 @@
 
 #include <omp.h>
 #include <cmath>
+#include <fstream>
 
 int main()
 {
@@ -54,4 +55,30 @@ int main()
         }
     }
 
+    std::ofstream out_az ("error_az.csv");
+    std::ofstream out_el ("error_el.csv");
+    std::ofstream out_rms ("error_rms.csv");
+
+    out_az << std::setprecision(8);
+    out_el << std::setprecision(8);
+    out_rms << std::setprecision(8);
+
+    for (unsigned i = 0; i < 36000; i++)
+    {
+        for (unsigned j = 0; j < 9000; j++)
+        {
+            out_az << error_az[i][j];
+            out_el << error_el[i][j];
+            out_rms << error_rms[i][j];
+            if (j < 9000 - 1)
+            {
+                out_az << ",";
+                out_el << ",";
+                out_rms << ",";
+            }
+        }
+        out_az << std::endl;
+        out_el << std::endl;
+        out_rms << std::endl;
+    }
 }
