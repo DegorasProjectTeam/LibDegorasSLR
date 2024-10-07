@@ -19,10 +19,10 @@ set(IGNORED_PATHS
 add_subdirectory(Helpers)
 add_subdirectory(Timing)
 add_subdirectory(Astronomical)
-add_subdirectory(TrackingMount)
 
 
 # Add the examples in the subdirectories.
 macro_add_subdirs_recursive("${CMAKE_CURRENT_SOURCE_DIR}/AlgorithmsSLR" "${IGNORED_PATHS}")
+macro_add_subdirs_recursive("${CMAKE_CURRENT_SOURCE_DIR}/TrackingMount" "${IGNORED_PATHS}")
 
 # **********************************************************************************************************************

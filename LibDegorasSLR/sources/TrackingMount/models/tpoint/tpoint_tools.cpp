@@ -220,17 +220,17 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
             // Azimuth
             if ('A' == matches[1])
             {
-                offsets.az = coef.value * first_correction * second_correction;
+                offsets.az = coefValue * first_correction * second_correction;
             }
             // Elevation
             else if ('E' == matches[1])
             {
-                offsets.el = coef.value * first_correction * second_correction;
+                offsets.el = coefValue * first_correction * second_correction;
             }
             // Left to right (approx. equal to Az * cos Elev)
             else if ('S' == matches[1])
             {
-                offsets.az = coef.value * first_correction * second_correction / std::cos(elevation);
+                offsets.az = coefValue * first_correction * second_correction / std::cos(elevation);
             }
             // Az/El nonperpendicularity
             else if ('V' == matches[1])

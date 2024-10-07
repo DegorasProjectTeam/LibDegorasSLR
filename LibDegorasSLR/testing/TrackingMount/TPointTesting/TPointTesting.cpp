@@ -1,3 +1,4 @@
+#include <LibDegorasSLR/Helpers/filedir_helpers.h>
 #include <LibDegorasSLR/TrackingMount/models/tpoint/tpoint_tools.h>
 
 #include <omp.h>
@@ -33,56 +34,60 @@ int main()
 
     std::cout << std::endl;
 
-    const std::vector<dpslr::astro::types::AltAzPos> zero_pos_vector(9000, {0., 0.});
-    const std::vector<double> zero_vector(9000, 0.);
+    unsigned factor = 1;
+    unsigned min_elev = 10, max_elev = 85;
+    unsigned col_size = (max_elev - min_elev) * factor;
+
+    const std::vector<dpslr::astro::types::AltAzPos> zero_pos_vector(col_size, {0., 0.});
+    const std::vector<double> zero_vector(col_size, 0.);
     std::vector<std::vector<dpslr::astro::types::AltAzPos>> modified_positions(36000, zero_pos_vector);
     std::vector<std::vector<double>> error_az(36000, zero_vector);
     std::vector<std::vector<double>> error_el(36000, zero_vector);
     std::vector<std::vector<double>> error_rms(36000, zero_vector);
-
-    unsigned factor = 1;
 
     omp_set_num_threads(8);
 
     #pragma omp parallel for
     for (unsigned i = 0; i < 360 * factor; i++)
     {
-        for (unsigned j = 0; j < 90 * factor; j++)
+        for (unsigned j = min_elev * factor; j < max_elev * factor; j++)
         {
             dpslr::astro::types::AltAzPos p(i / (1. * factor), j / (1. * factor));
-            modified_positions[i][j] = dpslr::mount::models::computeCorrectedByTPointPosition(coefs, p);
-            error_az[i][j] = p.az - modified_positions[i][j].az;
-            error_el[i][j] = p.el - modified_positions[i][j].el;
-            error_rms[i][j] = std::sqrt((error_az[i][j]*error_az[i][j] + error_el[i][j]*error_el[i][j]) / 2.);
+            unsigned col_idx = j - min_elev * factor;
+            modified_positions[i][col_idx] = dpslr::mount::models::computeCorrectedByTPointPosition(coefs, p);
+            error_az[i][col_idx] = p.az - modified_positions[i][col_idx].az;
+            error_el[i][col_idx] = p.el - modified_positions[i][col_idx].el;
+            error_rms[i][col_idx] = std::sqrt((error_az[i][col_idx]*error_az[i][col_idx] +
+                                               error_el[i][col_idx]*error_el[i][col_idx]) / 2.);
         }
     }
 
-    std::ofstream out_az ("error_az.csv");
-    std::ofstream out_el ("error_el.csv");
-    std::ofstream out_rms ("error_rms.csv");
+    std::ofstream out("errors.csv");
 
-    out_az << std::setprecision(8);
-    out_el << std::setprecision(8);
-    out_rms << std::setprecision(8);
+    out << std::setprecision(8);
 
     for (unsigned i = 0; i < 360 * factor; i++)
     {
-        for (unsigned j = 0; j < 90 * factor; j++)
+        for (unsigned j = min_elev * factor; j < max_elev * factor; j++)
         {
-            out_az << error_az[i][j];
-            out_el << error_el[i][j];
-            out_rms << error_rms[i][j];
-            if (j < 90 * factor - 1)
-            {
-                out_az << ",";
-                out_el << ",";
-                out_rms << ",";
-            }
+
+            unsigned col_idx = j - min_elev * factor;
+            out << i / static_cast<double>(factor) << "," << j / static_cast<double>(factor) << ","
+                << error_az[i][col_idx] << "," << error_el[i][col_idx] << "," <<  error_rms[i][col_idx];
+            out << std::endl;
         }
-        out_az << std::endl;
-        out_el << std::endl;
-        out_rms << std::endl;
     }
+
+
+    std::string current_dir = dpslr::helpers::files::getCurrentDir();
+
+    // Configure the python script executable.
+    std::string python_plot_script(current_dir+"/python_scripts/plot.py");
+    std::string python_cmd = "python \"" + python_plot_script + "\" ";
+
+    std::cout<<"Plotting data using Python helpers..."<<std::endl;
+    if(system(std::string(python_cmd).c_str()))
+        std::cout<<"Plotting failed!!"<<std::endl;
 
     return 0;
 }
