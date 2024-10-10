@@ -65,6 +65,8 @@ TPointCoefficientId fromString(const std::string &term_name)
             id = TPointCoefficientId::NPAE;
         else if (term_name == "TF")
             id = TPointCoefficientId::TF;
+        else if (term_name.size() >= 2 && term_name[0] == 'T' && term_name[1] == 'X')
+            id = TPointCoefficientId::TX;
     }
 
     return id;
@@ -136,6 +138,33 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
     case TPointCoefficientId::TF:
         offsets.el = -coefValue * sin(PI_HALF - elevation); // The correction is from zenith, so change sign.
         break;
+
+    case TPointCoefficientId::TX:
+        if (coef.name == "TX")
+        {
+            offsets.el = -coefValue * tan(PI_HALF - elevation); // The correction is from zenith, so change sign.
+        }
+        else if (coef.name == "TXL")
+        {
+            offsets.el = -coefValue / tan(elevation);
+        }
+        else if (coef.name == "TX5")
+        {
+            if (elevation > dpslr::math::units::degToRad(5.))
+                offsets.el = -coefValue * tan(PI_HALF - elevation); // The correction is from zenith, so change sign.
+        }
+        else if (coef.name == "TX10")
+        {
+            if (elevation > dpslr::math::units::degToRad(10.))
+                offsets.el = -coefValue * tan(PI_HALF - elevation); // The correction is from zenith, so change sign.
+        }
+        else if (coef.name == "TX15")
+        {
+            if (elevation > dpslr::math::units::degToRad(15.))
+                offsets.el = -coefValue * tan(PI_HALF - elevation); // The correction is from zenith, so change sign.
+        }
+        break;
+
 
     case TPointCoefficientId::H:
     {

@@ -60,6 +60,7 @@ enum class TPointCoefficientId : std::int16_t
     AW,
     NPAE,
     TF,
+    TX,
     H
 };
 
