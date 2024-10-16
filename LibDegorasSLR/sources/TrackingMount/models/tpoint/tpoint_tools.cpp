@@ -156,17 +156,17 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
         }
         else if (coef.name == "TX5")
         {
-            if (elevation > dpslr::math::units::degToRad(5.))
+            if (elevation > dpbase::math::units::degToRad(5.))
                 offsets.el = -coefValue * tan(PI_HALF - elevation); // The correction is from zenith, so change sign.
         }
         else if (coef.name == "TX10")
         {
-            if (elevation > dpslr::math::units::degToRad(10.))
+            if (elevation > dpbase::math::units::degToRad(10.))
                 offsets.el = -coefValue * tan(PI_HALF - elevation); // The correction is from zenith, so change sign.
         }
         else if (coef.name == "TX15")
         {
-            if (elevation > dpslr::math::units::degToRad(15.))
+            if (elevation > dpbase::math::units::degToRad(15.))
                 offsets.el = -coefValue * tan(PI_HALF - elevation); // The correction is from zenith, so change sign.
         }
         break;
