@@ -51,10 +51,10 @@ namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace math::units;
+using namespace dpbase::math::units;
 using namespace geo::types;
 using namespace types;
-using namespace timing::dates;
+using namespace dpbase::timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorSunFixed::PredictorSunFixed(const AltAzPos &fixed_coord) :

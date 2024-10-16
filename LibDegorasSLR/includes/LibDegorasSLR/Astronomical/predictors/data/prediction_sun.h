@@ -46,8 +46,12 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Astronomical/types/local_sun_position.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -62,7 +66,7 @@ struct LIBDPSLR_EXPORT PredictionSun : types::LocalSunPosition
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionSun)
 
-    PredictionSun(const timing::dates::J2000DateTime& j2000,
+    PredictionSun(const dpbase::timing::dates::J2000DateTime& j2000,
                   const types::AltAzPos& altaz_pos,
                   const geo::types::GeocentricPoint& geo_pos) :
         types::LocalSunPosition(j2000, altaz_pos),

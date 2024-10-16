@@ -40,9 +40,13 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -58,7 +62,7 @@ struct MountPosition
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(MountPosition)
 
     // Data members.
-    timing::dates::MJDateTime mjdt;         ///< Modified Julian Datetime associated to the tracking mount position.
+    dpbase::timing::dates::MJDateTime mjdt;         ///< Modified Julian Datetime associated to the tracking mount position.
     astro::types::AltAzPos altaz_coord;     ///< Altazimuth absolute coordinate for the tracking mount in degrees.
 };
 

@@ -44,9 +44,13 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -124,11 +128,11 @@ public:
         double out_pulse_width;                     // ps
         double spectral_filter;                     // nm
         double transm_spectral_filter;              // %
-        Optional<double> spatial_filter;   // arcsec
+        dpbase::Optional<double> spatial_filter;   // arcsec
         std::string ext_signal_proc;                      // TODO: ?
-        Optional<double> amp_gain;         // TODO: ? db?                             [For v2] [optional]
-        Optional<double> amp_bandwidth;    // kHz.                                    [For v2] [optional]
-        Optional<bool> used_amp;           // Used amplificator flag.                 [For v2] [optional]
+        dpbase::Optional<double> amp_gain;         // TODO: ? db?                             [For v2] [optional]
+        dpbase::Optional<double> amp_bandwidth;    // kHz.                                    [For v2] [optional]
+        dpbase::Optional<bool> used_amp;           // Used amplificator flag.                 [For v2] [optional]
         // Functions.
         std::string generateLine(float version) const;
     };
@@ -176,15 +180,15 @@ public:
         // Members.
         unsigned detail;                          // Always 0
         std::string cfg_id;                       // Meteorological configuration ID
-        Optional<std::string> press_manufacturer; // Pressure sensor manufacturer
-        Optional<std::string> press_model;        // Pressure sensor model
-        Optional<std::string> press_sn;           // Pressure sensor serial number
-        Optional<std::string> temp_manufacturer;  // Temperature sensor manufacturer
-        Optional<std::string> temp_model;         // Temperature sensor model
-        Optional<std::string> temp_sn;            // Temperature sensor serial number
-        Optional<std::string> humid_manufacturer; // Humidity sensor manufacturer
-        Optional<std::string> humid_model;        // Humidity sensor model
-        Optional<std::string> humid_sn;           // Humidity sensor serial number
+        dpbase::Optional<std::string> press_manufacturer; // Pressure sensor manufacturer
+        dpbase::Optional<std::string> press_model;        // Pressure sensor model
+        dpbase::Optional<std::string> press_sn;           // Pressure sensor serial number
+        dpbase::Optional<std::string> temp_manufacturer;  // Temperature sensor manufacturer
+        dpbase::Optional<std::string> temp_model;         // Temperature sensor model
+        dpbase::Optional<std::string> temp_sn;            // Temperature sensor serial number
+        dpbase::Optional<std::string> humid_manufacturer; // Humidity sensor manufacturer
+        dpbase::Optional<std::string> humid_model;        // Humidity sensor model
+        dpbase::Optional<std::string> humid_sn;           // Humidity sensor serial number
         // Functions.
         std::string generateLine(float version) const;
     };
@@ -225,24 +229,24 @@ public:
     void clearCalibrationConfiguration();
 
     // Configuration const getters.
-    const Optional<SystemConfiguration> &systemConfiguration() const;
-    const Optional<LaserConfiguration> &laserConfiguration() const;
-    const Optional<DetectorConfiguration> &detectorConfiguration() const;
-    const Optional<TimingConfiguration> &timingConfiguration() const;
-    const Optional<TransponderConfiguration> &transponderConfiguration() const;
-    const Optional<SoftwareConfiguration> &softwareConfiguration() const;
-    const Optional<MeteorologicalConfiguration> &meteorologicalConfiguration() const;
-    const Optional<CalibrationConfiguration> &calibrationConfiguration() const;
+    const dpbase::Optional<SystemConfiguration> &systemConfiguration() const;
+    const dpbase::Optional<LaserConfiguration> &laserConfiguration() const;
+    const dpbase::Optional<DetectorConfiguration> &detectorConfiguration() const;
+    const dpbase::Optional<TimingConfiguration> &timingConfiguration() const;
+    const dpbase::Optional<TransponderConfiguration> &transponderConfiguration() const;
+    const dpbase::Optional<SoftwareConfiguration> &softwareConfiguration() const;
+    const dpbase::Optional<MeteorologicalConfiguration> &meteorologicalConfiguration() const;
+    const dpbase::Optional<CalibrationConfiguration> &calibrationConfiguration() const;
 
     // Configuration no const getters.
-    Optional<SystemConfiguration> &systemConfiguration();
-    Optional<LaserConfiguration> &laserConfiguration();
-    Optional<DetectorConfiguration> &detectorConfiguration();
-    Optional<TimingConfiguration> &timingConfiguration();
-    Optional<TransponderConfiguration> &transponderConfiguration();
-    Optional<SoftwareConfiguration> &softwareConfiguration();
-    Optional<MeteorologicalConfiguration> &meteorologicalConfiguration();
-    Optional<CalibrationConfiguration> &calibrationConfiguration();
+    dpbase::Optional<SystemConfiguration> &systemConfiguration();
+    dpbase::Optional<LaserConfiguration> &laserConfiguration();
+    dpbase::Optional<DetectorConfiguration> &detectorConfiguration();
+    dpbase::Optional<TimingConfiguration> &timingConfiguration();
+    dpbase::Optional<TransponderConfiguration> &transponderConfiguration();
+    dpbase::Optional<SoftwareConfiguration> &softwareConfiguration();
+    dpbase::Optional<MeteorologicalConfiguration> &meteorologicalConfiguration();
+    dpbase::Optional<CalibrationConfiguration> &calibrationConfiguration();
 
     // Configuration setters.
     void setSystemConfiguration(const SystemConfiguration&);
@@ -279,14 +283,14 @@ private:
     std::string generateSystemCfgLine(float version) const;
 
     // Storage CRD configuration data. ( C0 to C7 )
-    Optional<SystemConfiguration> system_cfg;
-    Optional<LaserConfiguration> laser_cfg;
-    Optional<DetectorConfiguration> detector_cfg;
-    Optional<TimingConfiguration> timing_cfg;
-    Optional<TransponderConfiguration> transponder_cfg;
-    Optional<SoftwareConfiguration> software_cfg;
-    Optional<MeteorologicalConfiguration> meteorological_cfg;
-    Optional<CalibrationConfiguration> calibration_cfg;
+    dpbase::Optional<SystemConfiguration> system_cfg;
+    dpbase::Optional<LaserConfiguration> laser_cfg;
+    dpbase::Optional<DetectorConfiguration> detector_cfg;
+    dpbase::Optional<TimingConfiguration> timing_cfg;
+    dpbase::Optional<TransponderConfiguration> transponder_cfg;
+    dpbase::Optional<SoftwareConfiguration> software_cfg;
+    dpbase::Optional<MeteorologicalConfiguration> meteorological_cfg;
+    dpbase::Optional<CalibrationConfiguration> calibration_cfg;
 };
 
 // =====================================================================================================================

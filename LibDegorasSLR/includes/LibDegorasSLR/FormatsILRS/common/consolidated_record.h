@@ -43,7 +43,11 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -71,7 +75,7 @@ struct LIBDPSLR_EXPORT ConsolidatedRecord
     unsigned generic_record_type;               ///< For CRD: CRDRecordsTypeEnum    For CPF: CPFRecordsTypeEnum
     std::vector<std::string> comment_block;     ///< Associated comment bloc (lines "00") for each record.
     std::vector<std::string> tokens;            ///< For reading files or other usages. ["H1", "CRD", 2, etc]
-    Optional<unsigned> line_number;             ///< Line number in the file, for error handling when reading files.
+    dpbase::Optional<unsigned> line_number;     ///< Line number in the file, for error handling when reading files.
 
     /**
      * @brief Get the ID token of the record.

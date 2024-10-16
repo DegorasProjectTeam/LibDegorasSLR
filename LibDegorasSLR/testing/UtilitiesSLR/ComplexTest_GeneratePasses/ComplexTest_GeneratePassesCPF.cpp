@@ -34,7 +34,11 @@
 // =====================================================================================================================
 #include <LibDegorasSLR/Initialization>
 #include <LibDegorasSLR/Modules/UtilitiesSLR>
-#include <LibDegorasSLR/Modules/Timing>
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Modules/Timing>
 // =====================================================================================================================
 
 
@@ -44,19 +48,19 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::dates::MJDateTime;
-using dpslr::timing::types::SoD;
-using dpslr::timing::types::HRTimePointStd;
-using dpslr::timing::dates::J2000DateTime;
-using dpslr::timing::types::Iso8601Str;
-using dpslr::timing::modifiedJulianDateTimeToTimePoint;
+using dpbase::timing::dates::MJDateTime;
+using dpbase::timing::types::SoD;
+using dpbase::timing::types::HRTimePointStd;
+using dpbase::timing::dates::J2000DateTime;
+using dpbase::timing::types::Iso8601Str;
+using dpbase::timing::modifiedJulianDateTimeToTimePoint;
 // Used units.
-using dpslr::math::units::Angle;
-using dpslr::math::units::DegreesU;
-using dpslr::math::units::Degrees;
-using dpslr::math::units::Seconds;
-using dpslr::math::units::MillisecondsU;
-using dpslr::math::units::Meters;
+using dpbase::math::units::Angle;
+using dpbase::math::units::DegreesU;
+using dpbase::math::units::Degrees;
+using dpbase::math::units::Seconds;
+using dpbase::math::units::MillisecondsU;
+using dpbase::math::units::Meters;
 // Geocentric and geodetic containers.
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPointDeg;
@@ -95,11 +99,11 @@ int main()
     Meters z = 3769892.958L;
 
     // Pass calculator configuration.
-    dpslr::math::units::DegreesU min_elevation = 10;
-    dpslr::math::units::MillisecondsU time_step = 10000;
+    dpbase::math::units::DegreesU min_elevation = 10;
+    dpbase::math::units::MillisecondsU time_step = 10000;
 
     // Configure the CPF input folder.
-    std::string current_dir = dpslr::helpers::files::getCurrentDir();
+    std::string current_dir = dpbase::helpers::files::getCurrentDir();
     std::string input_dir(current_dir+"/inputs");
 
     // Store the local geocentric and geodetic coordinates.

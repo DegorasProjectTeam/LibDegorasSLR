@@ -41,9 +41,13 @@
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/UtilitiesSLR/utils/spaceobject_utils.h"
-#include "LibDegorasSLR/Helpers/filedir_helpers.h"
-#include "LibDegorasSLR/Helpers/string_helpers.h"
-#include "LibDegorasSLR/Helpers/container_helpers.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/filedir_helpers.h"
+#include "LibDegorasBase/Helpers/string_helpers.h"
+#include "LibDegorasBase/Helpers/container_helpers.h"
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -58,7 +62,7 @@ namespace crd{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace timing::types;
+using namespace dpbase::timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 CRD::CRD(float version):
@@ -135,7 +139,7 @@ const RecordReadErrorMultimap &CRD::getReadDataErrors() const {return this->read
 
 CRD::ReadFileError CRD::getLastReadError() const {return this->last_read_error_;}
 
-const Optional<ConsolidatedRecord> &CRD::getLastReadErrorRecord() const {return this->last_error_record_;}
+const dpbase::Optional<ConsolidatedRecord> &CRD::getLastReadErrorRecord() const {return this->last_error_record_;}
 
 const std::string &CRD::getSourceFilename() const {return this->crd_filename;}
 
@@ -156,7 +160,7 @@ std::string CRD::getStandardFilename(TargetIdOption option) const
     {
         // For non ILRS tracking.
         if(this->header.stationHeader()->network != "ILRS")
-            filename.append(helpers::strings::toLower(this->header.stationHeader()->network) + '_');
+            filename.append(dpbase::helpers::strings::toLower(this->header.stationHeader()->network) + '_');
     }
 
     // Get the CDP pad identifier for station
@@ -182,7 +186,7 @@ std::string CRD::getStandardFilename(TargetIdOption option) const
         break;
 
         case TargetIdOption::TARGET_NAME:
-        filename.append(helpers::strings::toLower(this->header.targetHeader()->name) + "_crd_");
+        filename.append(dpbase::helpers::strings::toLower(this->header.targetHeader()->name) + "_crd_");
         break;
     }
 
@@ -233,7 +237,7 @@ CRD::ReadFileError CRD::openCRDFile(const std::string &crd_filepath, CRD::OpenOp
     this->clearCRD();
 
     // Open the file using our custom input file stream.
-    helpers::files::DegorasInputFileStream crd_stream(crd_filepath);
+    dpbase::helpers::files::DegorasInputFileStream crd_stream(crd_filepath);
 
     // Check if the stream is open.
     if(!crd_stream.is_open())
@@ -251,7 +255,7 @@ CRD::ReadFileError CRD::openCRDFile(const std::string &crd_filepath, CRD::OpenOp
 
     // Store the file path and name.
     this->crd_fullpath = crd_filepath;
-    this->crd_filename = helpers::strings::split<std::vector<std::string>>(crd_filepath, "/").back();
+    this->crd_filename = dpbase::helpers::strings::split<std::vector<std::string>>(crd_filepath, "/").back();
 
     // Open the header.
     while (!read_finished)
@@ -438,7 +442,7 @@ CRD::ReadFileError CRD::openCRDFile(const std::string &crd_filepath, CRD::OpenOp
         rec.consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
         if(!line.empty())
         {
-            helpers::strings::split(tokens, line, " ", false);
+            dpbase::helpers::strings::split(tokens, line, " ", false);
             rec.tokens = tokens;
         }
 
@@ -532,7 +536,7 @@ CRD::WriteFileError CRD::writeCRDFile(const std::string& crd_filepath, CRDData::
     return CRD::WriteFileError::NOT_ERROR;
 }
 
-CRD::ReadRecordResult CRD::readRecord(helpers::files::DegorasInputFileStream& stream, ConsolidatedRecord &rec)
+CRD::ReadRecordResult CRD::readRecord(dpbase::helpers::files::DegorasInputFileStream& stream, ConsolidatedRecord &rec)
 {
     // Clear the record.
     rec.clearAll();
@@ -560,8 +564,8 @@ CRD::ReadRecordResult CRD::readRecord(helpers::files::DegorasInputFileStream& st
         if(!line.empty())
         {
             // Get the line and split it to get the tokens.
-            helpers::strings::split(tokens, line, " ", false);
-            tokens[0] = helpers::strings::toUpper(tokens[0]);
+            dpbase::helpers::strings::split(tokens, line, " ", false);
+            tokens[0] = dpbase::helpers::strings::toUpper(tokens[0]);
 
             // Check the EOS case.
             if(tokens[0] == EndIdStr[static_cast<int>(CRDRecordsType::EOS_RECORD)])
@@ -589,14 +593,14 @@ CRD::ReadRecordResult CRD::readRecord(helpers::files::DegorasInputFileStream& st
             else
             {
                 // Find the token id in the containers.
-                if(helpers::containers::contains(HeaderIdStr, tokens[0]))
+                if(dpbase::helpers::containers::contains(HeaderIdStr, tokens[0]))
                 {
                     rec.consolidated_type = ConsolidatedFileType::CRD_TYPE;
                     rec.tokens = tokens;
                     rec.generic_record_type = static_cast<int>(CRDRecordsType::HEADER_RECORD);
                     record_finished = true;
                 }
-                else if(helpers::containers::contains(CfgIdStr, tokens[0]))
+                else if(dpbase::helpers::containers::contains(CfgIdStr, tokens[0]))
                 {
                     rec.consolidated_type = ConsolidatedFileType::CRD_TYPE;
                     rec.tokens = tokens;
@@ -604,7 +608,7 @@ CRD::ReadRecordResult CRD::readRecord(helpers::files::DegorasInputFileStream& st
                     rec.generic_record_type = static_cast<int>(CRDRecordsType::CFG_RECORD);
                     record_finished = true;
                 }
-                else if(helpers::containers::contains(DataIdStr, tokens[0]))
+                else if(dpbase::helpers::containers::contains(DataIdStr, tokens[0]))
                 {
                     rec.consolidated_type = ConsolidatedFileType::CRD_TYPE;
                     rec.tokens = tokens;

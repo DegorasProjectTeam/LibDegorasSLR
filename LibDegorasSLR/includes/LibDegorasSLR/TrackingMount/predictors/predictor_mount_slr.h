@@ -47,11 +47,15 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/TrackingMount/predictors/data/mount_tracking_slr.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/TrackingMount/predictors/data/prediction_mount_slr.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -80,9 +84,9 @@ public:
      * @param pred_sun The sun predictor to be used for sun position predictions.
      * @param config The configuration parameters for the tracking analysis.
      */
-    PredictorMountSLR(const timing::dates::MJDateTime& pass_start, const timing::dates::MJDateTime& pass_end,
+    PredictorMountSLR(const dpbase::timing::dates::MJDateTime& pass_start, const dpbase::timing::dates::MJDateTime& pass_end,
                       slr::predictors::PredictorSlrPtr pred_slr, astro::predictors::PredictorSunPtr pred_sun,
-                      const utils::MovementAnalyzerConfig &config, math::units::MillisecondsU time_delta = 1000);
+                      const utils::MovementAnalyzerConfig &config, dpbase::math::units::MillisecondsU time_delta = 1000);
     /**
      * @brief PredictorMountSLR constructor.
      * @param pass_start The modified julian datetime for pass start.
@@ -91,9 +95,9 @@ public:
      * @param pred_sun The sun predictor to be used for sun position predictions.
      * @param config The configuration parameters for the tracking analysis.
      */
-    PredictorMountSLR(const timing::types::HRTimePointStd& pass_start, const timing::types::HRTimePointStd& pass_end,
+    PredictorMountSLR(const dpbase::timing::types::HRTimePointStd& pass_start, const dpbase::timing::types::HRTimePointStd& pass_end,
                       slr::predictors::PredictorSlrPtr pred_slr, astro::predictors::PredictorSunPtr pred_sun,
-                      const utils::MovementAnalyzerConfig &config, math::units::MillisecondsU time_delta = 1000);
+                      const utils::MovementAnalyzerConfig &config, dpbase::math::units::MillisecondsU time_delta = 1000);
 
     /**
      * @brief This function checks if there is a valid SLR tracking. You should check this, before requesting positions.
@@ -123,14 +127,14 @@ public:
      *
      * @warning Nanoseconds resolution for the prediction.
      */
-    PredictionMountSLR predict(const timing::types::HRTimePointStd& tp_time) const;
+    PredictionMountSLR predict(const dpbase::timing::types::HRTimePointStd& tp_time) const;
 
     /**
      * @brief This function returns the object's position at a given time.
      * @param mjd The modified julian datetime.
      * @return The result of the operation. Must be checked to ensure the position is valid.
      */
-    PredictionMountSLR predict(const timing::dates::MJDateTime &mjd) const;
+    PredictionMountSLR predict(const dpbase::timing::dates::MJDateTime &mjd) const;
 
 private:
 
@@ -143,7 +147,7 @@ private:
     // Private members.
     MountTrackingSLR mount_track_;             ///< Mount track analyzed data.
     utils::MovementAnalyzer tr_analyzer_;      ///< Tracking analyzer used.
-    math::units::MillisecondsU time_delta_;    ///< Time delta for analysis.
+    dpbase::math::units::MillisecondsU time_delta_;    ///< Time delta for analysis.
 };
 
 }}} // END NAMESPACES

@@ -44,8 +44,12 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include <LibDegorasSLR/FormatsILRS/crd/records/crd_data.h>
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Helpers/container_helpers.h>
+#include <LibDegorasBase/Helpers/string_helpers.h>
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -151,9 +155,9 @@ const std::vector<CRDData::CalibrationRecord> &CRDData::realTimeCalibrationRecor
 
 const std::vector<CRDData::CalibrationRecord> &CRDData::calibrationRecords() const {return this->cal_records;}
 
-const Optional<CRDData::CalibrationRecord> &CRDData::calibrationOverallRecord() const {return this->cal_overall_record;}
+const dpbase::Optional<CRDData::CalibrationRecord> &CRDData::calibrationOverallRecord() const {return this->cal_overall_record;}
 
-const Optional<CRDData::StatisticsRecord> &CRDData::statisticsRecord() const {return this->stat_record;}
+const dpbase::Optional<CRDData::StatisticsRecord> &CRDData::statisticsRecord() const {return this->stat_record;}
 
 std::vector<CRDData::FullRateRecord> &CRDData::fullRateRecords() {return this->fullrate_records;}
 
@@ -165,9 +169,9 @@ std::vector<CRDData::CalibrationRecord> &CRDData::realTimeCalibrationRecord() {r
 
 std::vector<CRDData::CalibrationRecord> &CRDData::calibrationRecords() {return this->cal_records;}
 
-Optional<CRDData::CalibrationRecord> &CRDData::calibrationOverallRecord() {return this->cal_overall_record;}
+dpbase::Optional<CRDData::CalibrationRecord> &CRDData::calibrationOverallRecord() {return this->cal_overall_record;}
 
-Optional<CRDData::StatisticsRecord> &CRDData::statisticsRecord() {return this->stat_record;}
+dpbase::Optional<CRDData::StatisticsRecord> &CRDData::statisticsRecord() {return this->stat_record;}
 
 std::string CRDData::generateDataLines(float version, DataGenerationOption option) const
 {
@@ -362,7 +366,7 @@ RecordReadErrorMultimap CRDData::readData(const RecordLinesVector &rec_v, float 
     for (const auto& rec : rec_v)
     {
         // Check that the record is a header record.
-        if(helpers::containers::find(DataLineString, rec.getIdToken(), pos))
+        if(dpbase::helpers::containers::find(DataLineString, rec.getIdToken(), pos))
         {
             // Store the record type in a pair.
             rec_pair = {pos, rec};
@@ -592,13 +596,13 @@ RecordReadError CRDData::readCalDataLine(const ConsolidatedRecord &record, float
         cal_record.data_type = static_cast<DataType>(std::stoi(tokens[2]));
         cal_record.system_cfg_id = tokens[3];
 
-        // Optional data.
+        // dpbase::Optional data.
         cal_record.data_recorded = (tokens[4] == "na" || std::stoi(tokens[4]) == -1) ?
-                    Optional<int>() : std::stoi(tokens[4]);
+                    dpbase::Optional<int>() : std::stoi(tokens[4]);
         cal_record.data_used = (tokens[5] == "na" || std::stoi(tokens[5]) == -1) ?
-                    Optional<int>() : std::stoi(tokens[5]);
+                    dpbase::Optional<int>() : std::stoi(tokens[5]);
         cal_record.target_dist_1w = (tokens[6] == "na" || tokens[6] == "-1") ?
-                    Optional<double>() : std::stod(tokens[6]);
+                    dpbase::Optional<double>() : std::stod(tokens[6]);
 
         // Rest of the data.
         cal_record.calibration_delay = std::stod(tokens[7]);
@@ -724,8 +728,8 @@ std::string CRDData::FullRateRecord::generateLine(float version) const
     if (version >= 1 && version < 3)
     {
         line_10 << "10"
-                << ' ' << helpers::strings::numberToStr(this->time_tag, 18, 12)
-                << ' ' <<helpers::strings::numberToStr(this->time_flight, 18, 12)
+                << ' ' << dpbase::helpers::strings::numberToStr(this->time_tag, 18, 12)
+                << ' ' <<dpbase::helpers::strings::numberToStr(this->time_flight, 18, 12)
                 << ' ' << this->system_cfg_id
                 << ' ' << static_cast<int>(this->epoch_event)
                 << ' ' << static_cast<int>(this->filter_flag)
@@ -758,38 +762,38 @@ std::string CRDData::NormalPointRecord::generateLine(float version) const
     if (version >= 1 && version < 3)
     {
         line_11 << "11"
-                << ' ' << helpers::strings::numberToStr(this->time_tag, 18, 12)
-                << ' ' << helpers::strings::numberToStr(this->time_flight, 18, 12)
+                << ' ' << dpbase::helpers::strings::numberToStr(this->time_tag, 18, 12)
+                << ' ' << dpbase::helpers::strings::numberToStr(this->time_flight, 18, 12)
                 << ' ' << this->system_cfg_id
                 << ' ' << static_cast<int>(this->epoch_event)
-                << ' ' << helpers::strings::numberToStr(this->window_length, 6, 1)
+                << ' ' << dpbase::helpers::strings::numberToStr(this->window_length, 6, 1)
                 << ' ' << this->raw_ranges;
 
-        // Optional values.
+        // dpbase::Optional values.
         if(version>= 1 && version < 2)
         {
-            line_11 << ' ' << (!this->bin_rms ? "-1" : helpers::strings::numberToStr(this->bin_rms.value(), 9, 1))
-                    << ' ' << (!this->bin_skew ? "-1" : helpers::strings::numberToStr(this->bin_skew.value(), 7, 3))
-                    << ' ' << (!this->bin_kurtosis ? "-1" : helpers::strings::numberToStr(this->bin_kurtosis.value(), 7, 3))
-                    << ' ' << (!this->bin_peak ? "-1" : helpers::strings::numberToStr(this->bin_peak.value(), 9, 1));
+            line_11 << ' ' << (!this->bin_rms ? "-1" : dpbase::helpers::strings::numberToStr(this->bin_rms.value(), 9, 1))
+                    << ' ' << (!this->bin_skew ? "-1" : dpbase::helpers::strings::numberToStr(this->bin_skew.value(), 7, 3))
+                    << ' ' << (!this->bin_kurtosis ? "-1" : dpbase::helpers::strings::numberToStr(this->bin_kurtosis.value(), 7, 3))
+                    << ' ' << (!this->bin_peak ? "-1" : dpbase::helpers::strings::numberToStr(this->bin_peak.value(), 9, 1));
         }
         else if (version >= 2 && version < 3)
         {
-            line_11 << ' ' << (this->bin_rms ? helpers::strings::numberToStr(this->bin_rms.value(), 9, 1) : "na")
-                    << ' ' << (this->bin_skew ? helpers::strings::numberToStr(this->bin_skew.value(), 7, 3) : "na")
-                    << ' ' << (this->bin_kurtosis ? helpers::strings::numberToStr(this->bin_kurtosis.value(), 7, 3) : "na")
-                    << ' ' << (this->bin_peak ? helpers::strings::numberToStr(this->bin_peak.value(), 9, 1) : "na");
+            line_11 << ' ' << (this->bin_rms ? dpbase::helpers::strings::numberToStr(this->bin_rms.value(), 9, 1) : "na")
+                    << ' ' << (this->bin_skew ? dpbase::helpers::strings::numberToStr(this->bin_skew.value(), 7, 3) : "na")
+                    << ' ' << (this->bin_kurtosis ? dpbase::helpers::strings::numberToStr(this->bin_kurtosis.value(), 7, 3) : "na")
+                    << ' ' << (this->bin_peak ? dpbase::helpers::strings::numberToStr(this->bin_peak.value(), 9, 1) : "na");
         }
 
         // Rest of the data.
-        line_11 << ' ' << helpers::strings::numberToStr(this->return_rate, 5, 1)
+        line_11 << ' ' << dpbase::helpers::strings::numberToStr(this->return_rate, 5, 1)
                 << ' ' << this->detector_channel;
     }
 
     // For version 2 only.
     if (version >= 2 && version < 3)
     {
-        line_11 << ' ' << (this->snr ? helpers::strings::numberToStr(this->snr.value(), 5, 1) : "na");
+        line_11 << ' ' << (this->snr ? dpbase::helpers::strings::numberToStr(this->snr.value(), 5, 1) : "na");
     }
 
     // Return LINE 11.
@@ -805,10 +809,10 @@ std::string CRDData::MeteorologicalRecord::generateLine(float version) const
     if (version >= 1 && version < 3)
     {
         line_20 << "20"
-                << ' ' << helpers::strings::numberToStr(this->time_tag, 18, 12)
-                << ' ' << helpers::strings::numberToStr(this->surface_pressure, 7, 2)
-                << ' ' << helpers::strings::numberToStr(this->surface_temperature, 6, 2)
-                << ' ' << helpers::strings::numberToStr(this->surface_relative_humidity, 4, 1)
+                << ' ' << dpbase::helpers::strings::numberToStr(this->time_tag, 18, 12)
+                << ' ' << dpbase::helpers::strings::numberToStr(this->surface_pressure, 7, 2)
+                << ' ' << dpbase::helpers::strings::numberToStr(this->surface_temperature, 6, 2)
+                << ' ' << dpbase::helpers::strings::numberToStr(this->surface_relative_humidity, 4, 1)
                 << ' ' << static_cast<int>(this->values_origin);
     }
 
@@ -836,31 +840,31 @@ std::string CRDData::CalibrationRecord::generateLine(float version) const
     // For v1 and v2.
     if (version >= 1 && version < 3)
     {
-        line << ' ' << helpers::strings::numberToStr(this->time_tag, 18, 12)
+        line << ' ' << dpbase::helpers::strings::numberToStr(this->time_tag, 18, 12)
              << ' ' << static_cast<int>(this->data_type)
              << ' ' << this->system_cfg_id;
 
-        // Optional values.
+        // dpbase::Optional values.
         if(version>= 1 && version < 2)
         {
             line << ' ' << this->data_recorded.value_or(-1)
                  << ' ' << this->data_used.value_or(-1)
-                 << ' ' << (!this->target_dist_1w ? "-1" : helpers::strings::numberToStr(this->target_dist_1w.value(), 7, 3));
+                 << ' ' << (!this->target_dist_1w ? "-1" : dpbase::helpers::strings::numberToStr(this->target_dist_1w.value(), 7, 3));
         }
         else if(version >= 2 && version < 3)
         {
             line << ' ' << (!this->data_recorded ? "na" : std::to_string(this->data_recorded.value()))
                  << ' ' << (!this->data_used ? "na" : std::to_string(this->data_used.value()))
-                 << ' ' << (!this->target_dist_1w ? "na" : helpers::strings::numberToStr(this->target_dist_1w.value(), 7, 3));
+                 << ' ' << (!this->target_dist_1w ? "na" : dpbase::helpers::strings::numberToStr(this->target_dist_1w.value(), 7, 3));
         }
 
         // Rest of the data.
-        line << ' ' << helpers::strings::numberToStr(this->calibration_delay, 10, 1)
-             << ' ' << helpers::strings::numberToStr(this->delay_shift, 8, 1)
-             << ' ' << helpers::strings::numberToStr(this->rms, 6, 1)
-             << ' ' << helpers::strings::numberToStr(this->skew, 7, 3)
-             << ' ' << helpers::strings::numberToStr(this->kurtosis, 7, 3)
-             << ' ' << helpers::strings::numberToStr(this->peak, 6, 1)
+        line << ' ' << dpbase::helpers::strings::numberToStr(this->calibration_delay, 10, 1)
+             << ' ' << dpbase::helpers::strings::numberToStr(this->delay_shift, 8, 1)
+             << ' ' << dpbase::helpers::strings::numberToStr(this->rms, 6, 1)
+             << ' ' << dpbase::helpers::strings::numberToStr(this->skew, 7, 3)
+             << ' ' << dpbase::helpers::strings::numberToStr(this->kurtosis, 7, 3)
+             << ' ' << dpbase::helpers::strings::numberToStr(this->peak, 6, 1)
              << ' ' << static_cast<int>(this->cal_type)
              << ' ' << static_cast<int>(this->shift_type)
              << ' ' << this->detector_channel;
@@ -869,7 +873,7 @@ std::string CRDData::CalibrationRecord::generateLine(float version) const
     // For version 2 only.
     if (version >= 2 && version < 3)
         line << ' ' << static_cast<int>(this->span)
-             << ' ' << (!this->return_rate ? "na" : helpers::strings::numberToStr(this->return_rate.value(), 5, 1));
+             << ' ' << (!this->return_rate ? "na" : dpbase::helpers::strings::numberToStr(this->return_rate.value(), 5, 1));
 
     // Return line 40 - 41.
     return line.str();
@@ -885,20 +889,20 @@ std::string CRDData::StatisticsRecord::generateLine(float version) const
     {
         line_50 << "50"
                 << ' ' << this->system_cfg_id
-                << ' ' << helpers::strings::numberToStr(this->rms, 6, 1);
+                << ' ' << dpbase::helpers::strings::numberToStr(this->rms, 6, 1);
 
-        // Optional data.
+        // dpbase::Optional data.
         if(version >= 1 && version < 2)
         {
-            line_50 << ' ' << helpers::strings::numberToStr(this->skew.value_or(-1), 7, 3)
-                    << ' ' << helpers::strings::numberToStr(this->kurtosis.value_or(-1), 7, 3)
-                    << ' ' << helpers::strings::numberToStr(this->peak.value_or(-1), 6, 1);
+            line_50 << ' ' << dpbase::helpers::strings::numberToStr(this->skew.value_or(-1), 7, 3)
+                    << ' ' << dpbase::helpers::strings::numberToStr(this->kurtosis.value_or(-1), 7, 3)
+                    << ' ' << dpbase::helpers::strings::numberToStr(this->peak.value_or(-1), 6, 1);
         }
         else if(version >= 2 && version < 3)
         {
-            line_50 << ' ' << (!this->skew ? "na" : helpers::strings::numberToStr(this->skew.value(), 7, 3))
-                    << ' ' << (!this->kurtosis ? "na" : helpers::strings::numberToStr(this->kurtosis.value(), 7, 3))
-                    << ' ' << (!this->peak ? "na" : helpers::strings::numberToStr(this->peak.value(), 6, 1));
+            line_50 << ' ' << (!this->skew ? "na" : dpbase::helpers::strings::numberToStr(this->skew.value(), 7, 3))
+                    << ' ' << (!this->kurtosis ? "na" : dpbase::helpers::strings::numberToStr(this->kurtosis.value(), 7, 3))
+                    << ' ' << (!this->peak ? "na" : dpbase::helpers::strings::numberToStr(this->peak.value(), 6, 1));
         }
 
         // Rest of the data.

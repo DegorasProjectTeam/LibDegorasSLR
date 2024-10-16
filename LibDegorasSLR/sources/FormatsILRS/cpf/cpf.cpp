@@ -41,8 +41,12 @@
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 #include "LibDegorasSLR/UtilitiesSLR/utils/spaceobject_utils.h"
-#include "LibDegorasSLR/Helpers/filedir_helpers.h"
-#include "LibDegorasSLR/Helpers/container_helpers.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/filedir_helpers.h"
+#include "LibDegorasBase/Helpers/container_helpers.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -54,8 +58,8 @@ namespace cpf{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace ilrs::common;
-using namespace timing::types;
-using namespace timing::dates;
+using namespace dpbase::timing::types;
+using namespace dpbase::timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
 CPF::CPF(float version) :
@@ -113,7 +117,7 @@ const RecordReadErrorMultimap &CPF::getReadDataErrors() const {return this->read
 
 CPF::ReadFileErrorEnum CPF::getReadError() const {return this->last_read_error_;}
 
-const Optional<ConsolidatedRecord> &CPF::getLastReadErrorRecord() const {return this->last_error_record_;}
+const dpbase::Optional<ConsolidatedRecord> &CPF::getLastReadErrorRecord() const {return this->last_error_record_;}
 
 const std::string &CPF::getSourceFilename() const {return this->cpf_filename_;}
 
@@ -145,10 +149,10 @@ void CPF::getAvailableTimeWindow(MJDateTime &start, MJDateTime &end) const
     }
 }
 
-math::types::Interval<long double> CPF::getAvailableTimeInterval() const
+dpbase::math::types::Interval<long double> CPF::getAvailableTimeInterval() const
 {
     // Default empty interval.
-    math::types::Interval<long double> interval;
+    dpbase::math::types::Interval<long double> interval;
     // Include min and max.
     interval.setIncludeMin(true);
     interval.setIncludeMax(true);
@@ -200,7 +204,7 @@ std::string CPF::getStandardFilename(TargetIdOptionEnum option) const
         break;
 
     case TargetIdOptionEnum::TARGET_NAME:
-        filename.append(helpers::strings::toLower(this->header_.basicInfo1Header()->target_name));
+        filename.append(dpbase::helpers::strings::toLower(this->header_.basicInfo1Header()->target_name));
         break;
     }
 
@@ -244,7 +248,7 @@ bool CPF::hasData() const
 
 bool CPF::exists() const
 {
-    return dpslr::helpers::files::fileExists(this->cpf_fullpath_);
+    return dpbase::helpers::files::fileExists(this->cpf_fullpath_);
 }
 
 CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::OpenOptionEnum open_option)
@@ -260,7 +264,7 @@ CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::Op
     bool read_finished = false;
 
     // Open the file using our custom input file stream.
-    helpers::files::DegorasInputFileStream cpf_stream(cpf_filepath);
+    dpbase::helpers::files::DegorasInputFileStream cpf_stream(cpf_filepath);
 
     // Clear the CPF.
     this->clearCPF();
@@ -281,7 +285,7 @@ CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::Op
 
     // Store the file path and name.
     this->cpf_fullpath_ = cpf_filepath;
-    this->cpf_filename_ = helpers::strings::split<StringV>(cpf_filepath, "/").back();
+    this->cpf_filename_ = dpbase::helpers::strings::split<dpbase::StringV>(cpf_filepath, "/").back();
 
     // Open the header.
     while (!read_finished)
@@ -417,7 +421,7 @@ CPF::ReadFileErrorEnum CPF::openCPFFile(const std::string &cpf_filepath, CPF::Op
         rec.consolidated_type = ConsolidatedFileType::UNKNOWN_TYPE;
         if(!line.empty())
         {
-            helpers::strings::split(tokens, line, " ", false);
+            dpbase::helpers::strings::split(tokens, line, " ", false);
             rec.tokens = tokens;
         }
 
@@ -499,7 +503,7 @@ CPF::WriteFileErrorEnum CPF::writeCPFFile(const std::string &cpf_filepath, bool 
     return CPF::WriteFileErrorEnum::NOT_ERROR;
 }
 
-CPF::ReadRecordResultEnum CPF::readRecord(helpers::files::DegorasInputFileStream& stream, ConsolidatedRecord& rec)
+CPF::ReadRecordResultEnum CPF::readRecord(dpbase::helpers::files::DegorasInputFileStream& stream, ConsolidatedRecord& rec)
 {
     // Clear the record.
     rec.clearAll();
@@ -529,8 +533,8 @@ CPF::ReadRecordResultEnum CPF::readRecord(helpers::files::DegorasInputFileStream
         if(!line.empty())
         {
             // Get the line and split it to get the tokens.
-            helpers::strings::split(tokens, line, " ", false);
-            tokens[0] = helpers::strings::toUpper(tokens[0]);
+            dpbase::helpers::strings::split(tokens, line, " ", false);
+            tokens[0] = dpbase::helpers::strings::toUpper(tokens[0]);
 
             // Check the EOH case (H9).
             if(tokens[0] == EndIdStr[static_cast<int>(CPFRecordsType::EOH_RECORD)])
@@ -558,14 +562,14 @@ CPF::ReadRecordResultEnum CPF::readRecord(helpers::files::DegorasInputFileStream
             else
             {
                 // Find the token id in the containers.
-               if(helpers::containers::contains(HeaderIdStr, tokens[0]))
+               if(dpbase::helpers::containers::contains(HeaderIdStr, tokens[0]))
                 {
                     rec.consolidated_type = ConsolidatedFileType::CPF_TYPE;
                     rec.tokens = tokens;
                     rec.generic_record_type = static_cast<int>(CPFRecordsType::HEADER_RECORD);
                     record_finished = true;
                 }
-               else if(helpers::containers::contains(DataIdStr, tokens[0]))
+               else if(dpbase::helpers::containers::contains(DataIdStr, tokens[0]))
                 {
                     rec.consolidated_type = ConsolidatedFileType::CPF_TYPE;
                     rec.tokens = tokens;

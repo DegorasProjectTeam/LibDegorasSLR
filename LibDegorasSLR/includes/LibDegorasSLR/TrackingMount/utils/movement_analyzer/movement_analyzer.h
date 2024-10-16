@@ -40,7 +40,6 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/TrackingMount/types/mount_position.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analysis.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer_config.h"
@@ -52,9 +51,6 @@ namespace dpslr{
 namespace mount{
 namespace utils{
 // =====================================================================================================================
-
-
-
 
 // If a not tracking movement (absolute, relative, continuous) starts at sun, the mount must go to error state.
 // If it ends at sun, the movment is not valid.
@@ -122,7 +118,7 @@ private:
                                  MountPositionAnalyzedV::iterator pos_end) const;
 
     /// Helper to calculate the avoidance trajectory.
-    long double calcSunAvoidTrajectory(const timing::dates::MJDateTime& mjdt,
+    long double calcSunAvoidTrajectory(const dpbase::timing::dates::MJDateTime& mjdt,
                                        const SunCollisionSector& sector,
                                        const astro::types::AltAzPos& sun_pos) const;
 

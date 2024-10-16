@@ -43,11 +43,16 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
 // =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/types/base_time_types.h"
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
@@ -144,7 +149,7 @@ public:
 
         float cpf_version;                                  ///< CPF version. We store the subversion, for example 2.1
         std::string cpf_source;                             ///< Ephemeris source.
-        timing::types::HRTimePointStd cpf_production_date;  ///< File production date (update if we generate the line).
+        dpbase::timing::types::HRTimePointStd cpf_production_date;  ///< File production date (update if we generate the line).
         std::string target_name;                            ///< Target name from official ILRS list.
         std::string cpf_notes;                              ///< Notes with NO SPACES.
         int cpf_sequence_number;                            ///< Ephemeris sequence number.
@@ -166,10 +171,10 @@ public:
         // Members and functions.
 
         std::string id;                                 ///< It is always ILRS ID, based on COSPAR ID.
-        Optional<std::string> sic;                      ///< SIC provided by ILRS. Set to -1 if target has no SIC.
+        dpbase::Optional<std::string> sic;                      ///< SIC provided by ILRS. Set to -1 if target has no SIC.
         std::string norad;                              ///< NORAD ID.
-        timing::types::HRTimePointStd start_time;       ///< Ephemeris start time.
-        timing::types::HRTimePointStd end_time;         ///< Ephemeris end time.
+        dpbase::timing::types::HRTimePointStd start_time;       ///< Ephemeris start time.
+        dpbase::timing::types::HRTimePointStd end_time;         ///< Ephemeris end time.
         std::chrono::seconds total_seconds;             ///< TODO: what is this? non-standard.
         std::chrono::seconds time_between_entries;      ///< Time between two table entries in seconds. 0 if variable.
         bool tiv_compatible;                            ///< Compatible with TIVs.
@@ -277,18 +282,18 @@ public:
     void clearCoMCorrectionHeader();
 
     // Headers getters.
-    const Optional<BasicInfo1Header> &basicInfo1Header() const;
-    const Optional<BasicInfo2Header> &basicInfo2Header() const;
-    const Optional<ExpectedAccuracyHeader> &expectedAccuracyHeader() const;
-    const Optional<TransponderInfoHeader> &transponderInfoHeader() const;
-    const Optional<CoMCorrectionHeader> &coMCorrectionHeader() const;
+    const dpbase::Optional<BasicInfo1Header> &basicInfo1Header() const;
+    const dpbase::Optional<BasicInfo2Header> &basicInfo2Header() const;
+    const dpbase::Optional<ExpectedAccuracyHeader> &expectedAccuracyHeader() const;
+    const dpbase::Optional<TransponderInfoHeader> &transponderInfoHeader() const;
+    const dpbase::Optional<CoMCorrectionHeader> &coMCorrectionHeader() const;
 
     // Headers getters non const.
-    Optional<BasicInfo1Header> &basicInfo1Header();
-    Optional<BasicInfo2Header> &basicInfo2Header();
-    Optional<ExpectedAccuracyHeader> &expectedAccuracyHeader();
-    Optional<TransponderInfoHeader> &transponderInfoHeader();
-    Optional<CoMCorrectionHeader> &comCorrectionHeader();
+    dpbase::Optional<BasicInfo1Header> &basicInfo1Header();
+    dpbase::Optional<BasicInfo2Header> &basicInfo2Header();
+    dpbase::Optional<ExpectedAccuracyHeader> &expectedAccuracyHeader();
+    dpbase::Optional<TransponderInfoHeader> &transponderInfoHeader();
+    dpbase::Optional<CoMCorrectionHeader> &comCorrectionHeader();
 
     // Headers setters.
     void setBasicInfo1Header(const BasicInfo1Header&);
@@ -354,11 +359,11 @@ private:
     common::RecordReadError readHeaderLine(const common::RecordLinePair &lpair);
 
     // H1 (required), H2 (required), H3, H4, H5
-    Optional<BasicInfo1Header> basic_info1_header;
-    Optional<BasicInfo2Header> basic_info2_header;
-    Optional<ExpectedAccuracyHeader> exp_accuracy_header;
-    Optional<TransponderInfoHeader> transp_info_header;
-    Optional<CoMCorrectionHeader> com_corr_header;
+    dpbase::Optional<BasicInfo1Header> basic_info1_header;
+    dpbase::Optional<BasicInfo2Header> basic_info2_header;
+    dpbase::Optional<ExpectedAccuracyHeader> exp_accuracy_header;
+    dpbase::Optional<TransponderInfoHeader> transp_info_header;
+    dpbase::Optional<CoMCorrectionHeader> com_corr_header;
 };
 // =====================================================================================================================
 

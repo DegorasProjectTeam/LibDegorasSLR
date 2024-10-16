@@ -52,9 +52,9 @@ namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace timing::dates;
+using namespace dpbase::timing::dates;
 using namespace geo::types;
-using namespace math::units;
+using namespace dpbase::math::units;
 using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ PredictionSunV PredictorSunBase::predict(const J2000DateTime &j2000_start, const
 
     // Container and auxiliar.
     J2000DateTimeV interp_times;
-    Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
+    Seconds step_sec = static_cast<long double>(step) * dpbase::math::units::kMsToSec;
 
     // Check for valid time interval.
     if(!(j2000_start <= j2000_end))

@@ -40,8 +40,12 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/units/strong_units.h"
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -62,8 +66,8 @@ struct LIBDPSLR_EXPORT MovementAnalyzerConfig
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(MovementAnalyzerConfig)
 
-    MovementAnalyzerConfig(const math::units::DegreesU& sun_avoid_angle, const math::units::DegreesU& min_elev,
-                           const math::units::DegreesU& max_elev, bool sun_avoid) :
+    MovementAnalyzerConfig(const dpbase::math::units::DegreesU& sun_avoid_angle, const dpbase::math::units::DegreesU& min_elev,
+                           const dpbase::math::units::DegreesU& max_elev, bool sun_avoid) :
         sun_avoid_angle(sun_avoid_angle),
         min_elev(min_elev),
         max_elev(max_elev),
@@ -71,9 +75,9 @@ struct LIBDPSLR_EXPORT MovementAnalyzerConfig
     {}
 
     // Data members.
-    math::units::DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
-    math::units::DegreesU min_elev;         ///< Configured minimum elevation (degrees).
-    math::units::DegreesU max_elev;         ///< Configured maximum elevation (degrees).
+    dpbase::math::units::DegreesU sun_avoid_angle;  ///< Avoid angle for Sun collisions in degrees.
+    dpbase::math::units::DegreesU min_elev;         ///< Configured minimum elevation (degrees).
+    dpbase::math::units::DegreesU max_elev;         ///< Configured maximum elevation (degrees).
     bool sun_avoid;                         ///< Flag indicating if the track is configured for avoid the Sun.
 };
 

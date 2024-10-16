@@ -38,8 +38,12 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/Modules/Testing>
 #include <LibDegorasSLR/Modules/Astronomical>
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Modules/Testing>
 // =====================================================================================================================
 
 // NAMESPACES
@@ -107,9 +111,9 @@ M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
     using dpslr::astro::novas::getStarAltAzPos;
     using Geodetic = dpslr::geo::types::GeodeticPointDeg;
     using Geocentric = dpslr::geo::types::GeocentricPoint;
-    using Angle = dpslr::math::units::Degrees;
+    using Angle = dpbase::math::units::Degrees;
     using Surface = dpslr::geo::types::SurfaceLocation<Angle>;
-    using dpslr::timing::dates::JDateTime;
+    using dpbase::timing::dates::JDateTime;
     using dpslr::astro::types::AltAzPos;
 
     using novas::julian_date;

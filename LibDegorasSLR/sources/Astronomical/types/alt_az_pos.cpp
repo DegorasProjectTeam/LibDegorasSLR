@@ -41,7 +41,11 @@
 // PROJECT INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
-#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/utils/math_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -52,8 +56,8 @@ namespace types{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace math::units;
-using namespace math::units::literals;
+using namespace dpbase::math::units;
+using namespace dpbase::math::units::literals;
 // ---------------------------------------------------------------------------------------------------------------------
 
 AltAzPos::AltAzPos():
@@ -73,7 +77,7 @@ void AltAzPos::normalize()
 {
     // Normalize azimuth
     Degrees az = std::fmod(this->az, 360._deg);
-    if (math::isFloatingMinorThanZero(az))
+    if (dpbase::math::isFloatingMinorThanZero(az))
         az += 360._deg;
 
     // Reduce elevation into the -180 to 180 degree range
@@ -104,7 +108,7 @@ std::string AltAzPos::toJsonStr() const
     return json.str();
 }
 
-void degreesToDegMinSec(const math::units::Degrees &deg, int &h, int &min, double &sec)
+void degreesToDegMinSec(const dpbase::math::units::Degrees &deg, int &h, int &min, double &sec)
 {
     double fractionalPart, integerPart;
 

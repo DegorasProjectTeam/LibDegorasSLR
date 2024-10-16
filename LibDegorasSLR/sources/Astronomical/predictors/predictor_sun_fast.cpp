@@ -42,7 +42,11 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_fast.h"
-#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/utils/math_utils.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -53,10 +57,10 @@ namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace timing::types;
-using namespace timing::dates;
+using namespace dpbase::timing::types;
+using namespace dpbase::timing::dates;
 using namespace geo::types;
-using namespace math::units;
+using namespace dpbase::math::units;
 using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -102,13 +106,13 @@ PredictionSun PredictorSunFast::predict(const J2000DateTime& j2000, bool refract
                                      std::sin(decl) - std::sin(lat_rad) * std::sin(elevation_rad));
 
     // Convert azimuth and elevation to degrees and normalize.
-    long double elevation = math::normalizeVal(math::units::radToDegree(elevation_rad), -180.0L, 180.0L);
-    long double azimuth = math::normalizeVal(math::units::radToDegree(azimuth_rad), 0.0L, 360.0L);
+    long double elevation = dpbase::math::normalizeVal(dpbase::math::units::radToDegree(elevation_rad), -180.0L, 180.0L);
+    long double azimuth = dpbase::math::normalizeVal(dpbase::math::units::radToDegree(azimuth_rad), 0.0L, 360.0L);
 
     // Very simple fast refraction correction but enought for several applications.
     if (refraction && (elevation >= -1 * (0.26667L + 0.5667L)))
     {
-        long double targ = math::units::degToRad((elevation + (10.3L / (elevation + 5.11L))));
+        long double targ = dpbase::math::units::degToRad((elevation + (10.3L / (elevation + 5.11L))));
         elevation += (1.02L / std::tan(targ)) / 60.0L;
     }
 

@@ -45,9 +45,13 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/units/strong_units.h"
+#include "LibDegorasBase/Mathematics/types/vector3d.h"
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -64,24 +68,24 @@ struct LIBDPSLR_EXPORT GeocentricPoint
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(GeocentricPoint)
 
-    GeocentricPoint(const math::units::Meters& x, const math::units::Meters& y, const math::units::Meters& z) :
+    GeocentricPoint(const dpbase::math::units::Meters& x, const dpbase::math::units::Meters& y, const dpbase::math::units::Meters& z) :
         x(x), y(y), z(z)
     {}
 
-    GeocentricPoint(std::array<math::units::Meters,3> a) :
+    GeocentricPoint(std::array<dpbase::math::units::Meters,3> a) :
         x(a[0]), y(a[1]), z(a[2])
     {}
 
-    GeocentricPoint(math::types::Vector3D<math::units::Meters> v) :
+    GeocentricPoint(dpbase::math::types::Vector3D<dpbase::math::units::Meters> v) :
         x(v.getX()), y(v.getY()), z(v.getZ())
     {}
 
-    math::types::Vector3D<math::units::Meters> toVector3D() const
+    dpbase::math::types::Vector3D<dpbase::math::units::Meters> toVector3D() const
     {
-        return math::types::Vector3D<math::units::Meters>(x,y,z);
+        return dpbase::math::types::Vector3D<dpbase::math::units::Meters>(x,y,z);
     }
 
-    std::vector<math::units::Meters> toStdVector() const
+    std::vector<dpbase::math::units::Meters> toStdVector() const
     {
         return this->toVector3D().toVector();
     }
@@ -97,12 +101,12 @@ struct LIBDPSLR_EXPORT GeocentricPoint
         return json.str();
     }
 
-    template<typename Container = std::array<math::units::Meters, 3>>
+    template<typename Container = std::array<dpbase::math::units::Meters, 3>>
     inline constexpr Container store() const {return Container{this->x,this->y,this->z};}
 
-    math::units::Meters x;
-    math::units::Meters y;
-    math::units::Meters z;
+    dpbase::math::units::Meters x;
+    dpbase::math::units::Meters y;
+    dpbase::math::units::Meters z;
 };
 
 }}} // END NAMESPACES.

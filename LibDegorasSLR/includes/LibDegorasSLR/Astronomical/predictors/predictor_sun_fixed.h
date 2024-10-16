@@ -60,7 +60,7 @@ public:
 
     PredictorSunFixed(const types::AltAzPos& fixed_coord);
     
-    PredictionSun predict(const timing::dates::J2000DateTime& j2000, bool) const final;
+    PredictionSun predict(const dpbase::timing::dates::J2000DateTime& j2000, bool) const final;
 
     virtual bool isReady() const override {return true;}
 

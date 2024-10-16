@@ -38,12 +38,16 @@
 // LIBDEGORASSLR MODULES
 // =====================================================================================================================
 #include <LibDegorasSLR/Initialization>
-#include <LibDegorasSLR/Modules/Helpers>
 #include <LibDegorasSLR/Modules/UtilitiesSLR>
 #include <LibDegorasSLR/Modules/TrackingMount>
 #include <LibDegorasSLR/Modules/FormatsILRS>
-#include <LibDegorasSLR/Modules/Timing>
 #include <LibDegorasSLR/Modules/Astronomical>
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Modules/Timing>
+#include <LibDegorasBase/Modules/Helpers>
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -52,21 +56,21 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::dates::JDateTime;
-using dpslr::timing::types::SoD;
-using dpslr::timing::types::HRTimePointStd;
-using dpslr::timing::dates::J2000DateTime;
-using dpslr::timing::dates::MJDate;
-using dpslr::timing::iso8601DatetimeToTimePoint;
-using dpslr::timing::timePointToModifiedJulianDateTime;
-using dpslr::timing::modifiedJulianDateTimeToTimePoint;
+using dpbase::timing::dates::JDateTime;
+using dpbase::timing::types::SoD;
+using dpbase::timing::types::HRTimePointStd;
+using dpbase::timing::dates::J2000DateTime;
+using dpbase::timing::dates::MJDate;
+using dpbase::timing::iso8601DatetimeToTimePoint;
+using dpbase::timing::timePointToModifiedJulianDateTime;
+using dpbase::timing::modifiedJulianDateTimeToTimePoint;
 // Used units.
-using dpslr::math::units::Angle;
-using dpslr::math::units::DegreesU;
-using dpslr::math::units::Degrees;
-using dpslr::math::units::Seconds;
-using dpslr::math::units::MillisecondsU;
-using dpslr::math::units::Meters;
+using dpbase::math::units::Angle;
+using dpbase::math::units::DegreesU;
+using dpbase::math::units::Degrees;
+using dpbase::math::units::Seconds;
+using dpbase::math::units::MillisecondsU;
+using dpbase::math::units::Meters;
 // Geocentric and geodetic containers.
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPoint;
@@ -78,9 +82,9 @@ using dpslr::astro::predictors::PredictorStarBase;
 using dpslr::astro::predictors::PredictionStarV;
 using dpslr::astro::types::Star;
 // Helpers.
-using dpslr::helpers::strings::numberToStr;
-using dpslr::helpers::strings::split;
-using dpslr::StringV;
+using dpbase::helpers::strings::numberToStr;
+using dpbase::helpers::strings::split;
+using dpbase::StringV;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -125,7 +129,7 @@ int main()
     Meters z = 3769892.747L;
 
     // Configure the input folder.
-    std::string current_dir = dpslr::helpers::files::getCurrentDir();
+    std::string current_dir = dpbase::helpers::files::getCurrentDir();
     std::string input_dir(current_dir+"/inputs");
     std::string output_dir(current_dir+"/outputs");
 
@@ -135,8 +139,8 @@ int main()
     std::string python_cmd_analysis = "python \"" + python_plot_analysis + "\" ";
 
     // Create the ouput directory.
-    if (!dpslr::helpers::files::directoryExists(output_dir))
-        dpslr::helpers::files::createDirectory(output_dir);
+    if (!dpbase::helpers::files::directoryExists(output_dir))
+        dpbase::helpers::files::createDirectory(output_dir);
 
 
     // -------------------- EXAMPLES PREPARATION -----------------------------------------------------------------------
@@ -232,12 +236,12 @@ int main()
     // Datetime configuration.
     std::chrono::seconds obs_secs(examples[example_selector].duration_tracking);
 
-    dpslr::timing::types::HRTimePointStd tp_start = dpslr::timing::iso8601DatetimeToTimePoint(
+    dpbase::timing::types::HRTimePointStd tp_start = dpbase::timing::iso8601DatetimeToTimePoint(
         examples[example_selector].datetime_iso8601);
-    dpslr::timing::types::HRTimePointStd tp_end = tp_start + obs_secs;
+    dpbase::timing::types::HRTimePointStd tp_end = tp_start + obs_secs;
 
-    JDateTime jd_start = dpslr::timing::timePointToJulianDateTime(tp_start);
-    JDateTime jd_end = dpslr::timing::timePointToJulianDateTime(tp_end);
+    JDateTime jd_start = dpbase::timing::timePointToJulianDateTime(tp_start);
+    JDateTime jd_end = dpbase::timing::timePointToJulianDateTime(tp_end);
 
     // Get band store the example data.
     std::string example_alias = examples[example_selector].star.star_name;
@@ -302,8 +306,8 @@ int main()
         dpslr::astro::types::degreesToDegMinSec(pred.altaz_coord.el, el_h, el_min, el_sec);
 
         // Get ISO
-        dpslr::timing::types::HRTimePointStd tp_aux = dpslr::timing::julianDateTimeToTimePoint(pred.jdt);
-        std::string iso_aux = dpslr::timing::timePointToIso8601(tp_aux);
+        dpbase::timing::types::HRTimePointStd tp_aux = dpbase::timing::julianDateTimeToTimePoint(pred.jdt);
+        std::string iso_aux = dpbase::timing::timePointToIso8601(tp_aux);
 
         // Store the data.
         file_realtime_track << '\n';
@@ -359,8 +363,8 @@ int main()
         dpslr::astro::types::degreesToDegMinSec(pred.altaz_coord.el, el_h, el_min, el_sec);
 
         // Get ISO
-        dpslr::timing::types::HRTimePointStd tp_aux = dpslr::timing::julianDateTimeToTimePoint(pred.jdt);
-        std::string iso_aux = dpslr::timing::timePointToIso8601(tp_aux);
+        dpbase::timing::types::HRTimePointStd tp_aux = dpbase::timing::julianDateTimeToTimePoint(pred.jdt);
+        std::string iso_aux = dpbase::timing::timePointToIso8601(tp_aux);
 
         // Store the data.
         file_rt_interval_track << '\n';

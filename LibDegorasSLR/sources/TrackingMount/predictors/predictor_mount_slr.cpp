@@ -40,9 +40,13 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_init.h"
-#include "LibDegorasSLR/Timing/utils/time_utils.h"
 #include "LibDegorasSLR/TrackingMount/predictors/predictor_mount_slr.h"
 #include "LibDegorasSLR/UtilitiesSLR/utils/pass_calculator.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/utils/time_utils.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -53,19 +57,19 @@ namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace timing::types;
+using namespace dpbase::timing::types;
 using namespace astro;
 using namespace astro::types;
-using namespace math::units;
+using namespace dpbase::math::units;
 using namespace slr;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorMountSLR::PredictorMountSLR(const timing::dates::MJDateTime& pass_start,
-                                     const timing::dates::MJDateTime& pass_end,
+PredictorMountSLR::PredictorMountSLR(const dpbase::timing::dates::MJDateTime& pass_start,
+                                     const dpbase::timing::dates::MJDateTime& pass_end,
                                      slr::predictors::PredictorSlrPtr pred_slr,
                                      astro::predictors::PredictorSunPtr pred_sun,
                                      const utils::MovementAnalyzerConfig &config,
-                                     math::units::MillisecondsU time_delta) :
+                                     dpbase::math::units::MillisecondsU time_delta) :
     tr_analyzer_(config),
     time_delta_(time_delta)
 {
@@ -125,9 +129,9 @@ PredictorMountSLR::PredictorMountSLR(const HRTimePointStd &pass_start,
                                      slr::predictors::PredictorSlrPtr pred_slr,
                                      astro::predictors::PredictorSunPtr pred_sun,
                                      const utils::MovementAnalyzerConfig &config,
-                                     math::units::MillisecondsU time_delta) :
-    PredictorMountSLR(timing::timePointToModifiedJulianDateTime(pass_start),
-                      timing::timePointToModifiedJulianDateTime(pass_end),
+                                     dpbase::math::units::MillisecondsU time_delta) :
+    PredictorMountSLR(dpbase::timing::timePointToModifiedJulianDateTime(pass_start),
+                      dpbase::timing::timePointToModifiedJulianDateTime(pass_end),
                       pred_slr,
                       pred_sun,
                       config,
@@ -149,19 +153,19 @@ const MountTrackingSLR &PredictorMountSLR::getMountTrackingSLR() const
     return this->mount_track_;
 }
 
-PredictionMountSLR PredictorMountSLR::predict(const timing::types::HRTimePointStd& tp_time) const
+PredictionMountSLR PredictorMountSLR::predict(const dpbase::timing::types::HRTimePointStd& tp_time) const
 {
-    timing::dates::MJDateTime mjdt = timing::timePointToModifiedJulianDateTime(tp_time);
+    dpbase::timing::dates::MJDateTime mjdt = dpbase::timing::timePointToModifiedJulianDateTime(tp_time);
     return this->predict(mjdt);
 }
 
-PredictionMountSLR PredictorMountSLR::predict(const timing::dates::MJDateTime &mjdt) const
+PredictionMountSLR PredictorMountSLR::predict(const dpbase::timing::dates::MJDateTime &mjdt) const
 {
     // Safe mutex lock
     std::unique_lock<std::mutex> lock(this->mtx_);
 
     // Calculates the Sun position.
-    timing::dates::J2000DateTime j2000 = dpslr::timing::modifiedJulianDateToJ2000DateTime(mjdt);
+    dpbase::timing::dates::J2000DateTime j2000 = dpbase::timing::modifiedJulianDateToJ2000DateTime(mjdt);
     astro::predictors::PredictionSun sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
 
     // Calculates the space object position.
@@ -234,8 +238,8 @@ void PredictorMountSLR::analyzeTracking()
 
     // Time transformations with milliseconds precision.
     // TODO Move to the Sun predictor class.
-    auto j2000_start = timing::modifiedJulianDateToJ2000DateTime(passes.front().steps.front().mjdt);
-    auto j2000_end = timing::modifiedJulianDateToJ2000DateTime(passes.front().steps.back().mjdt);
+    auto j2000_start = dpbase::timing::modifiedJulianDateToJ2000DateTime(passes.front().steps.front().mjdt);
+    auto j2000_end = dpbase::timing::modifiedJulianDateToJ2000DateTime(passes.front().steps.back().mjdt);
 
     // Parallel calculation of all Sun positions.
     results_sun = this->mount_track_.predictor_sun->predict(

@@ -57,10 +57,14 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_header.h"
-#include "LibDegorasSLR/Helpers/container_helpers.h"
-#include "LibDegorasSLR/Helpers/string_helpers.h"
-#include "LibDegorasSLR/Timing/utils/time_utils.h"
 #include "LibDegorasSLR/UtilitiesSLR/utils/spaceobject_utils.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/container_helpers.h"
+#include "LibDegorasBase/Helpers/string_helpers.h"
+#include "LibDegorasBase/Timing/utils/time_utils.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -72,7 +76,7 @@ namespace crd{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace common;
-using namespace timing::types;
+using namespace dpbase::timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // CRD HEADER
@@ -112,25 +116,25 @@ void CRDHeader::clearSessionHeader() {this->session_header = {};}
 
 void CRDHeader::clearPredictionHeader() {this->prediction_header = {};}
 
-const Optional<CRDHeader::FormatHeader> &CRDHeader::formatHeader() const {return this->format_header;}
+const dpbase::Optional<CRDHeader::FormatHeader> &CRDHeader::formatHeader() const {return this->format_header;}
 
-const Optional<CRDHeader::StationHeader> &CRDHeader::stationHeader() const {return this->station_header;}
+const dpbase::Optional<CRDHeader::StationHeader> &CRDHeader::stationHeader() const {return this->station_header;}
 
-const Optional<CRDHeader::TargetHeader> &CRDHeader::targetHeader() const {return this->target_header;}
+const dpbase::Optional<CRDHeader::TargetHeader> &CRDHeader::targetHeader() const {return this->target_header;}
 
-const Optional<CRDHeader::SessionHeader> &CRDHeader::sessionHeader() const {return this->session_header;}
+const dpbase::Optional<CRDHeader::SessionHeader> &CRDHeader::sessionHeader() const {return this->session_header;}
 
-const Optional<CRDHeader::PredictionHeader> &CRDHeader::predictionHeader() const {return this->prediction_header;}
+const dpbase::Optional<CRDHeader::PredictionHeader> &CRDHeader::predictionHeader() const {return this->prediction_header;}
 
-Optional<CRDHeader::FormatHeader> &CRDHeader::formatHeader() {return this->format_header;}
+dpbase::Optional<CRDHeader::FormatHeader> &CRDHeader::formatHeader() {return this->format_header;}
 
-Optional<CRDHeader::StationHeader> &CRDHeader::stationHeader() {return this->station_header;}
+dpbase::Optional<CRDHeader::StationHeader> &CRDHeader::stationHeader() {return this->station_header;}
 
-Optional<CRDHeader::TargetHeader> &CRDHeader::targetHeader() {return this->target_header;}
+dpbase::Optional<CRDHeader::TargetHeader> &CRDHeader::targetHeader() {return this->target_header;}
 
-Optional<CRDHeader::SessionHeader> &CRDHeader::sessionHeader() {return this->session_header;}
+dpbase::Optional<CRDHeader::SessionHeader> &CRDHeader::sessionHeader() {return this->session_header;}
 
-Optional<CRDHeader::PredictionHeader> &CRDHeader::predictionHeader() {return  this->prediction_header;}
+dpbase::Optional<CRDHeader::PredictionHeader> &CRDHeader::predictionHeader() {return  this->prediction_header;}
 
 void CRDHeader::setStationHeader(const StationHeader &sh) {this->station_header = sh;}
 
@@ -232,7 +236,7 @@ RecordReadErrorMultimap CRDHeader::readHeader(const RecordLinesVector& rec_v)
     for (const auto& rec : rec_v)
     {
         // Check that the record is a header record.
-        if(helpers::containers::find(HeaderIdStr, rec.getIdToken(), pos))
+        if(dpbase::helpers::containers::find(HeaderIdStr, rec.getIdToken(), pos))
         {
             // Store the record type in a pair.
             rec_pair = {pos, rec};
@@ -266,13 +270,13 @@ RecordReadError CRDHeader::readFormatHeader(const ConsolidatedRecord& record)
     std::tm date_time;
     RecordReadError result = RecordReadError::NOT_ERROR;
 
-    std::string aux = helpers::strings::toUpper(tokens[0]);
+    std::string aux = dpbase::helpers::strings::toUpper(tokens[0]);
 
     // Check if size is correct.
     if (tokens.size() != 7)
         result = RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::FORMAT_HEADER)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::FORMAT_HEADER)])
         result = RecordReadError::BAD_TYPE;
     // All ok at this momment.
     else
@@ -348,7 +352,7 @@ RecordReadError CRDHeader::readStationHeader(const ConsolidatedRecord& record)
     else if(this->format_header->crd_version >= 2 && this->format_header->crd_version < 3 && tokens.size() != 7)
         return RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::STATION_HEADER)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::STATION_HEADER)])
         return RecordReadError::BAD_TYPE;
     // All ok at this momment.
     try
@@ -407,7 +411,7 @@ RecordReadError CRDHeader::readTargetHeader(const ConsolidatedRecord& record)
     else if(this->format_header->crd_version >= 2 && this->format_header->crd_version < 3 && tokens.size() != 8)
         return RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::TARGET_HEADER)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::TARGET_HEADER)])
         return RecordReadError::BAD_TYPE;
     // All ok at this momment.
     try
@@ -491,7 +495,7 @@ RecordReadError CRDHeader::readSessionHeader(const ConsolidatedRecord& record)
     if (tokens.size() != 22)
         return RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::SESSION_HEADER)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::SESSION_HEADER)])
         return RecordReadError::BAD_TYPE;
     // All ok at this momment.
     try
@@ -524,11 +528,11 @@ RecordReadError CRDHeader::readSessionHeader(const ConsolidatedRecord& record)
 
         // Get the rest of the data.
         sh.data_release = std::stoi(tokens[14]);
-        sh.trop_correction_applied = helpers::containers::BoolString(tokens[15]);
-        sh.com_correction_applied = helpers::containers::BoolString(tokens[16]);
-        sh.rcv_amp_correction_applied = helpers::containers::BoolString(tokens[17]);
-        sh.stat_delay_applied = helpers::containers::BoolString(tokens[18]);
-        sh.spcraft_delay_applied = helpers::containers::BoolString(tokens[19]);
+        sh.trop_correction_applied = dpbase::helpers::containers::BoolString(tokens[15]);
+        sh.com_correction_applied = dpbase::helpers::containers::BoolString(tokens[16]);
+        sh.rcv_amp_correction_applied = dpbase::helpers::containers::BoolString(tokens[17]);
+        sh.stat_delay_applied = dpbase::helpers::containers::BoolString(tokens[18]);
+        sh.spcraft_delay_applied = dpbase::helpers::containers::BoolString(tokens[19]);
         sh.range_type = static_cast<RangeType>(std::stoi(tokens[20]));
         sh.data_quality_alert = static_cast<DataQuality>(std::stoi(tokens[21]));
 
@@ -564,7 +568,7 @@ RecordReadError CRDHeader::readPredictionHeader(const ConsolidatedRecord& record
     if (tokens.size() != 6)
         return RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::PREDICTION_HEADER)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != HeaderIdStr[static_cast<int>(HeaderRecord::PREDICTION_HEADER)])
         return RecordReadError::BAD_TYPE;
     // All ok at this momment.
     try
@@ -602,7 +606,7 @@ RecordReadError CRDHeader::readPredictionHeader(const ConsolidatedRecord& record
         {
             // Get day with fractional part
             double day = std::stod(tokens[3]);
-            ph.file_creation_time = timing::tleDateToTimePoint(year, day);
+            ph.file_creation_time = dpbase::timing::tleDateToTimePoint(year, day);
         }
         else
         {
@@ -748,7 +752,7 @@ std::string CRDHeader::TargetHeader::generateLine(float version) const
         // TODO: name should be lowercase only in ILRS or always?
         line_h3 << std::fixed << std::left
                 << "H3 "
-                << std::setw(10) << helpers::strings::toLower(this->name.substr(0, 10))
+                << std::setw(10) << dpbase::helpers::strings::toLower(this->name.substr(0, 10))
                 << std::right
                 << std::setw(9)  << this->ilrsid.substr(0, 8)
                 << std::setw(5)  << (this->sic.empty() ? "9999" : this->sic.substr(0, 4))
@@ -762,7 +766,7 @@ std::string CRDHeader::TargetHeader::generateLine(float version) const
     {
         line_h3 << std::fixed
                 << "H3"
-                << ' ' << helpers::strings::toLower(this->name)
+                << ' ' << dpbase::helpers::strings::toLower(this->name)
                 << ' ' << this->ilrsid
                 << ' ' << (this->sic.empty() ? "na" : this->sic)
                 << ' ' << (this->norad.empty() ? "na" : this->norad)
@@ -877,7 +881,7 @@ std::string CRDHeader::PredictionHeader::generateLine(float version) const
             long double fractional;
 
             // Calculate the fractional day.
-            timing::timePointToTLEDate(this->file_creation_time, year, fractional);
+            dpbase::timing::timePointToTLEDate(this->file_creation_time, year, fractional);
 
             // Store the data.
             line_h5 << std::setprecision(11)

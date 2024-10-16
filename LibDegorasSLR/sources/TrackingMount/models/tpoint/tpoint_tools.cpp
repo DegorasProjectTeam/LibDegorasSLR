@@ -21,17 +21,23 @@
  * @version 2309.5
 ***********************************************************************************************************************/
 
-// PROJECT INCLUDES
+// C++ INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/TrackingMount/models/tpoint/tpoint_tools.h"
-#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
-#include "LibDegorasSLR/Mathematics/units/unit_conversions.h"
-// =====================================================================================================================
-
-
 #include <cmath>
 #include <regex>
 #include <fstream>
+// =====================================================================================================================
+
+// PROJECT INCLUDES
+// =====================================================================================================================
+#include "LibDegorasSLR/TrackingMount/models/tpoint/tpoint_tools.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/utils/math_utils.h"
+#include "LibDegorasBase/Mathematics/units/unit_conversions.h"
+// =====================================================================================================================
 
 using dpslr::astro::types::AltAzPos;
 using dpslr::astro::types::AltAzCorrection;
@@ -82,8 +88,8 @@ inline double arcsec_to_deg(const double &arcsec)
 AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, const AltAzPos& pos)
 {
     double coefValue = arcsec_to_deg(coef.value);
-    double azimuth = dpslr::math::units::degToRad(pos.az);
-    double elevation = dpslr::math::units::degToRad(pos.el);
+    double azimuth = dpbase::math::units::degToRad(pos.az);
+    double elevation = dpbase::math::units::degToRad(pos.el);
 
     const double PI_HALF = M_PI / 2;
     const double THREE_PI_HALF = 3 * M_PI / 2;
@@ -102,16 +108,16 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
 
     case TPointCoefficientId::CA:
 
-        if (dpslr::math::compareFloating(elevation, PI_HALF) &&
-            dpslr::math::compareFloating(elevation, THREE_PI_HALF))
+        if (dpbase::math::compareFloating(elevation, PI_HALF) &&
+            dpbase::math::compareFloating(elevation, THREE_PI_HALF))
         {
             offsets.az = -coefValue / cos(elevation);
         }
         break;
 
     case TPointCoefficientId::AN:
-        if (dpslr::math::compareFloating(elevation, PI_HALF) &&
-            dpslr::math::compareFloating(elevation, THREE_PI_HALF))
+        if (dpbase::math::compareFloating(elevation, PI_HALF) &&
+            dpbase::math::compareFloating(elevation, THREE_PI_HALF))
         {
             offsets.az = -coefValue * sin(azimuth) * tan(elevation);
         }
@@ -119,8 +125,8 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
         break;
 
     case TPointCoefficientId::AW:
-        if (dpslr::math::compareFloating(elevation, PI_HALF) &&
-            dpslr::math::compareFloating(elevation, THREE_PI_HALF))
+        if (dpbase::math::compareFloating(elevation, PI_HALF) &&
+            dpbase::math::compareFloating(elevation, THREE_PI_HALF))
         {
             offsets.az = -coefValue * cos(azimuth) * tan(elevation);
         }
@@ -128,8 +134,8 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
         break;
 
     case TPointCoefficientId::NPAE:
-        if (dpslr::math::compareFloating(elevation, PI_HALF) &&
-            dpslr::math::compareFloating(elevation, THREE_PI_HALF))
+        if (dpbase::math::compareFloating(elevation, PI_HALF) &&
+            dpbase::math::compareFloating(elevation, THREE_PI_HALF))
         {
             offsets.az = -coefValue * tan(elevation);
         }
@@ -336,7 +342,7 @@ TPointParseError parseTPointModelFile(const std::string &path, TPointCoefficient
             }
             TPointSingleCoefficient coef;
             coef.name = term;
-            coef.name = dpslr::helpers::strings::trim(coef.name);
+            coef.name = dpbase::helpers::strings::trim(coef.name);
             coef.id = fromString(coef.name);
 
             // Fill this coef data.

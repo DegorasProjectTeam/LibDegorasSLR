@@ -45,8 +45,12 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Mathematics/units/strong_units.h>
+#include <LibDegorasBase/Helpers/common_aliases_macros.h>
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -58,7 +62,7 @@ namespace types{
 
 // MOVE TO UTILS TODO
 
-void LIBDPSLR_EXPORT degreesToDegMinSec(const math::units::Degrees& deg, int& h, int& min, double& sec);
+void LIBDPSLR_EXPORT degreesToDegMinSec(const dpbase::math::units::Degrees& deg, int& h, int& min, double& sec);
 
 struct LIBDPSLR_EXPORT AltAzPos
 {
@@ -67,7 +71,7 @@ struct LIBDPSLR_EXPORT AltAzPos
 
     AltAzPos();
 
-    AltAzPos(const math::units::Degrees& az, const math::units::Degrees& el);
+    AltAzPos(const dpbase::math::units::Degrees& az, const dpbase::math::units::Degrees& el);
 
     void normalize();
 
@@ -79,8 +83,8 @@ struct LIBDPSLR_EXPORT AltAzPos
 
     //size_t serializedSize() const final
 
-    math::units::Degrees az;     ///< Azimuth of the altazimuth coordinate in degrees.
-    math::units::Degrees el;     ///< Altitude (elevation) of the altazimuth coordinate in degrees.
+    dpbase::math::units::Degrees az;     ///< Azimuth of the altazimuth coordinate in degrees.
+    dpbase::math::units::Degrees el;     ///< Altitude (elevation) of the altazimuth coordinate in degrees.
 };
 
 /// Alias for altaz corrections.

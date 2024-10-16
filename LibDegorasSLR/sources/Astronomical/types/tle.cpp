@@ -38,7 +38,11 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/types/tle.h"
-#include "LibDegorasSLR/Helpers/string_helpers.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -52,7 +56,7 @@ bool TLE::parseLines(const std::string &tle)
 {
     bool result = false;
     std::vector<std::string> lines;
-    helpers::strings::split(lines, tle, "\n", false);
+    dpbase::helpers::strings::split(lines, tle, "\n", false);
     if (3 == lines.size())
     {
         if ('1' == lines[1][0] && '2' == lines[2][0])

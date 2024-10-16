@@ -46,8 +46,12 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
 #include "LibDegorasSLR/Astronomical/types/local_star_position.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
+// LIBRARY INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -62,7 +66,7 @@ struct LIBDPSLR_EXPORT PredictionStar : types::LocalStarPosition
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(PredictionStar)
 
-    PredictionStar(const timing::dates::JDateTime& jdtm,
+    PredictionStar(const dpbase::timing::dates::JDateTime& jdtm,
                    const types::AltAzPos& altaz_pos) :
         types::LocalStarPosition(jdtm, altaz_pos)
     {}

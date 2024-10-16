@@ -65,7 +65,7 @@ class LIBDPSLR_EXPORT PredictorStarNovas : public PredictorStarBase
 
 public:
 
-    PredictorStarNovas(const astro::types::Star& star, const geo::types::SurfaceLocation<math::units::Degrees>& loc,
+    PredictorStarNovas(const astro::types::Star& star, const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc,
                        int leap_secs = 0, double ut1_utc_diff = 0);
 
     /**
@@ -74,7 +74,7 @@ public:
      * @param jdt The Julian DateTime object representing the Julian date and time of the prediction.
      * @return The resulting PredictionStar.
      */
-    PredictionStar predict(const timing::dates::JDateTime& jdt, bool refraction) const override;
+    PredictionStar predict(const dpbase::timing::dates::JDateTime& jdt, bool refraction) const override;
 
     /**
      * @brief Predicts star positions within a time range with a specified time step.
@@ -89,9 +89,9 @@ public:
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    PredictionStarV predict(const timing::dates::JDateTime& jdt_start,
-                            const timing::dates::JDateTime& jdt_end,
-                            const math::units::MillisecondsU& step, bool refraction) const override;
+    PredictionStarV predict(const dpbase::timing::dates::JDateTime& jdt_start,
+                            const dpbase::timing::dates::JDateTime& jdt_end,
+                            const dpbase::math::units::MillisecondsU& step, bool refraction) const override;
 
     virtual bool isReady() const override {return true;}
 

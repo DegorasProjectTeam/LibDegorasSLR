@@ -40,8 +40,11 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
-#include "LibDegorasSLR/Timing/utils/time_utils.h"
-#include "LibDegorasSLR/Mathematics/math_constants.h"
+// =====================================================================================================================
+
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/utils/time_utils.h"
+#include "LibDegorasBase/Mathematics/math_constants.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -52,19 +55,19 @@ namespace utils{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace timing;
-using namespace timing::types;
-using namespace timing::dates;
+using namespace dpbase::timing;
+using namespace dpbase::timing::types;
+using namespace dpbase::timing::dates;
 using namespace mount::types;
-using namespace math::units::literals;
-using namespace math::units;
-using namespace math;
+using namespace dpbase::math::units::literals;
+using namespace dpbase::math::units;
+using namespace dpbase::math;
 using namespace astro::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // CONSTANTS
 // ---------------------------------------------------------------------------------------------------------------------
-constexpr math::units::Degrees kAvoidAngleOffset = 0.5L;   // Offset to apply to avoid the Sun sector.
+constexpr dpbase::math::units::Degrees kAvoidAngleOffset = 0.5L;   // Offset to apply to avoid the Sun sector.
 // ---------------------------------------------------------------------------------------------------------------------
 
 MovementAnalyzer::MovementAnalyzer(const MovementAnalyzerConfig& config) :
@@ -125,7 +128,7 @@ MovementAnalysis MovementAnalyzer::analyzeMovement(const MountPositionV& mount_p
 
     // Check that the mount elevation positions are valid (>= 0).
     auto it_find = std::find_if(mount_positions.begin(), mount_positions.end(),
-                    [](const MountPosition& pos){return math::isFloatingMinorThanZero(pos.altaz_coord.el);});
+                    [](const MountPosition& pos){return dpbase::math::isFloatingMinorThanZero(pos.altaz_coord.el);});
     if(it_find != mount_positions.end())
     {
         std::string submodule("[LibDegorasSLR,TrackingMount,TrackingAnalyzer,analyzeMovement]");
@@ -596,12 +599,12 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
         long double exit_angle = std::atan2(sector.altaz_exit.el - it->sun_pos.altaz_coord.el, diff_az_exit);
 
         // Normalize entry angle between 0 and 2pi
-        if (math::isFloatingMinorThanZero(entry_angle))
-            entry_angle += 2*math::kPi;
+        if (dpbase::math::isFloatingMinorThanZero(entry_angle))
+            entry_angle += 2*dpbase::math::kPi;
 
         // Normalize exit angle between 0 and 2pi
-        if (math::isFloatingMinorThanZero(exit_angle))
-            exit_angle += 2*math::kPi;
+        if (dpbase::math::isFloatingMinorThanZero(exit_angle))
+            exit_angle += 2*dpbase::math::kPi;
 
         // Get clockwise and counterclockwise angular distance between entry and exit angles
         long double cw_angle;
@@ -612,13 +615,13 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
         {
             // If substract is positive, the angle is clockwise.
             cw_angle = angle;
-            ccw_angle = -(2*math::kPi - cw_angle);
+            ccw_angle = -(2*dpbase::math::kPi - cw_angle);
         }
         else
         {
             // If substract is negative, the angle is counterclockwise.
             ccw_angle = angle;
-            cw_angle = (2*math::kPi + ccw_angle);
+            cw_angle = (2*dpbase::math::kPi + ccw_angle);
         }
 
         // Calculate avoid trajectory angle for this timestamp using time as a percentage of the angle.
@@ -678,10 +681,10 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
 
         // Normalize angle between 0, 2pi
         if (entry_angle < 0)
-            entry_angle += 2*math::kPi;
+            entry_angle += 2*dpbase::math::kPi;
 
         if (exit_angle < 0)
-            exit_angle += 2*math::kPi;
+            exit_angle += 2*dpbase::math::kPi;
 
         // Get clockwise and counterclockwise angular distance between entry and exit angles
         long double cw_angle;
@@ -692,13 +695,13 @@ bool MovementAnalyzer::setSunSectorRotationDirection(SunCollisionSector& sector,
         {
             // If substract is positive, the angle is clockwise.
             cw_angle = angle;
-            ccw_angle = -(2*math::kPi - cw_angle);
+            ccw_angle = -(2*dpbase::math::kPi - cw_angle);
         }
         else
         {
             // If substract is negative, the angle is counterclockwise.
             ccw_angle = angle;
-            cw_angle = (2*math::kPi + ccw_angle);
+            cw_angle = (2*dpbase::math::kPi + ccw_angle);
         }
 
         sector.cw = std::abs(cw_angle) < std::abs(ccw_angle) ?
@@ -789,10 +792,10 @@ long double MovementAnalyzer::calcSunAvoidTrajectory(const MJDateTime &mjdt,
     long double exit_angle = std::atan2(sector.altaz_exit.el - sun_pos.el, diff_az_exit);
 
     if (entry_angle < 0)
-        entry_angle += 2*math::kPi;
+        entry_angle += 2*dpbase::math::kPi;
 
     if (exit_angle < 0)
-        exit_angle += 2*math::kPi;
+        exit_angle += 2*dpbase::math::kPi;
 
 
     long double angle = exit_angle - entry_angle;
@@ -800,12 +803,12 @@ long double MovementAnalyzer::calcSunAvoidTrajectory(const MJDateTime &mjdt,
     if (angle > 0.L)
     {
         if (sector.cw == SunCollisionSector::AvoidanceDirection::COUNTERCLOCKWISE)
-            angle = -(2*math::kPi - angle);
+            angle = -(2*dpbase::math::kPi - angle);
     }
     else
     {
         if (sector.cw == SunCollisionSector::AvoidanceDirection::CLOCKWISE)
-            angle = (2*math::kPi + angle);
+            angle = (2*dpbase::math::kPi + angle);
     }
 
     return entry_angle + angle * time_perc;

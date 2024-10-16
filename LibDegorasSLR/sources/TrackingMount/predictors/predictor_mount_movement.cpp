@@ -42,9 +42,13 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/TrackingMount/types/mount_position.h"
 #include "LibDegorasSLR/libdegorasslr_init.h"
-#include "LibDegorasSLR/Timing/utils/time_utils.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/TrackingMount/predictors/predictor_mount_movement.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/utils/time_utils.h"
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -109,11 +113,11 @@ const MountTrackingMovement& PredictorMountMovement::getMountTrackingMovement() 
 }
 
 
-PredictionMountMovement PredictorMountMovement::predict(const timing::types::HRTimePointStd &tp_time) const
+PredictionMountMovement PredictorMountMovement::predict(const dpbase::timing::types::HRTimePointStd &tp_time) const
 {
 
 
-    auto mjdt = timing::timePointToModifiedJulianDateTime(tp_time);
+    auto mjdt = dpbase::timing::timePointToModifiedJulianDateTime(tp_time);
 
     // If requested position is outside of tracking, then return out of track prediction.
     if (mjdt < this->positions_.front().mjdt || mjdt > this->positions_.back().mjdt)
@@ -122,7 +126,7 @@ PredictionMountMovement PredictorMountMovement::predict(const timing::types::HRT
     }
 
     // Calculates the Sun position.
-    timing::dates::J2000DateTime j2000 = timing::timePointToJ2000DateTime(tp_time);
+    dpbase::timing::dates::J2000DateTime j2000 = dpbase::timing::timePointToJ2000DateTime(tp_time);
     astro::predictors::PredictionSun sun_pos = this->mount_track_.predictor_sun->predict(j2000, false);
 
     astro::types::AltAzPos interp_pos = this->interpPos(tp_time);
@@ -143,7 +147,7 @@ void PredictorMountMovement::analyzeTracking()
     // Calculate sun position for each mount position
     std::transform(this->positions_.begin(), this->positions_.end(), results_sun.begin(), [this](const auto& pos)
     {
-        auto j2000_start = timing::modifiedJulianDateToJ2000DateTime(pos.mjdt);
+        auto j2000_start = dpbase::timing::modifiedJulianDateToJ2000DateTime(pos.mjdt);
         return this->mount_track_.predictor_sun->predict(j2000_start, false);
     });
 
@@ -175,10 +179,10 @@ bool PredictorMountMovement::checkPositions(const types::MountPositionV &positio
     return valid;
 }
 
-astro::types::AltAzPos PredictorMountMovement::interpPos(const timing::types::HRTimePointStd &tp) const
+astro::types::AltAzPos PredictorMountMovement::interpPos(const dpbase::timing::types::HRTimePointStd &tp) const
 {
 
-    const timing::dates::MJDateTime mjdt = timing::timePointToModifiedJulianDateTime(tp);
+    const dpbase::timing::dates::MJDateTime mjdt = dpbase::timing::timePointToModifiedJulianDateTime(tp);
 
     auto it_upper = this->positions_.cbegin() + 1;
 
@@ -192,7 +196,7 @@ astro::types::AltAzPos PredictorMountMovement::interpPos(const timing::types::HR
     const auto &pos_lower = it_lower->altaz_coord;
     const auto &pos_upper = it_upper->altaz_coord;
 
-    math::units::Degrees diff_az = pos_upper.az - pos_lower.az;
+    dpbase::math::units::Degrees diff_az = pos_upper.az - pos_lower.az;
 
     if (diff_az > 180.L)
     {

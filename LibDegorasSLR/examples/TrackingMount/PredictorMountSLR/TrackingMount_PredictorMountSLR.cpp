@@ -38,12 +38,16 @@
 // LIBDEGORASSLR MODULES
 // =====================================================================================================================
 #include <LibDegorasSLR/Initialization>
-#include <LibDegorasSLR/Modules/Helpers>
 #include <LibDegorasSLR/Modules/UtilitiesSLR>
 #include <LibDegorasSLR/Modules/TrackingMount>
 #include <LibDegorasSLR/Modules/FormatsILRS>
-#include <LibDegorasSLR/Modules/Timing>
 #include <LibDegorasSLR/Modules/Astronomical>
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Modules/Timing>
+#include <LibDegorasBase/Modules/Helpers>
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -52,20 +56,20 @@
 // Initialization.
 using dpslr::DegorasInit;
 // Time tipes and conversions.
-using dpslr::timing::dates::MJDateTime;
-using dpslr::timing::types::SoD;
-using dpslr::timing::types::HRTimePointStd;
-using dpslr::timing::dates::J2000DateTime;
-using dpslr::timing::types::Iso8601Str;
-using dpslr::timing::iso8601DatetimeToTimePoint;
-using dpslr::timing::timePointToModifiedJulianDateTime;
+using dpbase::timing::dates::MJDateTime;
+using dpbase::timing::types::SoD;
+using dpbase::timing::types::HRTimePointStd;
+using dpbase::timing::dates::J2000DateTime;
+using dpbase::timing::types::Iso8601Str;
+using dpbase::timing::iso8601DatetimeToTimePoint;
+using dpbase::timing::timePointToModifiedJulianDateTime;
 // Used units.
-using dpslr::math::units::Angle;
-using dpslr::math::units::DegreesU;
-using dpslr::math::units::Degrees;
-using dpslr::math::units::Seconds;
-using dpslr::math::units::MillisecondsU;
-using dpslr::math::units::Meters;
+using dpbase::math::units::Angle;
+using dpbase::math::units::DegreesU;
+using dpbase::math::units::Degrees;
+using dpbase::math::units::Seconds;
+using dpbase::math::units::MillisecondsU;
+using dpbase::math::units::Meters;
 // Geocentric and geodetic containers.
 using dpslr::geo::types::GeocentricPoint;
 using dpslr::geo::types::GeodeticPointDeg;
@@ -92,7 +96,7 @@ using dpslr::mount::predictors::PredictionMountSLRV;
 using dpslr::mount::predictors::MountTrackingSLR;
 using dpslr::mount::predictors::PredictionMountSLRStatus;
 // Helpers.
-using dpslr::helpers::strings::numberToStr;
+using dpbase::helpers::strings::numberToStr;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -158,7 +162,7 @@ int main()
     bool avoid_sun = true;            // Flag for enable or disable the Sun avoidance utility.
 
     // Configure the CPF input folder.
-    std::string current_dir = dpslr::helpers::files::getCurrentDir();
+    std::string current_dir = dpbase::helpers::files::getCurrentDir();
     std::string input_dir(current_dir+"/inputs");
     std::string output_dir(current_dir+"/outputs");
 
@@ -168,8 +172,8 @@ int main()
     std::string python_cmd_analysis = python_dir + "python \"" + python_plot_analysis + "\" ";
 
     // Create the ouput directory.
-    if (!dpslr::helpers::files::directoryExists(output_dir))
-        dpslr::helpers::files::createDirectory(output_dir);
+    if (!dpbase::helpers::files::directoryExists(output_dir))
+        dpbase::helpers::files::createDirectory(output_dir);
 
     // -------------------- EXAMPLES PREPARATION -----------------------------------------------------------------------
 

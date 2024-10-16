@@ -43,8 +43,12 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h"
-#include "LibDegorasSLR/Helpers/container_helpers.h"
-#include "LibDegorasSLR/Helpers/string_helpers.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/container_helpers.h"
+#include "LibDegorasBase/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -272,7 +276,7 @@ RecordReadErrorMultimap CPFData::readData(const RecordLinesVector &rec_v, float 
     for (const auto& rec : rec_v)
     {
         // Check that the record is a header record.
-        if(dpslr::helpers::containers::find(DataIdStr, rec.getIdToken(), pos))
+        if(dpbase::helpers::containers::find(DataIdStr, rec.getIdToken(), pos))
         {
             // Store the record type in a pair.
             rec_pair = {pos, rec};
@@ -451,11 +455,11 @@ std::string CPFData::PositionRecord::generateLine(float) const
     line_10 << DataIdStr[static_cast<int>(DataRecordType::POSITION_RECORD)]
             << ' ' << static_cast<int>(this->dir_flag)
             << ' ' << this->mjd
-            << ' ' << helpers::strings::numberToStr(this->sod, 13, 6)
+            << ' ' << dpbase::helpers::strings::numberToStr(this->sod, 13, 6)
             << ' ' << this->leap_second
-            << ' ' << helpers::strings::numberToStr(this->geo_pos.x, 17, 3)
-            << ' ' << helpers::strings::numberToStr(this->geo_pos.y, 17, 3)
-            << ' ' << helpers::strings::numberToStr(this->geo_pos.z, 17, 3);
+            << ' ' << dpbase::helpers::strings::numberToStr(this->geo_pos.x, 17, 3)
+            << ' ' << dpbase::helpers::strings::numberToStr(this->geo_pos.y, 17, 3)
+            << ' ' << dpbase::helpers::strings::numberToStr(this->geo_pos.z, 17, 3);
     // Return the line.
     return line_10.str();
 }

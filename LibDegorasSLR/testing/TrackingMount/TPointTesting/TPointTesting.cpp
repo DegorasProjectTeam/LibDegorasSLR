@@ -1,5 +1,6 @@
-#include <LibDegorasSLR/Helpers/filedir_helpers.h>
 #include <LibDegorasSLR/TrackingMount/models/tpoint/tpoint_tools.h>
+
+#include <LibDegorasBase/Helpers/filedir_helpers.h>
 
 #include <omp.h>
 #include <cmath>
@@ -91,7 +92,7 @@ int main()
                   << std::endl;
     }
 
-    std::string current_dir = dpslr::helpers::files::getCurrentDir();
+    std::string current_dir = dpbase::helpers::files::getCurrentDir();
 
     // Configure the python script executable.
     std::string python_plot_script(current_dir+"/python_scripts/plot.py");

@@ -11,8 +11,12 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/Astronomical/utils/novas_utils.h"
-#include "LibDegorasSLR/Timing/utils/time_utils.h"
-#include "LibDegorasSLR/Timing/time_constants.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/utils/time_utils.h"
+#include "LibDegorasBase/Timing/time_constants.h"
 // =====================================================================================================================
 
 // NAMESPACES
@@ -30,11 +34,11 @@ namespace novas{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace ::novas;
-using namespace math::units;
+using namespace dpbase::math::units;
 using namespace geo::types;
 using namespace astro::types;
-using namespace timing::types;
-using namespace timing::dates;
+using namespace dpbase::timing::types;
+using namespace dpbase::timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
 on_surface makeOnSurface(const SurfaceLocation<Degrees> &loc)
@@ -70,8 +74,8 @@ int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const
     // Calculate timestamps
     double leap_secs_d = static_cast<double>(leap_secs);
     double jd_utc = static_cast<double>(jdt.datetime());
-    double jd_tt = jd_utc + (leap_secs_d + 32.184) / timing::kSecsPerDay;  // TT = UTC + incrementAT + 32.184
-    double jd_ut1 = jd_utc + ut1_utc_diff / timing::kSecsPerDay;
+    double jd_tt = jd_utc + (leap_secs_d + 32.184) / dpbase::timing::kSecsPerDay;  // TT = UTC + incrementAT + 32.184
+    double jd_ut1 = jd_utc + ut1_utc_diff / dpbase::timing::kSecsPerDay;
     double delta_t = 32.184 + leap_secs_d - ut1_utc_diff;                  // TT - UT1 in seconds.
 
     // Variable declarations
@@ -105,7 +109,7 @@ int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const
 int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const HRTimePointStd &tp, bool refraction,
                     AltAzPos &pos, int leap_secs, double ut1_utc_diff)
 {
-    JDateTime jdt = timing::timePointToJulianDateTime(tp);
+    JDateTime jdt = dpbase::timing::timePointToJulianDateTime(tp);
 
     return getStarAltAzPos(star, loc, jdt, refraction, pos, leap_secs, ut1_utc_diff);
 }

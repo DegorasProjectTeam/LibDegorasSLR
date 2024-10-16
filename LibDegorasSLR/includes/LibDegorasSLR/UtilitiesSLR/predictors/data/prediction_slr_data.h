@@ -39,11 +39,15 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_velocity.h"
 #include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -83,16 +87,16 @@ struct LIBDPSLR_EXPORT InstantRange
     std::string toJsonStr() const;
 
     // Struct data.
-    timing::dates::MJDateTime mjdt;          ///< Modified julian datetime asociated to the data.
-    math::units::Meters range_1w;          ///< One way range in math::units::Meters (mm precision -> 3 decimals).
-    math::units::Seconds tof_2w;           ///< Two way flight time in math::units::Seconds (ps precision -> 12 decimals).
-    geo::types::GeocentricPoint geo_pos;  ///< Object geocentric interpolated positions in math::units::Meters (x, y, z).
+    dpbase::timing::dates::MJDateTime mjdt;          ///< Modified julian datetime asociated to the data.
+    dpbase::math::units::Meters range_1w;          ///< One way range in dpbase::math::units::Meters (mm precision -> 3 decimals).
+    dpbase::math::units::Seconds tof_2w;           ///< Two way flight time in dpbase::math::units::Seconds (ps precision -> 12 decimals).
+    geo::types::GeocentricPoint geo_pos;  ///< Object geocentric interpolated positions in dpbase::math::units::Meters (x, y, z).
 };
 
 /**
  * This struct contains the computed data when applying the PredictionMode::INSTANT_VECTOR mode. The distance
  * and flight time values may include all types of corrections. If they are not included, the corresponding
- * optional paramath::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
+ * optional paradpbase::math::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
  *
  * @warning In this case, all the correction could be included.
  *
@@ -126,7 +130,7 @@ struct LIBDPSLR_EXPORT InstantData : public InstantRange
 /**
  * This struct contains the computed data when applying the PredictionMode::OUTBOUND_VECTOR mode. The distance
  * and flight time values may include all types of corrections. If they are not included, the corresponding
- * optional paramath::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
+ * optional paradpbase::math::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
  *
  * @warning In this case, all the correction could be included.
  *
@@ -142,7 +146,7 @@ struct LIBDPSLR_EXPORT OutboundData : public InstantData
 /**
  * This struct contains the computed data when applying the PredictionMode::INBOUND_VECTOR mode. The distance
  * and flight time values may include all types of corrections. If they are not included, the corresponding
- * optional paramath::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
+ * optional paradpbase::math::units::Meters will not be accessible in the higher level structure (PredictorSLR::PredictionResult).
  *
  * @warning In this case, all the correction could be included.
  *
@@ -155,11 +159,11 @@ struct LIBDPSLR_EXPORT InboundData
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(InboundData)
 
     // Datetime members.
-    timing::dates::MJDateTime mjdt;          ///< Modified julian datetime.
+    dpbase::timing::dates::MJDateTime mjdt;          ///< Modified julian datetime.
 
     // Range (1 way) and time of flight (2 way).
-    math::units::Meters range_1w;          ///< One way range in math::units::Meters (mm precission -> 3 decimals).
-    math::units::Seconds tof_2w;           ///< Two way flight time in math::units::Seconds (ps precission -> 12 decimals).
+    dpbase::math::units::Meters range_1w;          ///< One way range in dpbase::math::units::Meters (mm precission -> 3 decimals).
+    dpbase::math::units::Seconds tof_2w;           ///< Two way flight time in dpbase::math::units::Seconds (ps precission -> 12 decimals).
 
     /**
      * @brief Represents the InboundData struct as a JSON-formatted string.

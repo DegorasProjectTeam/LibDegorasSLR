@@ -41,26 +41,30 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
-#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
 #include "LibDegorasSLR/Astronomical/astro_constants.h"
 #include "LibDegorasSLR/Geophysics/utils/tropo_utils.h"
 // =====================================================================================================================
 
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/utils/math_utils.h"
+// =====================================================================================================================
+
 // LIBDEGORASSLR NAMESPACES
-// =====================================================================================================================namespace dpslr{
+// =====================================================================================================================
 namespace dpslr{
 namespace slr{
 namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace helpers::strings;
-using namespace math::units;
-using namespace math::types;
+using namespace dpbase::helpers::strings;
+using namespace dpbase::math::units;
+using namespace dpbase::math::types;
 using namespace geo::types;
 using namespace geo::meteo;
-using namespace timing::types;
-using namespace timing::dates;
+using namespace dpbase::timing::types;
+using namespace dpbase::timing::dates;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorSlrBase::PredictorSlrBase(const GeodeticPointDeg &geod, const GeocentricPoint &geoc) :
@@ -129,7 +133,7 @@ bool PredictorSlrBase::isInsideTimeWindow(const MJDateTime& start, const MJDateT
     return start >= predict_mjd_start && end <= predict_mjd_end;
 }
 
-bool PredictorSlrBase::isInsideTime(const timing::dates::MJDateTime &time) const
+bool PredictorSlrBase::isInsideTime(const dpbase::timing::dates::MJDateTime &time) const
 {
     // Auxiliar.
     MJDateTime predict_mjd_start, predict_mjd_end;
@@ -143,7 +147,7 @@ bool PredictorSlrBase::isInsideTime(const timing::dates::MJDateTime &time) const
 
 PredictionSLRV PredictorSlrBase::predict(const MJDateTime &mjdt_start,
                                          const MJDateTime &mjdt_end,
-                                         const math::units::MillisecondsU &time_step) const
+                                         const dpbase::math::units::MillisecondsU &time_step) const
 {
     // Container and auxiliar.
     MJDateTimeV interp_times;
@@ -151,7 +155,7 @@ PredictionSLRV PredictorSlrBase::predict(const MJDateTime &mjdt_start,
     Seconds step_sec = time_step/1000.0L;
 
     // Check the validity of the predictor and the inputs.
-    if(!this->isInsideTimeWindow(mjdt_start, mjdt_end) || math::isFloatingZeroOrMinor(step_sec))
+    if(!this->isInsideTimeWindow(mjdt_start, mjdt_end) || dpbase::math::isFloatingZeroOrMinor(step_sec))
         return PredictionSLRV();
 
     // Generate the interpolation times lineal space.
@@ -177,41 +181,41 @@ Meters PredictorSlrBase::applyCorrections(Meters& range, PredictionSLR& result, 
     Meters provisional_range = range;
 
     // Include the half of the system delay to the range. This will be permanent for the rest of computations.
-    if(math::compareFloating(this->cali_del_corr_, Picoseconds(0.0L)) && cali)
+    if(dpbase::math::compareFloating(this->cali_del_corr_, Picoseconds(0.0L)) && cali)
     {
-        range += 0.5L*this->cali_del_corr_*astro::kC*math::units::kPsToSec;
+        range += 0.5L*this->cali_del_corr_*astro::kC*dpbase::math::units::kPsToSec;
         result.cali_del_corr = this->cali_del_corr_;
         provisional_range = range;
     }
 
     // Include the object eccentricity correction.
-    if(math::compareFloating(this->objc_ecc_corr_, Meters(0.0L)))
+    if(dpbase::math::compareFloating(this->objc_ecc_corr_, Meters(0.0L)))
     {
         provisional_range = provisional_range - this->objc_ecc_corr_;
         result.objc_ecc_corr = this->objc_ecc_corr_;
     }
 
     // Include the ground eccentricity correction.
-    if(math::compareFloating(this->grnd_ecc_corr_, Meters(0.0L)))
+    if(dpbase::math::compareFloating(this->grnd_ecc_corr_, Meters(0.0L)))
     {
         provisional_range = provisional_range + this->grnd_ecc_corr_;
         result.grnd_ecc_corr = this->grnd_ecc_corr_;
     }
 
     // Include the systematic and random errors.
-    if(math::compareFloating(this->syst_rnd_corr_, Meters(0.0L)))
+    if(dpbase::math::compareFloating(this->syst_rnd_corr_, Meters(0.0L)))
     {
         provisional_range = provisional_range + this->syst_rnd_corr_;
         result.syst_rnd_corr = this->syst_rnd_corr_;
     }
 
     // Compute and include the tropospheric path delay.
-    if(math::compareFloating(el, Degrees(0.0L)))
+    if(dpbase::math::compareFloating(el, Degrees(0.0L)))
     {
         if(this->tropo_model_ == PredictorSlrBase::TroposphericModel::MARINI_MURRAY)
         {
             // Get the elevation in radians.
-            Radians el_instant_rad = math::units::degToRad(el);
+            Radians el_instant_rad = dpbase::math::units::degToRad(el);
 
             // Calculate the tropospheric path delay (1 way).
             range += geo::tropo::pathDelayMariniMurray(this->press_, this->temp_, this->rel_hum_, el_instant_rad,

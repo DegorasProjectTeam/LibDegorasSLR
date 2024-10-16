@@ -40,11 +40,15 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
 #include "LibDegorasSLR/TrackingMount/predictors/data/prediction_mount_movement.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analysis.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer_config.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -63,8 +67,8 @@ struct MountTrackingMovement
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE(MountTrackingMovement)
 
     // TODO THIS MUST BE STORED IN PASSINFO class.
-    timing::dates::MJDateTime pass_mjdt_start;
-    timing::dates::MJDateTime pass_mjdt_end;
+    dpbase::timing::dates::MJDateTime pass_mjdt_start;
+    dpbase::timing::dates::MJDateTime pass_mjdt_end;
 
     // Tracking data
     utils::MovementAnalyzerConfig config;    ///< Contains the tracking user configuration.

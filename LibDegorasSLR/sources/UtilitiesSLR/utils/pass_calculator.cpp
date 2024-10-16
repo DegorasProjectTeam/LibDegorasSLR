@@ -37,8 +37,8 @@ namespace slr{
 namespace utils{
 // =====================================================================================================================
 
-PassCalculator::PassCalculator(predictors::PredictorSlrPtr predictor, math::units::DegreesU min_elev,
-                               math::units::MillisecondsU time_step) :
+PassCalculator::PassCalculator(predictors::PredictorSlrPtr predictor, dpbase::math::units::DegreesU min_elev,
+                               dpbase::math::units::MillisecondsU time_step) :
     min_elev_(min_elev),
     time_step_(time_step),
     predictor_(std::move(predictor))
@@ -46,28 +46,28 @@ PassCalculator::PassCalculator(predictors::PredictorSlrPtr predictor, math::unit
 
 }
 
-void PassCalculator::setMinElev(math::units::DegreesU min_elev)
+void PassCalculator::setMinElev(dpbase::math::units::DegreesU min_elev)
 {
     this->min_elev_ = min_elev;
 }
 
-math::units::DegreesU PassCalculator::minElev() const
+dpbase::math::units::DegreesU PassCalculator::minElev() const
 {
     return this->min_elev_;
 }
 
-void PassCalculator::setTimeStep(math::units::MillisecondsU time_step)
+void PassCalculator::setTimeStep(dpbase::math::units::MillisecondsU time_step)
 {
     this->time_step_ = time_step;
 }
 
-math::units::MillisecondsU PassCalculator::getTimeStep() const
+dpbase::math::units::MillisecondsU PassCalculator::getTimeStep() const
 {
     return this->time_step_;
 }
 
-PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDateTime &mjd_start,
-                                                     const timing::dates::MJDateTime &mjd_end,
+PassCalculator::ResultCode PassCalculator::getPasses(const dpbase::timing::dates::MJDateTime &mjd_start,
+                                                     const dpbase::timing::dates::MJDateTime &mjd_end,
                                                      std::vector<SpaceObjectPass> &passes) const
 {
     // Clear passes vector
@@ -82,7 +82,7 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
         return ResultCode::INTERVAL_OUTSIDE_OF_PREDICTOR;
 
     // Auxiliary variables.
-    const math::units::Seconds step_s = this->time_step_ / 1000.L;
+    const dpbase::math::units::Seconds step_s = this->time_step_ / 1000.L;
     bool pass_started = false;
     SpaceObjectPass current_pass;
     current_pass.time_step = this->time_step_;
@@ -156,7 +156,7 @@ PassCalculator::ResultCode PassCalculator::getPasses(const timing::dates::MJDate
     return PassCalculator::ResultCode::NOT_ERROR;
 }
 
-PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDateTime& mjd_start,
+PassCalculator::ResultCode PassCalculator::getNextPass(const dpbase::timing::dates::MJDateTime& mjd_start,
                                                        SpaceObjectPass& pass) const
 {
     // Clear passes vector
@@ -171,7 +171,7 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
         return ResultCode::TIME_OUTSIDE_OF_PREDICTOR;
 
     // Declare the times.
-    timing::dates::MJDateTime mjdt_start_window, mjdt_end_window;
+    dpbase::timing::dates::MJDateTime mjdt_start_window, mjdt_end_window;
 
     // Get the time window.
     this->predictor_->getAvailableTimeWindow(mjdt_start_window, mjdt_end_window);
@@ -185,12 +185,12 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
         return ResultCode::SOME_PREDICTIONS_NOT_VALID;
 
     // Auxiliary variables.
-    math::units::Seconds time_step_sec = this->time_step_ / 1000.0L;
+    dpbase::math::units::Seconds time_step_sec = this->time_step_ / 1000.0L;
     bool pass_started = pred.instant_data->altaz_coord.el > this->min_elev_;
     pass.time_step = this->time_step_;
     pass.min_elev = this->min_elev_;
     std::vector<SpaceObjectPassStep>& steps = pass.steps;
-    timing::dates::MJDateTime mjdt;
+    dpbase::timing::dates::MJDateTime mjdt;
 
     // TODO ADD IN STEPS THE RATES.
 
@@ -293,10 +293,10 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
     return PassCalculator::ResultCode::NOT_ERROR;
 }
 
-PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDateTime& mjd_start,
-                                                       math::units::SecondsU pass_limit,
+PassCalculator::ResultCode PassCalculator::getNextPass(const dpbase::timing::dates::MJDateTime& mjd_start,
+                                                       dpbase::math::units::SecondsU pass_limit,
                                                        SpaceObjectPass& pass,
-                                                       math::units::SecondsU search_limit) const
+                                                       dpbase::math::units::SecondsU search_limit) const
 {
     // Clear passes vector
     pass = {};
@@ -310,7 +310,7 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
         return ResultCode::TIME_OUTSIDE_OF_PREDICTOR;
 
     // Declare the times.
-    timing::dates::MJDateTime mjdt_start_window, mjdt_end_window, mjdt_end_search;
+    dpbase::timing::dates::MJDateTime mjdt_start_window, mjdt_end_window, mjdt_end_search;
 
     // Get the time window.
     this->predictor_->getAvailableTimeWindow(mjdt_start_window, mjdt_end_window);
@@ -336,12 +336,12 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
         return ResultCode::SOME_PREDICTIONS_NOT_VALID;
 
     // Auxiliary variables.
-    math::units::Seconds time_step_sec = this->time_step_ / 1000.0L;
+    dpbase::math::units::Seconds time_step_sec = this->time_step_ / 1000.0L;
     bool pass_started = pred.instant_data->altaz_coord.el > this->min_elev_;
     pass.time_step = this->time_step_;
     pass.min_elev = this->min_elev_;
     std::vector<SpaceObjectPassStep>& steps = pass.steps;
-    timing::dates::MJDateTime mjdt;
+    dpbase::timing::dates::MJDateTime mjdt;
 
     // TODO ADD IN STEPS THE RATES.
     // If pass is started we will look first for the end until the limit. If the limit
@@ -436,7 +436,7 @@ PassCalculator::ResultCode PassCalculator::getNextPass(const timing::dates::MJDa
     return PassCalculator::ResultCode::NOT_ERROR;
 }
 
-bool PassCalculator::isInsidePass(const timing::dates::MJDateTime &mjd) const
+bool PassCalculator::isInsidePass(const dpbase::timing::dates::MJDateTime &mjd) const
 {
     // If predictor is not valid or time is outside of prediction time window, return false.
     if (!this->predictor_->isReady() || !this->predictor_->isInsideTime(mjd))

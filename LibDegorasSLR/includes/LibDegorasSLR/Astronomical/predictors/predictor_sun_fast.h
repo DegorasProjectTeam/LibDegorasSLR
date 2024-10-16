@@ -87,7 +87,7 @@ public:
      *
      * @note Reimplemented from: 'Book: Sun Position: Astronomical Algorithm in 9 Common Programming Languages'.
      */
-    PredictionSun predict(const timing::dates::J2000DateTime& j2000, bool refraction) const override;
+    PredictionSun predict(const dpbase::timing::dates::J2000DateTime& j2000, bool refraction) const override;
 
     virtual bool isReady() const override {return true;}
 

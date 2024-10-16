@@ -38,10 +38,14 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h>
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
-#include <LibDegorasSLR/Timing/utils/time_utils.h>
+#include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Helpers/container_helpers.h>
+#include <LibDegorasBase/Helpers/string_helpers.h>
+#include <LibDegorasBase/Timing/utils/time_utils.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -53,7 +57,7 @@ namespace cpf{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace common;
-using namespace timing::types;
+using namespace dpbase::timing::types;
 // ---------------------------------------------------------------------------------------------------------------------
 
 // --- CPF HEADER CONST EXPRESSIONS ------------------------------------------------------------------------------------
@@ -86,25 +90,25 @@ void CPFHeader::clearTransponderInfoHeader() {this->transp_info_header = {};}
 
 void CPFHeader::clearCoMCorrectionHeader() {this->com_corr_header = {};}
 
-const Optional<CPFHeader::BasicInfo1Header> &CPFHeader::basicInfo1Header() const {return this->basic_info1_header;}
+const dpbase::Optional<CPFHeader::BasicInfo1Header> &CPFHeader::basicInfo1Header() const {return this->basic_info1_header;}
 
-const Optional<CPFHeader::BasicInfo2Header> &CPFHeader::basicInfo2Header() const {return this->basic_info2_header;}
+const dpbase::Optional<CPFHeader::BasicInfo2Header> &CPFHeader::basicInfo2Header() const {return this->basic_info2_header;}
 
-const Optional<CPFHeader::ExpectedAccuracyHeader> &CPFHeader::expectedAccuracyHeader() const {return this->exp_accuracy_header;}
+const dpbase::Optional<CPFHeader::ExpectedAccuracyHeader> &CPFHeader::expectedAccuracyHeader() const {return this->exp_accuracy_header;}
 
-const Optional<CPFHeader::TransponderInfoHeader> &CPFHeader::transponderInfoHeader() const{return this->transp_info_header;}
+const dpbase::Optional<CPFHeader::TransponderInfoHeader> &CPFHeader::transponderInfoHeader() const{return this->transp_info_header;}
 
-const Optional<CPFHeader::CoMCorrectionHeader> &CPFHeader::coMCorrectionHeader() const{return this->com_corr_header;}
+const dpbase::Optional<CPFHeader::CoMCorrectionHeader> &CPFHeader::coMCorrectionHeader() const{return this->com_corr_header;}
 
-Optional<CPFHeader::BasicInfo1Header> &CPFHeader::basicInfo1Header(){return this->basic_info1_header;}
+dpbase::Optional<CPFHeader::BasicInfo1Header> &CPFHeader::basicInfo1Header(){return this->basic_info1_header;}
 
-Optional<CPFHeader::BasicInfo2Header> &CPFHeader::basicInfo2Header(){return this->basic_info2_header;}
+dpbase::Optional<CPFHeader::BasicInfo2Header> &CPFHeader::basicInfo2Header(){return this->basic_info2_header;}
 
-Optional<CPFHeader::ExpectedAccuracyHeader> &CPFHeader::expectedAccuracyHeader(){return this->exp_accuracy_header;}
+dpbase::Optional<CPFHeader::ExpectedAccuracyHeader> &CPFHeader::expectedAccuracyHeader(){return this->exp_accuracy_header;}
 
-Optional<CPFHeader::TransponderInfoHeader> &CPFHeader::transponderInfoHeader(){return this->transp_info_header;}
+dpbase::Optional<CPFHeader::TransponderInfoHeader> &CPFHeader::transponderInfoHeader(){return this->transp_info_header;}
 
-Optional<CPFHeader::CoMCorrectionHeader> &CPFHeader::comCorrectionHeader(){return this->com_corr_header;}
+dpbase::Optional<CPFHeader::CoMCorrectionHeader> &CPFHeader::comCorrectionHeader(){return this->com_corr_header;}
 
 void CPFHeader::setBasicInfo1Header(const BasicInfo1Header &bi1h) {this->basic_info1_header = bi1h;}
 
@@ -199,7 +203,7 @@ RecordReadErrorMultimap CPFHeader::readHeader(const RecordLinesVector &rec_v)
     for (const auto& rec : rec_v)
     {
         // Check that the record is a header record.
-        if(helpers::containers::find(HeaderIdStr, rec.getIdToken(), pos))
+        if(dpbase::helpers::containers::find(HeaderIdStr, rec.getIdToken(), pos))
         {
             // Store the record type in a pair.
             rec_pair = {pos, rec};
@@ -235,7 +239,7 @@ RecordReadError CPFHeader::readBasicInfo1Header(const ConsolidatedRecord& record
     RecordReadError result = RecordReadError::NOT_ERROR;
 
     // Check if the record type is correct.
-    if (helpers::strings::toUpper(tokens[0]) !=
+    if (dpbase::helpers::strings::toUpper(tokens[0]) !=
              HeaderIdStr[static_cast<int>(HeaderRecordEnum::BASIC_INFO_1_HEADER)])
         result = RecordReadError::BAD_TYPE;
     // All ok at this momment.
@@ -350,7 +354,7 @@ RecordReadError CPFHeader::readBasicInfo2Header(const ConsolidatedRecord& record
             this->basic_info1_header->cpf_version < 3 && tokens.size() != 23)
         return RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) !=
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) !=
              HeaderIdStr[static_cast<int>(HeaderRecordEnum::BASIC_INFO_2_HEADER)])
         return RecordReadError::BAD_TYPE;
     // All ok at this momment.
@@ -442,7 +446,7 @@ RecordReadError CPFHeader::readCoMCorrectionHeader(const ConsolidatedRecord& rec
     if (tokens.size() != 2)
         return RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) !=
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) !=
              HeaderIdStr[static_cast<int>(HeaderRecordEnum::COM_CORRECTION_HEADER)])
         return RecordReadError::BAD_TYPE;
     // All ok at this momment.
@@ -644,7 +648,7 @@ std::string CPFHeader::CoMCorrectionHeader::generateLine(float version) const
     if (version >= 1 && version < 2)
     {
         line_h5 << std::fixed << std::left
-                << "H5 " << helpers::strings::numberToStr(this->com_correction, 6, 4);
+                << "H5 " << dpbase::helpers::strings::numberToStr(this->com_correction, 6, 4);
     }
 
     // For v2 only (free format).

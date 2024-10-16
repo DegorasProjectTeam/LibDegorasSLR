@@ -37,9 +37,13 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include <LibDegorasSLR/FormatsILRS/common/consolidated_record.h>
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
+#include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Helpers/container_helpers.h>
+#include <LibDegorasBase/Helpers/string_helpers.h>
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -61,7 +65,7 @@ std::string ConsolidatedRecord::generateCommentBlock() const
         stream << CommentIdStr << " " << comment.substr(0, 80) << std::endl;
 
     // Return the comment block.
-    return helpers::strings::rmLastLineBreak(stream.str());
+    return dpbase::helpers::strings::rmLastLineBreak(stream.str());
 }
 
 void ConsolidatedRecord::clearAll()

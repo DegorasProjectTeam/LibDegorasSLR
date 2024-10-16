@@ -53,11 +53,11 @@ namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace timing::types;
-using namespace timing::dates;
+using namespace dpbase::timing::types;
+using namespace dpbase::timing::dates;
 using namespace geo::types;
 using namespace astro::types;
-using namespace math::units;
+using namespace dpbase::math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
@@ -76,7 +76,7 @@ PredictionStarV PredictorStarBase::predict(const JDateTime &jdt_start, const JDa
 
     // Container and auxiliar.
     JDateTimeV interp_times;
-    math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
+    dpbase::math::units::Seconds step_sec = static_cast<long double>(step) * dpbase::math::units::kMsToSec;
 
     // Check for valid time interval.
     if(!(jdt_start <= jdt_end))

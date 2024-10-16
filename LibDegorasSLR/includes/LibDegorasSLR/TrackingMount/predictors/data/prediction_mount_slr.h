@@ -40,9 +40,13 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/mount_position_analyzed.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/data/prediction_slr.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES

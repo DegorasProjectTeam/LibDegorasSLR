@@ -44,8 +44,12 @@
 // =====================================================================================================================
 #include <LibDegorasSLR/FormatsILRS/crd/records/crd_configuration.h>
 #include <LibDegorasSLR/FormatsILRS/common/consolidated_types.h>
-#include <LibDegorasSLR/Helpers/container_helpers.h>
-#include <LibDegorasSLR/Helpers/string_helpers.h>
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Helpers/container_helpers.h>
+#include <LibDegorasBase/Helpers/string_helpers.h>
 // =====================================================================================================================
 
 // =====================================================================================================================
@@ -90,52 +94,52 @@ void CRDConfiguration::clearMeteorologicalConfiguration() {this->meteorological_
 
 void CRDConfiguration::clearCalibrationConfiguration() {this->calibration_cfg = {};}
 
-const Optional<CRDConfiguration::SystemConfiguration>& CRDConfiguration::systemConfiguration() const
+const dpbase::Optional<CRDConfiguration::SystemConfiguration>& CRDConfiguration::systemConfiguration() const
 {return this->system_cfg;}
 
-const Optional<CRDConfiguration::LaserConfiguration>& CRDConfiguration::laserConfiguration() const
+const dpbase::Optional<CRDConfiguration::LaserConfiguration>& CRDConfiguration::laserConfiguration() const
 {return this->laser_cfg;}
 
-const Optional<CRDConfiguration::DetectorConfiguration>& CRDConfiguration::detectorConfiguration() const
+const dpbase::Optional<CRDConfiguration::DetectorConfiguration>& CRDConfiguration::detectorConfiguration() const
 {return this->detector_cfg;}
 
-const Optional<CRDConfiguration::TimingConfiguration>& CRDConfiguration::timingConfiguration() const
+const dpbase::Optional<CRDConfiguration::TimingConfiguration>& CRDConfiguration::timingConfiguration() const
 {return this->timing_cfg;}
 
-const Optional<CRDConfiguration::TransponderConfiguration>& CRDConfiguration::transponderConfiguration()
+const dpbase::Optional<CRDConfiguration::TransponderConfiguration>& CRDConfiguration::transponderConfiguration()
 const {return this->transponder_cfg;}
 
-const Optional<CRDConfiguration::SoftwareConfiguration>& CRDConfiguration::softwareConfiguration() const
+const dpbase::Optional<CRDConfiguration::SoftwareConfiguration>& CRDConfiguration::softwareConfiguration() const
 {return this->software_cfg;}
 
-const Optional<CRDConfiguration::MeteorologicalConfiguration>& CRDConfiguration::meteorologicalConfiguration() const
+const dpbase::Optional<CRDConfiguration::MeteorologicalConfiguration>& CRDConfiguration::meteorologicalConfiguration() const
 {return  this->meteorological_cfg;}
 
-const Optional<CRDConfiguration::CalibrationConfiguration>& CRDConfiguration::calibrationConfiguration() const
+const dpbase::Optional<CRDConfiguration::CalibrationConfiguration>& CRDConfiguration::calibrationConfiguration() const
 {return  this->calibration_cfg;}
 
-Optional<CRDConfiguration::SystemConfiguration>& CRDConfiguration::systemConfiguration()
+dpbase::Optional<CRDConfiguration::SystemConfiguration>& CRDConfiguration::systemConfiguration()
 {return this->system_cfg;}
 
-Optional<CRDConfiguration::LaserConfiguration>& CRDConfiguration::laserConfiguration()
+dpbase::Optional<CRDConfiguration::LaserConfiguration>& CRDConfiguration::laserConfiguration()
 {return this->laser_cfg;}
 
-Optional<CRDConfiguration::DetectorConfiguration>& CRDConfiguration::detectorConfiguration()
+dpbase::Optional<CRDConfiguration::DetectorConfiguration>& CRDConfiguration::detectorConfiguration()
 {return this->detector_cfg;}
 
-Optional<CRDConfiguration::TimingConfiguration>& CRDConfiguration::timingConfiguration()
+dpbase::Optional<CRDConfiguration::TimingConfiguration>& CRDConfiguration::timingConfiguration()
 {return this->timing_cfg;}
 
-Optional<CRDConfiguration::TransponderConfiguration>& CRDConfiguration::transponderConfiguration()
+dpbase::Optional<CRDConfiguration::TransponderConfiguration>& CRDConfiguration::transponderConfiguration()
 {return this->transponder_cfg;}
 
-Optional<CRDConfiguration::SoftwareConfiguration>& CRDConfiguration::softwareConfiguration()
+dpbase::Optional<CRDConfiguration::SoftwareConfiguration>& CRDConfiguration::softwareConfiguration()
 {return this->software_cfg;}
 
-Optional<CRDConfiguration::MeteorologicalConfiguration>& CRDConfiguration::meteorologicalConfiguration()
+dpbase::Optional<CRDConfiguration::MeteorologicalConfiguration>& CRDConfiguration::meteorologicalConfiguration()
 {return this->meteorological_cfg;}
 
-Optional<CRDConfiguration::CalibrationConfiguration>& CRDConfiguration::calibrationConfiguration()
+dpbase::Optional<CRDConfiguration::CalibrationConfiguration>& CRDConfiguration::calibrationConfiguration()
 {return this->calibration_cfg;}
 
 void CRDConfiguration::setSystemConfiguration(const CRDConfiguration::SystemConfiguration& sc) {this->system_cfg = sc;}
@@ -260,7 +264,7 @@ RecordReadErrorMultimap CRDConfiguration::readConfiguration(const RecordLinesVec
     for (const auto& rec : rec_v)
     {
         // Check that the record is a header record.
-        if(helpers::containers::find(CfgIdStr, rec.getIdToken(), pos))
+        if(dpbase::helpers::containers::find(CfgIdStr, rec.getIdToken(), pos))
         {
             // Store the record type in a pair.
             rec_pair = {pos, rec};
@@ -299,7 +303,7 @@ RecordReadError CRDConfiguration::readSystemCFG(const ConsolidatedRecord& record
     if (tokens.size() < 7 || tokens.size() > 11)
         result = RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::SYSTEM_CFG)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::SYSTEM_CFG)])
         result = RecordReadError::BAD_TYPE;
     // All ok at this momment.
     else
@@ -348,7 +352,7 @@ RecordReadError CRDConfiguration::readLaserCFG(
     if (tokens.size() != 10)
         result = RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::LASER_CFG)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::LASER_CFG)])
         result = RecordReadError::BAD_TYPE;
     // All ok at this momment.
     else
@@ -407,7 +411,7 @@ RecordReadError CRDConfiguration::readDetectorCFG(const ConsolidatedRecord& reco
         result = RecordReadError::BAD_SIZE;
 
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::DETECTOR_CFG)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::DETECTOR_CFG)])
         result = RecordReadError::BAD_TYPE;
 
     // All ok at this momment.
@@ -446,7 +450,7 @@ RecordReadError CRDConfiguration::readDetectorCFG(const ConsolidatedRecord& reco
                 // Get the amplifier related data.
                 // If unknown or not used, all to undefined.
                 // If is used, read each field.
-                if(tokens[16] == "na" || !helpers::containers::BoolString(tokens[16]))
+                if(tokens[16] == "na" || !dpbase::helpers::containers::BoolString(tokens[16]))
                 {
                     dc.amp_gain = {};
                     dc.amp_bandwidth = {};
@@ -494,7 +498,7 @@ RecordReadError CRDConfiguration::readTimingCFG(
     if (tokens.size() != 8)
         result = RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::TIMING_CFG)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::TIMING_CFG)])
         result = RecordReadError::BAD_TYPE;
     
     // All ok at this momment.
@@ -563,7 +567,7 @@ RecordReadError CRDConfiguration::readMeteoCFG(
     if (tokens.size() != 12)
         result = RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::METEOROLOGICAL_CFG)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::METEOROLOGICAL_CFG)])
         result = RecordReadError::BAD_TYPE;
     // Check if version is 2, since it does not exist in version 1
     else if (version < 2 || version >= 3)
@@ -671,7 +675,7 @@ std::string CRDConfiguration::generateSystemCfgLine(float version) const
     {
         line_c0 << "C0"
                 << ' ' << this->system_cfg->detail_type
-                << ' ' << helpers::strings::numberToFixStr(this->system_cfg->transmit_wavelength, 10)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->system_cfg->transmit_wavelength, 10)
                 << ' ' << this->system_cfg->system_cfg_id
                 << ' ' << this->laser_cfg->cfg_id
                 << ' ' << this->detector_cfg->cfg_id
@@ -709,11 +713,11 @@ std::string CRDConfiguration::LaserConfiguration::generateLine(float version) co
                 << ' ' << this->detail
                 << ' ' << this->cfg_id
                 << ' ' << this->type
-                << ' ' << helpers::strings::numberToFixStr(this->primary_wavelength, 10)
-                << ' ' << helpers::strings::numberToFixStr(this->fire_rate, 10)
-                << ' ' << helpers::strings::numberToFixStr(this->pulse_energy, 10)
-                << ' ' << helpers::strings::numberToFixStr(this->pulse_width, 6)
-                << ' ' << helpers::strings::numberToFixStr(this->beam_divergence, 5)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->primary_wavelength, 10)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->fire_rate, 10)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->pulse_energy, 10)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->pulse_width, 6)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->beam_divergence, 5)
                 << ' ' << this->pulses_outgoing_semitrain;
     }
 
@@ -733,18 +737,18 @@ std::string CRDConfiguration::DetectorConfiguration::generateLine(float version)
                 << ' ' << this->detail
                 << ' ' << this->cfg_id
                 << ' ' << this->type
-                << ' ' << helpers::strings::numberToFixStr(this->work_wavelength,10)
-                << ' ' << helpers::strings::numberToFixStr(this->efficiency, 6)
-                << ' ' << helpers::strings::numberToFixStr(this->voltage, 5)
-                << ' ' << helpers::strings::numberToFixStr(this->dark_count, 5)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->work_wavelength,10)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->efficiency, 6)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->voltage, 5)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->dark_count, 5)
                 << ' ' << this->out_pulse_type
-                << ' ' << helpers::strings::numberToFixStr(this->out_pulse_width, 5)
-                << ' ' << helpers::strings::numberToFixStr(this->spectral_filter, 5)
-                << ' ' << helpers::strings::numberToFixStr(this->transm_spectral_filter, 5);
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->out_pulse_width, 5)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->spectral_filter, 5)
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->transm_spectral_filter, 5);
 
         // Spatial filter is optional
         if (this->spatial_filter)
-            line_c2 << ' ' << helpers::strings::numberToFixStr(this->spatial_filter.value(), 5);
+            line_c2 << ' ' << dpbase::helpers::strings::numberToFixStr(this->spatial_filter.value(), 5);
         else
             line_c2 << ' ' << (version < 2 ? "-1" : "na");
 
@@ -763,8 +767,8 @@ std::string CRDConfiguration::DetectorConfiguration::generateLine(float version)
         // Otherwise, we will print each vaule as separated.
         else
         {
-            line_c2 << ' ' << (!this->amp_gain ? "na" : helpers::strings::numberToFixStr(this->amp_gain.value(), 6))
-                    << ' ' << (!this->amp_bandwidth ? "na" : helpers::strings::numberToFixStr(this->amp_bandwidth.value(), 6))
+            line_c2 << ' ' << (!this->amp_gain ? "na" : dpbase::helpers::strings::numberToFixStr(this->amp_gain.value(), 6))
+                    << ' ' << (!this->amp_bandwidth ? "na" : dpbase::helpers::strings::numberToFixStr(this->amp_bandwidth.value(), 6))
                     << " 1";
         }
     }
@@ -788,7 +792,7 @@ std::string CRDConfiguration::TimingConfiguration::generateLine(float version) c
                 << ' ' << this->frequency_source
                 << ' ' << this->timer
                 << ' ' << this->timer_serial
-                << ' ' << helpers::strings::numberToFixStr(this->epoch_delay, 6);
+                << ' ' << dpbase::helpers::strings::numberToFixStr(this->epoch_delay, 6);
     }
 
     // Return the C3

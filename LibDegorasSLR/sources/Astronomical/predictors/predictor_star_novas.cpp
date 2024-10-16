@@ -53,10 +53,10 @@ namespace predictors{
 
 // ---------------------------------------------------------------------------------------------------------------------
 using namespace novas;
-using namespace timing::types;
+using namespace dpbase::timing::types;
 using namespace astro::types;
 using namespace geo::types;
-using namespace math::units;
+using namespace dpbase::math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<Degrees> &loc,
@@ -64,7 +64,7 @@ PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<D
     PredictorStarBase(star, loc, leap_secs, ut1_utc_diff)
 {}
 
-PredictionStar PredictorStarNovas::predict(const timing::dates::JDateTime &jdt, bool refraction) const
+PredictionStar PredictorStarNovas::predict(const dpbase::timing::dates::JDateTime &jdt, bool refraction) const
 {
     PredictionStar pred;
     pred.jdt = jdt;
@@ -75,21 +75,21 @@ PredictionStar PredictorStarNovas::predict(const timing::dates::JDateTime &jdt, 
     return pred;
 }
 
-PredictionStarV PredictorStarNovas::predict(const timing::dates::JDateTime &jdt_start,
-                                            const timing::dates::JDateTime &jdt_end,
-                                            const math::units::MillisecondsU &step, bool refraction) const
+PredictionStarV PredictorStarNovas::predict(const dpbase::timing::dates::JDateTime &jdt_start,
+                                            const dpbase::timing::dates::JDateTime &jdt_end,
+                                            const dpbase::math::units::MillisecondsU &step, bool refraction) const
 {
 
     // Container and auxiliar.
-    timing::dates::JDateTimeV interp_times;
-    math::units::Seconds step_sec = static_cast<long double>(step) * math::units::kMsToSec;
+    dpbase::timing::dates::JDateTimeV interp_times;
+    dpbase::math::units::Seconds step_sec = static_cast<long double>(step) * dpbase::math::units::kMsToSec;
 
     // Check for valid time interval.
     if(!(jdt_start <= jdt_end))
         throw std::invalid_argument("[LibDegorasSLR,Astronomical,PredictorStarBase::predict] Invalid interval.");
 
     // Calculates all the interpolation times.
-    interp_times = timing::dates::JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);
+    interp_times = dpbase::timing::dates::JDateTime::linspaceStep(jdt_start, jdt_end, step_sec);
 
     // Results container.
     PredictionStarV results(interp_times.size());

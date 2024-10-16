@@ -73,9 +73,13 @@
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_header.h"
 #include "LibDegorasSLR/FormatsILRS/cpf/records/cpf_data.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
-#include "LibDegorasSLR/Mathematics/types/interval.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
-#include "LibDegorasSLR/Helpers/filedir_helpers.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/types/interval.h"
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
+#include "LibDegorasBase/Helpers/filedir_helpers.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -226,7 +230,7 @@ public:
     const common::RecordReadErrorMultimap& getReadHeaderErrors() const;
     const common::RecordReadErrorMultimap& getReadDataErrors() const;
     ReadFileErrorEnum getReadError() const;
-    const Optional<common::ConsolidatedRecord>& getLastReadErrorRecord() const;
+    const dpbase::Optional<common::ConsolidatedRecord>& getLastReadErrorRecord() const;
 
     // Filename getters.
     const std::string& getSourceFilename() const;
@@ -245,7 +249,7 @@ public:
      * @param mjd_end The output parameter to store the Modified Julian Date of the end time.
      * @param secs_end The output parameter to store the seconds of the day of the end time with decimals.
      */
-    void getAvailableTimeWindow(timing::dates::MJDateTime &start, timing::dates::MJDateTime &end) const;
+    void getAvailableTimeWindow(dpbase::timing::dates::MJDateTime &start, dpbase::timing::dates::MJDateTime &end) const;
 
     /**
      * @brief Gets the available time window for the CPF as an Interval (will be invalid if the CPF is empty).
@@ -253,9 +257,9 @@ public:
      * This function retrieves the available time window from the CPF data. If the CPF is empty, the returned interval
      * will be invalid. Otherwise, the maximum and minimum of the interval are obtained from the position records.
      *
-     * @return The available time interval as an instance of math::Interval<long double>.
+     * @return The available time interval as an instance of dpbase::math::Interval<long double>.
      */
-    math::types::Interval<long double> getAvailableTimeInterval() const;
+    dpbase::math::types::Interval<long double> getAvailableTimeInterval() const;
 
     /**
      * @brief Checks if CPF is empty. A CPF will be empty if both header and data are empty. This can happen if an error
@@ -352,7 +356,7 @@ private:
 
     // Private methods for reading records.
     // Return false if error.
-    ReadRecordResultEnum readRecord(helpers::files::DegorasInputFileStream&, common::ConsolidatedRecord&);
+    ReadRecordResultEnum readRecord(dpbase::helpers::files::DegorasInputFileStream&, common::ConsolidatedRecord&);
 
     // Empty.
     bool empty_;
@@ -365,7 +369,7 @@ private:
     common::RecordReadErrorMultimap read_header_errors_;
     common::RecordReadErrorMultimap read_data_errors_;
     ReadFileErrorEnum last_read_error_;
-    Optional<common::ConsolidatedRecord> last_error_record_;
+    dpbase::Optional<common::ConsolidatedRecord> last_error_record_;
 
     // File names and path.
     std::string cpf_filename_;

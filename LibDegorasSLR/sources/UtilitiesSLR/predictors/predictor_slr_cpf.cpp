@@ -41,30 +41,34 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_cpf.h"
-#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
-#include "LibDegorasSLR/Statistics/types/statistics_types.h"
-#include "LibDegorasSLR/Statistics/fitting.h"
 #include "LibDegorasSLR/Astronomical/astro_constants.h"
 // =====================================================================================================================
 
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/utils/math_utils.h"
+#include "LibDegorasBase/Mathematics/types/vector3d.h"
+#include "LibDegorasBase/Statistics/types/statistics_types.h"
+#include "LibDegorasBase/Statistics/fitting.h"
+// =====================================================================================================================
+
 // LIBDEGORASSLR NAMESPACES
-// =====================================================================================================================namespace dpslr{
+// =====================================================================================================================
 namespace dpslr{
 namespace slr{
 namespace predictors{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace helpers::strings;
-using namespace math::units;
-using namespace math::types;
-using namespace math::units::literals;
+using namespace dpbase::helpers::strings;
+using namespace dpbase::math::units;
+using namespace dpbase::math::types;
+using namespace dpbase::math::units::literals;
 using namespace geo::types;
-using namespace timing::types;
-using namespace timing::dates;
+using namespace dpbase::timing::types;
+using namespace dpbase::timing::dates;
 using namespace ilrs::cpf;
-using namespace math::units::literals;
+using namespace dpbase::math::units::literals;
 // ---------------------------------------------------------------------------------------------------------------------
 
 const std::array<std::string, 10> PredictorSlrCPF::PredictorErrorStr =
@@ -131,8 +135,8 @@ bool PredictorSlrCPF::setCPF(const std::string &cpf_path)
     // Computation of rotation matrices.
     // Rotations: rot_long around longitude, rot_lat around pi/2-latitude, rot_long_pi around pi
     this->rotm_topo_local_.euclidian3DRotation(3, s_lon);
-    this->rotm_topo_local_.euclidian3DRotation(2, static_cast<long double>(math::kPi/2) - s_lat);
-    this->rotm_topo_local_.euclidian3DRotation(3, static_cast<long double>(math::kPi));
+    this->rotm_topo_local_.euclidian3DRotation(2, static_cast<long double>(dpbase::math::kPi/2) - s_lat);
+    this->rotm_topo_local_.euclidian3DRotation(3, static_cast<long double>(dpbase::math::kPi));
 
     // All ok.
     return true;
@@ -366,13 +370,13 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
     // Compute azimuth for instant vector (degrees).
     el_instant = radToDegree(atanl(topo_s_o_local_instant[2] / sqrtl(
-                                    math::pow2(topo_s_o_local_instant[0]) + math::pow2(topo_s_o_local_instant[1]))));
+                                    dpbase::math::pow2(topo_s_o_local_instant[0]) + dpbase::math::pow2(topo_s_o_local_instant[1]))));
 
     // Compute elevation for instant vector (degrees).
     az_instant= radToDegree(atan2l(-topo_s_o_local_instant[1], topo_s_o_local_instant[0]));
 
     // Check 90 degrees elevation case (pag 263 fundamental of astrodinamic and applications A. Vallado).
-    if(math::compareFloating(el_instant, 90.0_deg) == 0)
+    if(dpbase::math::compareFloating(el_instant, 90.0_deg) == 0)
         el_instant -= 0.0001L;
 
     // Check the negative azimuth case.
@@ -454,13 +458,13 @@ porque todo el sistema de referencia geocéntrica ECEF rotará durante el viaje 
 
     // Compute azimuth for outbound vector (laser beam pointing direction, degrees).
     el_outbound = radToDegree(atanl(topo_s_o_local_outbound[2] / sqrtl(
-                                math::pow2(topo_s_o_local_outbound[0]) + math::pow2(topo_s_o_local_outbound[1]))));
+                                dpbase::math::pow2(topo_s_o_local_outbound[0]) + dpbase::math::pow2(topo_s_o_local_outbound[1]))));
 
     // Compute elevation for outbound vector (degrees).
     az_outbound = radToDegree(atan2l(-topo_s_o_local_outbound[1], topo_s_o_local_outbound[0]));
 
     // Check 90 degrees elevation case (pag 263 fundamental of astrodinamic and applications A. Vallado).
-    if(math::compareFloating(el_outbound, Degrees(90.0L)) == 0)
+    if(dpbase::math::compareFloating(el_outbound, Degrees(90.0L)) == 0)
         el_outbound -= 0.0001L;
 
     // Check the negative azimuth case.
@@ -591,10 +595,10 @@ void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, Predicti
             deg = kPolLagDeg16;
 
         // Result of the interpolation.
-        stats::types::LagrangeError lag_res;
+        dpbase::stats::types::LagrangeError lag_res;
 
         // Do the lagrange interpolation.
-        lag_res = stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, deg, x, y);
+        lag_res = dpbase::stats::lagrangeInterpol3DVec(this->pos_times_, this->pos_data_, deg, x, y);
 
         // Convert the error code.
         error = PredictorSlrCPF::convertLagInterpError(lag_res);
@@ -602,18 +606,18 @@ void PredictorSlrCPF::callInterp(const Seconds& x, Vector3D<Meters> &y, Predicti
     }
 }
 
-PredictorSlrCPF::PredictionError PredictorSlrCPF::convertLagInterpError(stats::types::LagrangeError error)
+PredictorSlrCPF::PredictionError PredictorSlrCPF::convertLagInterpError(dpbase::stats::types::LagrangeError error)
 {
     PredictorSlrCPF::PredictionError cpf_error = PredictionError::OTHER_ERROR;
     switch (error)
     {
-    case stats::types::LagrangeError::NOT_ERROR :
+    case dpbase::stats::types::LagrangeError::NOT_ERROR :
         cpf_error = PredictionError::NOT_ERROR; break;
-    case stats::types::LagrangeError::NOT_IN_THE_MIDDLE :
+    case dpbase::stats::types::LagrangeError::NOT_IN_THE_MIDDLE :
         cpf_error = PredictionError::INTERPOLATION_NOT_IN_THE_MIDDLE; break;
-    case stats::types::LagrangeError::X_OUT_OF_BOUNDS :
+    case dpbase::stats::types::LagrangeError::X_OUT_OF_BOUNDS :
         cpf_error = PredictionError::X_INTERPOLATED_OUT_OF_BOUNDS; break;
-    case stats::types::LagrangeError::DATA_SIZE_MISMATCH :
+    case dpbase::stats::types::LagrangeError::DATA_SIZE_MISMATCH :
         cpf_error = PredictionError::INTERPOLATION_DATA_SIZE_MISMATCH; break;
     }
     return cpf_error;

@@ -51,12 +51,15 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
 #include "LibDegorasSLR/Astronomical/types/star.h"
-
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/units/strong_units.h"
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -67,22 +70,22 @@ namespace novas{
 // =====================================================================================================================
 
 LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
-                                    const geo::types::SurfaceLocation<math::units::Degrees>& loc,
-                                    const timing::types::HRTimePointStd& tp,
+                                    const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc,
+                                    const dpbase::timing::types::HRTimePointStd& tp,
                                     bool refraction,
                                     types::AltAzPos& pos,
                                     int leap_secs = 0,
                                     double ut1_utc_diff = 0);
 
 LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
-                                    const geo::types::SurfaceLocation<math::units::Degrees>& loc,
-                                    const timing::dates::JDateTime& jdt,
+                                    const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc,
+                                    const dpbase::timing::dates::JDateTime& jdt,
                                     bool refraction,
                                     types::AltAzPos& pos,
                                     int leap_secs = 0,
                                     double ut1_utc_diff = 0);
 
-LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::SurfaceLocation<math::units::Degrees>& loc);
+LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc);
 
 LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::GeodeticPointDeg& geod,
                                                   const geo::types::MeteoData& meteo);

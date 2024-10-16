@@ -45,9 +45,13 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -62,14 +66,14 @@ struct LIBDPSLR_EXPORT LocalStarPosition
     // Default constructor and destructor, copy and movement constructor and operators.
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(LocalStarPosition)
 
-    LocalStarPosition(const timing::dates::JDateTime& jdt,
+    LocalStarPosition(const dpbase::timing::dates::JDateTime& jdt,
                  const astro::types::AltAzPos& altaz_coord) :
         jdt(jdt),
         altaz_coord(altaz_coord)
     {}
 
     // Containers.
-    timing::dates::JDateTime jdt;   ///< Julian Datetime associated to the star coordinates.
+    dpbase::timing::dates::JDateTime jdt;   ///< Julian Datetime associated to the star coordinates.
     types::AltAzPos altaz_coord;        ///< Star altazimuth coordinates referenced to an observer (degrees).
 };
 

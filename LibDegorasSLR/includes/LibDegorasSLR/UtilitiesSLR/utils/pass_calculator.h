@@ -76,7 +76,7 @@ struct LIBDPSLR_EXPORT SpaceObjectPassStep
     {}
 
     predictors::PredictionSLR slr_pred;  ///< Full SLR prediction computed data.
-    timing::dates::MJDateTime mjdt;      ///< Modified julian datetime asociated to the step.
+    dpbase::timing::dates::MJDateTime mjdt;      ///< Modified julian datetime asociated to the step.
     astro::types::AltAzPos altaz_coord;  ///< Fast access to InstantData local computed altazimuth coords in degrees.
     ///@warning If step is too wide, rates could be incorrect.
     long double azim_rate;               ///< Azimuth rate of step in deg/s. It is the velocity change in abs. value.
@@ -108,8 +108,8 @@ struct LIBDPSLR_EXPORT SpaceObjectPass
         return predictions;
     }
 
-    math::units::MillisecondsU time_step;    ///< Interval between two steps in milliseconds.
-    math::units::DegreesU min_elev;          ///< Minimum elevation for pass.
+    dpbase::math::units::MillisecondsU time_step;    ///< Interval between two steps in milliseconds.
+    dpbase::math::units::DegreesU min_elev;          ///< Minimum elevation for pass.
     std::vector<SpaceObjectPassStep> steps;  ///< Steps of the pass.
 
     bool start_trimmed = false;              ///< True if start was trimmed due to time limitation.
@@ -144,30 +144,30 @@ public:
      * @param min_elev   Minimum elevation of the pass in degrees. By default is 0, i.e., above the horizon.
      * @param time_step  Interval between two steps of the pass in milliseconds.
      */
-    PassCalculator(predictors::PredictorSlrPtr predictor, math::units::DegreesU min_elev = 0,
-                   math::units::MillisecondsU time_step = 1000.0L);
+    PassCalculator(predictors::PredictorSlrPtr predictor, dpbase::math::units::DegreesU min_elev = 0,
+                   dpbase::math::units::MillisecondsU time_step = 1000.0L);
 
 
     /**
      * @brief Setter for minimum elevation.
      * @param min_elev the minimum elevation in degrees.
      */
-    void setMinElev(math::units::DegreesU min_elev);
+    void setMinElev(dpbase::math::units::DegreesU min_elev);
     /**
      * @brief Getter for minimum elevation.
      * @return The minimum elevation in degrees.
      */
-    math::units::DegreesU minElev() const;
+    dpbase::math::units::DegreesU minElev() const;
     /**
      * @brief Setter for time_step.
      * @param time_step  The time_step for interpolation in seconds.
      */
-    void setTimeStep(math::units::MillisecondsU time_step);
+    void setTimeStep(dpbase::math::units::MillisecondsU time_step);
     /**
      * @brief Getter for interval.
      * @return The interval for interpolation in seconds.
      */
-    math::units::MillisecondsU getTimeStep() const;
+    dpbase::math::units::MillisecondsU getTimeStep() const;
 
     /**
      * @brief Get passes within the given interval of time.
@@ -176,8 +176,8 @@ public:
      * @param passes     The returned passes, or empty if no pass was found.
      * @return The result of the operation.
      */
-    ResultCode getPasses(const timing::dates::MJDateTime &mjd_start,
-                         const timing::dates::MJDateTime &mjd_end,
+    ResultCode getPasses(const dpbase::timing::dates::MJDateTime &mjd_start,
+                         const dpbase::timing::dates::MJDateTime &mjd_end,
                          std::vector<SpaceObjectPass> &passes) const;
 
     /**
@@ -187,7 +187,7 @@ public:
      * @param pass       The data of the pass. This data is not valid if returned code is different from NOT_ERROR.
      * @return The result of the operation. If the result is different from NOT_ERROR, pass data is not valid.
      */
-    ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, SpaceObjectPass &pass) const;
+    ResultCode getNextPass(const dpbase::timing::dates::MJDateTime &mjd_start, SpaceObjectPass &pass) const;
 
 
     /**
@@ -201,20 +201,20 @@ public:
      *                     for looking for the start. After that, pass_limit is used.
      * @return The result of the operation. If the result is different from NOT_ERROR, pass data is not valid.
      */
-    ResultCode getNextPass(const timing::dates::MJDateTime &mjd_start, math::units::SecondsU pass_limit,
-                           SpaceObjectPass &pass, math::units::SecondsU search_limit = 0) const;
+    ResultCode getNextPass(const dpbase::timing::dates::MJDateTime &mjd_start, dpbase::math::units::SecondsU pass_limit,
+                           SpaceObjectPass &pass, dpbase::math::units::SecondsU search_limit = 0) const;
 
     /**
      * @brief Checks is a given time is inside a pass.
      * @param mjd  The MJ datetime to check.
      * @return True if the datetime is inside of a pass, false if there was some error or the datetime is not inside a pass.
      */
-    bool isInsidePass(const timing::dates::MJDateTime& mjd) const;
+    bool isInsidePass(const dpbase::timing::dates::MJDateTime& mjd) const;
 
 private:
 
-    math::units::DegreesU min_elev_;
-    math::units::MillisecondsU time_step_;
+    dpbase::math::units::DegreesU min_elev_;
+    dpbase::math::units::MillisecondsU time_step_;
     predictors::PredictorSlrPtr predictor_;
 };
 

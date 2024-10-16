@@ -43,10 +43,14 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
+#include "LibDegorasBase/Timing/types/base_time_types.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -179,7 +183,7 @@ public:
     {
         // Members.
         float crd_version;                           /// CRD version. We store the subversion, for example 2.1
-        timing::types::HRTimePointStd crd_production_date;  /// File production date. Will update if we call generate line.
+        dpbase::timing::types::HRTimePointStd crd_production_date;  /// File production date. Will update if we call generate line.
         // Functions.
         std::string generateLine();                  // Also regenerate the crd_production_date.
     };
@@ -220,8 +224,8 @@ public:
     {
         // Members.
         DataType data_type;             /// Data type (full rate, normal point or sampled engineering).
-        timing::types::HRTimePointStd start_time;  /// Object tracking session start time.
-        timing::types::HRTimePointStd end_time;    /// Object tracking session end time.
+        dpbase::timing::types::HRTimePointStd start_time;  /// Object tracking session start time.
+        dpbase::timing::types::HRTimePointStd end_time;    /// Object tracking session end time.
         unsigned data_release;              /// Data release. Remember updating when you edit the CRD data.
         bool trop_correction_applied;       /// Tropospheric refraction correction applied flag.
         bool com_correction_applied;        /// Center of mass correction applied flag.
@@ -239,7 +243,7 @@ public:
     {
         // Members.
         PredictionType prediction_type;                   /// Can be CPF or TLE (forbbiden for ILRS).
-        timing::types::HRTimePointStd file_creation_time; /// CPF: MMDDHH ; TLE: Field 8 (Epoch).
+        dpbase::timing::types::HRTimePointStd file_creation_time; /// CPF: MMDDHH ; TLE: Field 8 (Epoch).
         std::string prediction_provider;                  /// CPF or TLE provider
         unsigned sequence_number;                         /// CPF: daily*100+sub-daily TLE: Field 9 (epoch revolution).
         // Functions.
@@ -269,18 +273,18 @@ public:
     void clearPredictionHeader();
 
     // Headers getters.
-    const Optional<FormatHeader>& formatHeader() const;
-    const Optional<StationHeader>& stationHeader() const;
-    const Optional<TargetHeader>& targetHeader() const;
-    const Optional<SessionHeader>& sessionHeader() const;
-    const Optional<PredictionHeader>& predictionHeader() const;
+    const dpbase::Optional<FormatHeader>& formatHeader() const;
+    const dpbase::Optional<StationHeader>& stationHeader() const;
+    const dpbase::Optional<TargetHeader>& targetHeader() const;
+    const dpbase::Optional<SessionHeader>& sessionHeader() const;
+    const dpbase::Optional<PredictionHeader>& predictionHeader() const;
 
     // Headers getters non const.
-    Optional<FormatHeader>& formatHeader();
-    Optional<StationHeader>& stationHeader();
-    Optional<TargetHeader>& targetHeader();
-    Optional<SessionHeader>& sessionHeader();
-    Optional<PredictionHeader>& predictionHeader();
+    dpbase::Optional<FormatHeader>& formatHeader();
+    dpbase::Optional<StationHeader>& stationHeader();
+    dpbase::Optional<TargetHeader>& targetHeader();
+    dpbase::Optional<SessionHeader>& sessionHeader();
+    dpbase::Optional<PredictionHeader>& predictionHeader();
 
     // Headers setters.
     void setStationHeader(const StationHeader&);
@@ -310,11 +314,11 @@ private:
     common::RecordReadError readHeaderLine(const common::RecordLinePair& lpair);
 
     // H1, H2, H3, H4 (required), H5
-    Optional<FormatHeader> format_header;
-    Optional<StationHeader> station_header;
-    Optional<TargetHeader> target_header;
-    Optional<SessionHeader> session_header;
-    Optional<PredictionHeader> prediction_header;
+    dpbase::Optional<FormatHeader> format_header;
+    dpbase::Optional<StationHeader> station_header;
+    dpbase::Optional<TargetHeader> target_header;
+    dpbase::Optional<SessionHeader> session_header;
+    dpbase::Optional<PredictionHeader> prediction_header;
 };
 // =====================================================================================================================
 

@@ -48,9 +48,13 @@
 #include "LibDegorasSLR/Astronomical/types/star.h"
 #include "LibDegorasSLR/Astronomical/predictors/data/prediction_star.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/units/strong_units.h"
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -82,7 +86,7 @@ public:
      * @param ut1_utc_diff  The difference between UT1 and UTC time systems to apply.
      */
     PredictorStarBase(const astro::types::Star& star,
-                      const geo::types::SurfaceLocation<math::units::Degrees>& loc,
+                      const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc,
                       int leap_secs = 0, double ut1_utc_diff = 0);
 
     /**
@@ -117,7 +121,7 @@ public:
      * @param refraction  True if refraction model is to be applied, false otherwise.
      * @return The resulting PredictionStar.
      */
-    virtual PredictionStar predict(const timing::dates::JDateTime& jdt, bool refraction) const = 0;
+    virtual PredictionStar predict(const dpbase::timing::dates::JDateTime& jdt, bool refraction) const = 0;
 
     /**
      * @brief Predicts star positions within a time range with a specified time step.
@@ -130,9 +134,9 @@ public:
      *
      * @throws std::invalid_argument If the interval is invalid.
      */
-    virtual PredictionStarV predict(const timing::dates::JDateTime& jdt_start,
-                                    const timing::dates::JDateTime& jdt_end,
-                                    const math::units::MillisecondsU& step, bool refraction) const;
+    virtual PredictionStarV predict(const dpbase::timing::dates::JDateTime& jdt_start,
+                                    const dpbase::timing::dates::JDateTime& jdt_end,
+                                    const dpbase::math::units::MillisecondsU& step, bool refraction) const;
 
     /**
      * @brief Checks if this predictor is ready to predict.
@@ -154,7 +158,7 @@ public:
 protected:
 
     types::Star star_;
-    geo::types::SurfaceLocation<math::units::Degrees> loc_;
+    geo::types::SurfaceLocation<dpbase::math::units::Degrees> loc_;
     int leap_secs_;
     double ut1_utc_diff_;
 };

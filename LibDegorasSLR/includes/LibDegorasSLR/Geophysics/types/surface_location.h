@@ -49,7 +49,11 @@
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -61,8 +65,8 @@ namespace types{
 
 template <typename AngleType,
          typename = typename std::enable_if<
-         std::is_same<AngleType, math::units::Degrees>::value ||
-         std::is_same<AngleType, math::units::Radians>::value>::type>
+         std::is_same<AngleType, dpbase::math::units::Degrees>::value ||
+         std::is_same<AngleType, dpbase::math::units::Radians>::value>::type>
 struct LIBDPSLR_EXPORT SurfaceLocation
 {
     M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(SurfaceLocation)

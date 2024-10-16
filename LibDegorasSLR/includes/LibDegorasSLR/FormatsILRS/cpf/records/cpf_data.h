@@ -46,14 +46,18 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Timing/dates/base_date_types.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
-#include "LibDegorasSLR/Mathematics/types/vector3d.h"
-#include "LibDegorasSLR/Mathematics/units/strong_units.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_velocity.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/dates/base_date_types.h"
+#include "LibDegorasBase/Timing/types/base_time_types.h"
+#include "LibDegorasBase/Mathematics/types/vector3d.h"
+#include "LibDegorasBase/Mathematics/units/strong_units.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -119,8 +123,8 @@ public:
 
         // Members.
         DirectionFlag dir_flag;                ///< Direction flag.
-        timing::dates::MJDate mjd;             ///< Modified Julian Date.
-        timing::types::SoD sod;                ///< Second of day (UTC).
+        dpbase::timing::dates::MJDate mjd;             ///< Modified Julian Date.
+        dpbase::timing::types::SoD sod;                ///< Second of day (UTC).
         int leap_second;                       ///< Leap second flag (0 or the value of new leap second).
         geo::types::GeocentricPoint geo_pos;   ///< Object geocentric position in meters (x, y, z).
 
@@ -174,8 +178,8 @@ public:
 
         // Members.
         DirectionFlag dir_flag; ///<< Direction flag.
-        math::types::Vector3D<math::units::Meters> aberration_correction; ///<< Stellar aberration correction (meters).
-        math::units::Nanoseconds range_correction; ///<< Relativistic range correction in nanoseconds (positive).
+        dpbase::math::types::Vector3D<dpbase::math::units::Meters> aberration_correction; ///<< Stellar aberration correction (meters).
+        dpbase::math::units::Nanoseconds range_correction; ///<< Relativistic range correction in nanoseconds (positive).
 
         /**
          * @brief Generate the line for this record.

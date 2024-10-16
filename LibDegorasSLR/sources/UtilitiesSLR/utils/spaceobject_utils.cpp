@@ -29,8 +29,12 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/UtilitiesSLR/utils/spaceobject_utils.h"
-#include "LibDegorasSLR/Helpers/string_helpers.h"
-#include "LibDegorasSLR/Mathematics/utils/math_utils.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Mathematics/utils/math_utils.h"
+#include "LibDegorasBase/Helpers/string_helpers.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -59,7 +63,7 @@ std::string cosparToShortcospar(const std::string& cospar)
 {
     std::string short_cospar = cospar.substr(2);
     short_cospar.erase(short_cospar.find('-'),1);
-    return helpers::strings::toUpper(short_cospar);
+    return dpbase::helpers::strings::toUpper(short_cospar);
 }
 
 std::string shortcosparToILRSID(const std::string& short_cospar)
@@ -111,7 +115,7 @@ std::string shortcosparToCospar(const std::string& short_cospar)
 
     // Append the numbers and letters
     cospar.append(year_cent_str + '-' + short_cospar.substr(2));
-    return helpers::strings::toUpper(cospar);
+    return dpbase::helpers::strings::toUpper(cospar);
 }
 
 std::string ilrsidToShortcospar(const std::string& ilrsid)
@@ -133,7 +137,7 @@ std::string ilrsidToShortcospar(const std::string& ilrsid)
 
     do
     {
-        auto res = dpslr::math::euclidDiv(num - 1, 26);
+        auto res = dpbase::math::euclidDiv(num - 1, 26);
         num = res.q;
         letters.push_back('A' + static_cast<char>(res.r));
     } while(num > 0);

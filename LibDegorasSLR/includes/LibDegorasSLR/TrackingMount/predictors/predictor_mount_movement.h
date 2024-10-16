@@ -42,12 +42,16 @@
 #include "LibDegorasSLR/TrackingMount/predictors/data/mount_tracking_movement.h"
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/predictors/predictor_sun_base.h"
-#include "LibDegorasSLR/Timing/types/base_time_types.h"
 #include "LibDegorasSLR/TrackingMount/types/mount_position.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer_config.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analysis.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/movement_analyzer.h"
 #include "LibDegorasSLR/TrackingMount/predictors/data/prediction_mount_movement.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Timing/types/base_time_types.h"
 // =====================================================================================================================
 
 // C++ INCLUDES
@@ -97,7 +101,7 @@ public:
      * @return the result of the operation. Must be checked to ensure the position is valid.
 
      */
-    PredictionMountMovement predict(const timing::types::HRTimePointStd& tp) const;
+    PredictionMountMovement predict(const dpbase::timing::types::HRTimePointStd& tp) const;
 
 
 private:
@@ -109,7 +113,7 @@ private:
 
     bool checkPositions(const types::MountPositionV& positions) const;
 
-    astro::types::AltAzPos interpPos(const timing::types::HRTimePointStd &tp) const;
+    astro::types::AltAzPos interpPos(const dpbase::timing::types::HRTimePointStd &tp) const;
 
 
     // Private members.

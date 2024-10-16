@@ -48,7 +48,7 @@ namespace dpslr{
 namespace astro{
 namespace types{
 
-LocalSunPosition::LocalSunPosition(const timing::dates::J2000DateTime &j2000, const AltAzPos &altaz_coord) :
+LocalSunPosition::LocalSunPosition(const dpbase::timing::dates::J2000DateTime &j2000, const AltAzPos &altaz_coord) :
     j2dt(j2000),
     altaz_coord(altaz_coord)
 {}

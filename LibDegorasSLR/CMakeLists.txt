@@ -1,7 +1,7 @@
 # **********************************************************************************************************************
 #    LibDegorasSLR (Degoras Project SLR Library).
 #
-#    A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware
+#    A modern and efficient C++ library for Satellite Laser Ranging (SLR) software and real-time hardware
 #    related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy
 #    Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!
 #
@@ -56,7 +56,7 @@ macro_cmakemodules_init()
 
 # Base project configuration.
 set(LIB_NAME LibDegorasSLR)
-set(LIB_VER 1.9.5)
+set(LIB_VER 1.9.6)
 set(LIB_BUILD_MODE Debug)
 set(LIB_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../${LIB_NAME}_product_v${LIB_VER})
 set(LIB_LANGUAGES CXX C)
@@ -87,6 +87,10 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
 set(LIB_INCLUDES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/includes/)
 set(LIB_SOURCES_DIR ${CMAKE_SOURCE_DIR}/sources)
 
+# Configure the LibDegorasBase package.
+include(ConfigLibDegorasBase)
+macro_configure_libdegorasbase_default("1.0.1" EXACT "" "")
+
 # Configure the LibNovasCPP package.
 include(ConfigLibNovasCpp)
 macro_configure_libnovascpp_default("3.1.1" EXACT "" "")
@@ -111,6 +115,9 @@ source_group("Alias Files" FILES ${ALIAS})
 # Setup the shared library.
 macro_setup_shared_lib("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${LIB_VER}"
                        ${SOURCES1} ${SOURCES2} ${HEADERS} ${TEMPLTS} ${INL} ${ALIAS})
+
+# Link with LibDegorasBase.
+macro_link_libdegorasbase_default(${LIB_NAME} PUBLIC)
 
 # Link with LibNovasCPP.
 macro_link_libnovascpp_default(${LIB_NAME})
@@ -142,7 +149,7 @@ endif()
 # INSTALLATION PROCESS
 
 # External libs locations.
-set(ext_libs_loc ${LibNovasCpp_LOCATION_DIR})
+set(ext_libs_loc ${LibDegorasBase_LOCATION_DIR} ${LibNovasCpp_LOCATION_DIR})
 
 # Installation process.
 macro_default_library_installation("${LIB_NAME}" "${LIB_INCLUDES_DIR}" "${ext_libs_loc}")

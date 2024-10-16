@@ -12,7 +12,7 @@
 // Namespace of the LibDPSLR library.
 using namespace dpslr::algoslr::utils;
 using namespace dpslr::geo::common;
-using namespace dpslr::math::units;
+using namespace dpbase::math::units;
 
 // SFEL station geodetic and geocentric coordinates (degrees).
 static long double lat = 36.46525556L, lon = 353.79469440L, alt = 98.177L;
@@ -59,7 +59,7 @@ int main(int, char**)
     // fractional part.
 
     // We will use date at 2023/05/29 - 12:00 p.m. for the example cpf
-    timing::commong::MJDType mjd = 60093;
+    dpbase::timing::commong::MJDType mjd = 60093;
     unsigned int sod = 43200;
     double sod_fract = 0;
     long double sod_with_fract;

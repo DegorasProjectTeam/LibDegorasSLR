@@ -42,7 +42,11 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/types/local_sun_position.h"
 #include "LibDegorasSLR/TrackingMount/types/mount_position.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -53,7 +57,7 @@ namespace utils{
 // =====================================================================================================================
 
 // ---------------------------------------------------------------------------------------------------------------------
-using namespace math::units::literals;
+using namespace dpbase::math::units::literals;
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**

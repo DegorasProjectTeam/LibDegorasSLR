@@ -39,12 +39,16 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
-#include "LibDegorasSLR/Timing/dates/datetime_types.h"
 #include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
 #include "LibDegorasSLR/Astronomical/types/local_sun_position.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/mount_position_analyzed.h"
 #include "LibDegorasSLR/TrackingMount/utils/movement_analyzer/sun_collision_sector.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
+#include "LibDegorasBase/Timing/dates/datetime_types.h"
 // =====================================================================================================================
 
 // LIBDEGORASSLR NAMESPACES
@@ -76,13 +80,13 @@ struct LIBDPSLR_EXPORT MovementAnalysis
     {}
 
     // Time data.
-    timing::dates::MJDateTime mjdt_start;     ///< Movement start Modified Julian Datetime.
-    timing::dates::MJDateTime mjdt_end;       ///< Movement end Modified Julian Datetime.
+    dpbase::timing::dates::MJDateTime mjdt_start;     ///< Movement start Modified Julian Datetime.
+    dpbase::timing::dates::MJDateTime mjdt_end;       ///< Movement end Modified Julian Datetime.
 
     // Position data.
     astro::types::AltAzPos start_coord;       ///< Movement start altazimuth coordinates.
     astro::types::AltAzPos end_coord;         ///< Movement end altazimuth  coordinates.
-    math::units::Degrees max_el;              ///< Movement maximum elevation in degrees.
+    dpbase::math::units::Degrees max_el;              ///< Movement maximum elevation in degrees.
     // TODO Track Max speed.
 
     // Data containers.

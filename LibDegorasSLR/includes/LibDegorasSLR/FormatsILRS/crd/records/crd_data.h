@@ -44,9 +44,13 @@
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Helpers/common_aliases_macros.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_types.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -187,8 +191,8 @@ public:
         FilterFlag filter_flag;                      // Indicates the filter type of this record.
         unsigned int detector_channel;                   // 0 for na or all, 1-4 for quadrant, 1-n for many channels.
         unsigned int stop_number;                        // For multiple stop numbers.
-        Optional<unsigned> receive_amp;   // Linear scale value.                               [optional]
-        Optional<unsigned> transmit_amp;  // Linear scale value.                      [For v2] [optional]
+        dpbase::Optional<unsigned> receive_amp;   // Linear scale value.                               [optional]
+        dpbase::Optional<unsigned> transmit_amp;  // Linear scale value.                      [For v2] [optional]
         // Functions.
         std::string generateLine(float version) const;
     };
@@ -203,13 +207,13 @@ public:
         EpochEvent epoch_event;               // Indicates the time event reference.
         double window_length;                     // Seconds.
         unsigned int raw_ranges;                  // Raw ranges compressed into the normal point.
-        Optional<double> bin_rms;      // From mean of raw minus the trend function (ps).      [optional]
-        Optional<double> bin_skew;     // From mean of raw minus the trend function.           [optional]
-        Optional<double> bin_kurtosis; // From mean of raw minus the trend function.           [optional]
-        Optional<double> bin_peak;     // Bin peak - mean value (ps).    [non-standard explicit optional]
+        dpbase::Optional<double> bin_rms;      // From mean of raw minus the trend function (ps).      [optional]
+        dpbase::Optional<double> bin_skew;     // From mean of raw minus the trend function.           [optional]
+        dpbase::Optional<double> bin_kurtosis; // From mean of raw minus the trend function.           [optional]
+        dpbase::Optional<double> bin_peak;     // Bin peak - mean value (ps).    [non-standard explicit optional]
         double return_rate;                       // %
         unsigned int detector_channel;            // 0 for na or all, 1-4 for quadrant, 1-n for many channels.
-        Optional<double> snr;          // S:N Signal to noise ratio.                      [For v2] [optional]
+        dpbase::Optional<double> snr;          // S:N Signal to noise ratio.                      [For v2] [optional]
         // Functions.
         std::string generateLine(float version) const;
     };
@@ -269,9 +273,9 @@ public:
         long double time_tag;           // Second of day with clock correction. For v2, middle of pass for line 40.
         DataType data_type;         // Usually station combined for SLR/LLR.
         std::string system_cfg_id;      // System configuration ID.
-        Optional<int> data_recorded;      // Number of data recorded.                          [optional]
-        Optional<int> data_used;          // Number of data point used.                        [optional]
-        Optional<double> target_dist_1w;  // Meters, nominal, one way.                         [optional]
+        dpbase::Optional<int> data_recorded;      // Number of data recorded.                          [optional]
+        dpbase::Optional<int> data_used;          // Number of data point used.                        [optional]
+        dpbase::Optional<double> target_dist_1w;  // Meters, nominal, one way.                         [optional]
         double calibration_delay;       // Calibration system delay (ps), 1 decimal.
         double delay_shift;             // Calibration stability (ps), 1 decimal. 0 for line 41
         double rms;                     // RMS (ps)
@@ -282,7 +286,7 @@ public:
         ShiftType shift_type;       // Usually pre to post or minimum to maximum.
         unsigned int detector_channel;  // 0 for na or all, 1-4 for quadrant, 1-n for many channels.
         CalibrationSpan span;           // Span of the records.                                      [For v2] [optional]
-        Optional<double> return_rate; // %                                            [For v2] [optional]
+        dpbase::Optional<double> return_rate; // %                                            [For v2] [optional]
         bool is_overall = false;        // True: The struct is an overall cal (line 40). False: is detail cal.
 
         // Functions.
@@ -294,9 +298,9 @@ public:
     {
         std::string system_cfg_id;
         double rms;
-        Optional<double>  skew;
-        Optional<double>  kurtosis;
-        Optional<double>  peak;
+        dpbase::Optional<double>  skew;
+        dpbase::Optional<double>  kurtosis;
+        dpbase::Optional<double>  peak;
         DataQuality quality;
 
         std::string generateLine(float version) const;
@@ -333,8 +337,8 @@ public:
     const std::vector<MeteorologicalRecord> &meteorologicalRecords() const;
     const std::vector<CalibrationRecord> &realTimeCalibrationRecord() const;
     const std::vector<CalibrationRecord> &calibrationRecords() const;
-    const Optional<CalibrationRecord> &calibrationOverallRecord() const;
-    const Optional<StatisticsRecord> &statisticsRecord() const;
+    const dpbase::Optional<CalibrationRecord> &calibrationOverallRecord() const;
+    const dpbase::Optional<StatisticsRecord> &statisticsRecord() const;
 
     // Non-const getters
     std::vector<FullRateRecord> &fullRateRecords();
@@ -342,8 +346,8 @@ public:
     std::vector<MeteorologicalRecord> &meteorologicalRecords();
     std::vector<CalibrationRecord> &realTimeCalibrationRecord();
     std::vector<CalibrationRecord> &calibrationRecords();
-    Optional<CalibrationRecord> &calibrationOverallRecord();
-    Optional<StatisticsRecord> &statisticsRecord();
+    dpbase::Optional<CalibrationRecord> &calibrationOverallRecord();
+    dpbase::Optional<StatisticsRecord> &statisticsRecord();
 
     // Records individual setter methods.
     void addFullRateRecord(const FullRateRecord&);
@@ -405,8 +409,8 @@ private:
     std::vector<CalibrationRecord> cal_records;                // Calibration records (line 40 for v1, 41 for v2)
 
     // Calibration overall record (for v2) and statistics record storage.
-    Optional<CalibrationRecord> cal_overall_record;
-    Optional<StatisticsRecord> stat_record;
+    dpbase::Optional<CalibrationRecord> cal_overall_record;
+    dpbase::Optional<StatisticsRecord> stat_record;
 };
 
 // =====================================================================================================================

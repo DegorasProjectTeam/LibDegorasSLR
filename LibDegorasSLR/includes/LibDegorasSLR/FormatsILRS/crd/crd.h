@@ -278,6 +278,10 @@
 #pragma once
 // =====================================================================================================================
 
+// C++ INCLUDES
+// =====================================================================================================================
+#include <string>
+// =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
@@ -286,12 +290,11 @@
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_configuration.h"
 #include "LibDegorasSLR/FormatsILRS/crd/records/crd_data.h"
 #include "LibDegorasSLR/FormatsILRS/common/consolidated_record.h"
-#include "LibDegorasSLR/Helpers/filedir_helpers.h"
 // =====================================================================================================================
 
-// C++ INCLUDES
+// LIBDPSLR INCLUDES
 // =====================================================================================================================
-#include <string>
+#include "LibDegorasBase/Helpers/filedir_helpers.h"
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -446,7 +449,7 @@ public:
     const common::RecordReadErrorMultimap& getReadCfgErrors() const;
     const common::RecordReadErrorMultimap& getReadDataErrors() const;
     ReadFileError getLastReadError() const;
-    const Optional<common::ConsolidatedRecord>& getLastReadErrorRecord() const;
+    const dpbase::Optional<common::ConsolidatedRecord>& getLastReadErrorRecord() const;
 
     // Filename getters.
     const std::string& getSourceFilename() const;
@@ -550,7 +553,7 @@ private:
 
     // Private methods for reading records.
     // Return false if error.
-    ReadRecordResult readRecord(helpers::files::DegorasInputFileStream&, common::ConsolidatedRecord&);
+    ReadRecordResult readRecord(dpbase::helpers::files::DegorasInputFileStream&, common::ConsolidatedRecord&);
 
     // Empty.
     bool empty_;
@@ -564,7 +567,7 @@ private:
     common::RecordReadErrorMultimap read_header_errors;
     common::RecordReadErrorMultimap read_cfg_errors;
     common::RecordReadErrorMultimap read_data_errors;
-    Optional<common::ConsolidatedRecord> last_error_record_;
+    dpbase::Optional<common::ConsolidatedRecord> last_error_record_;
     ReadFileError last_read_error_;
 
     // File names and path.

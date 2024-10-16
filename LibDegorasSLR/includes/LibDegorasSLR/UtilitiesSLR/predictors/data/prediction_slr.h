@@ -55,17 +55,17 @@ namespace predictors{
  *
  * This container has all the data returned by the predictor. The InstantRange always will be disponible. The
  * rest of the data will be available or not depending on the selected computing mode. The azimuth and elevation
- * difference between receive and transmit direction at instant time paramath::units::Meters will only be available in
+ * difference between receive and transmit direction at instant time paradpbase::math::units::Meters will only be available in
  * the PredictionMode::OUTBOUND_VECTOR and PredictionMode::INBOUND_VECTOR modes. You can check the corrections
- * applied by accessing the corresponding paramath::units::Meters.
+ * applied by accessing the corresponding paradpbase::math::units::Meters.
  *
  */
 struct LIBDPSLR_EXPORT PredictionSLR
 {
     // Aliases.
-    using OptionalPicoseconds = Optional<math::units::Picoseconds>;
-    using OptionalMeters = Optional<math::units::Meters>;
-    using OptionalDegrees = Optional<math::units::Degrees>;
+    using OptionalPicoseconds = dpbase::Optional<dpbase::math::units::Picoseconds>;
+    using OptionalMeters = dpbase::Optional<dpbase::math::units::Meters>;
+    using OptionalDegrees = dpbase::Optional<dpbase::math::units::Degrees>;
     using ErrorType = std::uint32_t;
 
     // Default constructor and destructor, copy and movement constructor and operators.
@@ -73,9 +73,9 @@ struct LIBDPSLR_EXPORT PredictionSLR
 
     // SLR result containers.
     InstantRange instant_range;           ///< Result range for the instant time, always available if NOT_ERROR.
-    Optional<InstantData> instant_data;   ///< Result data for the instant time (instant vectors).
-    Optional<OutboundData> outbound_data; ///< Result data for the bounce time (outbound vectors).
-    Optional<InboundData> inbound_data;   ///< Result data for the arrival time (inbound vectors).
+    dpbase::Optional<InstantData> instant_data;   ///< Result data for the instant time (instant vectors).
+    dpbase::Optional<OutboundData> outbound_data; ///< Result data for the bounce time (outbound vectors).
+    dpbase::Optional<InboundData> inbound_data;   ///< Result data for the arrival time (inbound vectors).
 
     // Difference between receive and transmit direction at instant time.
     OptionalDegrees diff_az;   ///< Azimuth difference between outbound and instant vectors (4 decimals).
