@@ -33,9 +33,9 @@ if __name__ == "__main__":
 
     az = np.array(df['az'])
     el = np.array(df['el'])
-    az_error = np.array(df['az_error'])
-    el_error = np.array(df['el_error'])
-    rms = np.array(df['rms'])
+    az_error = np.array(df['az_error']) * 3600
+    el_error = np.array(df['el_error']) * 3600
+    rms = np.array(df['rms']) * 3600
 
     rows = 360 * factor
     cols = (max_elev - min_elev) * factor

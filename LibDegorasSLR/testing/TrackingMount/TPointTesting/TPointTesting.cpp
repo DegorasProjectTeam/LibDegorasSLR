@@ -7,10 +7,22 @@
 #include <fstream>
 #include <filesystem>
 
-int main()
+int main(int argc, char **argv)
 {
+
+
     unsigned factor = 10;
     unsigned min_elev = 10, max_elev = 85;
+
+    if (argc == 4)
+    {
+        try
+        {
+            min_elev = std::stoul(argv[1]);
+            max_elev = std::stoul(argv[2]);
+            factor = std::stoul(argv[3]);
+        } catch (...) { std::cout << "Bad parameters, using default." << std::endl; }
+    }
 
 
     if (!std::filesystem::exists("errors.csv"))
@@ -49,7 +61,7 @@ int main()
         std::vector<std::vector<double>> error_el(36000, zero_vector);
         std::vector<std::vector<double>> error_rms(36000, zero_vector);
 
-        omp_set_num_threads(8);
+    omp_set_num_threads(32);
 
         #pragma omp parallel for
         for (unsigned i = 0; i < 360 * factor; i++)
