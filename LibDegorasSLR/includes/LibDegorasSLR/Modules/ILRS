@@ -26,75 +26,12 @@
  *   along with this project. If not, see the license at < https://eupl.eu/ >.                                         *
  **********************************************************************************************************************/
 
-/** ********************************************************************************************************************
- * @file meteo_data.h
- * @author Degoras Project Team.
- * @brief Contains the definition of MeteoData structure.
- * @copyright EUPL License
-***********************************************************************************************************************/
-
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
-
-// C++ INCLUDES
-// =====================================================================================================================
-#include <vector>
-// =====================================================================================================================
-
-// LIBRARY INCLUDES
-// =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
-// =====================================================================================================================
-
-// LIBRARY INCLUDES
-// =====================================================================================================================
-#include <LibDegorasBase/Timing/dates/datetime_types.h>
-// =====================================================================================================================
-
-
-// LIBDPSLR NAMESPACES
-// =====================================================================================================================
-namespace dpslr{
-namespace geo{
-namespace types{
-// =====================================================================================================================
-
-struct LIBDPSLR_EXPORT MeteoData
-{
-    MeteoData() :
-        temperature(0.0),
-        pressure(0.0),
-        rel_humidity(0.0)
-    {}
-
-    MeteoData(double temp, double press, double hum) :
-        temperature(temp),
-        pressure(press),
-        rel_humidity(hum)
-    {}
-
-    // Members.
-    double temperature;   ///< Temperature in degrees Celsius.
-    double pressure;      ///< Pressure in millibars (mbar).
-    double rel_humidity;  ///< Relative humidity in percentage (%).
-};
-
-using MeteoDataV = std::vector<MeteoData>;
-
-
-struct LIBDPSLR_EXPORT MeteoRecord : MeteoData
-{
-    MeteoRecord();
-
-    MeteoRecord(dpbase::timing::dates::MJDateTime mjdt) : mjdt(std::move(mjdt)) {}
-    MeteoRecord(dpbase::timing::dates::MJDateTime mjdt, double temp, double press, double hum) :
-        MeteoData(temp, press, hum), mjdt(std::move(mjdt)) {}
-
-    dpbase::timing::dates::MJDateTime mjdt; ///< MJ datetime associated to the meteo data.
-};
-
-using MeteoRecordV = std::vector<MeteoRecord>;
-
-}}} // END NAMESPACES.
-// =====================================================================================================================
+#include <LibDegorasSLR/ILRS/formats/common/consolidated_types.h>
+#include <LibDegorasSLR/ILRS/formats/common/consolidated_record.h>
+#include <LibDegorasSLR/ILRS/formats/cpf/records/cpf_data.h>
+#include <LibDegorasSLR/ILRS/formats/cpf/records/cpf_header.h>
+#include <LibDegorasSLR/ILRS/formats/cpf/cpf.h>
+#include <LibDegorasSLR/ILRS/formats/crd/records/crd_data.h>
+#include <LibDegorasSLR/ILRS/formats/crd/records/crd_header.h>
+#include <LibDegorasSLR/ILRS/formats/crd/records/crd_configuration.h>
+#include <LibDegorasSLR/ILRS/formats/crd/crd.h>

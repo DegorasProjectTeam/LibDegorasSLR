@@ -1,15 +1,11 @@
 /***********************************************************************************************************************
- *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
+ *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
  *                                                                                                                     *
- *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
- *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
- *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
- *                                                                                                                     *
- *   Copyright (C) 2024 Degoras Project Team                                                                           *
+ *   Copyright (C) 2023 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDegorasSLR.                                                                               *
+ *   This file is part of LibDPSLR.                                                                                    *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -27,9 +23,9 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file meteo_data.h
+ * @file consolidated_record.h
  * @author Degoras Project Team.
- * @brief Contains the definition of MeteoData structure.
+ * @brief This file contains the definition of the struct ConsolidatedRecord.
  * @copyright EUPL License
 ***********************************************************************************************************************/
 
@@ -39,62 +35,67 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
+#include <string>
 #include <vector>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
+#include "LibDegorasSLR/ILRS/formats/common/consolidated_types.h"
 // =====================================================================================================================
 
-// LIBRARY INCLUDES
+// LIBDPBASE INCLUDES
 // =====================================================================================================================
-#include <LibDegorasBase/Timing/dates/datetime_types.h>
+#include "LibDegorasBase/Helpers/common_aliases_macros.h"
 // =====================================================================================================================
-
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace geo{
-namespace types{
+namespace ilrs{
+namespace common{
 // =====================================================================================================================
 
-struct LIBDPSLR_EXPORT MeteoData
+// --- RECORD BASE STRUCT ----------------------------------------------------------------------------------------------
+
+/**
+ * @brief Generic consolidated record in the ILRS standard consolidated formats.
+ *
+ * This structure represents a generic consolidated record in the ILRS standard consolidated formats like CPF and CRD
+ * formats. This structure contains information about the record type, the comment block, tokens, line number, etc.
+ */
+struct LIBDPSLR_EXPORT ConsolidatedRecord
 {
-    MeteoData() :
-        temperature(0.0),
-        pressure(0.0),
-        rel_humidity(0.0)
-    {}
 
-    MeteoData(double temp, double press, double hum) :
-        temperature(temp),
-        pressure(press),
-        rel_humidity(hum)
-    {}
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(ConsolidatedRecord)
 
-    // Members.
-    double temperature;   ///< Temperature in degrees Celsius.
-    double pressure;      ///< Pressure in millibars (mbar).
-    double rel_humidity;  ///< Relative humidity in percentage (%).
+    // Common members for all the records.
+    ConsolidatedFileType consolidated_type;     ///< Stores the consolidated type which belongs the record.
+    unsigned generic_record_type;               ///< For CRD: CRDRecordsTypeEnum    For CPF: CPFRecordsTypeEnum
+    std::vector<std::string> comment_block;     ///< Associated comment bloc (lines "00") for each record.
+    std::vector<std::string> tokens;            ///< For reading files or other usages. ["H1", "CRD", 2, etc]
+    dpbase::Optional<unsigned> line_number;     ///< Line number in the file, for error handling when reading files.
+
+    /**
+     * @brief Get the ID token of the record.
+     * @return The ID token as a string, or an empty string if the tokens vector is empty.
+     */
+    std::string getIdToken() const;
+
+    /**
+     * @brief Generate the comment block associated with the record.
+     * @return The generated comment block as a string.
+     */
+    std::string generateCommentBlock() const;
+
+    /**
+     * @brief Clear all member variables of the ConsolidatedRecord structure.
+     */
+    void clearAll();
 };
 
-using MeteoDataV = std::vector<MeteoData>;
+// ---------------------------------------------------------------------------------------------------------------------
 
-
-struct LIBDPSLR_EXPORT MeteoRecord : MeteoData
-{
-    MeteoRecord();
-
-    MeteoRecord(dpbase::timing::dates::MJDateTime mjdt) : mjdt(std::move(mjdt)) {}
-    MeteoRecord(dpbase::timing::dates::MJDateTime mjdt, double temp, double press, double hum) :
-        MeteoData(temp, press, hum), mjdt(std::move(mjdt)) {}
-
-    dpbase::timing::dates::MJDateTime mjdt; ///< MJ datetime associated to the meteo data.
-};
-
-using MeteoRecordV = std::vector<MeteoRecord>;
-
-}}} // END NAMESPACES.
+}}} // END NAMESPACES
 // =====================================================================================================================

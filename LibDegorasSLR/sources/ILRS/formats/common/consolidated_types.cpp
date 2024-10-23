@@ -1,15 +1,11 @@
 /***********************************************************************************************************************
- *   LibDegorasSLR (Degoras Project SLR Library).                                                                      *
+ *   LibDPSLR (Degoras Project SLR Library): A libre base library for SLR related developments.                        *                                      *
  *                                                                                                                     *
- *   A modern and efficient C++ base library for Satellite Laser Ranging (SLR) software and real-time hardware         *
- *   related developments. Developed as a free software under the context of Degoras Project for the Spanish Navy      *
- *   Observatory SLR station (SFEL) in San Fernando and, of course, for any other station that wants to use it!        *
- *                                                                                                                     *
- *   Copyright (C) 2024 Degoras Project Team                                                                           *
+ *   Copyright (C) 2023 Degoras Project Team                                                                           *
  *                      < Ángel Vera Herrera, avera@roa.es - angeldelaveracruz@gmail.com >                             *
  *                      < Jesús Relinque Madroñal >                                                                    *
  *                                                                                                                     *
- *   This file is part of LibDegorasSLR.                                                                               *
+ *   This file is part of LibDPSLR.                                                                                    *
  *                                                                                                                     *
  *   Licensed under the European Union Public License (EUPL), Version 1.2 or subsequent versions of the EUPL license   *
  *   as soon they will be approved by the European Commission (IDABC).                                                 *
@@ -27,74 +23,28 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file meteo_data.h
+ * @file consolidated_types.cpp
  * @author Degoras Project Team.
- * @brief Contains the definition of MeteoData structure.
+ * @brief This file contains the implementation of types that are common in the ILRS standard consolidated formats.
  * @copyright EUPL License
+ 2305.1
 ***********************************************************************************************************************/
-
-// =====================================================================================================================
-#pragma once
-// =====================================================================================================================
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <vector>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
-#include "LibDegorasSLR/libdegorasslr_global.h"
+#include <LibDegorasSLR/ILRS/formats/common/consolidated_types.h>
 // =====================================================================================================================
-
-// LIBRARY INCLUDES
-// =====================================================================================================================
-#include <LibDegorasBase/Timing/dates/datetime_types.h>
-// =====================================================================================================================
-
 
 // LIBDPSLR NAMESPACES
 // =====================================================================================================================
 namespace dpslr{
-namespace geo{
-namespace types{
+namespace ilrs{
+namespace common{
 // =====================================================================================================================
 
-struct LIBDPSLR_EXPORT MeteoData
-{
-    MeteoData() :
-        temperature(0.0),
-        pressure(0.0),
-        rel_humidity(0.0)
-    {}
-
-    MeteoData(double temp, double press, double hum) :
-        temperature(temp),
-        pressure(press),
-        rel_humidity(hum)
-    {}
-
-    // Members.
-    double temperature;   ///< Temperature in degrees Celsius.
-    double pressure;      ///< Pressure in millibars (mbar).
-    double rel_humidity;  ///< Relative humidity in percentage (%).
-};
-
-using MeteoDataV = std::vector<MeteoData>;
-
-
-struct LIBDPSLR_EXPORT MeteoRecord : MeteoData
-{
-    MeteoRecord();
-
-    MeteoRecord(dpbase::timing::dates::MJDateTime mjdt) : mjdt(std::move(mjdt)) {}
-    MeteoRecord(dpbase::timing::dates::MJDateTime mjdt, double temp, double press, double hum) :
-        MeteoData(temp, press, hum), mjdt(std::move(mjdt)) {}
-
-    dpbase::timing::dates::MJDateTime mjdt; ///< MJ datetime associated to the meteo data.
-};
-
-using MeteoRecordV = std::vector<MeteoRecord>;
-
-}}} // END NAMESPACES.
+}}} // END NAMESPACES
 // =====================================================================================================================

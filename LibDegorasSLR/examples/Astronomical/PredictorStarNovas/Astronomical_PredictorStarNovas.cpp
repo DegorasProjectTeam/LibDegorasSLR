@@ -40,7 +40,7 @@
 #include <LibDegorasSLR/Initialization>
 #include <LibDegorasSLR/Modules/UtilitiesSLR>
 #include <LibDegorasSLR/Modules/TrackingMount>
-#include <LibDegorasSLR/Modules/FormatsILRS>
+#include <LibDegorasSLR/Modules/ILRS>
 #include <LibDegorasSLR/Modules/Astronomical>
 // =====================================================================================================================
 
