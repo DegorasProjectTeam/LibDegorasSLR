@@ -329,10 +329,11 @@ public:
     void clearOverallCalibrationRecord();
     void clearStatisticsRecord();
 
-    // Data getters.
-    algorithms::FlightTimeData fullRateFlightTimeData() const;
-    algorithms::FlightTimeData normalPointFlightTimeData() const;
+    // Data conversion getters.
+    algorithms::FlightTimeDataV fullRateFlightTimeData() const;
+    algorithms::FlightTimeDataV normalPointFlightTimeData() const;
 
+    // CRD Data getters.
     const std::vector<FullRateRecord> &fullRateRecords() const;
     const std::vector<NormalPointRecord> &normalPointRecords() const;
     const std::vector<MeteorologicalRecord> &meteorologicalRecords() const;

@@ -107,7 +107,7 @@ enum class ResiStatsCalcErr
 struct FlightTimeData
 {
     long double ts;            ///< Timestamp of range in seconds of day.
-    long double tof;           ///< Time of flight in seconds.
+    long double tof;           ///< Time of flight 2ways in seconds.
 };
 
 using FlightTimeDataV = std::vector<FlightTimeData>;

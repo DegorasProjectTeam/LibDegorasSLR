@@ -59,100 +59,25 @@ namespace algorithms{
 // =====================================================================================================================
 
 // ========== ENUMS ====================================================================================================
+/**
+ * @brief Extracts bins present in the given time values.
+ * @param times The list of time values in seconds of day.
+ * @param bs The bin size in seconds.
+ * @param div_opt The bin division to apply at bin extracting
+ * @return The indexes included in each bin.
+ */
+std::vector<std::vector<std::size_t>> extractBins(const std::vector<long double> &times,
+                                                  double bs, BinDivisionEnum div_opt);
 
-template<typename T, typename R>
-std::vector<std::vector<std::size_t>> extractBins(const std::vector<T> &times, const std::vector<R> &resids,
-                                                  double bs, BinDivisionEnum div_opt)
-{
-    // Check the input data.
-    if (times.empty() || resids.empty() || times.size() != resids.size() || bs <= 0)
-        return {};
-
-    // Containers and auxiliar variables.
-    std::vector<std::vector<std::size_t>> bins;
-    std::vector<std::size_t> current_bin;
-
-    // Day fixed option.
-    if(div_opt == BinDivisionEnum::DAY_FIXED)
-    {
-        // Get the first bin.
-        int last_bin = static_cast<int>(std::floor(times[0]/bs) + 1);
-
-        // Generate the bins.
-        for (std::size_t i = 0; i < times.size(); i++)
-        {
-            // Get the current bin.
-            int bin = static_cast<int>(std::floor(times[i]/bs) + 1);
-
-            // Check if the current bin has changed.
-            if(last_bin != bin)
-            {
-                // New bin section.
-                last_bin = bin;
-                bins.push_back(std::move(current_bin));
-
-                // Clear the bin container.
-                current_bin = {};
-            }
-
-            // Stores the bin data.
-            current_bin.push_back(i);
-        }
-
-        // Store the last bin.
-        bins.push_back(std::move(current_bin));
-    }
-
-    // Return the bins.
-    return bins;
-}
-
-template<typename T, typename R>
-std::vector<std::vector<std::size_t>> extractBins(const ResidualsData<T,R>& data,
-                                                  double bs, BinDivisionEnum div_opt)
-{
-    // Check the input data.
-    if (data.empty() || bs <= 0)
-        return {};
-
-    // Containers and auxiliar variables.
-    std::vector<std::vector<std::size_t>> bins;
-    std::vector<std::size_t> current_bin;
-
-    // Day fixed option.
-    if(div_opt == BinDivisionEnum::DAY_FIXED)
-    {
-        // Get the first bin.
-        int last_bin = static_cast<int>(std::floor(data[0].first/bs) + 1);
-
-        // Generate the bins.
-        for (std::size_t i = 0; i < data.size(); i++)
-        {
-            // Get the current bin.
-            int bin = static_cast<int>(std::floor(data[i].first/bs) + 1);
-
-            // Check if the current bin has changed.
-            if(last_bin != bin)
-            {
-                // New bin section.
-                last_bin = bin;
-                bins.push_back(std::move(current_bin));
-
-                // Clear the bin container.
-                current_bin = {};
-            }
-
-            // Stores the bin data.
-            current_bin.push_back(i);
-        }
-
-        // Store the last bin.
-        bins.push_back(std::move(current_bin));
-    }
-
-    // Return the bins.
-    return bins;
-}
+/**
+ * @brief Extracts bins present in the given time values.
+ * @param data The list of ranges. The bins will be calculated using the timestamp of every range.
+ * @param bs The bin size in seconds.
+ * @param div_opt The bin division to apply at bin extracting
+ * @return The indexes included in each bin.
+ */
+std::vector<std::vector<std::size_t>> extractBins(const RangeDataV& data,
+                                                  double bs, BinDivisionEnum div_opt);
 
 
 /**
@@ -171,21 +96,10 @@ std::vector<std::vector<std::size_t>> extractBins(const ResidualsData<T,R>& data
  * @return The error code associated with the calculation process. See ::FullRateResCalcError for more information.
  */
 LIBDPSLR_EXPORT
-    FullRateResCalcErr calculateFullRateResiduals(const slr::predictors::PredictorSlrCPF &predictor,
-                               const dpbase::timing::dates::MJDate &mjd,
-                               const FlightTimeData& ftdata,
-                               const geo::types::MeteoDataV& meteo_records,
-                               double wl, std::size_t bs, RangeDataV& ranges);
+FullRateResCalcErr calculateFullRateResiduals(const slr::predictors::PredictorSlrCPF &predictor,
+                                              const FullRateData &fr_data,
+                                              double wl, std::size_t bs, RangeDataV& ranges);
 
-/**
- * @brief Generate residuals from full rate data. Also applies the Marini and Murray delay refraction correction.
- * @param[in]  ranges_data, the ranges data including time_tag, tof, pred_dist and trop_corr.
- * @param[in]  bs, the bin size in seconds used for detrending the residuals.
- * @param[out] rdata, the calculated residuals data. See ::ResidualsData for more information.
- * @return The error code associated with the calculation process. See ::FullRateResCalcError for more information.
- */
-LIBDPSLR_EXPORT
-FullRateResCalcErr calculateFullRateResiduals(const RangeData &ranges_data, std::size_t bs, ResidualsData<>& rdata);
 
 /**
  * @brief Generate residuals from full rate data. Also applies the Marini and Murray delay refraction correction.
@@ -198,10 +112,10 @@ FullRateResCalcErr calculateFullRateResiduals(const RangeData &ranges_data, std:
  * @return The error code associated with the calculation process. See ::FullRateResCalcError for more information.
  */
 LIBDPSLR_EXPORT
-FullRateResCalcErr calculateFullRateResiduals(const cpf::CPF& cpf, const crd::CRD& crd,
+FullRateResCalcErr calculateFullRateResiduals(const std::string &cpf_path, const crd::CRD& crd,
                                               const geo::types::GeodeticPointDeg& stat_geodetic,
                                               const geo::types::GeocentricPoint& stat_geocentric,
-                                              std::size_t bs, ResidualsData<> &rdata);
+                                              std::size_t bs, RangeDataV &ranges);
 
 /**
  * @brief Calculate distribution statistics for residuals using process described by A.T. Sinclair.
@@ -213,7 +127,7 @@ FullRateResCalcErr calculateFullRateResiduals(const cpf::CPF& cpf, const crd::CR
  * @return The error code associated with the calculation process. See ::FullRateStatsCalcError for more information.
  */
 LIBDPSLR_EXPORT
-ResiStatsCalcErr calculateResidualsStats(std::size_t bs, const ResidualsData<> &rdata,
+ResiStatsCalcErr calculateResidualsStats(std::size_t bs, const RangeDataV &rdata,
                                          ResidualsStats& stats, double rf = 2.5, double tlrnc = 0.1);
 
 
@@ -254,8 +168,7 @@ bool calcGaussianPeak(const std::vector<long double>& data, long double p0, long
  * @return Residuals with polynomial trend substracted
  */
 LIBDPSLR_EXPORT
-ResidualsData<> binPolynomialDetrend(int bs, const std::vector<long double> &times,
-                                     const std::vector<long double> &resids, unsigned int degree = 15);
+RangeDataV binPolynomialDetrend(const RangeDataV &ranges, unsigned int bs, unsigned int degree = 15);
 
 
 }}} // END NAMESPACES

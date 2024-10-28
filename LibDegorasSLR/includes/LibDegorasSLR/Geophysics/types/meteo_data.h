@@ -85,7 +85,7 @@ using MeteoDataV = std::vector<MeteoData>;
 
 struct LIBDPSLR_EXPORT MeteoRecord : MeteoData
 {
-    MeteoRecord();
+    MeteoRecord() = default;
 
     MeteoRecord(dpbase::timing::dates::MJDateTime mjdt) : mjdt(std::move(mjdt)) {}
     MeteoRecord(dpbase::timing::dates::MJDateTime mjdt, double temp, double press, double hum) :

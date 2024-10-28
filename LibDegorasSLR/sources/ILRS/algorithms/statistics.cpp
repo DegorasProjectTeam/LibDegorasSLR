@@ -55,7 +55,7 @@ namespace algorithms{
 // =====================================================================================================================
 
 FullRateResCalcErr calculateFullRateResiduals(const slr::predictors::PredictorSlrCPF &predictor,
-                                              const FullRateData& fr_data,
+                                              const FullRateData &fr_data,
                                               double wl, std::size_t bs, RangeDataV& ranges)
 {
     using slr::predictors::PredictorSlrCPF;
@@ -72,6 +72,7 @@ FullRateResCalcErr calculateFullRateResiduals(const slr::predictors::PredictorSl
     std::size_t meteo_idx = 0;
     dpbase::timing::dates::MJDate mjd = fr_data.mjd;
     geo::types::GeodeticPointRad geod = predictor.getGeodeticLocation<dpbase::math::units::Radians>();
+    RangeData range;
 
     // Vapor water pressure model.
     geo::meteo::WtrVapPressModel vwpm = geo::meteo::WtrVapPressModel::GIACOMO_DAVIS;
@@ -114,10 +115,14 @@ FullRateResCalcErr calculateFullRateResiduals(const slr::predictors::PredictorSl
 
             long double pred_2w_ps = pred_result.instant_data->tof_2w * dpbase::math::units::kSecToPs;
 
-            // Store the residual in picoseconds and the time tag in seconds.
-            rdata.push_back({ftdata[i].first, ftdata[i].second * math::kSecondToPicosecond - pred_2w_ps - corr_2w});
-            pred_dist.push_back(pred_2w_ps);
-            trop_corr.push_back(corr_2w);
+            // Store the range data.
+            range.ts = fr_data.ft_data[i].ts;
+            range.tof = fr_data.ft_data[i].tof * dpbase::math::units::kSecToPs;
+            range.pred_dist = pred_2w_ps;
+            range.trop_corr = corr_2w;
+            range.resid = range.tof - range.pred_dist - range.trop_corr;
+            ranges.push_back(std::move(range));
+            range = {};
         }
         else
             return FullRateResCalcErr::RESIDS_CALC_FAILED;
@@ -127,25 +132,17 @@ FullRateResCalcErr calculateFullRateResiduals(const slr::predictors::PredictorSl
             mjd++;
     }
 
-    std::vector<std::remove_reference_t<decltype(rdata)>::value_type::first_type> times;
-    std::vector<std::remove_reference_t<decltype(rdata)>::value_type::second_type> resid;
-    for (const auto& data : rdata)
-    {
-        times.push_back(data.first);
-        resid.push_back(data.second);
-    }
-
-    rdata = binPolynomialDetrend(bs, times, resid);
+    ranges = binPolynomialDetrend(ranges, bs);
 
     // Return no error.
     return FullRateResCalcErr::NOT_ERROR;
 }
 
 
-FullRateResCalcErr calculateFullRateResiduals(const cpf::CPF &cpf, const crd::CRD &crd,
+FullRateResCalcErr calculateFullRateResiduals(const std::string &cpf_path, const crd::CRD &crd,
                                               const geo::types::GeodeticPointDeg &stat_geodetic,
                                               const geo::types::GeocentricPoint &stat_geocentric,
-                                              std::size_t bs, ResidualsData<> &rdata)
+                                              std::size_t bs, RangeDataV &ranges)
 {
 
     // Check the CRD data.
@@ -156,22 +153,39 @@ FullRateResCalcErr calculateFullRateResiduals(const cpf::CPF &cpf, const crd::CR
     if (!crd.getConfiguration().systemConfiguration())
         return FullRateResCalcErr::CRD_CFG_NOT_VALID;
 
-    // Get the start time, meteo data and wavelength in micrometres.
-    auto mjdt = dpbase::timing::timePointToModifiedJulianDateTime(crd.getHeader().sessionHeader()->start_time);
-    auto meteo_records = crd.getData().meteorologicalRecords();
+    slr::predictors::PredictorSlrCPF predictor(cpf_path, stat_geodetic, stat_geocentric);
+    FullRateData fr_data;
+
+    // Get the start time, meteo data, flight time data and wavelength in micrometres.
+    fr_data.mjd = dpbase::timing::timePointToModifiedJulianDateTime(crd.getHeader().sessionHeader()->start_time).date();
+    fr_data.ft_data = crd.getData().fullRateFlightTimeData();
+    auto crd_meteo_records = crd.getData().meteorologicalRecords();
+    geo::types::MeteoRecordV meteo_records;
+    dpbase::timing::dates::MJDate current_mjd = fr_data.mjd;
+    dpbase::timing::types::SoD last_ts(-1);
+    for (const auto& rec : crd_meteo_records)
+    {
+        // Control day change for meteorological records
+        if (rec.time_tag < last_ts)
+        {
+            current_mjd++;
+        }
+        last_ts = rec.time_tag;
+
+        geo::types::MeteoRecord meteo_record;
+        meteo_record.pressure = rec.surface_pressure;
+        meteo_record.rel_humidity = rec.surface_relative_humidity;
+        meteo_record.temperature = rec.surface_temperature;
+        meteo_record.mjdt = dpbase::timing::dates::MJDateTime(current_mjd, dpbase::timing::types::SoD(rec.time_tag));
+    }
+    fr_data.meteo_data = std::move(meteo_records);
     double wl = crd.getConfiguration().systemConfiguration()->transmit_wavelength * 1e-3;
 
-    // Get the full rate ToF data.
-    FlightTimeData ftdata = crd.getData().fullRateFlightTimeData();
-    // TODO: predicted distance and tropospheric correction are discarded. Return?
-    std::vector<long double> dummy;
-
-    return calculateFullRateResiduals(cpf, mjdt, ftdata, meteo_records, stat_geodetic, stat_geocentric,
-                                      wl, bs, rdata, dummy, dummy);
+    return calculateFullRateResiduals(predictor, fr_data, wl, bs, ranges);
 }
 
 
-ResiStatsCalcErr calculateResidualsStats(std::size_t bs, const ResidualsData<>& rdata,
+ResiStatsCalcErr calculateResidualsStats(std::size_t bs, const RangeDataV& rdata,
                                          ResidualsStats &rstats, double rf, double tlrnc)
 {
     // Error variable.
@@ -201,7 +215,7 @@ ResiStatsCalcErr calculateResidualsStats(std::size_t bs, const ResidualsData<>& 
     for (std::size_t i = 0; i < rdata.size(); i++)
     {
         // If bin is finished, calculate statistics for it
-        if (rdata[i].first > rdata[t0].first + bs)
+        if (rdata[i].ts > rdata[t0].ts + bs)
         {
             // Calculate the statistics.
             if (BinStatsCalcErr::NOT_ERROR == calcBinStats(bin, bin_stats, rf, tlrnc))
@@ -218,7 +232,7 @@ ResiStatsCalcErr calculateResidualsStats(std::size_t bs, const ResidualsData<>& 
         }
 
         // Stores the residual in the bin.
-        bin.push_back(rdata[i].second);
+        bin.push_back(rdata[i].resid);
     }
 
     // Calculate statistics for last bin
@@ -753,53 +767,36 @@ bool calcGaussianPeak(const std::vector<long double> &data, long double p0, long
     return true;
 }
 
-FullRateResCalcErr calculateFullRateResiduals(const RangeData &ranges_data, std::size_t bs, ResidualsData<> &rdata)
+
+RangeDataV binPolynomialDetrend(const RangeDataV &ranges, unsigned int bs, unsigned int degree)
 {
+    if (ranges.empty())
+        return ranges;
 
-    // Calculate the residuals for each record
-    std::vector<std::remove_reference_t<decltype(rdata)>::value_type::first_type> times;
-    std::vector<std::remove_reference_t<decltype(rdata)>::value_type::second_type> resid;
-    for (const auto& data : ranges_data)
-    {
-        times.push_back(std::get<0>(data));
-        resid.push_back(std::get<1>(data) - std::get<2>(data) - std::get<3>(data));
-    }
+    RangeDataV result(ranges);
+    auto result_it = result.begin();
 
-    rdata = binPolynomialDetrend(bs, times, resid);
-
-    // Return no error.
-    return FullRateResCalcErr::NOT_ERROR;
-}
-
-ResidualsData<> binPolynomialDetrend(int bs, const std::vector<long double> &times,
-                                     const std::vector<long double> &resids, unsigned int degree)
-{
-    ResidualsData<> result;
-
-    if (times.empty() || resids.empty())
-        return result;
-
+    long double bin_start_ts = ranges.front().ts;
     std::vector<long double> xbin, ybin;
-    long double time_orig = times.front();
 
-    for (auto time_it = times.begin(), resid_it = resids.begin(); time_it != times.end() && resid_it != resids.end();
-         ++time_it, ++resid_it)
+    for (const auto &range : ranges)
     {
-        if (*time_it - time_orig > bs)
+        if (range.ts - bin_start_ts > bs)
         {
             auto coefs = dpbase::stats::polynomialFit(xbin, ybin, degree);
             for (auto it_x = xbin.begin(), it_y = ybin.begin(); it_x != xbin.end() && it_y != ybin.end(); ++it_x, ++it_y)
             {
-                result.push_back({*it_x, *it_y - dpbase::stats::applyPolynomial(coefs, *it_x)});
+                result_it->resid = result_it->resid - dpbase::stats::applyPolynomial(coefs, *it_x);
+                result_it++;
             }
             xbin.clear();
             ybin.clear();
-            time_orig = *time_it;
+            bin_start_ts = range.ts;
 
         }
 
-        xbin.push_back(*time_it);
-        ybin.push_back(*resid_it);
+        xbin.push_back(range.ts);
+        ybin.push_back(range.resid);
     }
 
     if (!xbin.empty() && !ybin.empty())
@@ -807,11 +804,103 @@ ResidualsData<> binPolynomialDetrend(int bs, const std::vector<long double> &tim
         auto coefs = dpbase::stats::polynomialFit(xbin, ybin, 9);
         for (auto it_x = xbin.begin(), it_y = ybin.begin(); it_x != xbin.end() && it_y != ybin.end(); ++it_x, ++it_y)
         {
-            result.push_back({*it_x, *it_y - dpbase::stats::applyPolynomial(coefs, *it_x)});
+            result_it->resid = result_it->resid - dpbase::stats::applyPolynomial(coefs, *it_x);
+            result_it++;
         }
     }
 
     return result;
+}
+
+std::vector<std::vector<std::size_t> > extractBins(const RangeDataV &data, double bs, BinDivisionEnum div_opt)
+{
+    // Check the input data.
+    if (data.empty() || bs <= 0)
+        return {};
+
+    // Containers and auxiliar variables.
+    std::vector<std::vector<std::size_t>> bins;
+    std::vector<std::size_t> current_bin;
+
+    // Day fixed option.
+    if(div_opt == BinDivisionEnum::DAY_FIXED)
+    {
+        // Get the first bin.
+        int last_bin = static_cast<int>(std::floor(data[0].ts/bs) + 1);
+
+        // Generate the bins.
+        for (std::size_t i = 0; i < data.size(); i++)
+        {
+            // Get the current bin.
+            int bin = static_cast<int>(std::floor(data[i].ts/bs) + 1);
+
+            // Check if the current bin has changed.
+            if(last_bin != bin)
+            {
+                // New bin section.
+                last_bin = bin;
+                bins.push_back(std::move(current_bin));
+
+                // Clear the bin container.
+                current_bin = {};
+            }
+
+            // Stores the bin data.
+            current_bin.push_back(i);
+        }
+
+        // Store the last bin.
+        bins.push_back(std::move(current_bin));
+    }
+
+    // Return the bins.
+    return bins;
+}
+
+std::vector<std::vector<std::size_t>> extractBins(const std::vector<long double> &times,
+                                                   double bs, BinDivisionEnum div_opt)
+{
+    // Check the input data.
+    if (times.empty() || bs <= 0)
+        return {};
+
+    // Containers and auxiliar variables.
+    std::vector<std::vector<std::size_t>> bins;
+    std::vector<std::size_t> current_bin;
+
+    // Day fixed option.
+    if(div_opt == BinDivisionEnum::DAY_FIXED)
+    {
+        // Get the first bin.
+        int last_bin = static_cast<int>(std::floor(times[0]/bs) + 1);
+
+        // Generate the bins.
+        for (std::size_t i = 0; i < times.size(); i++)
+        {
+            // Get the current bin.
+            int bin = static_cast<int>(std::floor(times[i]/bs) + 1);
+
+            // Check if the current bin has changed.
+            if(last_bin != bin)
+            {
+                // New bin section.
+                last_bin = bin;
+                bins.push_back(std::move(current_bin));
+
+                // Clear the bin container.
+                current_bin = {};
+            }
+
+            // Stores the bin data.
+            current_bin.push_back(i);
+        }
+
+        // Store the last bin.
+        bins.push_back(std::move(current_bin));
+    }
+
+    // Return the bins.
+    return bins;
 }
 
 

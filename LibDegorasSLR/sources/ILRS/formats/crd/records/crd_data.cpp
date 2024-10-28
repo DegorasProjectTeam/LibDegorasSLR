@@ -116,27 +116,40 @@ void CRDData::setCalibrationRecords(const std::vector<CRDData::CalibrationRecord
 void CRDData::setRealTimeCalibrationRecords(const std::vector<CRDData::CalibrationRecord> &rec)
 {this->rt_cal_records = rec;}
 
-algorithms::FlightTimeData CRDData::fullRateFlightTimeData() const
+
+algorithms::FlightTimeDataV CRDData::fullRateFlightTimeData() const
 {
     // Container
-    FlightTimeData data;
+    algorithms::FlightTimeDataV data;
 
-    // Get the X data (time tags).
+    // Get the flight times associated to each timestamp in the full rate records.
     std::transform(this->fullrate_records.begin(), this->fullrate_records.end(), std::back_inserter(data),
-        [](const CRDData::FullRateRecord& rec){return std::make_pair(rec.time_tag,rec.time_flight);});
+    [](const CRDData::FullRateRecord& rec)
+    {
+        algorithms::FlightTimeData ft;
+        ft.ts = rec.time_tag;
+        ft.tof = rec.time_flight;
+        return ft;
+    });
 
     // Return the container.
     return data;
 }
 
-algorithms::FlightTimeData CRDData::normalPointFlightTimeData() const
+algorithms::FlightTimeDataV CRDData::normalPointFlightTimeData() const
 {
     // Container
-    FlightTimeData data;
+    algorithms::FlightTimeDataV data;
 
-    // Get the X data (time tags).
+    // Get the flight times associated to each timestamp in the normal points records.
     std::transform(this->normalpoint_records.begin(), this->normalpoint_records.end(), std::back_inserter(data),
-        [](const CRDData::NormalPointRecord& rec){return std::make_pair(rec.time_tag,rec.time_flight);});
+    [](const CRDData::NormalPointRecord& rec)
+    {
+        algorithms::FlightTimeData ft;
+        ft.ts = rec.time_tag;
+        ft.tof = rec.time_flight;
+        return ft;
+    });
 
     // Return the container.
     return data;
