@@ -90,8 +90,18 @@ PredictorSlrCPF::PredictorSlrCPF(const std::string &cpf_path, const GeodeticPoin
     PredictorSlrBase(geod, geoc),
     interp_funct_(InterpFunction::LAGRANGE_16)
 {
-    // Set the CPF ephemerids file.
+    // Set the CPF ephemerides file.
     this->setCPF(cpf_path);
+}
+
+PredictorSlrCPF::PredictorSlrCPF(ilrs::cpf::CPF cpf,
+                                 const geo::types::GeodeticPointDeg &geod,
+                                 const geo::types::GeocentricPoint &geoc) :
+    PredictorSlrBase(geod, geoc),
+    interp_funct_(InterpFunction::LAGRANGE_16)
+{
+    // Set the CPF ephemerides file.
+    this->setCPF(std::move(cpf));
 }
 
 PredictorSlrCPF::PredictorSlrCPF(const GeodeticPointDeg &geod, const GeocentricPoint &geoc) :
@@ -101,8 +111,15 @@ PredictorSlrCPF::PredictorSlrCPF(const GeodeticPointDeg &geod, const GeocentricP
 
 bool PredictorSlrCPF::setCPF(const std::string &cpf_path)
 {
-    // Open and store the cpf.
-    this->cpf_ = CPF(cpf_path, CPF::OpenOptionEnum::ALL_DATA);
+    auto cpf = CPF(cpf_path, CPF::OpenOptionEnum::ALL_DATA);
+    return this->setCPF(std::move(cpf));
+}
+
+bool PredictorSlrCPF::setCPF(ilrs::cpf::CPF cpf)
+{
+
+    // Store the cpf.
+    this->cpf_ = std::move(cpf);
 
     // Check if the CPF was open and has data.
     if(this->cpf_.getReadError() != CPF::ReadFileErrorEnum::NOT_ERROR || !this->cpf_.hasData())
