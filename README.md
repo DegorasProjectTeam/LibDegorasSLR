@@ -10,19 +10,11 @@ WORK IN PROGRESS!!
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
 
   <h3 align="center">LibDegorasSLR - Degoras Project SLR Library</h3>
 
   <p align="center">
     A C++ libre base library for Satellite Laser Ranging (SLR) software and hardware related developments. 
-    <br />
-    <br />
-    Developed under the context of Degoras Project for the Spanish Navy Observatory SLR 
-    <br />
-    (SFEL) station in San Fernando and, of course, any other station that wants to use it!
     <br />
     <br />
     <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
