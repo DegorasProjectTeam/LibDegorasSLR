@@ -75,5 +75,33 @@ if __name__ == "__main__":
     fig3.colorbar(c, ax=ax3)
     ax3.grid()
 
+    # Every 3rd point in each direction.
+    skip = (slice(None, None, 50), slice(None, None, 50))
+    dx, dy = np.gradient(az_error)
+    fig4, ax4 = plt.subplots()
+    c = ax4.quiver(az[skip], el[skip], dx[skip], dy[skip], az_error[skip])
+    ax4.set(aspect=1, title="Azimuth errors quiver plot")
+    fig4.colorbar(c, ax=ax4)
+
+    skip = (slice(None, None, 50), slice(None, None, 50))
+    dx, dy = np.gradient(el_error)
+    fig5, ax5 = plt.subplots()
+    c = ax5.quiver(az[skip], el[skip], dx[skip], dy[skip], el_error[skip])
+    ax5.set(aspect=1, title="Elevation errors quiver plot")
+    fig5.colorbar(c, ax=ax5)
+
+    fig6, ax6 = plt.subplots(subplot_kw={'projection': 'polar'})
+    c = ax6.pcolormesh(az * (np.pi / 180), el, az_error, shading="nearest")
+    ax6.set(aspect=1, title="Azimuth errors polar heatmap")
+    fig6.colorbar(c, ax=ax6)
+    ax6.set_theta_zero_location('N')
+    ax6.set_theta_direction(-1)
+
+    fig7, ax7 = plt.subplots(subplot_kw={'projection': 'polar'})
+    c = ax7.pcolormesh(az * (np.pi / 180), el, el_error, shading="nearest")
+    ax7.set(aspect=1, title="Elevation errors polar heatmap")
+    fig7.colorbar(c, ax=ax7)
+    ax7.set_theta_zero_location('N')
+    ax7.set_theta_direction(-1)
 
     plt.show()
