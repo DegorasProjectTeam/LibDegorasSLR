@@ -91,14 +91,22 @@ if __name__ == "__main__":
     fig5.colorbar(c, ax=ax5)
 
     fig6, ax6 = plt.subplots(subplot_kw={'projection': 'polar'})
-    c = ax6.pcolormesh(az * (np.pi / 180), el, az_error, shading="nearest")
+    # Set the range for elevation (0 to 90 degrees)
+    ax6.set_ylim(0, 90)
+    ax6.set_yticks([0, 30, 60, 90])  # Customize the elevation rings
+    ax6.set_yticklabels(['90°', '60°', '30°', '0°'])
+    c = ax6.pcolormesh(az * (np.pi / 180), 90 - el, az_error, shading="nearest")
     ax6.set(aspect=1, title="Azimuth errors polar heatmap")
     fig6.colorbar(c, ax=ax6)
     ax6.set_theta_zero_location('N')
     ax6.set_theta_direction(-1)
 
     fig7, ax7 = plt.subplots(subplot_kw={'projection': 'polar'})
-    c = ax7.pcolormesh(az * (np.pi / 180), el, el_error, shading="nearest")
+    # Set the range for elevation (0 to 90 degrees)
+    ax7.set_ylim(0, 90)
+    ax7.set_yticks([0, 30, 60, 90])  # Customize the elevation rings
+    ax7.set_yticklabels(['90°', '60°', '30°', '0°'])
+    c = ax7.pcolormesh(az * (np.pi / 180), 90 - el, el_error, shading="nearest")
     ax7.set(aspect=1, title="Elevation errors polar heatmap")
     fig7.colorbar(c, ax=ax7)
     ax7.set_theta_zero_location('N')
