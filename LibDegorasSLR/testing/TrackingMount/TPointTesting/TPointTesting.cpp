@@ -1,11 +1,24 @@
 #include <LibDegorasSLR/TrackingMount/models/tpoint/tpoint_tools.h>
 
 #include <LibDegorasBase/Helpers/filedir_helpers.h>
+#include <LibDegorasBase/Helpers/string_helpers.h>
 
 #include <omp.h>
 #include <cmath>
 #include <fstream>
 #include <filesystem>
+#include <thread>
+
+struct Observation
+{
+    long double az_calc;
+    long double el_calc;
+    long double az_obs;
+    long double el_obs;
+    long double az_corrected;
+    long double el_corrected;
+
+};
 
 int main(int argc, char **argv)
 {
@@ -61,7 +74,7 @@ int main(int argc, char **argv)
         std::vector<std::vector<double>> error_el(36000, zero_vector);
         std::vector<std::vector<double>> error_rms(36000, zero_vector);
 
-    omp_set_num_threads(32);
+        omp_set_num_threads(32);
 
         #pragma omp parallel for
         for (unsigned i = 0; i < 360 * factor; i++)
@@ -97,6 +110,70 @@ int main(int argc, char **argv)
             }
         }
 
+        if (!std::filesystem::exists("errors_stars.csv"))
+        {
+            std::string path("inputs/observation.dat");
+
+            std::ifstream observation_file(path);
+            if (observation_file.is_open())
+            {
+                std::string line;
+                std::vector<std::string> tokens;
+                Observation obs;
+                std::vector<Observation> observations;
+
+                // Read all terms
+                while(std::getline(observation_file, line))
+                {
+                    dpbase::helpers::strings::split(tokens, line, " ", false);
+
+                    try
+                    {
+                        obs.az_calc = std::stold(tokens.at(0));
+                        obs.el_calc = std::stold(tokens.at(1));
+                        obs.az_obs = std::stold(tokens.at(2));
+                        obs.el_obs = std::stold(tokens.at(3));
+
+                        observations.push_back(obs);
+                    }
+                    catch(...) {}
+                }
+
+                for (auto&& o : observations)
+                {
+                    dpslr::astro::types::AltAzPos pos(o.az_calc, o.el_calc);
+                    auto corrected_pos = dpslr::mount::models::computeCorrectedByTPointPosition(coefs, pos);
+
+                    o.az_corrected = corrected_pos.az;
+                    o.el_corrected = corrected_pos.el;
+                }
+
+                std::ofstream out("errors_stars.csv");
+
+                out << "az_calc,el_calc,az_obs,el_obs,az_corrected,el_corrected" << std::endl;
+
+                out << std::setprecision(8);
+
+                for (const auto &o : observations)
+                {
+                    out << o.az_calc << "," << o.el_calc << "," << o.az_obs << "," << o.el_obs << ","
+                        << o.az_corrected << "," << o.el_corrected << std::endl;
+                }
+            }
+
+            else
+            {
+                std::cout << "Cannot open observations file. No star position correction calculated." << std::endl;
+            }
+
+        }
+        else
+        {
+            std::cout << "The file errors_stars.csv already exists. Only plotting. "
+                      << "If you want to recalculate, delete errors_stars.csv"
+                      << std::endl;
+        }
+
     }
     else
     {
@@ -104,16 +181,26 @@ int main(int argc, char **argv)
                   << std::endl;
     }
 
+
+
     std::string current_dir = dpbase::helpers::files::getCurrentDir();
 
     // Configure the python script executable.
-    std::string python_plot_script(current_dir+"/python_scripts/plot.py");
-    std::string python_cmd = "python \"" + python_plot_script + "\" " +
+    std::string python_plot_errors_script(current_dir+"/python_scripts/plot.py");
+    std::string python_cmd = "python \"" + python_plot_errors_script + "\" " +
                              std::to_string(factor) + " " + std::to_string(min_elev) + " " + std::to_string(max_elev);
 
+    std::string python_plot_error_stars_script(current_dir+"/python_scripts/plot_observations.py");
+    std::string python_cmd_stars = "python \"" + python_plot_error_stars_script;
+
     std::cout<<"Plotting data using Python helpers..."<<std::endl;
-    if(system(std::string(python_cmd).c_str()))
-        std::cout<<"Plotting failed!!"<<std::endl;
+
+    auto t1 = std::thread([&python_cmd]{std::system(std::string(python_cmd).c_str());});
+    auto t2 = std::thread([&python_cmd_stars]{std::system(std::string(python_cmd_stars).c_str());});
+
+    t1.join();
+    t2.join();
+
 
     return 0;
 }
