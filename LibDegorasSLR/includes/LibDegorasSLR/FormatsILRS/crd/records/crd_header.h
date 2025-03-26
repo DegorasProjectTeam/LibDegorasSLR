@@ -243,7 +243,7 @@ public:
     {
         // Members.
         PredictionType prediction_type;                   /// Can be CPF or TLE (forbbiden for ILRS).
-        dpbase::timing::types::HRTimePointStd file_creation_time; /// CPF: MMDDHH ; TLE: Field 8 (Epoch).
+        dpbase::timing::types::HRTimePointStd datetime;   /// CPF: starting datetime MMDDHH as in cpf H2 / TLE: Field 8 (Epoch)
         std::string prediction_provider;                  /// CPF or TLE provider
         unsigned sequence_number;                         /// CPF: daily*100+sub-daily TLE: Field 9 (epoch revolution).
         // Functions.

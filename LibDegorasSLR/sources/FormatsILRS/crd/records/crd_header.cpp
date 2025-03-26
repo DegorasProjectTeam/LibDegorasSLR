@@ -594,19 +594,19 @@ RecordReadError CRDHeader::readPredictionHeader(const ConsolidatedRecord& record
             // Set timepoint at current century
             date->tm_year -= date->tm_year % 100;
             date->tm_year += year;
-            date->tm_mon = month;
+            date->tm_mon = month - 1;
             date->tm_mday = day;
             date->tm_hour = hour;
             date->tm_min = 0;
             date->tm_sec = 0;
             std::time_t prod_date = MKGMTIME(date);
-            ph.file_creation_time = std::chrono::system_clock::from_time_t(prod_date);
+            ph.datetime = std::chrono::system_clock::from_time_t(prod_date);
         }
         else if (ph.prediction_type == PredictionType::TLE)
         {
             // Get day with fractional part
             double day = std::stod(tokens[3]);
-            ph.file_creation_time = dpbase::timing::tleDateToTimePoint(year, day);
+            ph.datetime = dpbase::timing::tleDateToTimePoint(year, day);
         }
         else
         {
@@ -867,12 +867,14 @@ std::string CRDHeader::PredictionHeader::generateLine(float version) const
         if (this->prediction_type == PredictionType::CPF)
         {
             // Get prediction file creation time.
-            std::time_t creation = std::chrono::system_clock::to_time_t(this->file_creation_time);
+            std::time_t creation = std::chrono::system_clock::to_time_t(this->datetime);
             std::tm creation_tm(*std::gmtime(&creation));
 
             // Store the data.
-            line_h5 << ' ' << creation_tm.tm_year % 100
-                    << ' ' << creation_tm.tm_mon << creation_tm.tm_mday << creation_tm.tm_hour;
+            line_h5 << ' ' << creation_tm.tm_year % 100 << ' ' << std::setfill('0')
+                    << std::setw(2) << creation_tm.tm_mon + 1
+                    << std::setw(2) << creation_tm.tm_mday
+                    << std::setw(2) << creation_tm.tm_hour;
         }
         else if (this->prediction_type == PredictionType::TLE)
         {
@@ -881,7 +883,7 @@ std::string CRDHeader::PredictionHeader::generateLine(float version) const
             long double fractional;
 
             // Calculate the fractional day.
-            dpbase::timing::timePointToTLEDate(this->file_creation_time, year, fractional);
+            dpbase::timing::timePointToTLEDate(this->datetime, year, fractional);
 
             // Store the data.
             line_h5 << std::setprecision(11)

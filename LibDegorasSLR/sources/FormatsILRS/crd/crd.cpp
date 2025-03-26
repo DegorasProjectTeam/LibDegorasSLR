@@ -159,7 +159,7 @@ std::string CRD::getStandardFilename(TargetIdOption option) const
     if(this->header.formatHeader()->crd_version >= 2 && this->header.formatHeader()->crd_version < 3)
     {
         // For non ILRS tracking.
-        if(this->header.stationHeader()->network != "ILRS")
+        if(!this->header.stationHeader()->network.empty() && this->header.stationHeader()->network != "ILRS")
             filename.append(dpbase::helpers::strings::toLower(this->header.stationHeader()->network) + '_');
     }
 

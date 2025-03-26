@@ -36,9 +36,7 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <array>
 #include <string>
-#include <vector>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
@@ -164,12 +162,15 @@ public:
     };
 
     // C5 - Software Configuration
-    // TODO
     struct SoftwareConfiguration : common::ConsolidatedRecord
     {
         // Members.
-        unsigned int detail;            // Always 0
-        std::string cfg_id;             // Software configuration ID
+        unsigned int detail;                              // Always 0
+        std::string cfg_id;                               // Software configuration ID
+        dpbase::Optional<std::string> tracking_sw;        // Tracking software. Can be more than one, comma separated
+        dpbase::Optional<std::string> tracking_sw_ver;    // Version of tracking software
+        dpbase::Optional<std::string> processing_sw;      // Processing software. Can be more than one, comma separated
+        dpbase::Optional<std::string> processing_sw_ver;  // Version of processing software
         // Functions.
         std::string generateLine(float version) const;
     };
@@ -178,8 +179,8 @@ public:
     struct MeteorologicalConfiguration : common::ConsolidatedRecord
     {
         // Members.
-        unsigned detail;                          // Always 0
-        std::string cfg_id;                       // Meteorological configuration ID
+        unsigned detail;                                  // Always 0
+        std::string cfg_id;                               // Meteorological configuration ID
         dpbase::Optional<std::string> press_manufacturer; // Pressure sensor manufacturer
         dpbase::Optional<std::string> press_model;        // Pressure sensor model
         dpbase::Optional<std::string> press_sn;           // Pressure sensor serial number
@@ -193,13 +194,19 @@ public:
         std::string generateLine(float version) const;
     };
 
-    // C7 - Calibration Configuration
-    // TODO
-    struct CalibrationConfiguration : common::ConsolidatedRecord
+    // C7 - Calibration Target Configuration
+    struct CalibrationTargetConfiguration : common::ConsolidatedRecord
     {
         // Members.
-        unsigned int detail;            // Always 0
-        std::string cfg_id;             // Calibration configuration ID
+        unsigned int detail;                              // Always 0
+        std::string cfg_id;                               // Calibration configuration ID
+        std::string target_name;                          // Name of target used for calibration
+        double distance;                                  // Surveyed distance to target (m, one way)
+        dpbase::Optional<double> error;                   // Surveyed distance error (mm)
+        dpbase::Optional<double> delays;                  // Sum of constant delays not measured (m, one way)
+        dpbase::Optional<double> energy;                  // Pulse energy (mJ)
+        dpbase::Optional<std::string> processing_sw;      // Processing software. Can be more than one, comma separated.
+        dpbase::Optional<std::string> processing_sw_ver;  // Version of processing software.
         //Functions.
         std::string generateLine(float version) const;
     };
@@ -226,7 +233,7 @@ public:
     void clearTransponderConfiguration();
     void clearSoftwareConfiguration();
     void clearMeteorologicalConfiguration();
-    void clearCalibrationConfiguration();
+    void clearCalibrationTargetConfiguration();
 
     // Configuration const getters.
     const dpbase::Optional<SystemConfiguration> &systemConfiguration() const;
@@ -236,7 +243,7 @@ public:
     const dpbase::Optional<TransponderConfiguration> &transponderConfiguration() const;
     const dpbase::Optional<SoftwareConfiguration> &softwareConfiguration() const;
     const dpbase::Optional<MeteorologicalConfiguration> &meteorologicalConfiguration() const;
-    const dpbase::Optional<CalibrationConfiguration> &calibrationConfiguration() const;
+    const dpbase::Optional<CalibrationTargetConfiguration> &calibrationTargetConfiguration() const;
 
     // Configuration no const getters.
     dpbase::Optional<SystemConfiguration> &systemConfiguration();
@@ -246,7 +253,7 @@ public:
     dpbase::Optional<TransponderConfiguration> &transponderConfiguration();
     dpbase::Optional<SoftwareConfiguration> &softwareConfiguration();
     dpbase::Optional<MeteorologicalConfiguration> &meteorologicalConfiguration();
-    dpbase::Optional<CalibrationConfiguration> &calibrationConfiguration();
+    dpbase::Optional<CalibrationTargetConfiguration> &calibrationTargetConfiguration();
 
     // Configuration setters.
     void setSystemConfiguration(const SystemConfiguration&);
@@ -256,7 +263,7 @@ public:
     void setTransponderConfiguration(const TransponderConfiguration&);
     void setSoftwareConfiguration(const SoftwareConfiguration&);
     void setMeteorologicalConfiguration(const MeteorologicalConfiguration&);
-    void setCalibrationConfiguration(const CalibrationConfiguration&);
+    void setCalibrationTargetConfiguration(const CalibrationTargetConfiguration&);
 
     // Generate CRD configuration lines.
     std::string generateConfigurationLines(float version) const;
@@ -290,7 +297,7 @@ private:
     dpbase::Optional<TransponderConfiguration> transponder_cfg;
     dpbase::Optional<SoftwareConfiguration> software_cfg;
     dpbase::Optional<MeteorologicalConfiguration> meteorological_cfg;
-    dpbase::Optional<CalibrationConfiguration> calibration_cfg;
+    dpbase::Optional<CalibrationTargetConfiguration> calibration_cfg;
 };
 
 // =====================================================================================================================

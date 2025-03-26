@@ -75,7 +75,7 @@ void CRDConfiguration::clearAll()
     this->clearTransponderConfiguration();
     this->clearSoftwareConfiguration();
     this->clearMeteorologicalConfiguration();
-    this->clearCalibrationConfiguration();
+    this->clearCalibrationTargetConfiguration();
 }
 
 void CRDConfiguration::clearSystemConfiguration() {this->system_cfg = {};}
@@ -92,7 +92,7 @@ void CRDConfiguration::clearSoftwareConfiguration() {this->software_cfg = {};}
 
 void CRDConfiguration::clearMeteorologicalConfiguration() {this->meteorological_cfg = {};}
 
-void CRDConfiguration::clearCalibrationConfiguration() {this->calibration_cfg = {};}
+void CRDConfiguration::clearCalibrationTargetConfiguration() {this->calibration_cfg = {};}
 
 const dpbase::Optional<CRDConfiguration::SystemConfiguration>& CRDConfiguration::systemConfiguration() const
 {return this->system_cfg;}
@@ -115,8 +115,8 @@ const dpbase::Optional<CRDConfiguration::SoftwareConfiguration>& CRDConfiguratio
 const dpbase::Optional<CRDConfiguration::MeteorologicalConfiguration>& CRDConfiguration::meteorologicalConfiguration() const
 {return  this->meteorological_cfg;}
 
-const dpbase::Optional<CRDConfiguration::CalibrationConfiguration>& CRDConfiguration::calibrationConfiguration() const
-{return  this->calibration_cfg;}
+const dpbase::Optional<CRDConfiguration::CalibrationTargetConfiguration>&
+CRDConfiguration::calibrationTargetConfiguration() const {return  this->calibration_cfg;}
 
 dpbase::Optional<CRDConfiguration::SystemConfiguration>& CRDConfiguration::systemConfiguration()
 {return this->system_cfg;}
@@ -139,7 +139,7 @@ dpbase::Optional<CRDConfiguration::SoftwareConfiguration>& CRDConfiguration::sof
 dpbase::Optional<CRDConfiguration::MeteorologicalConfiguration>& CRDConfiguration::meteorologicalConfiguration()
 {return this->meteorological_cfg;}
 
-dpbase::Optional<CRDConfiguration::CalibrationConfiguration>& CRDConfiguration::calibrationConfiguration()
+dpbase::Optional<CRDConfiguration::CalibrationTargetConfiguration>& CRDConfiguration::calibrationTargetConfiguration()
 {return this->calibration_cfg;}
 
 void CRDConfiguration::setSystemConfiguration(const CRDConfiguration::SystemConfiguration& sc) {this->system_cfg = sc;}
@@ -160,7 +160,7 @@ void CRDConfiguration::setSoftwareConfiguration(const CRDConfiguration::Software
 void CRDConfiguration::setMeteorologicalConfiguration(const CRDConfiguration::MeteorologicalConfiguration& mc)
 {this->meteorological_cfg = mc;}
 
-void CRDConfiguration::setCalibrationConfiguration(const CRDConfiguration::CalibrationConfiguration& cc)
+void CRDConfiguration::setCalibrationTargetConfiguration(const CRDConfiguration::CalibrationTargetConfiguration& cc)
 {this->calibration_cfg = cc;}
 
 std::string CRDConfiguration::generateConfigurationLines(float version) const
@@ -544,10 +544,58 @@ RecordReadError CRDConfiguration::readTransponderCFG(
 
 // Specific function for reading C5.
 RecordReadError CRDConfiguration::readSoftwareCFG(
-        const ConsolidatedRecord&, float)
+        const ConsolidatedRecord& record, float version)
 {
-    // TODO
-    return RecordReadError::NOT_IMPLEMENTED;
+    // Variables.
+    RecordReadError result = RecordReadError::NOT_ERROR;
+
+    // Get the tokens.
+    std::vector<std::string> tokens = record.tokens;
+
+    // Delete the current data.
+    this->clearSoftwareConfiguration();
+
+    // Check if size is correct.
+    if (tokens.size() != 7)
+        result = RecordReadError::BAD_SIZE;
+    // Check if the record type is correct.
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) !=
+             CfgIdStr[static_cast<int>(ConfigurationLine::SOFTWARE_CFG)])
+        result = RecordReadError::BAD_TYPE;
+    // Check if version is at least 2.
+    else if (version < 2.f)
+        result = RecordReadError::VERSION_MISMATCH;
+
+    // All ok at this momment.
+    else
+        try
+        {
+            // New format header struct.
+            SoftwareConfiguration swc;
+
+            // Get the data.
+            swc.detail = std::stoi(tokens[1]);
+            swc.cfg_id = tokens[2];
+            swc.tracking_sw = tokens[3];
+            swc.tracking_sw_ver = tokens[4];
+            swc.processing_sw = tokens[5];
+            swc.processing_sw_ver = tokens[6];
+
+            // Add the associated comments, the line number, and the tokens.
+            swc.comment_block = record.comment_block;
+            swc.line_number = record.line_number;
+            swc.tokens = record.tokens;
+
+            // Store the timing configuration struct
+            this->software_cfg = std::move(swc);
+
+        } catch (...)
+        {
+            result = RecordReadError::CONVERSION_ERROR;
+        }
+
+    // Return the result.
+    return result;
 }
 
 // Specific function for reading C6.
@@ -567,10 +615,11 @@ RecordReadError CRDConfiguration::readMeteoCFG(
     if (tokens.size() != 12)
         result = RecordReadError::BAD_SIZE;
     // Check if the record type is correct.
-    else if (dpbase::helpers::strings::toUpper(tokens[0]) != CfgIdStr[static_cast<int>(ConfigurationLine::METEOROLOGICAL_CFG)])
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) !=
+             CfgIdStr[static_cast<int>(ConfigurationLine::METEOROLOGICAL_CFG)])
         result = RecordReadError::BAD_TYPE;
-    // Check if version is 2, since it does not exist in version 1
-    else if (version < 2 || version >= 3)
+    // Check if version is at least 2.
+    else if (version < 2.f)
         result = RecordReadError::VERSION_MISMATCH;
 
     // All ok at this momment.
@@ -611,10 +660,64 @@ RecordReadError CRDConfiguration::readMeteoCFG(
 }
 
 // Specific function for reading C7.
-RecordReadError CRDConfiguration::readCalibrationCFG(const ConsolidatedRecord&, float)
+RecordReadError CRDConfiguration::readCalibrationCFG(const ConsolidatedRecord &record, float version)
 {
-    // TODO
-    return RecordReadError::NOT_IMPLEMENTED;
+    // Variables.
+    RecordReadError result = RecordReadError::NOT_ERROR;
+
+    // Get the tokens.
+    std::vector<std::string> tokens = record.tokens;
+
+    // Delete the current data.
+    this->clearCalibrationTargetConfiguration();
+
+    // Check if size is correct.
+    if (tokens.size() != 10)
+        result = RecordReadError::BAD_SIZE;
+    // Check if the record type is correct.
+    else if (dpbase::helpers::strings::toUpper(tokens[0]) !=
+             CfgIdStr[static_cast<int>(ConfigurationLine::CALIBRATION_CFG)])
+        result = RecordReadError::BAD_TYPE;
+    // Check if version is at least 2.
+    else if (version < 2.f)
+        result = RecordReadError::VERSION_MISMATCH;
+
+    // All ok at this momment.
+    else
+        try
+        {
+            // New format header struct.
+            CalibrationTargetConfiguration ctc;
+
+            // Get the data.
+            ctc.detail = std::stoi(tokens[1]);
+            ctc.cfg_id = tokens[2];
+            ctc.target_name = tokens[3];
+            ctc.distance = std::stod(tokens[4]);
+            if (tokens[5] != "na")
+                ctc.error = std::stod(tokens[5]);
+            if (tokens[6] != "na")
+                ctc.delays = std::stod(tokens[6]);
+            if (tokens[7] != "na")
+                ctc.energy = std::stod(tokens[7]);
+            ctc.processing_sw = tokens[8];
+            ctc.processing_sw_ver = tokens[9];
+
+            // Add the associated comments, the line number, and the tokens.
+            ctc.comment_block = record.comment_block;
+            ctc.line_number = record.line_number;
+            ctc.tokens = record.tokens;
+
+            // Store the timing configuration struct
+            this->calibration_cfg = std::move(ctc);
+
+        } catch (...)
+        {
+            result = RecordReadError::CONVERSION_ERROR;
+        }
+
+    // Return the result.
+    return result;
 }
 
 // Generic function for reading single configuration line.
@@ -809,11 +912,23 @@ std::string CRDConfiguration::TransponderConfiguration::generateLine(float) cons
     return line_c4.str();
 }
 
-std::string CRDConfiguration::SoftwareConfiguration::generateLine(float) const
+std::string CRDConfiguration::SoftwareConfiguration::generateLine(float version) const
 {
-    // TODO
+    // TODO ADD THE "na" decision to the documentation.
     // Base line
     std::stringstream line_c5;
+
+    // For version 2.
+    if (version >= 2 && version < 3)
+    {
+        line_c5 << "C5"
+                << ' ' << this->detail
+                << ' ' << this->cfg_id
+                << ' ' << (this->tracking_sw ? this->tracking_sw.value() : "na")
+                << ' ' << (this->tracking_sw_ver ? this->tracking_sw_ver.value() : "na")
+                << ' ' << (this->processing_sw ? this->processing_sw.value() : "na")
+                << ' ' << (this->processing_sw_ver ? this->processing_sw_ver.value() : "na");
+    }
 
     // Return the C5
     return line_c5.str();
@@ -831,26 +946,41 @@ std::string CRDConfiguration::MeteorologicalConfiguration::generateLine(float ve
         line_c6 << "C6"
                 << ' ' << this->detail
                 << ' ' << this->cfg_id
-                << ' ' << (!this->press_manufacturer ? "na" : this->press_manufacturer.value())
-                << ' ' << (!this->press_model ? "na" : this->press_model.value())
-                << ' ' << (!this->press_sn ? "na" : this->press_sn.value())
-                << ' ' << (!this->temp_manufacturer ? "na" : this->temp_manufacturer.value())
-                << ' ' << (!this->temp_model ? "na" : this->temp_model.value())
-                << ' ' << (!this->temp_sn ? "na" : this->temp_sn.value())
-                << ' ' << (!this->humid_manufacturer ? "na" : this->humid_manufacturer.value())
-                << ' ' << (!this->humid_model ? "na" : this->humid_model.value())
-                << ' ' << (!this->humid_sn ? "na" : this->humid_sn.value());
+                << ' ' << (this->press_manufacturer ? this->press_manufacturer.value() : "na")
+                << ' ' << (this->press_model ? this->press_model.value() : "na")
+                << ' ' << (this->press_sn ? this->press_sn.value() : "na")
+                << ' ' << (this->temp_manufacturer ? this->temp_manufacturer.value() : "na")
+                << ' ' << (this->temp_model ? this->temp_model.value() : "na")
+                << ' ' << (this->temp_sn ? this->temp_sn.value() : "na")
+                << ' ' << (this->humid_manufacturer ? this->humid_manufacturer.value() : "na")
+                << ' ' << (this->humid_model ? this->humid_model.value() : "na")
+                << ' ' << (this->humid_sn ? this->humid_sn.value() : "na");
     }
 
     // Return the C6
     return line_c6.str();
 }
 
-std::string CRDConfiguration::CalibrationConfiguration::generateLine(float) const
+std::string CRDConfiguration::CalibrationTargetConfiguration::generateLine(float version) const
 {
-    // TODO
+    // TODO ADD THE "na" decision to the documentation.
     // Base line
     std::stringstream line_c7;
+
+    // For version 2.
+    if (version >= 2 && version < 3)
+    {
+        line_c7 << "C7"
+                << ' ' << this->detail
+                << ' ' << this->cfg_id
+                << ' ' << this->target_name
+                << ' ' << dpbase::helpers::strings::numberToStr(this->distance, 17, 5)
+                << ' ' << (this->error  ? dpbase::helpers::strings::numberToStr(this->error.value(), 8, 2) : "na")
+                << ' ' << (this->delays ? dpbase::helpers::strings::numberToStr(this->delays.value(), 12, 8) : "na")
+                << ' ' << (this->energy ? dpbase::helpers::strings::numberToStr(this->energy.value(), 12, 2) : "na")
+                << ' ' << (this->processing_sw ? this->processing_sw.value() : "na")
+                << ' ' << (this->processing_sw_ver ? this->processing_sw_ver.value() : "na");
+    }
 
     // Return the C7
     return line_c7.str();
