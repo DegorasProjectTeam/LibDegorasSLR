@@ -54,6 +54,7 @@ if __name__ == "__main__":
     # set the limits of the plot to the limits of the data
     fig1.colorbar(c, ax=ax1)
     ax1.grid()
+    fig1.savefig('az_corr_3d.png')
 
 
     fig2, ax2 = plt.subplots(subplot_kw={'projection': '3d'})
@@ -64,16 +65,8 @@ if __name__ == "__main__":
     # set the limits of the plot to the limits of the data
     fig2.colorbar(c, ax=ax2)
     ax2.grid()
+    fig2.savefig('el_corr_3d.png')
 
-
-    fig3, ax3 = plt.subplots(subplot_kw={'projection': '3d'})
-
-    ax3.set_title('Distribución de RMS')
-
-    c = ax3.plot_surface(az, el, rms, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-    # set the limits of the plot to the limits of the data
-    fig3.colorbar(c, ax=ax3)
-    ax3.grid()
 
     # Every 3rd point in each direction.
     skip = (slice(None, None, 50), slice(None, None, 50))
@@ -83,6 +76,7 @@ if __name__ == "__main__":
     ax4.quiver(az[skip], el[skip], dx[skip], dy[skip], color='Black')
     ax4.set(title="Azimuth errors quiver plot")
     fig4.colorbar(cf, ax=ax4)
+    fig4.savefig('az_corr_quiver.png')
 
     skip = (slice(None, None, 50), slice(None, None, 50))
     dx, dy = np.gradient(el_error)
@@ -91,6 +85,7 @@ if __name__ == "__main__":
     ax5.quiver(az[skip], el[skip], dx[skip], dy[skip], color='Black')
     ax5.set(title="Elevation errors quiver plot")
     fig5.colorbar(cf, ax=ax5)
+    fig5.savefig('el_corr_quiver.png')
 
     fig6, ax6 = plt.subplots(subplot_kw={'projection': 'polar'})
     # Set the range for elevation (0 to 90 degrees)
@@ -102,6 +97,7 @@ if __name__ == "__main__":
     fig6.colorbar(c, ax=ax6)
     ax6.set_theta_zero_location('N')
     ax6.set_theta_direction(-1)
+    fig6.savefig('az_corr_polar.png')
 
     fig7, ax7 = plt.subplots(subplot_kw={'projection': 'polar'})
     # Set the range for elevation (0 to 90 degrees)
@@ -113,5 +109,6 @@ if __name__ == "__main__":
     fig7.colorbar(c, ax=ax7)
     ax7.set_theta_zero_location('N')
     ax7.set_theta_direction(-1)
+    fig7.savefig('el_corr_polar.png')
 
-    plt.show()
+

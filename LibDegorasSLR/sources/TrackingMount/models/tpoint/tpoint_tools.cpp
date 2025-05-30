@@ -91,8 +91,8 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
     double azimuth = dpbase::math::units::degToRad(pos.az);
     double elevation = dpbase::math::units::degToRad(pos.el);
 
-    const double PI_HALF = M_PI / 2;
-    const double THREE_PI_HALF = 3 * M_PI / 2;
+    constexpr double PI_HALF = M_PI / 2;
+    constexpr double THREE_PI_HALF = 3 * M_PI / 2;
 
     AltAzCorrection offsets = {0.0, 0.0};
 
@@ -213,7 +213,13 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
                 first_correction = std::cos(first_variable);
             }
             else
+            {
                 first_correction = std::sin(first_variable);
+                // If correction is applied over sine of azimuth, since azimuth must be south 0, east 90,
+                // signs are reversed.
+                if ('A' == matches[3])
+                    first_correction = -first_correction;
+            }
 
             // Get second correction, if it exists
             if (matches.size() >= 9 && matches[5].length() > 0)
@@ -247,7 +253,13 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
                     second_correction = std::cos(second_variable);
                 }
                 else
+                {
                     second_correction = std::sin(second_variable);
+                    // If correction is applied over sine of azimuth, since azimuth must be south 0, east 90,
+                    // signs are reversed.
+                    if ('A' == matches[7])
+                        second_correction = -second_correction;
+                }
             }
 
 
@@ -262,10 +274,10 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
             {
                 offsets.el = coefValue * first_correction * second_correction;
             }
-            // Left to right (approx. equal to Az * cos Elev)
+            // Left to right (approx. equal to Az * cos Elev, so we divide by cos Elev to get Az correction)
             else if ('S' == matches[1])
             {
-                offsets.az = coefValue * first_correction * second_correction / std::cos(elevation);
+                offsets.az = -coefValue * first_correction * second_correction / std::cos(elevation);
             }
             // Az/El nonperpendicularity
             else if ('V' == matches[1])

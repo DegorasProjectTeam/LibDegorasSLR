@@ -25,19 +25,18 @@ if __name__ == "__main__":
     az_error = (az_obs - az_corrected) * 3600
     el_error = (el_obs - el_corrected) * 3600
 
-
-    fig1, ax1 = plt.subplots()
-    ax1.plot(az_error, 'bo')
-    ax1.set(title="Azimuth correction error")
-
-    fig2, ax2 = plt.subplots()
-    ax2.plot(el_error,'-go')
-    ax2.set(title="Elevation correction error")
-
     stdev_az = np.std(az_error)
     stdev_el = np.std(el_error)
 
-    print("az std: ", stdev_az, "el std: ", stdev_el)
+    fig1, ax1 = plt.subplots()
+    ax1.plot(az_error, 'bo')
+    ax1.set(title="Azimuth correction error (std = " + str(stdev_az) + ")")
+    fig1.savefig("az_stars.png")
+
+    fig2, ax2 = plt.subplots()
+    ax2.plot(el_error,'-go')
+    ax2.set(title="Elevation correction error (std = " + str(stdev_el) + ")")
+    fig2.savefig("el_stars.png")
 
     excluded = []
     for i, error in enumerate(az_error):
@@ -53,13 +52,17 @@ if __name__ == "__main__":
 
     az_error = np.delete(az_error, excluded)
     el_error = np.delete(el_error, excluded)
+    
+    stdev_az = np.std(az_error)
+    stdev_el = np.std(el_error)
 
     fig3, ax3 = plt.subplots()
     ax3.plot(az_error, 'bo')
-    ax3.set(title="Azimuth correction error (no outliers)")
+    ax3.set(title="Azimuth correction error (no outliers, std = " + str(stdev_az) + ")")
+    fig3.savefig("az_stars_no_outliers.png")
 
     fig4, ax4 = plt.subplots()
     ax4.plot(el_error,'-go')
-    ax4.set(title="Elevation correction error (no outliers)")
+    ax4.set(title="Elevation correction error (no outliers, (std = " + str(stdev_el) + ")")
+    fig4.savefig("el_stars_no_outliers.png")
 
-    plt.show()
