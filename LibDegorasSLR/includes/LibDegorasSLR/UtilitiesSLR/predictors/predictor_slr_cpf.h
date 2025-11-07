@@ -41,7 +41,7 @@
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/UtilitiesSLR/predictors/predictor_slr_base.h"
-#include "LibDegorasSLR/FormatsILRS/cpf/cpf.h"
+#include "LibDegorasSLR/ILRS/formats/cpf/cpf.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/geocentric_point.h"
 // =====================================================================================================================
@@ -123,27 +123,49 @@ public:
     };
 
     /**
-     * @brief Constructs the interpolator with a opened CPF (all data) and the station location. CPF must be correctly opened with
-     * all datas.
-     * @param cpf_path CPF ephemerids file path for getting position records.
-     * @param geod Geodetic ECEF position of the station (meters with mm preccision).
+     * @brief Constructs the predictor from a CPF file path.
+     * @param cpf_path CPF ephemerides file path for getting position records.
+     * @param geod Geodetic ECEF position of the station (meters with mm precision).
      * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
      */
     PredictorSlrCPF(const std::string& cpf_path,
                     const geo::types::GeodeticPointDeg& geod,
                     const geo::types::GeocentricPoint& geoc);
 
+    /**
+     * @brief Constructs the predictor with an opened CPF and the station location.
+     *        CPF must be correctly opened with all data.
+     * @param cpf CPF object.
+     * @param geod Geodetic ECEF position of the station (meters with mm preccision).
+     * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
+     */
+    PredictorSlrCPF(ilrs::cpf::CPF cpf,
+                    const geo::types::GeodeticPointDeg& geod,
+                    const geo::types::GeocentricPoint& geoc);
+
+    /**
+     * @brief Creates an empty predictor with a given station location. CPF must be set before using it.
+     * @param geod Geodetic ECEF position of the station (meters with mm preccision).
+     * @param geoc Geocentric position of the station (radians, N > 0 and E > 0, altitude in m, 8 decimals for ~1 mm).
+     */
     PredictorSlrCPF(const geo::types::GeodeticPointDeg& geod, const geo::types::GeocentricPoint& geoc);
 
     // Copy and movement constructors and operators.
     M_DEFINE_CTOR_COPY_MOVE_OP_COPY_MOVE(PredictorSlrCPF)
 
     /**
-     * @brief Sets the CPF to use for predictions.
-     * @param cpf_path CPF ephemerids file path for getting position records.
+     * @brief Sets the CPF path to use for predictions.
+     * @param cpf_path CPF ephemerides file path for getting position records.
      * @return true if CPF is correct for predictions, false otherwise.
      */
     bool setCPF(const std::string& cpf_path);
+
+    /**
+     * @brief Sets the CPF to use for predictions.
+     * @param cpf_path CPF for getting position records.
+     * @return true if CPF is correct for predictions, false otherwise.
+     */
+    bool setCPF(ilrs::cpf::CPF cpf_path);
 
     /**
      * @brief Gets the CPF used for predictions.
