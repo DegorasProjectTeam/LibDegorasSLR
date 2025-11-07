@@ -1,0 +1,50 @@
+{
+  "version": 10,
+
+  "configurePresets": 
+  [
+    {
+      "name": "usr-dp-ucrt64",
+      "hidden": true,
+      "inherits": "dp-ucrt64",
+      "environment": 
+	  {
+        "DEGORAS_DEVDRIVE": "E:/",
+        "UCRT64_ROOT": "E:/msys64/ucrt64",
+        "VCPKG_ROOT": "E:/vcpkg",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic-degoras",
+        "VCPKG_HOST_TRIPLET": "x64-mingw-dynamic-degoras"
+      }
+    },
+	
+    {
+      "name": "usr-dp-ucrt64-deb",
+      "inherits": ["usr-dp-ucrt64", "dp-ucrt64-deb"]
+    },
+	
+    {
+      "name": "usr-dp-ucrt64-rel",
+      "inherits": ["usr-dp-ucrt64", "dp-ucrt64-rel"]
+    },
+    {
+      "name": "usr-qtcreator-dp-ucrt64-deb",
+      "inherits": ["usr-dp-ucrt64", "qtcreator-dp-ucrt64-deb"]
+    },
+	
+    {
+      "name": "usr-qtcreator-dp-ucrt64-rel",
+      "inherits": ["usr-dp-ucrt64", "qtcreator-dp-ucrt64-rel"]
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "usr-dp-ucrt64-deb",
+      "configurePreset": "usr-dp-ucrt64-deb"
+    },
+    {
+      "name": "usr-dp-ucrt64-rel",
+      "configurePreset": "usr-dp-ucrt64-rel"
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "version": 10,
+
+  "configurePresets": 
+  [
+    {
+      "name": "dp-ucrt64",
+      "hidden": true,
+      "generator": "Ninja",
+      "condition": 
+	  {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": 
+	  {
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_SYSTEM_PROCESSOR": "x86_64",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_CXX_COMPILER": "$env{UCRT64_ROOT}/bin/g++.exe",
+        "CMAKE_MAKE_PROGRAM": "$env{UCRT64_ROOT}/bin/ninja.exe",
+        "CMAKE_FIND_PACKAGE_PREFER_CONFIG": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_COLOR_DIAGNOSTICS": "ON",
+		"VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic-degoras",
+        "VCPKG_HOST_TRIPLET": "x64-mingw-dynamic-degoras",
+        "VCPKG_MANIFEST_MODE": "OFF",
+		"CMAKE_PREFIX_PATH": "$env{VCPKG_ROOT}/installed/x64-mingw-dynamic-degoras"
+      },
+	  "environment": 
+	  {
+        "PATH": "$env{UCRT64_ROOT}/bin;$penv{PATH}"
+      }
+    },
+	
+	{
+      "name": "qtcreator-dp-ucrt64",
+	  "hidden": true,
+      "inherits": "dp-ucrt64",
+      "vendor": 
+	  {
+        "qt.io/QtCreator/1.0": 
+		{
+          "AskBeforePresetsReload": false,
+          "AskReConfigureInitialParams": false,
+          "AutorunCMake": false,
+          "PackageManagerAutoSetup": false,
+          "ShowAdvancedOptionsByDefault": true,
+		  "ShowSourceSubfolders": true,
+          "UseJunctionsForSourceAndBuildDirectories": true,
+          "debugger": 
+		  {
+            "DisplayName": "DP-UCRT64-GDB",
+            "Abis": ["x86-windows-msys-pe-64bit"],
+            "Binary": "$env{UCRT64_ROOT}/bin/gdb.exe",
+            "EngineType": 1,
+            "Version": "16.3"
+          }
+        }
+      }
+    },
+	
+    {
+      "name": "dp-ucrt64-deb",
+      "inherits": "dp-ucrt64",
+      "binaryDir": "$env{DEGORAS_DEVDRIVE}/builds/${sourceDirName}/dp-ucrt64-deb",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+
+    {
+      "name": "dp-ucrt64-rel",
+      "inherits": "dp-ucrt64",
+      "binaryDir": "$env{DEGORAS_DEVDRIVE}/builds/${sourceDirName}/dp-ucrt64-rel",
+      "cacheVariables": 
+	  {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+	
+	{
+      "name": "qtcreator-dp-ucrt64-deb",
+	  "hidden": true,
+      "inherits": "qtcreator-dp-ucrt64",
+      "binaryDir": "$env{DEGORAS_DEVDRIVE}/builds/${sourceDirName}/qtcreator-dp-ucrt64-rel",
+      "cacheVariables": 
+	  {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+
+    {
+      "name": "qtcreator-dp-ucrt64-rel",
+	  "hidden": true,
+      "inherits": "qtcreator-dp-ucrt64",
+      "binaryDir": "$env{DEGORAS_DEVDRIVE}/builds/${sourceDirName}/qtcreator-dp-ucrt64-deb",
+      "cacheVariables": 
+	  {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+
+  "buildPresets": 
+  [
+    {
+      "name": "dp-ucrt64-deb",
+      "configurePreset": "dp-ucrt64-deb",
+      "jobs": 0,
+      "verbose": true
+    },
+    {
+      "name": "dp-ucrt64-rel",
+      "configurePreset": "dp-ucrt64-rel",
+      "jobs": 0,
+      "verbose": true
+    }
+  ]
+}
