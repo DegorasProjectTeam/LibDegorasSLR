@@ -9,7 +9,7 @@
       "inherits": "dp-ucrt64",
       "environment": 
 	  {
-        "DEGORAS_DEVDRIVE": "E:/",
+        "DEGORAS_DEVDRIVE": "E:",
         "UCRT64_ROOT": "E:/msys64/ucrt64",
         "VCPKG_ROOT": "E:/vcpkg",
         "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic-degoras",

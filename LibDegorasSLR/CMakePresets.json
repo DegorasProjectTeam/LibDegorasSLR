@@ -13,7 +13,10 @@
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
-      "cacheVariables": 
+	  
+	  "cmakeExecutable": "$env{UCRT64_ROOT}/bin/cmake.exe",
+      
+	  "cacheVariables": 
 	  {
         "CMAKE_SYSTEM_NAME": "Windows",
         "CMAKE_SYSTEM_PROCESSOR": "x86_64",
@@ -23,10 +26,10 @@
         "CMAKE_FIND_PACKAGE_PREFER_CONFIG": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_COLOR_DIAGNOSTICS": "ON",
+		"CMAKE_INSTALL_PREFIX": "$env{DEGORAS_DEVDRIVE}/deploys",
 		"VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic-degoras",
         "VCPKG_HOST_TRIPLET": "x64-mingw-dynamic-degoras",
-        "VCPKG_MANIFEST_MODE": "OFF",
-		"CMAKE_PREFIX_PATH": "$env{VCPKG_ROOT}/installed/x64-mingw-dynamic-degoras"
+        "VCPKG_MANIFEST_MODE": "OFF"
       },
 	  "environment": 
 	  {
@@ -84,7 +87,7 @@
       "name": "qtcreator-dp-ucrt64-deb",
 	  "hidden": true,
       "inherits": "qtcreator-dp-ucrt64",
-      "binaryDir": "$env{DEGORAS_DEVDRIVE}/builds/${sourceDirName}/qtcreator-dp-ucrt64-rel",
+      "binaryDir": "$env{DEGORAS_DEVDRIVE}/builds/${sourceDirName}/qtcreator-dp-ucrt64-deb",
       "cacheVariables": 
 	  {
         "CMAKE_BUILD_TYPE": "Debug"
@@ -95,7 +98,7 @@
       "name": "qtcreator-dp-ucrt64-rel",
 	  "hidden": true,
       "inherits": "qtcreator-dp-ucrt64",
-      "binaryDir": "$env{DEGORAS_DEVDRIVE}/builds/${sourceDirName}/qtcreator-dp-ucrt64-deb",
+      "binaryDir": "$env{DEGORAS_DEVDRIVE}/builds/${sourceDirName}/qtcreator-dp-ucrt64-rel",
       "cacheVariables": 
 	  {
         "CMAKE_BUILD_TYPE": "Release"

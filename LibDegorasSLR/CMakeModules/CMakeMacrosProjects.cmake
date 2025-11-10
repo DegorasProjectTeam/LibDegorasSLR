@@ -79,9 +79,27 @@ MACRO(macro_find_package_default package version version_mode extra_search_paths
         "${PACKAGE_LOWERCASE}-config.cmake"
     )
 
+	# --- Derive current drive root from the source tree (Windows only)
+	set(_src_dir "${CMAKE_SOURCE_DIR}")
+	file(TO_CMAKE_PATH "${_src_dir}" _src_dir_norm)                # e.g. C:/work/project
+	set(DRIVE_ROOT "")
+	if(WIN32)
+		string(REGEX MATCH "^[A-Za-z]:"
+			   _drive_letter "${_src_dir_norm}")                   # e.g. C:
+		if(_drive_letter)
+			set(DRIVE_ROOT "${_drive_letter}")                    # e.g. C:/
+		else()
+			# Fallback if something odd happens
+			set(DRIVE_ROOT "C:")
+		endif()
+	endif()
+	set(DEPLOYS_ROOT         "${DRIVE_ROOT}/deploys")
+
     # Log.
     message(STATUS "Searching for package configuration file: ${package}")
     message(STATUS "  Determined architecture folder: ${CONFIG_FOLDER}")
+    message(STATUS "  Determined drive root: ${DRIVE_ROOT}")
+    message(STATUS "  Determined deploys root: ${DEPLOYS_ROOT}")
 
     # Installation folder pattern.
     set(SEARCH_PATTERNS
@@ -92,19 +110,27 @@ MACRO(macro_find_package_default package version version_mode extra_search_paths
         "*product*/${CONFIG_FOLDER}"
         "*product*/${CONFIG_FOLDER}/share/"
         "*product*/${CONFIG_FOLDER}/share/cmake"
+		"deploys/*/${CONFIG_FOLDER}"              
+        "deploys/*/share/"         
+		"deploys/*/${CONFIG_FOLDER}"              
+		"deploys/*/share/${package}"             	
         )
 
     # List of possible relative paths where package might be installed.
     if(WIN32)
-        set(SEARCH_PATHS
-            ${extra_search_paths}
-            "external/${package}"                 # In the same project.
-            "../${package}"                       # As subproject installation
-            "../../${package}"                    # As subproject installation
-            "C:/${package}"                       # In standard root folder.
-            "C:/Program Files/${package}"         # Standard installation.
-            "C:/Program Files (x86)/${package}"   # Standard installation.
-        )
+		set(SEARCH_PATHS
+			${extra_search_paths}
+			${extra_search_paths}/${package}
+			"${DEPLOYS_ROOT}"                      # C:/deploys
+			"${DEPLOYS_ROOT}/${package}"           # C:/deploys/<pkg>
+			"${DRIVE_ROOT}${package}"              # C:/<pkg>
+			"external/${package}"                  # In-tree external
+			"../${package}"                        # Subproject install
+			"../../${package}"
+			"C:/${package}"                        # Legacy standard
+			"C:/Program Files/${package}"
+			"C:/Program Files (x86)/${package}"
+		)
     else()
         set(SEARCH_PATHS
             ${extra_search_paths}
