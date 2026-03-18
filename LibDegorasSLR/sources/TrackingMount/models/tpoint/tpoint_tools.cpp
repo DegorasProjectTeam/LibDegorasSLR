@@ -282,7 +282,7 @@ AltAzCorrection computeSingleCoefficient(const TPointSingleCoefficient& coef, co
             // Az/El nonperpendicularity
             else if ('V' == matches[1])
             {
-                // TODO:
+                offsets.az = coefValue * first_correction * second_correction * std::tan(elevation);
             }
         }
 

@@ -13,7 +13,7 @@ import sys
 if __name__ == "__main__":
 
     df = pd.read_csv('errors_stars.csv', header=0)
-    df.columns = ['az_calc', 'el_calc', 'az_obs', 'el_obs', 'az_corrected', 'el_corrected']
+    df.columns = ['az_calc', 'el_calc', 'az_obs', 'el_obs', 'az_corrected', 'el_corrected', 'az_error', 'el_error']
 
     az_calc = np.array(df['az_calc'])
     el_calc = np.array(df['el_calc'])
@@ -21,9 +21,8 @@ if __name__ == "__main__":
     el_obs = np.array(df['el_obs'])
     az_corrected = np.array(df['az_corrected'])
     el_corrected = np.array(df['el_corrected'])
-
-    az_error = (az_obs - az_corrected) * 3600
-    el_error = (el_obs - el_corrected) * 3600
+    az_error = np.array(df['az_error'])
+    el_error = np.array(df['el_error'])
 
     stdev_az = np.std(az_error)
     stdev_el = np.std(el_error)

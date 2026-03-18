@@ -150,14 +150,14 @@ int main(int argc, char **argv)
 
                 std::ofstream out("errors_stars.csv");
 
-                out << "az_calc,el_calc,az_obs,el_obs,az_corrected,el_corrected" << std::endl;
-
+                out << "az_calc,el_calc,az_obs,el_obs,az_corrected,el_corrected,az_error,el_error" << std::endl;
                 out << std::setprecision(8);
 
                 for (const auto &o : observations)
                 {
                     out << o.az_calc << "," << o.el_calc << "," << o.az_obs << "," << o.el_obs << ","
-                        << o.az_corrected << "," << o.el_corrected << std::endl;
+                        << o.az_corrected << "," << o.el_corrected << "," << (o.az_obs - o.az_corrected) * 3600
+                        << "," << (o.el_obs - o.el_corrected) * 3600 << std::endl;
                 }
             }
 
