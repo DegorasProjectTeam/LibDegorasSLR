@@ -40,7 +40,12 @@
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
+#include <vector>
+
+#include <LibDegorasBase/Mathematics/math_constants.h>
 #include "LibDegorasSLR/libdegorasslr_global.h"
+
+using dpbase::math::kPi;
 // =====================================================================================================================
 
 // LIBDPSLR NAMESPACES
@@ -88,6 +93,52 @@ enum class WtrVapPressModel
  * @see Giacomo, P., Equation for the dertermination of the density of moist air, Metrologia, V. 18, 1982
  */
  LIBDPSLR_EXPORT long double waterVaporPressure(long double rh, long double temp, long double pres, WtrVapPressModel mode);
+
+/**
+ * @brief Calculate the refraction delay correction using the Marini-Murray model
+ *
+ * @param pres Atmospheric pressure at the laser site (millibars).
+ * @param temp Athmospheric temperature at the laser site (Kelvin).
+ * @param hum Athmospheric humidity.
+ * @param alt The elevation of station.
+ * @param rlam The Wavelength.
+ * @param phi The latitude of observer.
+ * @param hm The heigth of observer.
+*/
+template <typename T>
+std::vector<T> refMM(const std::vector<T>& pres, const std::vector<T>& temp, const std::vector<T>& hum, const std::vector<T>& alt, const T& rlam, const T& phi, const T& hm)
+{
+    T flam = 0.9650 + 0.0164 / (rlam * rlam) + 0.228e-3 / std::pow(rlam,4);
+    T fphih = 1.0 - 0.26e-2 * std::cos(2.0 * phi) - 0.3 * hm;
+
+    if(pres.size() != hum.size() || hum.size() != temp.size() || temp.size() != alt.size())
+    {
+        return {};
+    }
+    std::size_t n = hum.size();
+    T tzc;
+    T ez;
+    T rk;
+    T a;
+    T b;
+    T sine;
+    T delr;
+    std::vector<T> tref(n);
+
+    for(std::size_t i = 0; i < n; i++)
+    {
+        tzc = temp[i] - 273.15;
+        ez = hum[i] * 6.11e-2 * std::pow(10.0,((7.5 * tzc) / (237.3 + tzc)));
+        rk = 1.163 - 0.968e-2 * std::cos(2.0 * phi) - 0.104e-2 * temp[i] + 0.1435e-4 * pres[i];
+        a = 0.2357e-2 * pres[i] + 0.141e-3 * ez;
+        b = 1.084e-8 * pres[i] * temp[i] * rk + (4.734e-8 * 2.0 * pres[i] * pres[i]) / (temp[i] * (3.0 - 1.0 / rk));
+        sine = std::sin(alt[i] * 2.0 * kPi / 360.0);
+        delr = (flam / fphih) * ((a+b) / (sine + (b / (a+b+1e-5)) / (sine + 0.01)));
+        tref[i] = delr * 2.0;
+    }
+
+    return tref;
+}
 
 }}} // END NAMESPACES.
 // =====================================================================================================================
