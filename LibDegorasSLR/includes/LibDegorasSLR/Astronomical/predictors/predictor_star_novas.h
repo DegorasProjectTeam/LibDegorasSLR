@@ -65,8 +65,8 @@ class LIBDPSLR_EXPORT PredictorStarNovas : public PredictorStarBase
 
 public:
 
-    PredictorStarNovas(const astro::types::Star& star, const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc,
-                       int leap_secs = 0, double ut1_utc_diff = 0);
+    // Using constructor from base class
+    using PredictorStarBase::PredictorStarBase;
 
     /**
      * @brief Predicts the position of a star at a specific time

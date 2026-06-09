@@ -51,6 +51,7 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/types/alt_az_pos.h"
 #include "LibDegorasSLR/Astronomical/types/star.h"
+#include "LibDegorasSLR/Astronomical/types/eo_parameters.h"
 #include "LibDegorasSLR/Geophysics/types/geodetic_point.h"
 #include "LibDegorasSLR/Geophysics/types/meteo_data.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
@@ -68,28 +69,66 @@ namespace dpslr{
 namespace astro{
 namespace novas{
 // =====================================================================================================================
-
+/**
+ * @brief Calculate a star altazimuth position for given parameters.
+ * @param star - The star parameters.
+ * @param loc - The location used for calculations.
+ * @param eo_params - The Earth Orientation Parameters.
+ * @param tp - The time for the calculated position.
+ * @param leap_secs - The leap seconds.
+ * @param refraction - True if refraction model is to be applied. False otherwise.
+ * @param pos - The calculated altazimuth position.
+ * @return The novas error code. 0 is successful.
+ */
 LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
                                     const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc,
+                                    const astro::types::EOParameters &eo_params,
                                     const dpbase::timing::types::HRTimePointStd& tp,
+                                    int leap_secs,
                                     bool refraction,
-                                    types::AltAzPos& pos,
-                                    int leap_secs = 0,
-                                    double ut1_utc_diff = 0);
+                                    types::AltAzPos& pos);
 
+/**
+ * @brief Calculate a star altazimuth position for given parameters.
+ * @param star - The star parameters.
+ * @param loc - The location used for calculations.
+ * @param eo_params - The Earth Orientation Parameters.
+ * @param tp - The time for the calculated position.
+ * @param leap_secs - The leap seconds.
+ * @param refraction - True if refraction model is to be applied. False otherwise.
+ * @param pos - The calculated altazimuth position.
+ * @return The novas error code. 0 is successful.
+ */
 LIBDPSLR_EXPORT int getStarAltAzPos(const astro::types::Star& star,
                                     const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc,
+                                    const astro::types::EOParameters &eo_params,
                                     const dpbase::timing::dates::JDateTime& jdt,
+                                    int leap_secs,
                                     bool refraction,
-                                    types::AltAzPos& pos,
-                                    int leap_secs = 0,
-                                    double ut1_utc_diff = 0);
+                                    types::AltAzPos& pos);
 
+/**
+ * @brief Make a novas on_surface object from a SurfaceLocation.
+ * @param loc
+ * @return The created on_surface object.
+ */
 LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc);
 
+/**
+ * @brief Make a novas on_surface object from a geodetic point and meteo data.
+ * @param geod - The geodetic position of the location
+ * @param meteo - The meteo data of the location.
+ * @return The created on_surface object.
+ */
 LIBDPSLR_EXPORT ::novas::on_surface makeOnSurface(const geo::types::GeodeticPointDeg& geod,
                                                   const geo::types::MeteoData& meteo);
 
+/**
+ * @brief Make a novas cat_entry from a Star object.
+ * @param star - The star with the parameters.
+ * @param entry - The c reated cat_entry object.
+ * @return The novas error code.
+ */
 LIBDPSLR_EXPORT int makeCatEntry(const astro::types::Star& star, ::novas::cat_entry& entry);
 
 }}} // END NAMESPACES.

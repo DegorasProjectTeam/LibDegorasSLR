@@ -59,18 +59,13 @@ using namespace geo::types;
 using namespace dpbase::math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
-PredictorStarNovas::PredictorStarNovas(const Star &star, const SurfaceLocation<Degrees> &loc,
-                                       int leap_secs, double ut1_utc_diff) :
-    PredictorStarBase(star, loc, leap_secs, ut1_utc_diff)
-{}
-
 PredictionStar PredictorStarNovas::predict(const dpbase::timing::dates::JDateTime &jdt, bool refraction) const
 {
     PredictionStar pred;
     pred.jdt = jdt;
 
-    novas::getStarAltAzPos(this->star_, this->loc_, jdt, refraction, pred.altaz_coord,
-                           this->leap_secs_, this->ut1_utc_diff_);
+    novas::getStarAltAzPos(this->star_, this->loc_, this->eo_params_, jdt,
+                           this->leap_secs_, refraction, pred.altaz_coord);
 
     return pred;
 }

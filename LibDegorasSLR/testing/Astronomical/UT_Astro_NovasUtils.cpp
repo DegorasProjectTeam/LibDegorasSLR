@@ -115,6 +115,7 @@ M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
     using Surface = dpslr::geo::types::SurfaceLocation<Angle>;
     using dpbase::timing::dates::JDateTime;
     using dpslr::astro::types::AltAzPos;
+    using dpslr::astro::types::EOParameters;
 
     using novas::julian_date;
 
@@ -122,12 +123,12 @@ M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
     star.star_name = "Vega";
     star.catalog_name = "FK5";
     star.catalog_num = 699;
-    star.ra = 18.615648986;
-    star.dec = 38.78368896;
-    star.pm_ra = 200.94;
-    star.pm_dec = 287.78;
-    star.parallax = 130.23;
-    star.rad_vel = 20.0;
+    star.ra = 18.615647777;
+    star.dec = 38.783658333;
+    star.pm_ra = 0.01726;
+    star.pm_dec = 0.2861;
+    star.parallax = 0.123;
+    star.rad_vel = -13.9;
 
     MeteoData md;
     md.pressure = 1024.1;
@@ -137,11 +138,12 @@ M_DEFINE_UNIT_TEST(novas_getStarAltAzPosition)
     Geocentric geoc; // Don't mind
 
     Surface surf{md, geod, geoc};
-
+    EOParameters eo_parameters;
+    eo_parameters.ut1_utc_diff = 0.013616;
     JDateTime jdt = julian_date(2023, 10, 18, 22) + (static_cast<double>(15)/1440.0) + (30.5 / 86400.0);
     AltAzPos pos;
 
-    int error = getStarAltAzPos(star, surf, jdt, true, pos, 37, 0.013616);
+    int error = getStarAltAzPos(star, surf, {}, jdt, 37, true, pos);
 
     if (error)
     {

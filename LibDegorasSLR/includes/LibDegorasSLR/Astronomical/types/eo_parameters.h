@@ -27,7 +27,7 @@
  **********************************************************************************************************************/
 
 /** ********************************************************************************************************************
- * @file star.h
+ * @file eop_parameters.h
  * @brief
  * @author Degoras Project Team
  * @copyright EUPL License
@@ -39,13 +39,16 @@
 
 // C++ INCLUDES
 // =====================================================================================================================
-#include <sstream>
 // =====================================================================================================================
 
 // LIBRARY INCLUDES
 // =====================================================================================================================
 #include "LibDegorasSLR/libdegorasslr_global.h"
-#include "LibDegorasSLR/Astronomical/types/ra_dec.h"
+// =====================================================================================================================
+
+// LIBDPBASE INCLUDES
+// =====================================================================================================================
+#include <LibDegorasBase/Helpers/common_aliases_macros.h>
 // =====================================================================================================================
 
 // DPSLR NAMESPACES
@@ -55,43 +58,20 @@ namespace astro{
 namespace types{
 // =====================================================================================================================
 
-struct LIBDPSLR_EXPORT Star
+
+struct LIBDPSLR_EXPORT EOParameters
 {
-    // Default constructor and destructor, copy and movement constructor and operators.
-    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(Star)
+    // Copy and movement constructor and operators, and default destructor.
+    M_DEFINE_CTOR_DEF_COPY_MOVE_OP_COPY_MOVE_DTOR(EOParameters)
 
-    std::string toJsonStr() const
-    {
-        std::ostringstream json;
-        json.precision(15); // High precision for floating points
-        json << "{";
-        json << "\"ra\":" << ra.toJsonStr() << ",";
-        json << "\"dec\":" << dec.toJsonStr() << ",";
-        json << "\"star_name\":\"" << star_name << "\",";
-        json << "\"catalog_name\":\"" << catalog_name << "\",";
-        json << "\"catalog_num\":" << catalog_num << ",";
-        json << "\"degoras_id\":" << degoras_id << ",";
-        json << "\"pm_ra\":" << pm_ra << ",";
-        json << "\"pm_dec\":" << pm_dec << ",";
-        json << "\"parallax\":" << parallax << ",";
-        json << "\"rad_vel\":" << rad_vel;
-        json << "}";
-        return json.str();
-    }
+    double x_pole = 0.;        // X pole coordinate in arcseconds
+    double y_pole = 0.;        // Y pole coordinate in arcseconds
+    double psi = 0.;           // Celestial pole offset psi in milliarcseconds
+    double epsilon = 0.;       // Celestial pole offset epsilon in milliarseconds
+    double ut1_utc_diff = 0.;  // U1 - UTC in seconds
+    double lod = 0.;           // Length of day offset in milliseconds
 
-    // Members.
-    RA ra;                       //< RAJ2000
-    Dec dec;                     //< DEJ2000
-    std::string star_name;       //< Modern proper name of the star.
-    std::string catalog_name;    //< Name of the catalog.
-    int catalog_num;             //< Number of the star in the catalog.
-    int degoras_id;              //< Identification for Degoras use only.
-    double pm_ra;                //< Proper motion in RA (s per year).
-    double pm_dec;               //< Proper motion (arcseconds per year).
-    double parallax;             //< Parallax (arcseconds).
-    double rad_vel;              //< Radial velocity (km/s)
 };
-
 
 
 }}} // END NAMESPACES

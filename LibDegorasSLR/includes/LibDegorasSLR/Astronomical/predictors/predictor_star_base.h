@@ -47,6 +47,7 @@
 #include "LibDegorasSLR/libdegorasslr_global.h"
 #include "LibDegorasSLR/Astronomical/types/star.h"
 #include "LibDegorasSLR/Astronomical/predictors/data/prediction_star.h"
+#include "LibDegorasSLR/Astronomical/types/eo_parameters.h"
 #include "LibDegorasSLR/Geophysics/types/surface_location.h"
 // =====================================================================================================================
 
@@ -82,12 +83,13 @@ public:
      * @brief Constructs a PredictorStarBase object with the given observer's location.
      * @param star          The parameters of the star.
      * @param loc           The location of the observer.
+     * @param eo_params     The Earth Orientation Parameters
      * @param leap_secs     The leap seconds to apply.
-     * @param ut1_utc_diff  The difference between UT1 and UTC time systems to apply.
      */
     PredictorStarBase(const astro::types::Star& star,
                       const geo::types::SurfaceLocation<dpbase::math::units::Degrees>& loc,
-                      int leap_secs = 0, double ut1_utc_diff = 0);
+                      const astro::types::EOParameters &eo_params,
+                      int leap_secs = 0);
 
     /**
      * @brief Create a smart ptr to a star predictor subclass, that is constructed in place using args.
@@ -159,8 +161,8 @@ protected:
 
     types::Star star_;
     geo::types::SurfaceLocation<dpbase::math::units::Degrees> loc_;
+    types::EOParameters eo_params_;
     int leap_secs_;
-    double ut1_utc_diff_;
 };
 
 /// Alias for PredictorStarBase shared smart pointer.

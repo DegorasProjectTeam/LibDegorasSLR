@@ -61,11 +61,11 @@ using namespace dpbase::math::units;
 // ---------------------------------------------------------------------------------------------------------------------
 
 PredictorStarBase::PredictorStarBase(const Star &star, const SurfaceLocation<Degrees> &loc,
-                                     int leap_secs, double ut1_utc_diff) :
+                                     const EOParameters &eo_params, int leap_secs) :
     star_(star),
     loc_(loc),
-    leap_secs_(leap_secs),
-    ut1_utc_diff_(ut1_utc_diff)
+    eo_params_(eo_params),
+    leap_secs_(leap_secs)
 {}
 
 PredictionStarV PredictorStarBase::predict(const JDateTime &jdt_start, const JDateTime &jdt_end,

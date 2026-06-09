@@ -157,8 +157,8 @@ int main()
     loc.meteo.temperature = 25.8;
 
     Star vega;
-    vega.ra = 18.615648986;
-    vega.dec = 38.78368896;
+    vega.ra = 18.615647777;
+    vega.dec = 38.783658333;
     vega.star_name = "Vega";
     vega.catalog_name = "FK5";
     vega.catalog_num = 699;
@@ -251,7 +251,8 @@ int main()
     // -------------------- PREDICTOR PREPARATION  ---------------------------------------------------------------
 
     // Prepare the mount slr predictor.
-    auto predictor = PredictorStarBase::factory<PredictorStarNovas>(examples[example_selector].star, loc);
+    auto predictor = PredictorStarBase::factory<PredictorStarNovas>(examples[example_selector].star, loc,
+                                                                    dpslr::astro::types::EOParameters(), 37);
 
 
     // Log the pass and tracking information (illustrative example). You can read the specific

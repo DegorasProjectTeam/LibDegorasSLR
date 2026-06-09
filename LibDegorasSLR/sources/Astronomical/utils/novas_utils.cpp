@@ -48,7 +48,7 @@ on_surface makeOnSurface(const SurfaceLocation<Degrees> &loc)
 
 on_surface makeOnSurface(const GeodeticPointDeg &geod, const MeteoData &meteo)
 {
-    // TODO CHECK GEDOTIC UNITS AND METEO??
+    // TODO: maybe longitude should be in range -180,180 instead of 0, 360. East is positive.
 
     on_surface geo_loc;
     make_on_surface(static_cast<double>(geod.lat), static_cast<double>(geod.lon), static_cast<double>(geod.alt),
@@ -57,8 +57,8 @@ on_surface makeOnSurface(const GeodeticPointDeg &geod, const MeteoData &meteo)
     return geo_loc;
 }
 
-int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const JDateTime &jdt, bool refraction,
-                    AltAzPos &pos, int leap_secs, double ut1_utc_diff)
+int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const astro::types::EOParameters &eo_params,
+                    const JDateTime &jdt, int leap_secs, bool refraction,  AltAzPos &pos)
 {
     int error;
     auto surface = makeOnSurface(loc);
@@ -75,8 +75,8 @@ int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const
     double leap_secs_d = static_cast<double>(leap_secs);
     double jd_utc = static_cast<double>(jdt.datetime());
     double jd_tt = jd_utc + (leap_secs_d + 32.184) / dpbase::timing::kSecsPerDay;  // TT = UTC + incrementAT + 32.184
-    double jd_ut1 = jd_utc + ut1_utc_diff / dpbase::timing::kSecsPerDay;
-    double delta_t = 32.184 + leap_secs_d - ut1_utc_diff;                  // TT - UT1 in seconds.
+    double jd_ut1 = jd_utc + eo_params.ut1_utc_diff / dpbase::timing::kSecsPerDay;
+    double delta_t = 32.184 + leap_secs_d - eo_params.ut1_utc_diff;                  // TT - UT1 in seconds.
 
     // Variable declarations
     double ra_topo;            // Topocentric RA
@@ -86,11 +86,9 @@ int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const
     double az;                 // Azimuth angle of star
     double ra_topo_ref;        // Topocentric RA with refraction
     double dec_topo_ref;       // Topocentric Dec with refraction
-
-    // TODO: configurable accuracy mode and poles?
-    const double x_pole = 0;                                                          // X pole
-    const double y_pole = 0;                                                          // Y pole
-    const short refraction_applied = refraction ? 2 : 0;
+    double x_pole = eo_params.x_pole;     // X pole
+    double y_pole = eo_params.y_pole;     // Y pole
+    short refraction_applied = refraction ? 2 : 0;
 
     // Get topocentric place of star
     if (!(error = topo_star(jd_tt, delta_t, &entry, &surface, 1, &ra_topo, &dec_topo)))
@@ -106,12 +104,12 @@ int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const
 }
 
 
-int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const HRTimePointStd &tp, bool refraction,
-                    AltAzPos &pos, int leap_secs, double ut1_utc_diff)
+int getStarAltAzPos(const Star &star, const SurfaceLocation<Degrees> &loc, const astro::types::EOParameters &eo_params,
+                    const HRTimePointStd &tp, int leap_secs, bool refraction, AltAzPos &pos)
 {
     JDateTime jdt = dpbase::timing::timePointToJulianDateTime(tp);
 
-    return getStarAltAzPos(star, loc, jdt, refraction, pos, leap_secs, ut1_utc_diff);
+    return getStarAltAzPos(star, loc, eo_params, jdt, leap_secs, refraction, pos);
 }
 
 int makeCatEntry(const types::Star &star, cat_entry &entry)
@@ -120,11 +118,14 @@ int makeCatEntry(const types::Star &star, cat_entry &entry)
     star_name.push_back('\0');
     std::vector<char>cat_name(star.catalog_name.begin(), star.catalog_name.end());
     cat_name.push_back('\0');
-    // RA pm must be converted from seconds/a to milliarcseconds/a
+    // RA pm must be converted from seconds/a to milliarcseconds/a.
+    // Arc s = Time s * 15 * cos(dec rad)
     // Dec pm must be converted from seconds/a to milliarcseconds/a
     // Parallax must be converted from arcseconds to milliarcseconds.
+    double dec_rad = degToRad(star.dec);
     return make_cat_entry(star_name.data(), cat_name.data(), star.catalog_num, star.ra,
-                          star.dec, star.pm_ra * 15 * 1000., star.pm_dec * 1000., star.parallax * 1000., star.rad_vel,
+                          star.dec, star.pm_ra * 15 * 1000. * std::cos(dec_rad), star.pm_dec * 1000.,
+                          star.parallax * 1000., star.rad_vel,
                           &entry);
 }
 
