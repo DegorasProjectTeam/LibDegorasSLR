@@ -86,14 +86,16 @@ Dec::Dec(int deg, int min, double sec):
     min(min),
     sec(sec)
 {
-    this->dec = deg + min / 60. + sec / 3600.;
+    this->dec = std::abs(deg) + min / 60. + sec / 3600.;
+    if (deg < 0)
+        this->dec = -this->dec;
 }
 
 Dec::Dec(double dec) :
     dec(dec)
 {
     double integer, fract;
-    fract = std::modf(dec, &integer);
+    fract = std::abs(std::modf(dec, &integer));
 
     this->deg = static_cast<int>(integer);
 
