@@ -74,7 +74,7 @@ struct LIBDPSLR_EXPORT MeteoData
         rel_humidity(hum)
     {}
 
-    std::string toJsonStr()
+    std::string toJsonStr() const
     {
         std::ostringstream json;
         json << "{"
