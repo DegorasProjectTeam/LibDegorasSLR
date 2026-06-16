@@ -74,6 +74,17 @@ struct LIBDPSLR_EXPORT MeteoData
         rel_humidity(hum)
     {}
 
+    std::string toJsonStr()
+    {
+        std::ostringstream json;
+        json << "{"
+             << "\"temp\": " << std::to_string(this->temperature) << ", "
+             << "\"press\": " << std::to_string(this->pressure) << ", "
+             << "\"rel_hum\": " << std::to_string(this->rel_humidity) << ", "
+             << "}";
+        return json.str();
+    }
+
     // Members.
     double temperature;   ///< Temperature in degrees Celsius.
     double pressure;      ///< Pressure in millibars (mbar).
