@@ -65,12 +65,13 @@ AltAzPos::AltAzPos():
     el(0._deg)
 {}
 
-AltAzPos::AltAzPos(const Degrees &az, const Degrees &el):
+AltAzPos::AltAzPos(const Degrees &az, const Degrees &el, bool normalize):
     az(az),
     el(el)
 {
     // Normalize the azimuth and elevation.
-    this->normalize();
+    if (normalize)
+        this->normalize();
 }
 
 void AltAzPos::normalize()

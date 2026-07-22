@@ -71,7 +71,7 @@ struct LIBDPSLR_EXPORT AltAzPos
 
     AltAzPos();
 
-    AltAzPos(const dpbase::math::units::Degrees& az, const dpbase::math::units::Degrees& el);
+    AltAzPos(const dpbase::math::units::Degrees& az, const dpbase::math::units::Degrees& el, bool normalize = true);
 
     void normalize();
 
