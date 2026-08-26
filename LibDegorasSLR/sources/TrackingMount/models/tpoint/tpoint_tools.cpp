@@ -308,14 +308,23 @@ AltAzPos computeParallelCoefficients(const TPointParallelCoefficients& coefs, co
     return accumulatedOffsets;
 }
 
-AltAzPos computeCorrectedByTPointPosition(const TPointCoefficients& coefs, const AltAzPos& pos)
+AltAzPos computeCorrectedByTPointPosition(const TPointCoefficients& coefs, const AltAzPos& pos, TPointAdjustMode mode)
 {
     AltAzPos modifiedPosition = pos;
     for (const auto& parallelCoefs : coefs)
     {
         auto computedOffsets = computeParallelCoefficients(parallelCoefs, modifiedPosition);
-        modifiedPosition.az -= computedOffsets.az;
-        modifiedPosition.el -= computedOffsets.el;
+
+        if (TPointAdjustMode::STAR_TO_TELESCOPE == mode)
+        {
+            modifiedPosition.az -= computedOffsets.az;
+            modifiedPosition.el -= computedOffsets.el;
+        }
+        else
+        {
+            modifiedPosition.az += computedOffsets.az;
+            modifiedPosition.el += computedOffsets.el;
+        }
     }
     return modifiedPosition;
 }

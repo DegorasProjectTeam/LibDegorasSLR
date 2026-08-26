@@ -72,6 +72,12 @@ enum class TPointParseError : std::uint16_t
     UNSUPPORTED_ID
 };
 
+enum class TPointAdjustMode : std::uint16_t
+{
+    STAR_TO_TELESCOPE,
+    TELESCOPE_TO_STAR
+};
+
 // =====================================================================================================================
 
 
@@ -86,8 +92,9 @@ struct LIBDPSLR_EXPORT TPointSingleCoefficient
 using TPointParallelCoefficients = std::vector<TPointSingleCoefficient>;
 using TPointCoefficients = std::vector<TPointParallelCoefficients>;
 
-astro::types::AltAzPos LIBDPSLR_EXPORT computeCorrectedByTPointPosition(const TPointCoefficients& coefs,
-                                                                        const astro::types::AltAzPos& pos);
+astro::types::AltAzPos LIBDPSLR_EXPORT computeCorrectedByTPointPosition(
+    const TPointCoefficients& coefs, const astro::types::AltAzPos& pos,
+    TPointAdjustMode mode = TPointAdjustMode::STAR_TO_TELESCOPE);
 
 TPointParseError LIBDPSLR_EXPORT parseTPointModelFile(const std::string &path, TPointCoefficients &coefs);
 
